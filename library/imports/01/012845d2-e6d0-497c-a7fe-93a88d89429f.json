@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "img_game_slot_select",
+    "texture": "58e71b89-f1c1-4fe3-9428-c83fdae38718",
+    "atlas": "",
+    "rect": [
+      11,
+      9,
+      153,
+      238
+    ],
+    "offset": [
+      2.5,
+      0
+    ],
+    "originalSize": [
+      170,
+      256
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

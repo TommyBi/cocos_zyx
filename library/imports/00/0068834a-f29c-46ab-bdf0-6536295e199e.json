@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "guangyun",
+    "texture": "7069af6b-ac19-4c9d-bf71-b35dd331caf1",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      228,
+      112
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      228,
+      112
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

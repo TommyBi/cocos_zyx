@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "img_common_btn_green_2",
+    "texture": "42298d91-cc71-402b-8cb8-a7939aa334e1",
+    "atlas": "",
+    "rect": [
+      1,
+      1,
+      112,
+      94
+    ],
+    "offset": [
+      0,
+      -0.5
+    ],
+    "originalSize": [
+      114,
+      95
+    ],
+    "capInsets": [
+      54,
+      41,
+      54,
+      52
+    ]
+  }
+}

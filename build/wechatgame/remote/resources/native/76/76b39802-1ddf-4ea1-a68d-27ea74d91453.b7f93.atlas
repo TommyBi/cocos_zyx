@@ -1,0 +1,90 @@
+
+get_1.png
+size: 317,92
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+CFXM_T_WhiteCircleSmall
+  rotate: false
+  xy: 89, 6
+  size: 3, 3
+  orig: 3, 3
+  offset: 0, 0
+  index: -1
+Ellipse_Rotate
+  rotate: false
+  xy: 89, 28
+  size: 62, 62
+  orig: 62, 62
+  offset: 0, 0
+  index: -1
+glow
+  rotate: false
+  xy: 281, 56
+  size: 34, 34
+  orig: 34, 34
+  offset: 0, 0
+  index: -1
+glow_ray
+  rotate: true
+  xy: 2, 3
+  size: 87, 85
+  orig: 87, 85
+  offset: 0, 0
+  index: -1
+grab
+  rotate: false
+  xy: 153, 33
+  size: 57, 57
+  orig: 57, 57
+  offset: 0, 0
+  index: -1
+k1
+  rotate: false
+  xy: 89, 11
+  size: 67, 15
+  orig: 70, 15
+  offset: 3, 0
+  index: -1
+konfi_1
+  rotate: true
+  xy: 212, 48
+  size: 42, 67
+  orig: 42, 67
+  offset: 0, 0
+  index: -1
+konfi_2
+  rotate: true
+  xy: 218, 7
+  size: 39, 72
+  orig: 39, 72
+  offset: 0, 0
+  index: -1
+konfi__kr_1
+  rotate: true
+  xy: 292, 27
+  size: 27, 23
+  orig: 27, 23
+  offset: 0, 0
+  index: -1
+konfi__kr_2
+  rotate: true
+  xy: 158, 2
+  size: 29, 28
+  orig: 29, 28
+  offset: 0, 0
+  index: -1
+konfi__kr_3
+  rotate: true
+  xy: 188, 2
+  size: 29, 28
+  orig: 29, 28
+  offset: 0, 0
+  index: -1
+sparkle
+  rotate: false
+  xy: 292, 3
+  size: 22, 22
+  orig: 22, 22
+  offset: 0, 0
+  index: -1

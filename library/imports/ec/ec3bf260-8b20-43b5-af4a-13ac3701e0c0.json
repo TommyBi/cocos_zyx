@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "img_game_slot_mask",
+    "texture": "b2f18087-9e11-455d-86bf-33400e9b2765",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      116,
+      212
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      116,
+      212
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

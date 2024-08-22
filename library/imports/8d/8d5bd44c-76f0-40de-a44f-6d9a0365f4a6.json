@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "img_game_slot_guang",
+    "texture": "0198aa08-da8b-4a0b-83e8-b55f6c3ede69",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      142,
+      238
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      142,
+      238
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

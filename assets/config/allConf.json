@@ -1,0 +1,372 @@
+{
+  "allConf": {},
+  "language": {
+    "zh": {
+      "loading": "JUU2JUFEJUEzJUU1JTlDJUE4JUU4JUJEJUJEJUU1JTg1JUE1JUU4JUI1JTg0JUU2JUJBJTkwLi4uLi4u",
+      "slot": "JUU0JUI4JUI0JUU2JTk3JUI2JTJGbiVFNiVBNyVCRCVFNCVCRCU4RA==",
+      "distribution": "JUU2JUI0JUJFJUU1JThGJTkx",
+      "synthesis": "JUU1JTkwJTg4JUU2JTg4JTkw",
+      "next": "JUU0JUI4JThCJUU0JUI4JTgwJUU0JUI4JUFBJUU3JTlCJUFFJUU2JUEwJTg3",
+      "unlockSlot": "JUU4JUE3JUEzJUU5JTk0JTgxJUU2JTk2JUIwJUU2JUE3JUJEJUU0JUJEJThE",
+      "shuffle": "JUU2JUI0JTk3JUU3JTg5JThD",
+      "guide1": "JUU1JThEJTk1JUU1JTg3JUJCJUU5JTgwJTg5JUU2JThCJUE5",
+      "guide2": "JUU2JThBJThBJUU3JTlCJUI4JUU1JTkwJThDJUU3JUIxJUJCJUU1JTlFJThCJUU3JTlBJTg0JUU2JTk0JUJFJUU1JTlDJUE4JUU0JUI4JTgwJUU4JUI1JUI3",
+      "guide3": "MTAlRTUlQkMlQTAlRTclOUIlQjglRTUlOTAlOEMlRTclOUElODQlRTUlOEQlQTElRTclODklODclRTUlOEYlQUYlRTQlQkIlQTUlRTUlOTAlODglRTUlQjklQjYlRTUlODglQjAlRTQlQjglOEIlRTQlQjglODAlRTQlQjglQUElRTclQkElQTclRTUlODglQUIlRUYlQkMlODE=",
+      "guide4": "JUU4JThFJUI3JUU1JThGJTk2JUU2JTlCJUI0JUU1JUE0JTlBJUU3JUFEJUI5JUU3JUEwJTgx",
+      "tips": "JUU2JThGJTkwJUU3JUE0JUJB",
+      "getTips": "JUU2JTgxJUFEJUU1JTk2JTlDJUU4JThFJUI3JUU1JUJFJTk3",
+      "sure": "JUU3JUExJUFFJUU1JUFFJTlB",
+      "moneyTips1": "JUU0JUJEJUEwJUU4JUJGJTk4JUU2JTlDJTg5",
+      "withdrawal": "JUU2JThGJTkwJUU3JThFJUIw",
+      "cash": "JUU3JThFJUIwJUU5JTg3JTkx",
+      "wb": "JUU2JThGJTkwJUU2JUFDJUJFJUU0JUJEJTk5JUU5JUEyJTlE",
+      "wi": "JUU3JUFCJThCJUU1JThEJUIzJUU2JThGJTkwJUU3JThFJUIw",
+      "wis": "JUU2JThGJTkwJUU3JThFJUIwJUU4JUFGJUI0JUU2JTk4JThF",
+      "condition1": "JUUzJTgwJThDJUU2JTlEJUExJUU0JUJCJUI2JUUzJTgwJThEJUU1JUJEJTkzJUU0JUJEJTk5JUU5JUEyJTlEJUU4JUJFJUJFJUU1JTg4JUIwJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjQhJTNDJTJGY29sb3IlM0UlRUYlQkMlOEMlRTUlOEYlQUYlRTQlQkIlQTUlRTUlOTAlQUYlRTUlOEElQTglRTYlOEYlOTAlRTYlQUMlQkU=",
+      "current1": "JUUzJTgwJThDJUU1JUJEJTkzJUU1JTg5JThEJUUzJTgwJThEJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjQhJTNDJTJGY29sb3IlM0UlMkMlRTclQkMlQkElRTUlQjAlOTElM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSUyNColM0MlMkZjb2xvciUzRQ==",
+      "condition2": "JUU2JTlEJUExJUU0JUJCJUI2JUVGJUJDJTlBJUU4JUJGJTlFJUU3JUJCJUFEJUU3JTk5JUJCJUU1JUJEJTk1JTNDY29sb3IlM0QlMjNmNWNmMTYlM0UhJTNDJTJGY29sb3IlM0UlRTUlQTQlQTklRUYlQkMlOEMlRTYlQUYlOEYlRTUlQTQlQTklRTYlQjYlODglRTklOTklQTQlM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSolM0MlMkZjb2xvciUzRSVFNiVBQyVBMSVFMyU4MCU4Mg==",
+      "current2": "JUU1JUJEJTkzJUU1JTg5JThEJUVGJUJDJTlBJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UhJTNDJTJGY29sb3IlM0UlRTUlQTQlQTk=",
+      "condition3": "JUUzJTgwJThDJUU2JTlEJUExJUU0JUJCJUI2JUUzJTgwJThEJUU4JUJFJUJFJUU1JTg4JUIwJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjQhJTNDJTJGY29sb3IlM0UlRTclQkElQTclRUYlQkMlOEMlRTUlOEYlQUYlRTQlQkIlQTUlRTUlOTAlQUYlRTUlOEElQTglRTYlOEYlOTAlRTYlQUMlQkU=",
+      "current3": "JUUzJTgwJThDJUU1JUJEJTkzJUU1JTg5JThEJUUzJTgwJThEJUU1JUJEJTkzJUU1JTg5JThEJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjQhJTNDJTJGY29sb3IlM0UlRTclQkElQTclMkMlRTglQkYlOTglRTUlQjclQUUlM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSUyNColM0MlMkZjb2xvciUzRSVFNyVCQSVBNw==",
+      "tips2": "JUU2JTlEJUExJUU0JUJCJUI2JUU0JUI4JThEJUU4JUI2JUIz",
+      "adError": "JUU2JTkyJUFEJUU2JTk0JUJFJUU5JTk0JTk5JUU4JUFGJUFG",
+      "did": "aWQlRUYlQkMlOUE=",
+      "copyId": "JUU1JUE0JThEJUU1JTg4JUI2aWQ=",
+      "openTips": "JUU1JTkwJTg4JUU2JTg4JTkwKiVFNyVCQSVBNyVFNSU5MCU4RSVFNSVCQyU4MCVFNSU5MCVBRg==",
+      "day": "JUU1JUE0JUE5",
+      "level": "JUU3JUFEJTg5JUU3JUJBJUE3",
+      "xc": "JUU0JUJCJThBJUU1JUE0JUE5JUU3JTlBJTg0JUU2JUI2JTg4JUU5JTk5JUE0JUU2JUFDJUExJUU2JTk1JUIwJUVGJUJDJTlBeHglRTYlQUMlQTE="
+    },
+    "en": {
+      "loading": "TG9hZGluZyUyMHJlc291cmNlcy4uLi4uLg==",
+      "slot": "VGVtcG9yYXJ5JTIwc2xvdA==",
+      "distribution": "RGlzdHJpYnV0aW9u",
+      "synthesis": "U3ludGhlc2lz",
+      "next": "TmV4dCUyMEdvYWw=",
+      "unlockSlot": "VW5sb2NrJTIwbmV3JTIwc2xvdA==",
+      "shuffle": "U2h1ZmZsZQ==",
+      "guide1": "Q2xpY2slMjB0byUyMHNlbGVjdA==",
+      "guide2": "UHV0JTIwdGhlJTIwc2FtZSUyMHR5cGUlMjB0b2dldGhlcg==",
+      "guide3": "MTAlMjBpZGVudGljYWwlMjBjYXJkcyUyMGNhbiUyMGJlJTIwbWVyZ2VkJTIwaW50byUyMHRoZSUyMG5leHQlMjBsZXZlbCE=",
+      "guide4": "R2V0JTIwbW9yZSUyMGNhcmRz",
+      "tips": "UkVNSU5ERVI=",
+      "getTips": "Q29uZ3JhdHVsYXRpb25zJTIwb24lMjBnZXR0aW5n",
+      "sure": "WUVT",
+      "moneyTips1": "WW91JTIwc3RpbGwlMjBoYXZlJTNDY29sb3IlM0QlMjNhYzZkMjIlM0UlMjQhJTNDJTJGY29sb3IlM0VsZWZ0JTIwY2FuJTIwd2l0aGRyYXdhbCUzQ2NvbG9yJTNEJTIzYWM2ZDIyJTNFJTI0KiUzQyUyRmNvbG9yJTNF",
+      "withdrawal": "V2l0aGRyYXdhbA==",
+      "cash": "Y2FzaA==",
+      "wb": "V2l0aGRyYXdhbCUyMGJhbGFuY2U=",
+      "wi": "V2l0aGRyYXdhbCUyMGltbWVkaWF0ZWx5",
+      "wis": "V2l0aGRyYXdhbCUyMCUyMGluc3RydWN0aW9ucw==",
+      "condition1": "Q29uZGl0aW9uJTNBJTIwV2hlbiUyMHRoZSUyMGJhbGFuY2UlMjByZWFjaGVzJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjQhJTNDJTJGY29sb3IlM0UlMkN3aXRoZHJhd2FsJTIwY2FuJTIwYmUlMjBpbml0aWF0ZWQ=",
+      "current1": "Q3VycmVudCUzQSUyMCUyMCUzQ2NvbG9yJTNEJTIzZjVjZjE2JTNFJTI0ISUzQyUyRmNvbG9yJTNFJTJDc3RpbGwlMjBtaXNzaW5nJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjQqJTNDJTJGY29sb3IlM0U=",
+      "condition2": "Q29uZGl0aW9uJTNBJTIwTG9naW4lMjBmb3IlMjAlM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSElM0MlMkZjb2xvciUzRSUyMGNvbnNlY3V0aXZlJTIwZGF5cyUyMGFuZCUyMGVsaW1pbmF0ZSUyMCUzQ2NvbG9yJTNEJTIzZjVjZjE2JTNFKiUzQyUyRmNvbG9yJTNFJTIwdGltZXMlMjBwZXIlMjBkYXku",
+      "current2": "Q3VycmVudCUzQSUyMCUzQ2NvbG9yJTNEJTIzZjVjZjE2JTNFJTIwISUyMCUzQyUyRmNvbG9yJTNFZGF5cy4=",
+      "condition3": "Q29uZGl0aW9uJTNBJTIwUmVhY2hlZCUzQ2NvbG9yJTNEJTIzZjVjZjE2JTNFJTIwISUyMCUzQyUyRmNvbG9yJTNFbGV2ZWwlMkMlMjBjYW4lMjBpbml0aWF0ZSUyMHdpdGhkcmF3YWw=",
+      "current3": "Q3VycmVudCUzQSUyMEN1cnJlbnRseSUzQ2NvbG9yJTNEJTIzZjVjZjE2JTNFJTIwISUyMCUzQyUyRmNvbG9yJTNFbGV2ZWwlMkMlMjBzdGlsbCUyMG1pc3NpbmclM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSUyMColMjAlM0MlMkZjb2xvciUzRWxldmVs",
+      "tips2": "SW5zdWZmaWNpZW50JTIwY29uZGl0aW9ucw==",
+      "adError": "UGxheSUyMGVycm9y",
+      "did": "aWQlRUYlQkMlOUE=",
+      "copyId": "Q29weSUyMElE",
+      "openTips": "RW5hYmxlJTIwYWZ0ZXIlMjBzeW50aGVzaXppbmclMjAqJTIwbGV2ZWxz",
+      "day": "ZGF5",
+      "level": "bGV2ZWw=",
+      "xc": "RWxpbWluYXRpb25zJTIwdG9kYXklM0ElMjAlM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSElM0MlMkZjb2xvciUzRSUyMHRpbWVz"
+    },
+    "pt": {
+      "loading": "Q2FyZ2FuZG8lMjByZWN1cnNvcy4uLi4uLg==",
+      "slot": "VGVtcG9yJUMzJUExcmlvJTIwc2xvdA==",
+      "distribution": "RGlzdHJpYnVpJUMzJUE3JUMzJUEzbw==",
+      "synthesis": "Q29tcG9zdG8=",
+      "next": "U2VndWludGUlMjBPYmpldGl2bw==",
+      "unlockSlot": "RGVzYmxvcXVlYXIlMjB1bSUyMG5vdm8lMjBzbG8=",
+      "shuffle": "TWlzdHVyYXI=",
+      "guide1": "Q2xpcXVlJTIwcGFyYSUyMHNlbGVjaW9uYXI=",
+      "guide2": "Q29sb2NhciUyMG8lMjBtZXNtbyUyMHRpcG8lMjBqdW50b3M=",
+      "guide3": "MTAlMjBjYXJ0JUMzJUI1ZXMlMjBpZCVDMyVBQW50aWNvcyUyMHBvZGVtJTIwc2VyJTIwZnVzaW9uYWRvcyUyMHBhcmElMjBvJTIwcHIlQzMlQjN4aW1vJTIwbiVDMyVBRHZlbCE=",
+      "guide4": "T2J0ZXIlMjBtYWlzJTIwY2hpcHM=",
+      "tips": "UHJvbXB0",
+      "getTips": "UGFyYWIlQzMlQTlucyUyMHBvciUyMGNvbnNlZ3Vpcg==",
+      "sure": "Y29uZmlybWFy",
+      "moneyTips1": "Vm9jJUMzJUFBJTIwYWluZGElMjBwcmVjaXNhJTNDY29sb3IlM0QlMjNhYzZkMjIlM0UlMjQhJTNDJTJGY29sb3IlM0Vwb2RlJTIwcmV0aXJhciUyMGRpbmhlaXJvJTNDY29sb3IlM0QlMjNhYzZkMjIlM0UlMjQqJTNDJTJGY29sb3IlM0U=",
+      "withdrawal": "UmV0aXJhcg==",
+      "cash": "ZGluaGVpcm8=",
+      "wb": "U2FsZG8lMjBkZSUyMHJldGlyYWRh",
+      "wi": "UmV0aXJhJUMzJUE3JUMzJUEzbyUyMGltZWRpYXRh",
+      "wis": "SW5zdHJ1JUMzJUE3JUMzJUI1ZXMlMjBkZSUyMHJldGlyYWRh",
+      "condition1": "Q29uZGklQzMlQTclQzMlQTNvJTNBJTIwUXVhbmRvJTIwbyUyMGVxdWlsJUMzJUFEYnJpbyUyMGFsY2FuJUMzJUE3YSUzQ2NvbG9yJTNEJTIzZjVjZjE2JTNFJTI0ISUzQyUyRmNvbG9yJTNFJTJDJTIwcmV0aXJhZGElMjBwb2RlJTIwc2VyJTIwaW5pY2lhZA==",
+      "current1": "QW50ZXJpb3IlM0ElM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSUyNCElM0MlMkYlMjBjb3IlM0UlMkNmYWx0YSUzQ2NvbG9yJTNEJTIzZjVjZjE2JTNFJTI0KiUzQyUyRmNvbG9yJTNF",
+      "condition2": "Q29uZGklQzMlQTclQzMlQTNvJTNBJTIwRW50cmFyJTIwcGFyYSUyMCUzQ2NvbG9yJTNEJTIzZjVjZjE2JTNFISUzQyUyRmNvbG9yJTNFJTIwZGlhcyUyMGNvbnNlY3V0aXZvcyUyMGUlMjBlbGltaW5hciUyMCUzQ2NvbG9yJTNEJTIzZjVjZjE2JTNFKiUzQyUyRmNvbG9yJTNFJTIwdmV6ZXMlMjBwb3IlMjBkaWEu",
+      "current2": "QWN0dWFsJTNBJTIwJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjAhJTIwJTNDJTJGY29sb3IlM0VkaWFz",
+      "condition3": "Q29uZGklQzMlQTclQzMlQTNvJTNBJTIwQW8lMjBhbGNhbiVDMyVBN2FyJTIwbyUyMG4lQzMlQUR2ZWwlMjAlM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSUyMCElMjAlM0MlMkZjb2xvciUzRSUyQyUyMGElMjByZXRpcmFkYSUyMHBvZGUlMjBzZXIlMjBpbmljaWFkYQ==",
+      "current3": "JTIwQWN0dWFsJTNBJTIwTml2ZWwlMjAlM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSUyMCElMjAlM0MlMkZjb2xvciUzRSUyQyUyMGFpbmRhJTIwaCVDMyVBMSUyMCUzQ2NvbG9yJTNEJTIzZjVjZjE2JTNFJTIwKiUyMCUzQyUyRmNvbG9yJTNFJTIwbiVDMyVBRHZlaXM=",
+      "tips2": "Q29uZGklQzMlQTclQzMlQjVlcyUyMGluc3VmaWNpZW50ZXM=",
+      "adError": "RXJybyUyMGRlJTIwcmVwcm9kdSVDMyVBNyVDMyVBM28=",
+      "copyId": "Q29weSUyMElE",
+      "openTips": "QWN0aXZhciUyMGFwJUMzJUIzcyUyMHNpbnRldGl6YXIlMjAqJTIwbiVDMyVBRHZlaXM=",
+      "day": "ZGlh",
+      "level": "Z3JhdQ==",
+      "xc": "Q29udGElQzMlQTclQzMlQTNvJTIwZGUlMjBlbGltaW5hJUMzJUE3JUMzJUEzbyUyMGF0dWFsJTNBJTIwJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjAhJTIwJTNDJTJGY29sb3IlM0UlMjB2ZXplcw=="
+    },
+    "in": {
+      "loading": "JUUwJUE0JUI4JUUwJUE0JTgyJUUwJUE0JUI4JUUwJUE0JUJFJUUwJUE0JUE3JUUwJUE0JUE4JUUwJUE1JThCJUUwJUE0JTgyJTIwJUUwJUE0JTk1JUUwJUE1JThCJTIwJUUwJUE0JUIyJUUwJUE1JThCJUUwJUE0JUExJTIwJUUwJUE0JTk1JUUwJUE0JUJGJUUwJUE0JUFGJUUwJUE0JUJFJTIwJUUwJUE0JTlDJUUwJUE0JUJFJTIwJUUwJUE0JUIwJUUwJUE0JUI5JUUwJUE0JUJFJTIwJUUwJUE0JUI5JUUwJUE1JTg4Li4u",
+      "slot": "JUUwJUE0JTg1JUUwJUE0JUI4JUUwJUE1JThEJUUwJUE0JUE1JUUwJUE0JUJFJUUwJUE0JUFGJUUwJUE1JTgwJTIwJUUwJUE0JUI4JUUwJUE1JThEJUUwJUE0JUIyJUUwJUE1JTg5JUUwJUE0JTlG",
+      "distribution": "JUUwJUE0JUI1JUUwJUE0JUJGJUUwJUE0JUE0JUUwJUE0JUIwJUUwJUE0JUEz",
+      "synthesis": "JUUwJUE0JUI4JUUwJUE0JTgyJUUwJUE0JUI2JUUwJUE1JThEJUUwJUE0JUIyJUUwJUE1JTg3JUUwJUE0JUI3JUUwJUE0JUEz",
+      "next": "JUUwJUE0JTg1JUUwJUE0JTk3JUUwJUE0JUIyJUUwJUE0JUJFJTIwJUUwJUE0JUIyJUUwJUE0JTk1JUUwJUE1JThEJUUwJUE0JUI3JUUwJUE1JThEJUUwJUE0JUFG",
+      "unlockSlot": "JUUwJUE0JUE4JUUwJUE0JThGJTIwJUUwJUE0JUI4JUUwJUE1JThEJUUwJUE0JUIyJUUwJUE1JTg5JUUwJUE0JTlGJTIwJUUwJUE0JTk1JUUwJUE1JThCJTIwJUUwJUE0JTg1JUUwJUE0JUE4JUUwJUE0JUIyJUUwJUE1JTg5JUUwJUE0JTk1JTIwJUUwJUE0JTk1JUUwJUE0JUIwJUUwJUE1JTg3JUUwJUE0JTgy",
+      "shuffle": "JUUwJUE0JUExJUUwJUE1JTgwJUUwJUE0JUIy",
+      "guide1": "JUUwJUE0JTlBJUUwJUE0JUFGJUUwJUE0JUE4JTIwJUUwJUE0JTk1JUUwJUE1JTg3JTIwJUUwJUE0JUIyJUUwJUE0JUJGJUUwJUE0JThGJTIwJUUwJUE0JTlGJUUwJUE1JTg4JUUwJUE0JUFBJTIwJUUwJUE0JTk1JUUwJUE0JUIwJUUwJUE1JTg3JUUwJUE0JTgy",
+      "guide2": "JUUwJUE0JThGJUUwJUE0JTk1JTIwJUUwJUE0JUI5JUUwJUE1JTgwJTIwJUUwJUE0JUFBJUUwJUE1JThEJUUwJUE0JUIwJUUwJUE0JTk1JUUwJUE0JUJFJUUwJUE0JUIwJTIwJUUwJUE0JTk1JUUwJUE1JThCJTIwJUUwJUE0JThGJUUwJUE0JTk1JTIwJUUwJUE0JUI4JUUwJUE0JUJFJUUwJUE0JUE1JTIwJUUwJUE0JUIwJUUwJUE0JTk2JUUwJUE1JTg3JUUwJUE0JTgy",
+      "guide3": "MTAlMjAlRTAlQTQlOEYlRTAlQTQlOTUlMjAlRTAlQTQlQjklRTAlQTUlODAlMjAlRTAlQTQlQUElRTAlQTUlOEQlRTAlQTQlQjAlRTAlQTQlOTUlRTAlQTQlQkUlRTAlQTQlQjAlMjAlRTAlQTQlOTUlRTAlQTUlODclMjAlRTAlQTQlOTUlRTAlQTQlQkUlRTAlQTQlQjAlRTAlQTUlOEQlRTAlQTQlQTElMjAlRTAlQTQlOTUlRTAlQTUlOEIlMjAlRTAlQTQlODUlRTAlQTQlOTclRTAlQTQlQjIlRTAlQTUlODclMjAlRTAlQTQlQjglRTAlQTUlOEQlRTAlQTQlQTQlRTAlQTQlQjAlMjAlRTAlQTQlQUUlRTAlQTUlODclRTAlQTQlODIlMjAlRTAlQTQlQUUlRTAlQTQlQkYlRTAlQTQlQjIlRTAlQTQlQkUlMjAlRTAlQTQlQjglRTAlQTQlOTUlRTAlQTQlQTQlRTAlQTUlODclMjAlRTAlQTQlQjklRTAlQTUlODglRTAlQTQlODIh",
+      "guide4": "JUUwJUE0JTg1JUUwJUE0JUE3JUUwJUE0JUJGJUUwJUE0JTk1JTIwJUUwJUE0JTlGJUUwJUE1JThCJUUwJUE0JTk1JUUwJUE0JUE4JTIwJUUwJUE0JUFBJUUwJUE1JThEJUUwJUE0JUIwJUUwJUE0JUJFJUUwJUE0JUFBJUUwJUE1JThEJUUwJUE0JUE0JTIwJUUwJUE0JTk1JUUwJUE0JUIwJUUwJUE1JTg3JUUwJUE0JTgy",
+      "tips": "JUUwJUE0JUI4JUUwJUE1JTgxJUUwJUE0JTlEJUUwJUE0JUJFJUUwJUE0JUI1",
+      "getTips": "JUUwJUE0JUFDJUUwJUE0JUE3JUUwJUE0JUJFJUUwJUE0JTg4JTIwJUUwJUE0JUI5JUUwJUE1JThC",
+      "sure": "JUUwJUE0JUFBJUUwJUE1JTgxJUUwJUE0JUI3JUUwJUE1JThEJUUwJUE0JTlGJUUwJUE0JUJGJTIwJUUwJUE0JTk1JUUwJUE0JUIwJUUwJUE1JTg3JUUwJUE0JTgy",
+      "moneyTips1": "JUUwJUE0JTg2JUUwJUE0JUFBJUUwJUE0JTk1JUUwJUE1JThCJTIwJUUwJUE0JTg1JUUwJUE0JUFEJUUwJUE1JTgwJTIwJUUwJUE0JUFEJUUwJUE1JTgwJTIwJUUwJUE0JTk1JUUwJUE0JUFFJTIwJUUwJUE0JUI5JUUwJUE1JTg4JTNDY29sb3IlM0QlMjNhYzZkMjIlM0UlMjQhJTNDJTJGY29sb3IlM0UlRTAlQTQlQUElRTAlQTUlODglRTAlQTQlQjglRTAlQTQlQkUlMjAlRTAlQTQlQUElRTAlQTUlOEQlRTAlQTQlQjAlRTAlQTQlQkUlRTAlQTQlQUElRTAlQTUlOEQlRTAlQTQlQTQlMjAlRTAlQTQlOTUlRTAlQTQlQjAlMjAlRTAlQTQlQjglRTAlQTQlOTUlRTAlQTQlQTQlRTAlQTQlQkUlMjAlRTAlQTQlQjklRTAlQTUlODglM0Njb2xvciUzRCUyM2FjNmQyMiUzRSUyNColM0MlMkZjb2xvciUzRQ==",
+      "withdrawal": "JUUwJUE0JUE4JUUwJUE0JUJGJUUwJUE0JTk1JUUwJUE0JUJFJUUwJUE0JUI4",
+      "cash": "JUUwJUE0JUE4JUUwJUE0JTk1JUUwJUE0JUE2",
+      "wb": "JUUwJUE0JUE4JUUwJUE0JUJGJUUwJUE0JTk1JUUwJUE0JUJFJUUwJUE0JUI4JUUwJUE1JTgwJTIwJUUwJUE0JUI2JUUwJUE1JTg3JUUwJUE0JUI3",
+      "wi": "JUUwJUE0JUE0JUUwJUE1JTgxJUUwJUE0JUIwJUUwJUE0JTgyJUUwJUE0JUE0JTIwJUUwJUE0JUE4JUUwJUE0JUJGJUUwJUE0JTk1JUUwJUE0JUJFJUUwJUE0JUI4JTIwJUUwJUE0JTk1JUUwJUE0JUIwJUUwJUE1JTg3JUUwJUE0JTgy",
+      "wis": "JUUwJUE0JUE4JUUwJUE0JUJGJUUwJUE0JTk1JUUwJUE0JUJFJUUwJUE0JUI4JTIwJUUwJUE0JUI1JUUwJUE0JUJGJUUwJUE0JUI1JUUwJUE0JUIwJUUwJUE0JUEz",
+      "condition1": "JUUwJUE0JUFBJUUwJUE0JUIwJUUwJUE0JUJGJUUwJUE0JUI4JUUwJUE1JThEJUUwJUE0JUE1JUUwJUE0JUJGJUUwJUE0JUE0JUUwJUE0JUJGJTNBJUUwJUE0JTlDJUUwJUE0JUFDJTIwJUUwJUE0JUFDJUUwJUE1JTg4JUUwJUE0JUIyJUUwJUE1JTg3JUUwJUE0JUE4JUUwJUE1JThEJUUwJUE0JUI4JTIwJUUwJUE0JUFBJUUwJUE0JUI5JUUwJUE1JTgxJUUwJUE0JTgxJUUwJUE0JTlBJUUwJUE0JUE0JUUwJUE0JUJFJTIwJUUwJUE0JUI5JUUwJUE1JTg4JTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjQhJTNDJTJGY29sb3IlM0UlMkMlMjAlRTAlQTQlQUElRTAlQTUlOEQlRTAlQTQlQjAlRTAlQTQlQkUlRTAlQTQlQjAlRTAlQTQlODIlRTAlQTQlQUQlMjAlRTAlQTQlOTUlRTAlQTQlQjAlMjAlRTAlQTQlQjglRTAlQTQlOTUlRTAlQTQlQTQlRTAlQTQlQkUlMjAlRTAlQTQlQjklRTAlQTUlODg=",
+      "current1": "JUUwJUE0JUI1JUUwJUE0JUIwJUUwJUE1JThEJUUwJUE0JUE0JUUwJUE0JUFFJUUwJUE0JUJFJUUwJUE0JUE4JTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjQhJTNDJTJGY29sb3IlM0UlMkMlRTAlQTQlODUlRTAlQTQlQTglRTAlQTUlODElRTAlQTQlQUElRTAlQTQlQjglRTAlQTUlOEQlRTAlQTQlQTUlRTAlQTQlQkYlRTAlQTQlQTQlM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSUyNColM0MlMkZjb2xvciUzRQ==",
+      "condition2": "JUUwJUE0JUFBJUUwJUE0JUIwJUUwJUE0JUJGJUUwJUE0JUI4JUUwJUE1JThEJUUwJUE0JUE1JUUwJUE0JUJGJUUwJUE0JUE0JUUwJUE0JUJGJTNBJTIwJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UhJTNDJTJGY29sb3IlM0UlMjAlRTAlQTQlQTYlRTAlQTQlQkYlRTAlQTQlQTglRTAlQTUlOEIlRTAlQTQlODIlMjAlRTAlQTQlOTUlRTAlQTUlODclMjAlRTAlQTQlQjIlRTAlQTQlQkYlRTAlQTQlOEYlMjAlRTAlQTQlQjglRTAlQTQlQTYlRTAlQTUlODglRTAlQTQlQjUlMjAlRTAlQTQlQjIlRTAlQTQlOTclRTAlQTQlODclRTAlQTQlQTglMkMlMjAlRTAlQTQlQTYlRTAlQTQlQkYlRTAlQTQlQTglMjAlM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSolM0MlMkZjb2xvciUzRSUyMCVFMCVBNCU5NyVFMCVBNSU4MSVFMCVBNCVBOCVFMCVBNCVCRSUyMCVFMCVBNCVCOSVFMCVBNCU5RiVFMCVBNCVCRSVFMCVBNCU4RiVFMCVBNCU4MS4=",
+      "current2": "JUUwJUE0JUI1JUUwJUE0JUIwJUUwJUE1JThEJUUwJUE0JUE0JUUwJUE0JUFFJUUwJUE0JUJFJUUwJUE0JUE4JTNBJTIwJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjAhJTIwJTNDJTJGY29sb3IlM0UlMjAlRTAlQTQlQTYlRTAlQTQlQkYlRTAlQTQlQTg=",
+      "condition3": "JTIwJUUwJUE0JUI4JUUwJUE1JThEJUUwJUE0JUE1JUUwJUE0JUJGJUUwJUE0JUE0JUUwJUE0JUJGJTNBJTIwJUUwJUE0JUI4JUUwJUE1JThEJUUwJUE0JUE0JUUwJUE0JUIwJTIwJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjAhJTIwJTNDJTJGY29sb3IlM0UlMjAlRTAlQTQlQUElRTAlQTQlQjAlMjAlRTAlQTQlQUElRTAlQTQlQjklRTAlQTUlODElRTAlQTQlODElRTAlQTQlOUElRTAlQTQlQTglRTAlQTUlODclMjAlRTAlQTQlQUElRTAlQTQlQjAlMkMlMjAlRTAlQTQlOUIlRTAlQTUlOEIlRTAlQTQlQTElRTAlQTQlQkMlMjAlRTAlQTQlQTYlRTAlQTQlQkYlRTAlQTQlQUYlRTAlQTQlQkUlMjAlRTAlQTQlOUMlRTAlQTQlQkUlMjAlRTAlQTQlQjglRTAlQTQlOTUlRTAlQTQlQTQlRTAlQTQlQkUlMjAlRTAlQTQlQjklRTAlQTUlODg=",
+      "current3": "JTIwJUUwJUE0JUI1JUUwJUE0JUIwJUUwJUE1JThEJUUwJUE0JUE0JUUwJUE0JUFFJUUwJUE0JUJFJUUwJUE0JUE4JTNBJTIwJUUwJUE0JUI4JUUwJUE1JThEJUUwJUE0JUE0JUUwJUE0JUIwJTIwJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjAhJTIwJTNDJTJGY29sb3IlM0UlMkMlMjAlRTAlQTQlODUlRTAlQTQlQUQlRTAlQTUlODAlMjAlRTAlQTQlQUQlRTAlQTUlODAlMjAlM0Njb2xvciUzRCUyM2Y1Y2YxNiUzRSUyMColMjAlM0MlMkZjb2xvciUzRSUyMCVFMCVBNCVCOCVFMCVBNSU4RCVFMCVBNCVBNCVFMCVBNCVCMCUyMCVFMCVBNCU5QiVFMCVBNSU4QiVFMCVBNCU5RiVFMCVBNCVCRQ==",
+      "tips2": "JUUwJUE0JUI2JUUwJUE0JUIwJUUwJUE1JThEJUUwJUE0JUE0JTIwJUUwJUE0JUFBJUUwJUE1JTgyJUUwJUE0JUIwJUUwJUE1JTgwJTIwJUUwJUE0JUE4JUUwJUE0JUI5JUUwJUE1JTgwJUUwJUE0JTgyJTIwJUUwJUE0JUI5JUUwJUE1JTgxJUUwJUE0JTg4",
+      "adError": "JUUwJUE0JTk3JUUwJUE0JUIyJUUwJUE0JUE0JUUwJUE1JTgwJTIwJUUwJUE0JUI4JUUwJUE1JTg3JTIwJUUwJUE0JUFBJUUwJUE1JThEJUUwJUE0JUIyJUUwJUE1JTg3JTIwJUUwJUE0JTk1JUUwJUE0JUJGJUUwJUE0JUFGJUUwJUE0JUJFJTIwJUUwJUE0JTk3JUUwJUE0JUFGJUUwJUE0JUJF",
+      "did": "aWQlRUYlQkMlOUE=",
+      "copyId": "Q29weSUyMElE",
+      "openTips": "JUUwJUE0JUI4JUUwJUE1JThEJUUwJUE0JUE0JUUwJUE0JUIwJTIwKiUyMCVFMCVBNCU5NSVFMCVBNSU4NyUyMCVFMCVBNCVCOCVFMCVBNCU4MiVFMCVBNCVCNiVFMCVBNSU4RCVFMCVBNCVCMiVFMCVBNSU4NyVFMCVBNCVCNyVFMCVBNCVBMyUyMCVFMCVBNCU5NSVFMCVBNSU4NyUyMCVFMCVBNCVBQyVFMCVBNCVCRSVFMCVBNCVBNiUyMCVFMCVBNCU5NiVFMCVBNSU4QiVFMCVBNCVCMiVFMCVBNSU4NyVFMCVBNCU4Mg==",
+      "day": "JUUwJUE0JUE2JUUwJUE0JUJGJUUwJUE0JUE4",
+      "level": "JUUwJUE0JUI2JUUwJUE1JThEJUUwJUE0JUIwJUUwJUE1JTg3JUUwJUE0JUEzJUUwJUE1JTgw",
+      "xc": "JUUwJUE0JTg2JUUwJUE0JTlDJTIwJUUwJUE0JTk1JUUwJUE1JTgwJTIwJUUwJUE0JUI5JUUwJUE0JTlGJUUwJUE0JUJFJUUwJUE0JUE4JUUwJUE1JTg3JTIwJUUwJUE0JTk1JUUwJUE1JTgwJTIwJUUwJUE0JTk3JUUwJUE0JUJGJUUwJUE0JUE4JUUwJUE0JUE0JUUwJUE1JTgwJTNBJTIwJTNDY29sb3IlM0QlMjNmNWNmMTYlM0UlMjAhJTIwJTNDJTJGY29sb3IlM0UlMjAlRTAlQTQlQUMlRTAlQTQlQkUlRTAlQTQlQjA="
+    }
+  },
+  "language_ui1": {
+    "C": [
+      "C",
+      "C",
+      "C",
+      "C"
+    ],
+    "string": [
+      "string",
+      "string",
+      "string",
+      "string"
+    ],
+    "Id": [
+      "zh",
+      "en",
+      "pt",
+      "in"
+    ],
+    "loading": [
+      "正在载入资源......",
+      "Loading resources......",
+      "Cargando recursos......",
+      "संसाधनों को लोड किया जा रहा है..."
+    ],
+    "slot": [
+      "临时/n槽位",
+      "Temporary slot",
+      "Temporário slot",
+      "अस्थायी स्लॉट"
+    ],
+    "distribution": [
+      "派发",
+      "Distribution",
+      "Distribuição",
+      "वितरण"
+    ],
+    "synthesis": [
+      "合成",
+      "Synthesis",
+      "Composto",
+      "संश्लेषण"
+    ],
+    "next": [
+      "下一个目标",
+      "Next Goal",
+      "Seguinte Objetivo",
+      "अगला लक्ष्य"
+    ],
+    "unlockSlot": [
+      "解锁新槽位",
+      "Unlock new slot",
+      "Desbloquear um novo slo",
+      "नए स्लॉट को अनलॉक करें"
+    ],
+    "shuffle": [
+      "洗牌",
+      "Shuffle",
+      "Misturar",
+      "डील"
+    ],
+    "guide1": [
+      "单击选择",
+      "Click to select",
+      "Clique para selecionar",
+      "चयन के लिए टैप करें"
+    ],
+    "guide2": [
+      "把相同类型的放在一起",
+      "Put the same type together",
+      "Colocar o mesmo tipo juntos",
+      "एक ही प्रकार को एक साथ रखें"
+    ],
+    "guide3": [
+      "10张相同的卡片可以合并到下一个级别！",
+      "10 identical cards can be merged into the next level!",
+      "10 cartões idênticos podem ser fusionados para o próximo nível!",
+      "10 एक ही प्रकार के कार्ड को अगले स्तर में मिला सकते हैं!"
+    ],
+    "guide4": [
+      "获取更多筹码",
+      "Get more cards",
+      "Obter mais chips",
+      "अधिक टोकन प्राप्त करें"
+    ],
+    "tips": [
+      "提示",
+      "REMINDER",
+      "Prompt",
+      "सुझाव"
+    ],
+    "getTips": [
+      "恭喜获得",
+      "Congratulations on getting",
+      "Parabéns por conseguir",
+      "बधाई हो"
+    ],
+    "sure": [
+      "确定",
+      "YES",
+      "confirmar",
+      "पुष्टि करें"
+    ],
+    "moneyTips1": [
+      "你还有",
+      "You still have<color=#fef23a>$!</color>left can withdrawal<color=#fef23a>$*</color>",
+      "Você ainda precisa<color=#fef23a>$!</color>pode retirar dinheiro<color=#fef23a>$*</color>",
+      "आपको अभी भी कम है<color=#fef23a>$!</color>पैसा प्राप्त कर सकता है<color=#fef23a>$*</color>"
+    ],
+    "withdrawal": [
+      "提现",
+      "Withdrawal",
+      "Retirar",
+      "निकास"
+    ],
+    "cash": [
+      "现金",
+      "cash",
+      "dinheiro",
+      "नकद"
+    ],
+    "wb": [
+      "提款余额",
+      "Withdrawal balance",
+      "Saldo de retirada",
+      "निकासी शेष"
+    ],
+    "wi": [
+      "立即提现",
+      "Withdrawal immediately",
+      "Retiração imediata",
+      "तुरंत निकास करें"
+    ],
+    "wis": [
+      "提现说明",
+      "Withdrawal  instructions",
+      "Instruções de retirada",
+      "निकास विवरण"
+    ],
+    "condition1": [
+      "「条件」当余额达到<color=#f5cf16>$!</color>，可以启动提款",
+      "Condition: When the balance reaches<color=#f5cf16>$!</color>,withdrawal can be initiated",
+      "Condição: Quando o equilíbrio alcança<color=#f5cf16>$!</color>, retirada pode ser iniciad",
+      "परिस्थिति:जब बैलेन्स पहुँचता है<color=#f5cf16>$!</color>, प्रारंभ कर सकता है"
+    ],
+    "current1": [
+      "「当前」<color=#f5cf16>$!</color>,缺少<color=#f5cf16>$*</color>",
+      "Current:  <color=#f5cf16>$!</color>,still missing<color=#f5cf16>$*</color>",
+      "Anterior:<color=#f5cf16>$!</ cor>,falta<color=#f5cf16>$*</color>",
+      "वर्तमान<color=#f5cf16>$!</color>,अनुपस्थित<color=#f5cf16>$*</color>"
+    ],
+    "condition2": [
+      "条件：连续登录<color=#f5cf16>!</color>天，每天消除<color=#f5cf16>*</color>次。",
+      "Condition: Login for <color=#f5cf16>!</color> consecutive days and eliminate <color=#f5cf16>*</color> times per day.",
+      "Condição: Entrar para <color=#f5cf16>!</color> dias consecutivos e eliminar <color=#f5cf16>*</color> vezes por dia.",
+      "परिस्थिति: <color=#f5cf16>!</color> दिनों के लिए सदैव लगइन, दिन <color=#f5cf16>*</color> गुना हटाएँ."
+    ],
+    "current2": [
+      "当前：<color=#f5cf16>!</color>天",
+      "Current: <color=#f5cf16> ! </color>days.",
+      "Actual: <color=#f5cf16> ! </color>dias",
+      "वर्तमान: <color=#f5cf16> ! </color> दिन"
+    ],
+    "condition3": [
+      "「条件」达到<color=#f5cf16>$!</color>级，可以启动提款",
+      "Condition: Reached<color=#f5cf16> ! </color>level, can initiate withdrawal",
+      "Condição: Ao alcançar o nível <color=#f5cf16> ! </color>, a retirada pode ser iniciada",
+      " स्थिति: स्तर <color=#f5cf16> ! </color> पर पहुँचने पर, छोड़ दिया जा सकता है"
+    ],
+    "current3": [
+      "「当前」当前<color=#f5cf16>$!</color>级,还差<color=#f5cf16>$*</color>级",
+      "Current: Currently<color=#f5cf16> ! </color>level, still missing<color=#f5cf16> * </color>level",
+      " Actual: Nivel <color=#f5cf16> ! </color>, ainda há <color=#f5cf16> * </color> níveis",
+      " वर्तमान: स्तर <color=#f5cf16> ! </color>, अभी भी <color=#f5cf16> * </color> स्तर छोटा"
+    ],
+    "tips2": [
+      "条件不足",
+      "Insufficient conditions",
+      "Condições insuficientes",
+      "शर्त पूरी नहीं हुई"
+    ],
+    "adError": [
+      "播放错误",
+      "Play error",
+      "Erro de reprodução",
+      "गलती से प्ले किया गया"
+    ],
+    "did": [
+      "id：",
+      "id：",
+      null,
+      "id："
+    ],
+    "copyId": [
+      "复制id",
+      "Copy ID",
+      "Copy ID",
+      "Copy ID"
+    ],
+    "openTips": [
+      "合成*级后开启",
+      "Enable after synthesizing * levels",
+      "Activar após sintetizar * níveis",
+      "स्तर * के संश्लेषण के बाद खोलें"
+    ],
+    "day": [
+      "天",
+      "day",
+      "dia",
+      "दिन"
+    ],
+    "level": [
+      "等级",
+      "level",
+      "grau",
+      "श्रेणी"
+    ],
+    "xc": [
+      "今天的消除次数：xx次",
+      "Eliminations today: <color=#f5cf16>!</color> times",
+      "Contação de eliminação atual: <color=#f5cf16> ! </color> vezes",
+      "आज की हटाने की गिनती: <color=#f5cf16> ! </color> बार"
+    ]
+  }
+}
