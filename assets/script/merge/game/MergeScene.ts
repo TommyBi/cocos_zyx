@@ -1,4 +1,3 @@
-import { gameModule } from '../dataModule/GameModule';
 import { playerModule } from '../dataModule/PlayerModule';
 import { LAYER } from '../define/TypeDefine';
 import { audioMgr } from '../manager/AudioMgr';

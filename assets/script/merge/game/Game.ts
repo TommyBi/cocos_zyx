@@ -1,5 +1,4 @@
 import { gameModule } from '../dataModule/GameModule';
-import { playerModule } from '../dataModule/PlayerModule';
 import { SoundType, audioMgr } from '../manager/AudioMgr';
 import { EventType } from '../manager/Define';
 import { uimanager } from '../manager/Uimanager';

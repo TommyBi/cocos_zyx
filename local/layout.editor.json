@@ -6,7 +6,7 @@
       "url": "app://editor/index.html",
       "windowType": "dockable",
       "x": 176,
-      "y": 66,
+      "y": 65,
       "width": 1440,
       "height": 874,
       "layout": {
@@ -77,7 +77,7 @@
       ]
     },
     " common-asset-worker-worker": {},
-    " load-media-worker": {}
+    "window-1725001278344": {}
   },
   "panels": {
     "project-settings": {
@@ -93,8 +93,8 @@
       "height": 801
     },
     "sprite-editor": {
-      "x": 0,
-      "y": 25,
+      "x": 176,
+      "y": 160,
       "width": 1440,
       "height": 801
     },
