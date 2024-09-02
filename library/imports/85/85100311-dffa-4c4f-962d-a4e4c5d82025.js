@@ -73,6 +73,14 @@ var NewUtils = /** @class */ (function () {
         } while (result.length < cnt);
         return result;
     };
+    // 计算数组元素之和
+    NewUtils.sumArrayNum = function (arr) {
+        var sum = 0;
+        for (var i = 0; i < arr.length; i++) {
+            sum += arr[i];
+        }
+        return sum;
+    };
     return NewUtils;
 }());
 exports.default = NewUtils;

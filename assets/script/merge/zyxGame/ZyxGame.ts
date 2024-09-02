@@ -37,8 +37,14 @@ export default class ZyxGame extends cc.Component {
     @property(cc.Node)
     uBtnClean: cc.Node = null;
 
+    @property(cc.Node)
+    uBoxGrid: cc.Node = null;
+
     onLoad() {
         this.initUI();
+
+        this.uBoxGrid.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
+        this.uBoxGrid.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
     }
 
     start() {
@@ -53,4 +59,13 @@ export default class ZyxGame extends cc.Component {
         this.ulblHammerCnt.string = `${playerModule.hammer}`;
         this.ulblBombCnt.string = `${playerModule.bomb}`;
     }
+
+    onTouchStart(e: cc.Event): void {
+        const posStart = e.currentTarget.getPosition();
+        console.log('onTouchStart', posStart);
+    }
+    onTouchEnd(): void {
+        zyxGameModule.produce();
+    }
+
 }

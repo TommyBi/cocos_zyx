@@ -30,7 +30,7 @@ export default class NewUtils {
         return cloneObj;
     }
 
-    static randomIntInclusive(min, max) {
+    static randomIntInclusive(min, max): number {
         min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -66,5 +66,14 @@ export default class NewUtils {
             result.push(srcArr[index]);
         } while (result.length < cnt);
         return result;
+    }
+
+    // 计算数组元素之和
+    static sumArrayNum(arr: number[]): number {
+        let sum = 0;
+        for (let i = 0; i < arr.length; i++) {
+            sum += arr[i];
+        }
+        return sum;
     }
 }
