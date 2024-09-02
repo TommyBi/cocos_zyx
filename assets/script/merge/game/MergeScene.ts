@@ -8,8 +8,13 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class MergeScene extends cc.Component {
 
+    @property(cc.Node)
+    uBtnStart: cc.Node = null;
+
     onLoad() {
         console.log('load mergeScene');
+        this.uBtnStart.on(cc.Node.EventType.TOUCH_END, this.onStart, this);
+        this.uBtnStart.active = false;
     }
 
     start() {
@@ -21,8 +26,8 @@ export default class MergeScene extends cc.Component {
             // 初始化音频
             audioMgr.init();
 
-            // 添加游戏玩法界面
-            this.initGamePanel();
+            // 初始化界面UI
+            this.initUI();
         })
 
         this.onShow();
@@ -33,6 +38,25 @@ export default class MergeScene extends cc.Component {
         uimanager.udpateLayerShow();
     }
 
+    onStart(): void {
+        this.initGamePanel();
+    }
+
+
+    // 初始化游戏主场景信息
+    initUI(): void {
+        this.uBtnStart.active = true;
+        this.initTopCom();
+    }
+
+    async initTopCom() {
+        const topPre = await uimanager.loadPrefab('prefab/zyx/uComTop');
+        const topNode = cc.instantiate(topPre);
+        uimanager.add(topNode, LAYER.UI);
+        topNode.setPosition(new cc.Vec2(0, 0));
+    }
+
+    // 初始化游戏界面
     async initGamePanel() {
         const prefab = await uimanager.loadPrefab('prefab/merge/game');
         const gameNode: cc.Node = cc.instantiate(prefab);
@@ -41,12 +65,14 @@ export default class MergeScene extends cc.Component {
     }
 
     onShow(): void {
+        if (!window['wx']) return;
         wx.onShow(() => {
             console.log('onShow');
         })
     }
 
     onHide(): void {
+        if (!window['wx']) return;
         wx.onHide(() => {
             console.log('onHide');
         })

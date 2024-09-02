@@ -14,6 +14,7 @@ require('./assets/script/merge/dataModule/DataModule');
 require('./assets/script/merge/dataModule/GameModule');
 require('./assets/script/merge/dataModule/GoodsModule');
 require('./assets/script/merge/dataModule/PlayerModule');
+require('./assets/script/merge/dataModule/ZyxGameModule');
 require('./assets/script/merge/define/TypeDefine');
 require('./assets/script/merge/game/Coin');
 require('./assets/script/merge/game/Game');
@@ -29,7 +30,9 @@ require('./assets/script/merge/pulicCom/TouchEffect');
 require('./assets/script/merge/util/EventManager');
 require('./assets/script/merge/util/NewUtils');
 require('./assets/script/merge/util/logger');
+require('./assets/script/merge/zyxGame/ZyxComTop');
 require('./assets/script/merge/zyxGame/ZyxGame');
+require('./assets/script/merge/zyxGame/ZyxMainScene');
 
                     }
                     if (nodeEnv) {

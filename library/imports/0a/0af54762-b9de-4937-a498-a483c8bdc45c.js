@@ -67,10 +67,14 @@ var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
 var MergeScene = /** @class */ (function (_super) {
     __extends(MergeScene, _super);
     function MergeScene() {
-        return _super !== null && _super.apply(this, arguments) || this;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.uBtnStart = null;
+        return _this;
     }
     MergeScene.prototype.onLoad = function () {
         console.log('load mergeScene');
+        this.uBtnStart.on(cc.Node.EventType.TOUCH_END, this.onStart, this);
+        this.uBtnStart.active = false;
     };
     MergeScene.prototype.start = function () {
         var _this = this;
@@ -80,8 +84,8 @@ var MergeScene = /** @class */ (function (_super) {
         PlayerModule_1.playerModule.login(function () {
             // 初始化音频
             AudioMgr_1.audioMgr.init();
-            // 添加游戏玩法界面
-            _this.initGamePanel();
+            // 初始化界面UI
+            _this.initUI();
         });
         this.onShow();
         this.onHide();
@@ -89,6 +93,31 @@ var MergeScene = /** @class */ (function (_super) {
     MergeScene.prototype.update = function () {
         Uimanager_1.uimanager.udpateLayerShow();
     };
+    MergeScene.prototype.onStart = function () {
+        this.initGamePanel();
+    };
+    // 初始化游戏主场景信息
+    MergeScene.prototype.initUI = function () {
+        this.uBtnStart.active = true;
+        this.initTopCom();
+    };
+    MergeScene.prototype.initTopCom = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var topPre, topNode;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, Uimanager_1.uimanager.loadPrefab('prefab/zyx/uComTop')];
+                    case 1:
+                        topPre = _a.sent();
+                        topNode = cc.instantiate(topPre);
+                        Uimanager_1.uimanager.add(topNode, TypeDefine_1.LAYER.UI);
+                        topNode.setPosition(new cc.Vec2(0, 0));
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    // 初始化游戏界面
     MergeScene.prototype.initGamePanel = function () {
         return __awaiter(this, void 0, void 0, function () {
             var prefab, gameNode;
@@ -106,15 +135,22 @@ var MergeScene = /** @class */ (function (_super) {
         });
     };
     MergeScene.prototype.onShow = function () {
+        if (!window['wx'])
+            return;
         wx.onShow(function () {
             console.log('onShow');
         });
     };
     MergeScene.prototype.onHide = function () {
+        if (!window['wx'])
+            return;
         wx.onHide(function () {
             console.log('onHide');
         });
     };
+    __decorate([
+        property(cc.Node)
+    ], MergeScene.prototype, "uBtnStart", void 0);
     MergeScene = __decorate([
         ccclass
     ], MergeScene);

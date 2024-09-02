@@ -1,18 +1,56 @@
-const {ccclass, property} = cc._decorator;
+import { playerModule } from "../dataModule/PlayerModule";
+import { zyxGameModule } from "../dataModule/ZyxGameModule";
+
+const { ccclass, property } = cc._decorator;
 
 // 游戏主玩法场景
 @ccclass
 export default class ZyxGame extends cc.Component {
 
     @property(cc.Label)
-    label: cc.Label = null;
+    ulblScore: cc.Label = null;
 
-    @property
-    text: string = 'hello';
+    @property(cc.Label)
+    ulblDiamond: cc.Label = null;
 
-    onLoad () {}
+    @property(cc.Label)
+    ulblStarCnt: cc.Label = null;
 
-    start () {
+    @property(cc.Label)
+    ulblHammerCnt: cc.Label = null;
 
+    @property(cc.Label)
+    ulblBombCnt: cc.Label = null;
+
+    @property(cc.Label)
+    ulblAdCnt: cc.Label = null;
+
+    @property(cc.Node)
+    uImgStarBar: cc.Node = null;
+
+    @property(cc.Node)
+    uBtnHammer: cc.Node = null;
+
+    @property(cc.Node)
+    uBtnBomb: cc.Node = null;
+
+    @property(cc.Node)
+    uBtnClean: cc.Node = null;
+
+    onLoad() {
+        this.initUI();
+    }
+
+    start() {
+
+    }
+
+    initUI(): void {
+        this.ulblScore.string = `${zyxGameModule.gameInfo.score}`;
+        this.ulblDiamond.string = `${zyxGameModule.gameInfo.diamond}`;
+        this.ulblStarCnt.string = `${zyxGameModule.gameInfo.star}`;
+        this.ulblAdCnt.string = `(${zyxGameModule.gameInfo.adTimes})`;
+        this.ulblHammerCnt.string = `${playerModule.hammer}`;
+        this.ulblBombCnt.string = `${playerModule.bomb}`;
     }
 }

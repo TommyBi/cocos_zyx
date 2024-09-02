@@ -1,8 +1,21 @@
 import DataModule from './DataModule';
 import { gameModule } from './GameModule';
 import { goodsModule } from './GoodsModule';
+import { zyxGameModule } from './ZyxGameModule';
 
 export default class PlayerModule extends DataModule {
+    // 资源信息
+    diamond: number = 0;
+    star: number = 0;
+    hammer: number = 0;
+    bomb: number = 0;
+
+    // 玩家信息
+    nickName: string = '';
+    avatar: string = '';
+    lv: number = 0;
+    exp: number = 0;
+    expTar: number = 0;
 
     parseData(data: any): void {
         super.parseData(data);
@@ -10,9 +23,44 @@ export default class PlayerModule extends DataModule {
 
     login(cb: Function): void {
         const loginData = {
-            star: 0,
+            // 资源信息
+            diamond: 10,
+            star: 3,
+            bomb: 3,
+            hammer: 3,
 
-            // 初始化的筹码配置
+            // 玩家信息
+            nickName: '测试用户',
+            avatar: '',
+            lv: 1,
+            exp: 10,
+            expTar: 100,
+
+            // 状态信息
+            gameInfo: {
+                adTimes: 3,
+                score: 0,
+                exp: 0,
+                diamond: 0,
+                star: 0,
+            },
+        }
+
+        gameModule.parseData(loginData);
+        goodsModule.parseData(loginData);
+        zyxGameModule.parseData(loginData);
+
+        setTimeout(() => {
+            cb && cb();
+        }, 1000);
+    }
+}
+export const playerModule = new PlayerModule();
+
+
+
+/**
+// 初始化的筹码配置
             slotData: [
                 [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                 [2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
@@ -91,12 +139,4 @@ export default class PlayerModule extends DataModule {
                 url: ``,
             }
             ]
-        }
-
-        gameModule.parseData(loginData);
-        goodsModule.parseData(loginData);
-        cb && cb();
-    }
-}
-export const playerModule = new PlayerModule();
-
+ */
