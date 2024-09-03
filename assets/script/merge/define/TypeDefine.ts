@@ -15,3 +15,20 @@ export type typeGameInfo = {
     diamond: number,
     star: number,
 }
+
+// 格子的尺寸类型
+export enum gridSize {
+    ONE = 1,
+    TWO = 2,
+    THREE = 3,
+    FOUR = 4,
+}
+
+// 格子的物品类型
+export enum gridContentType {
+    EMPTY = 0,
+    NORMAL = 1,
+    DIAMOND = 2,
+    BOMB = 3,
+    HAMMER = 4,
+}

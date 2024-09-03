@@ -32,6 +32,7 @@ require('./assets/script/merge/util/NewUtils');
 require('./assets/script/merge/util/logger');
 require('./assets/script/merge/zyxGame/ZyxComTop');
 require('./assets/script/merge/zyxGame/ZyxGame');
+require('./assets/script/merge/zyxGame/ZyxGridCom');
 require('./assets/script/merge/zyxGame/ZyxMainScene');
 
                     }

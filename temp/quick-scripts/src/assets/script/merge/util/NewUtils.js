@@ -81,6 +81,16 @@ var NewUtils = /** @class */ (function () {
         }
         return sum;
     };
+    // 替换spriteFrame
+    NewUtils.setSpriteFrameByUrl = function (node, url) {
+        cc.resources.load(url, cc.SpriteFrame, (function (err, spriteFrame) {
+            if (err) {
+                console.error('url:', url, '/err:');
+                return;
+            }
+            node.spriteFrame = spriteFrame;
+        }));
+    };
     return NewUtils;
 }());
 exports.default = NewUtils;

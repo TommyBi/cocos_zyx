@@ -4,7 +4,7 @@ cc._RF.push(module, '26083HQUZhNsJndxpxVjML2', 'TypeDefine');
 
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LAYER = void 0;
+exports.gridContentType = exports.gridSize = exports.LAYER = void 0;
 // 层级
 var LAYER;
 (function (LAYER) {
@@ -13,5 +13,22 @@ var LAYER;
     LAYER["TIP"] = "tip";
     LAYER["GUIDE"] = "guide";
 })(LAYER = exports.LAYER || (exports.LAYER = {}));
+// 格子的尺寸类型
+var gridSize;
+(function (gridSize) {
+    gridSize[gridSize["ONE"] = 1] = "ONE";
+    gridSize[gridSize["TWO"] = 2] = "TWO";
+    gridSize[gridSize["THREE"] = 3] = "THREE";
+    gridSize[gridSize["FOUR"] = 4] = "FOUR";
+})(gridSize = exports.gridSize || (exports.gridSize = {}));
+// 格子的物品类型
+var gridContentType;
+(function (gridContentType) {
+    gridContentType[gridContentType["EMPTY"] = 0] = "EMPTY";
+    gridContentType[gridContentType["NORMAL"] = 1] = "NORMAL";
+    gridContentType[gridContentType["DIAMOND"] = 2] = "DIAMOND";
+    gridContentType[gridContentType["BOMB"] = 3] = "BOMB";
+    gridContentType[gridContentType["HAMMER"] = 4] = "HAMMER";
+})(gridContentType = exports.gridContentType || (exports.gridContentType = {}));
 
 cc._RF.pop();

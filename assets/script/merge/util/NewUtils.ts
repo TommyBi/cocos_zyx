@@ -76,4 +76,16 @@ export default class NewUtils {
         }
         return sum;
     }
+
+    // 替换spriteFrame
+    static setSpriteFrameByUrl(node: cc.Sprite, url: string) {
+        cc.resources.load(url, cc.SpriteFrame, ((err, spriteFrame: cc.SpriteFrame) => {
+            if (err) {
+                console.error('url:', url, '/err:');
+                return;
+            }
+
+            node.spriteFrame = spriteFrame;
+        }));
+    }
 }

@@ -1,4 +1,4 @@
-import { typeGameInfo } from '../define/TypeDefine';
+import { gridContentType, gridSize, typeGameInfo } from '../define/TypeDefine';
 import NewUtils from '../util/NewUtils';
 import DataModule from './DataModule';
 
@@ -21,7 +21,7 @@ export default class ZyxGameModule extends DataModule {
         this.gridInfo = data.gridInfo || [];
     }
 
-    produce(): number[] {
+    produce(): number[][] {
 
         // 确定要生成的数字组合 nMax <= 7;
         const arr = [];
@@ -30,20 +30,23 @@ export default class ZyxGameModule extends DataModule {
             // 生成新格子
             const newNum = NewUtils.randomIntInclusive(0, 4);
             if (newNum === 0) {
-                arr.push(0);
+                arr.push([0, 1]);
             } else {
                 // 判断剩余空间是否仍然没有空格子区域
                 const surSpace = 8 - arr.length;
-                if (surSpace <= newNum && arr.indexOf(0) === -1) {
+                const emptyGrid = arr.filter(x => {
+                    return x && x[1] === gridContentType.EMPTY;
+                })
+                if (surSpace <= newNum && emptyGrid.length === 0) {
                     for (let i = 0; i < surSpace; i++) {
-                        arr.push(0);
+                        arr.push([0, 1]);
                     }
                     break;
                 }
 
                 if (surSpace >= newNum) {
                     for (let i = 0; i < newNum; i++) {
-                        arr.push(newNum);
+                        arr.push([newNum, 1]);
                     }
                 }
             }

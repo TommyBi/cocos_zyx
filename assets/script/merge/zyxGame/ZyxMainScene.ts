@@ -6,6 +6,7 @@ import ZyxComTop from './ZyxComTop';
 
 const { ccclass, property } = cc._decorator;
 
+// 游戏主场景
 @ccclass
 export default class ZyxMainScene extends cc.Component {
 
