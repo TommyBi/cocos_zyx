@@ -1,6 +1,5 @@
 import { playerModule } from "../dataModule/PlayerModule";
 import { zyxGameModule } from "../dataModule/ZyxGameModule";
-import { LAYER } from "../define/TypeDefine";
 import { uimanager } from "../manager/Uimanager";
 import ZyxGridCom from "./ZyxGridCom";
 
@@ -43,6 +42,8 @@ export default class ZyxGame extends cc.Component {
     @property(cc.Node)
     uBoxGrid: cc.Node = null;
 
+    private row: cc.Node[][] = [];
+
     onLoad() {
         this.initUI();
 
@@ -69,15 +70,22 @@ export default class ZyxGame extends cc.Component {
     }
 
     async onTouchEnd() {
+        this.moveUp();
+
         const newData = zyxGameModule.produce();
-        const grids = [];
+        const grids: cc.Node[] = [];
         for (let i = 0; i < 8; i++) {
             if (i === 0 || newData[i][0] !== newData[i - 1][0]) {
                 const grid = await this.produceGrid(newData[i]);
                 this.uBoxGrid.addChild(grid);
-                grid.setPosition(new cc.Vec2(this.uBoxGrid.width / 8 * i, 0));
+                grid.setPosition(new cc.Vec2(this.uBoxGrid.width / 8 * i, -84));
+                grids.push(grid);
             }
         }
+
+        this.row.push(grids);
+
+        this.showNewGrids();
     }
 
     async produceGrid(gridInfo: number[]) {
@@ -87,4 +95,27 @@ export default class ZyxGame extends cc.Component {
         return gridNode;
     }
 
+    // 生成之前，先上移
+    moveUp(): void {
+        for (let i = 0; i < this.row.length; i++) {
+            const grids = this.row[i];
+            for (let j = 0; j < grids.length; j++) {
+                const grid = grids[j];
+                cc.tween(grid)
+                    .to(0.5, { y: grid.y + 84 }, { easing: 'cubicInOut' })
+                    .start();
+            }
+        }
+    }
+
+    // 展示新格子
+    showNewGrids(): void {
+        const grids = this.row[this.row.length - 1];
+        for (let i = 0; i < grids.length; i++) {
+            const grid = grids[i];
+            cc.tween(grid)
+                .to(0.5, { y: grid.y + 84 }, { easing: 'cubicInOut' })
+                .start();
+        }
+    }
 }

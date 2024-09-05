@@ -28,7 +28,19 @@ export default class ZyxGameModule extends DataModule {
         let condition = false;
         do {
             // 生成新格子
-            const newNum = NewUtils.randomIntInclusive(0, 4);
+            let newNum = NewUtils.randomIntInclusive(0, 10);
+            if (newNum >= 0 && newNum < 4) {
+                newNum = 0;
+            } else if (newNum >= 4 && newNum < 6) {
+                newNum = 1;
+            } else if (newNum >= 6 && newNum < 8) {
+                newNum = 2;
+            } else if (newNum >= 8 && newNum < 10) {
+                newNum = 3;
+            } else if (newNum === 10) {
+                newNum = 4;
+            }
+
             if (newNum === 0) {
                 arr.push([0, 1]);
             } else {
