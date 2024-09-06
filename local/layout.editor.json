@@ -14,12 +14,12 @@
         "children": [
           {
             "width": 1792,
-            "height": 670.34375,
+            "height": 668.640625,
             "type": "dock-h",
             "children": [
               {
-                "width": 320,
-                "height": 670.34375,
+                "width": 404,
+                "height": 668.640625,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -27,8 +27,8 @@
                 ]
               },
               {
-                "width": 313,
-                "height": 670.34375,
+                "width": 215,
+                "height": 668.640625,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -36,8 +36,8 @@
                 ]
               },
               {
-                "width": 727,
-                "height": 670.34375,
+                "width": 860,
+                "height": 668.640625,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -45,8 +45,8 @@
                 ]
               },
               {
-                "width": 423,
-                "height": 670.34375,
+                "width": 304,
+                "height": 668.640625,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -58,7 +58,7 @@
           },
           {
             "width": 1792,
-            "height": 272.140625,
+            "height": 273.859375,
             "type": "panel",
             "active": 0,
             "children": [
@@ -76,7 +76,7 @@
         "console"
       ]
     },
-    "window-1725516514459": {}
+    "window-1725611624224": {}
   },
   "panels": {
     "project-settings": {

@@ -30,10 +30,12 @@ require('./assets/script/merge/pulicCom/TouchEffect');
 require('./assets/script/merge/util/EventManager');
 require('./assets/script/merge/util/NewUtils');
 require('./assets/script/merge/util/logger');
+require('./assets/script/merge/zyxGame/ZyxAccountDialog');
 require('./assets/script/merge/zyxGame/ZyxComTop');
 require('./assets/script/merge/zyxGame/ZyxGame');
 require('./assets/script/merge/zyxGame/ZyxGridCom');
 require('./assets/script/merge/zyxGame/ZyxMainScene');
+require('./assets/script/merge/zyxGame/ZyxRewardItem');
 
                     }
                     if (nodeEnv) {

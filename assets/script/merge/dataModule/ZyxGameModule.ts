@@ -43,9 +43,9 @@ export default class ZyxGameModule extends DataModule {
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-            [[1, 1, 2], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
         ];
     }
 
@@ -54,7 +54,6 @@ export default class ZyxGameModule extends DataModule {
 
         // 确定要生成的数字组合 nMax <= 7;
         const arr = [];
-        let condition = false;
         do {
             // 生成新格子
             let newNum = NewUtils.randomIntInclusive(0, 10);
@@ -71,8 +70,7 @@ export default class ZyxGameModule extends DataModule {
             }
 
             if (newNum === 0) {
-                arr.push([0, 0, this.uniqueId]);
-                this.uniqueId++;
+                arr.push([0, 0, 0]);
             } else {
                 // 判断剩余空间是否仍然没有空格子区域
                 const surSpace = 8 - arr.length;
@@ -81,7 +79,7 @@ export default class ZyxGameModule extends DataModule {
                 })
                 if (surSpace <= newNum && emptyGrid.length === 0) {
                     for (let i = 0; i < surSpace; i++) {
-                        arr.push([0, 0, this.uniqueId]);
+                        arr.push([0, 0, 0]);
                     }
                     break;
                 }
@@ -98,7 +96,8 @@ export default class ZyxGameModule extends DataModule {
         } while (arr.length < 8);
 
         console.log('produce', arr);
-        return arr;
+        const a = [[2, 1, 2], [2, 1, 2], [0, 0, 0], [0, 0, 0], [0, 0, 0], [2, 1, 3], [2, 1, 3], [0, 0, 0]];
+        return a;
     }
 }
 export const zyxGameModule = new ZyxGameModule();

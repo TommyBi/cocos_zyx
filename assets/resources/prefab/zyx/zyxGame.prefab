@@ -110,7 +110,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uImgBg",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -217,7 +217,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uBoxGridBg",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -324,7 +324,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uBoxGrid",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -395,7 +395,7 @@
   {
     "__type__": "cc.Node",
     "_name": "img_common_tilte_bg",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -502,7 +502,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uBtnClean",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -956,7 +956,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uBtnBomb",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -1189,7 +1189,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uBtnHammer",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -1422,7 +1422,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uImgStarBarBg",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -1640,7 +1640,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uImgStar",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -1859,7 +1859,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uNodeScore",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -2153,7 +2153,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uNodeDiamond",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },

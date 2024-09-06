@@ -47,6 +47,9 @@ export default class ZyxGame extends cc.Component {
 
     private gridsWidth: number = 84;
 
+    // 掉落发生情况（掉落需要自底向上检测，一轮检测后再检测下一轮，直到最终可以发生掉落的情况全部检测完毕）
+    private hasDropAction: boolean = false;
+
     onLoad() {
         this.initUI();
 
@@ -74,18 +77,20 @@ export default class ZyxGame extends cc.Component {
     // 初始化棋盘信息
     async initChessBoard() {
         for (let row = 0; row < zyxGameModule.gridInfo.length; row++) {
-            for (let cel = 0; cel < zyxGameModule.gridInfo[row].length; cel++) {
-                if (cel === 0) {
-                    if (zyxGameModule.gridInfo[row][cel][1] !== gridContentType.EMPTY) {
-                        const grid = await this.produceGrid(zyxGameModule.gridInfo[row][cel]);
+            for (let col = 0; col < zyxGameModule.gridInfo[row].length; col++) {
+                if (col === 0) {
+                    if (zyxGameModule.gridInfo[row][col][1] !== gridContentType.EMPTY) {
+                        const grid = await this.produceGrid(zyxGameModule.gridInfo[row][col]);
                         this.uBoxGrid.addChild(grid);
-                        grid.setPosition(new cc.Vec2(this.gridsWidth * cel, this.gridsWidth * (10 - row) - this.gridsWidth));
+                        grid.setPosition(new cc.Vec2(this.gridsWidth * col, this.gridsWidth * (10 - row) - this.gridsWidth));
+                        grid.getComponent(ZyxGridCom).setRowCel(row, col);
                         this.grids.push(grid);
                     }
-                } else if (zyxGameModule.gridInfo[row][cel][1] != gridContentType.EMPTY && zyxGameModule.gridInfo[row][cel][2] !== zyxGameModule.gridInfo[row][cel - 1][2]) {
-                    const grid = await this.produceGrid(zyxGameModule.gridInfo[row][cel]);
+                } else if (zyxGameModule.gridInfo[row][col][1] != gridContentType.EMPTY && zyxGameModule.gridInfo[row][col][2] !== zyxGameModule.gridInfo[row][col - 1][2]) {
+                    const grid = await this.produceGrid(zyxGameModule.gridInfo[row][col]);
                     this.uBoxGrid.addChild(grid);
-                    grid.setPosition(new cc.Vec2(this.gridsWidth * cel, this.gridsWidth * (10 - row) - this.gridsWidth));
+                    grid.setPosition(new cc.Vec2(this.gridsWidth * col, this.gridsWidth * (10 - row) - this.gridsWidth));
+                    grid.getComponent(ZyxGridCom).setRowCel(row, col);
                     this.grids.push(grid);
                 }
             }
@@ -109,29 +114,33 @@ export default class ZyxGame extends cc.Component {
 
     // 生成新的一行
     async produceRow() {
+        // 剔除顶部空余的一行
+        zyxGameModule.gridInfo.shift();
+
+        // 生成新的一行数据
         const newData = zyxGameModule.produce();
         zyxGameModule.gridInfo.push(newData);
         for (let i = 0; i < 8; i++) {
-            if (i === 0 || newData[i][0] !== newData[i - 1][0]) {
-                const grid = await this.produceGrid(newData[i]);
+            const row = 9;
+            if (i === 0) {
+                if (zyxGameModule.gridInfo[row][i][1] !== gridContentType.EMPTY) {
+                    const grid = await this.produceGrid(zyxGameModule.gridInfo[row][i]);
+                    this.uBoxGrid.addChild(grid);
+                    grid.setPosition(new cc.Vec2(this.gridsWidth * i, -84));
+                    grid.getComponent(ZyxGridCom).setRowCel(row, i);
+                    this.grids.push(grid);
+                }
+            } else if (zyxGameModule.gridInfo[row][i][1] != gridContentType.EMPTY && zyxGameModule.gridInfo[row][i][2] !== zyxGameModule.gridInfo[row][i - 1][2]) {
+                const grid = await this.produceGrid(zyxGameModule.gridInfo[row][i]);
                 this.uBoxGrid.addChild(grid);
-                grid.setPosition(new cc.Vec2(this.uBoxGrid.width / 8 * i, -84));
+                grid.setPosition(new cc.Vec2(this.gridsWidth * i, -84));
+                grid.getComponent(ZyxGridCom).setRowCel(row, i);
                 this.grids.push(grid);
             }
         }
 
+        // 展示新格子
         this.showNewGrids();
-
-        this.dropAndCheckMerge();
-    }
-
-    // 自动掉落与合并检测
-    dropAndCheckMerge(): void {
-
-    }
-
-    checkDrop(row, cel): boolean {
-        return false
     }
 
     // 生成格子
@@ -145,23 +154,109 @@ export default class ZyxGame extends cc.Component {
     // 生成之前，先上移
     moveUp(): void {
         for (let i = 0; i < this.grids.length; i++) {
-            const grids = this.grids[i];
-            const grid = grids[i];
+            const grid = this.grids[i];
             cc.tween(grid)
                 .to(0.5, { y: grid.y + 84 }, { easing: 'cubicInOut' })
                 .start();
 
+            grid.getComponent(ZyxGridCom).moveUp();
         }
     }
 
     // 展示新格子
     showNewGrids(): void {
-        // const grids = this.rows[this.rows.length - 1];
-        // for (let i = 0; i < grids.length; i++) {
-        //     const grid = grids[i];
-        //     cc.tween(grid)
-        //         .to(0.5, { y: grid.y + 84 }, { easing: 'cubicInOut' })
-        //         .start();
-        // }
+        let showEnding: boolean = false;
+        for (let i = 0; i < this.grids.length; i++) {
+            const grid = this.grids[i];
+            if (grid.y !== -84) continue;
+            cc.tween(grid)
+                .to(0.5, { y: grid.y + 84 }, { easing: 'cubicInOut' })
+                .call(() => {
+                    if (showEnding) return;
+                    showEnding = true;
+                    this.hasDropAction = false;
+                    this.drop(9);
+                })
+                .start();
+        }
+    }
+
+    merge(): void {
+        
+    }
+
+    // 自动掉落与合并检测
+    drop(row): void {
+        if (row === 0) {
+            if (this.hasDropAction) {
+                this.hasDropAction = false;
+                console.log('新一轮检测');
+                this.drop(9);
+            } else {
+                this.merge();
+            }
+            return;
+        }
+        for (let col = 0; col < 8; col++) {
+            if (zyxGameModule.gridInfo[row][col][1] === gridContentType.EMPTY && zyxGameModule.gridInfo[row - 1][col][1] !== gridContentType.EMPTY) {
+                // 检测是否可以掉落
+                const hasDrop = this.dropGrid(row - 1, col);
+                if (hasDrop) {
+                    this.hasDropAction = true;
+                }
+                continue;
+            }
+        }
+
+        this.drop(row - 1);
+    }
+
+    dropGrid(row: number, col: number): boolean {
+        // 检测对应的空格子是否可以容纳掉下来的格子类型
+        const uniqueID = zyxGameModule.gridInfo[row][col][2];
+        const checkCols = [];
+        for (let i = 0; i < 8; i++) {
+            if (zyxGameModule.gridInfo[row][i][2] === uniqueID) {
+                checkCols.push(i);
+            }
+        }
+
+        let canDrop = true;
+        for (let i = 0; i < checkCols.length; i++) {
+            const col = checkCols[i];
+            if (zyxGameModule.gridInfo[row + 1][col][1] !== gridContentType.EMPTY) {
+                canDrop = false;
+                return false;
+            }
+        }
+
+        // 如果可以掉落，那就将数据进行交换，同时更新格子的自身属性和位置信息
+        for (let i = 0; i < checkCols.length; i++) {
+            const col = checkCols[i];
+            zyxGameModule.gridInfo[row + 1][col][0] = zyxGameModule.gridInfo[row][col][0];
+            zyxGameModule.gridInfo[row + 1][col][1] = zyxGameModule.gridInfo[row][col][1];
+            zyxGameModule.gridInfo[row + 1][col][2] = zyxGameModule.gridInfo[row][col][2];
+
+            zyxGameModule.gridInfo[row][col][0] = 0;
+            zyxGameModule.gridInfo[row][col][1] = gridContentType.EMPTY;
+            zyxGameModule.gridInfo[row][col][2] = 0;
+        }
+
+        console.log('掉落:', uniqueID);
+        console.log('gridInfo over:', zyxGameModule.gridInfo);
+
+
+        for (let i = 0; i < this.grids.length; i++) {
+            const grid = this.grids[i];
+            if (grid.getComponent(ZyxGridCom).uniqueId === uniqueID) {
+                grid.getComponent(ZyxGridCom).setRowCel(row + 1, col);
+                const tarY = this.gridsWidth * (10 - row - 1) - this.gridsWidth;
+                cc.tween(grid)
+                    .to(0.25, { y: tarY }, { easing: 'quartIn' })
+                    .start();
+            }
+        }
+
+        return canDrop;
     }
 }
