@@ -42,6 +42,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uimanager = void 0;
 var TypeDefine_1 = require("../define/TypeDefine");
+var Tips_1 = require("../pulicCom/Tips");
 var Uimanager = /** @class */ (function () {
     function Uimanager() {
         // 层级依托的场景
@@ -153,6 +154,27 @@ var Uimanager = /** @class */ (function () {
                             }
                         });
                     }); })];
+            });
+        });
+    };
+    /**
+     * 显示提示
+     * @param msg
+     */
+    Uimanager.prototype.showTips = function (msg) {
+        return __awaiter(this, void 0, void 0, function () {
+            var tipsPrefab, tipsNode;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.loadPrefab('prefab/com/tips')];
+                    case 1:
+                        tipsPrefab = _a.sent();
+                        tipsNode = cc.instantiate(tipsPrefab);
+                        this.add(tipsNode, TypeDefine_1.LAYER.TIP);
+                        tipsNode.getComponent(Tips_1.default).showTips(msg);
+                        tipsNode.setPosition(0, 0);
+                        return [2 /*return*/];
+                }
             });
         });
     };

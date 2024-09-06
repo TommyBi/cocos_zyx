@@ -181,8 +181,10 @@ export default class ZyxGame extends cc.Component {
         }
     }
 
+    // 进行合成操作
     merge(): void {
-        
+        console.log('merge');
+        uimanager.showTips('开始合成');
     }
 
     // 自动掉落与合并检测

@@ -303,8 +303,12 @@
       "__id__": 1
     },
     "_enabled": true,
-    "ulblTips": null,
-    "uImgBg": null,
+    "ulblTips": {
+      "__id__": 6
+    },
+    "uImgBg": {
+      "__id__": 3
+    },
     "_id": ""
   },
   {

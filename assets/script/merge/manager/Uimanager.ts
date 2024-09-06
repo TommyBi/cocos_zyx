@@ -1,4 +1,5 @@
 import { LAYER } from '../define/TypeDefine';
+import Tips from '../pulicCom/Tips';
 
 export default class Uimanager {
     private static _ins: Uimanager;
@@ -107,6 +108,18 @@ export default class Uimanager {
                     reject(err);
                 });
         });
+    }
+
+    /**
+     * 显示提示
+     * @param msg
+     */
+    async showTips(msg: string) {
+        const tipsPrefab = await this.loadPrefab('prefab/com/tips');
+        const tipsNode = cc.instantiate(tipsPrefab);
+        this.add(tipsNode, LAYER.TIP);
+        tipsNode.getComponent(Tips).showTips(msg);
+        tipsNode.setPosition(0, 0);
     }
 }
 export const uimanager = Uimanager.instance;
