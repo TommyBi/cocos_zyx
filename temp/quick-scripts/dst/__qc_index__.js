@@ -26,6 +26,7 @@ require('./assets/script/merge/game/Slot');
 require('./assets/script/merge/manager/AudioMgr');
 require('./assets/script/merge/manager/Define');
 require('./assets/script/merge/manager/Uimanager');
+require('./assets/script/merge/pulicCom/Tips');
 require('./assets/script/merge/pulicCom/TouchEffect');
 require('./assets/script/merge/util/EventManager');
 require('./assets/script/merge/util/NewUtils');
