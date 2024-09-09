@@ -7,19 +7,19 @@
       "windowType": "dockable",
       "x": 0,
       "y": 25,
-      "width": 1792,
-      "height": 1035,
+      "width": 1440,
+      "height": 831,
       "layout": {
         "type": "dock-v",
         "children": [
           {
-            "width": 1792,
-            "height": 668.640625,
+            "width": 1440,
+            "height": 556,
             "type": "dock-h",
             "children": [
               {
-                "width": 404,
-                "height": 668.640625,
+                "width": 295.015625,
+                "height": 556,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -27,8 +27,8 @@
                 ]
               },
               {
-                "width": 215,
-                "height": 668.640625,
+                "width": 204,
+                "height": 556,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -36,8 +36,8 @@
                 ]
               },
               {
-                "width": 860,
-                "height": 668.640625,
+                "width": 627.984375,
+                "height": 556,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -46,7 +46,7 @@
               },
               {
                 "width": 304,
-                "height": 668.640625,
+                "height": 556,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -57,8 +57,8 @@
             ]
           },
           {
-            "width": 1792,
-            "height": 273.859375,
+            "width": 1440,
+            "height": 226,
             "type": "panel",
             "active": 0,
             "children": [
@@ -76,7 +76,7 @@
         "console"
       ]
     },
-    "window-1725612265724": {}
+    " common-asset-worker-worker": {}
   },
   "panels": {
     "project-settings": {
