@@ -121,5 +121,14 @@ export default class Uimanager {
         tipsNode.getComponent(Tips).showTips(msg);
         tipsNode.setPosition(0, 0);
     }
+
+    /** 结算 */
+    async showGameOver() {
+        uimanager.showTips('游戏结束');
+        const prefab = await this.loadPrefab('prefab/zyx/accountDialog');
+        const accountNode = cc.instantiate(prefab);
+        this.add(accountNode, LAYER.UI);
+        accountNode.setPosition(0, 0);
+    }
 }
 export const uimanager = Uimanager.instance;

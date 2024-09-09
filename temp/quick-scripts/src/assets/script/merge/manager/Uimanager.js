@@ -178,6 +178,25 @@ var Uimanager = /** @class */ (function () {
             });
         });
     };
+    /** 结算 */
+    Uimanager.prototype.showGameOver = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var prefab, accountNode;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        exports.uimanager.showTips('游戏结束');
+                        return [4 /*yield*/, this.loadPrefab('prefab/zyx/accountDialog')];
+                    case 1:
+                        prefab = _a.sent();
+                        accountNode = cc.instantiate(prefab);
+                        this.add(accountNode, TypeDefine_1.LAYER.UI);
+                        accountNode.setPosition(0, 0);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
     return Uimanager;
 }());
 exports.default = Uimanager;

@@ -99,5 +99,16 @@ export default class ZyxGameModule extends DataModule {
         // const a = [[2, 1, 10], [2, 1, 10], [0, 0, 0], [0, 0, 0], [0, 0, 0], [2, 1, 11], [2, 1, 11], [0, 0, 0]];
         return arr;
     }
+
+    // 检查游戏是否结束
+    checkGameOver(): boolean {
+        let isGameOver = false;
+        for (let col = 0; col < this.gridInfo[0].length; col++) {
+            if (this.gridInfo[0][col][1] !== gridContentType.EMPTY) {
+                isGameOver = true;
+            }
+        }
+        return isGameOver;
+    }
 }
 export const zyxGameModule = new ZyxGameModule();

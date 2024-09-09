@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "img_item_diamond",
+    "texture": "44ffd4b0-90af-4e13-94e0-cd82d1de0485",
+    "atlas": "",
+    "rect": [
+      34,
+      32,
+      188,
+      193
+    ],
+    "offset": [
+      0,
+      -0.5
+    ],
+    "originalSize": [
+      256,
+      256
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

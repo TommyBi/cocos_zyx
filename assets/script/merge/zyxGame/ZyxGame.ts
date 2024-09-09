@@ -184,7 +184,6 @@ export default class ZyxGame extends cc.Component {
     // 进行合成操作
     merge(): void {
         console.log('merge');
-        uimanager.showTips('开始合成');
         let mergeTimes = 0;
         // 检测每一行是否有可以消除的格子
         for (let row = 0; row < zyxGameModule.gridInfo.length; row++) {
@@ -218,9 +217,11 @@ export default class ZyxGame extends cc.Component {
         }
 
         if (mergeTimes > 0) {
+            uimanager.showTips('發生消除');
             this.drop(9);
         } else {
             zyxGameModule.lock = false;
+            this.checkGameOver();
         }
     }
 
@@ -246,7 +247,7 @@ export default class ZyxGame extends cc.Component {
             } else {
                 setTimeout(() => {
                     this.merge();
-                }, 500);
+                }, 400);
             }
             return;
         }
@@ -306,11 +307,19 @@ export default class ZyxGame extends cc.Component {
                 grid.getComponent(ZyxGridCom).setRowCel(row + 1, col);
                 const tarY = this.gridsWidth * (10 - row - 1) - this.gridsWidth;
                 cc.tween(grid)
-                    .to(0.25, { y: tarY }, { easing: 'quartIn' })
+                    .to(0.4, { y: tarY }, { easing: 'quartIn' })
                     .start();
             }
         }
 
         return canDrop;
+    }
+
+    // 检验是否结束
+    checkGameOver():void {
+        if (zyxGameModule.checkGameOver()) {
+            zyxGameModule.lock = true;
+            uimanager.showGameOver();
+        }
     }
 }

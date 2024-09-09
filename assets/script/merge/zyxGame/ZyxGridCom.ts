@@ -26,6 +26,7 @@ export default class ZyxGridCom extends cc.Component {
 
     init(info: [gridSize, gridContentType, number]) {
         this.uImgBg.node.width = 84 * info[0];
+        this.uImgBg.node.x = this.uImgBg.node.width / 2;
         this.uImgDiamond.x = this.uImgBg.node.width / 2;
 
         this.size = info[0];
@@ -55,7 +56,7 @@ export default class ZyxGridCom extends cc.Component {
     // 删除
     eliminate(): void {
         cc.tween(this.node)
-            .to(0.3, { scaleX: 0, scaleY: 0, opacity: 0 })
+            .to(0.3, { opacity: 0 })
             .call(() => {
                 this.node.removeFromParent();
             })
