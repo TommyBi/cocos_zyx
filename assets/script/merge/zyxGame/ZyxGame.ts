@@ -185,9 +185,58 @@ export default class ZyxGame extends cc.Component {
     merge(): void {
         console.log('merge');
         uimanager.showTips('开始合成');
+        let mergeTimes = 0;
+        // 检测每一行是否有可以消除的格子
+        for (let row = 0; row < zyxGameModule.gridInfo.length; row++) {
+            const rowData = zyxGameModule.gridInfo[row];
+            let hasEmptyGrid = false;
+            for (let j = 0; j < rowData.length; j++) {
+                if (rowData[j][1] === gridContentType.EMPTY) {
+                    hasEmptyGrid = true;
+                    break;
+                }
+            }
+
+            // 如果没有空格子，那就可以进行消除
+            const uniqueIds = [];
+            if (!hasEmptyGrid) {
+                mergeTimes++;
+                for (let j = 0; j < rowData.length; j++) {
+                    if (uniqueIds.indexOf(rowData[j][2]) === -1 && rowData[j][2] !== 0) {
+                        uniqueIds.push(rowData[j][2]);
+                    }
+
+                    zyxGameModule.gridInfo[row][j] = [0, 0, 0];
+                }
+            }
+
+            // 消除
+            for (let i = 0; i < uniqueIds.length; i++) {
+                const uniqueId = uniqueIds[i];
+                this.eliminateGrid(uniqueId);
+            }
+        }
+
+        if (mergeTimes > 0) {
+            this.drop(9);
+        } else {
+            zyxGameModule.lock = false;
+        }
     }
 
-    // 自动掉落与合并检测
+    // 消除
+    eliminateGrid(uniqueID: number): void {
+        for (let i = 0; i < this.grids.length; i++) {
+            if (this.grids[i].getComponent(ZyxGridCom).uniqueId === uniqueID) {
+                console.log('eliminateGrid', uniqueID, this.grids);
+                this.grids[i].getComponent(ZyxGridCom).eliminate();
+                this.grids.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    // 检测当前行的上一行是否有掉落情况，如果有则进行掉落操作
     drop(row): void {
         if (row === 0) {
             if (this.hasDropAction) {
@@ -195,10 +244,13 @@ export default class ZyxGame extends cc.Component {
                 console.log('新一轮检测');
                 this.drop(9);
             } else {
-                this.merge();
+                setTimeout(() => {
+                    this.merge();
+                }, 500);
             }
             return;
         }
+
         for (let col = 0; col < 8; col++) {
             if (zyxGameModule.gridInfo[row][col][1] === gridContentType.EMPTY && zyxGameModule.gridInfo[row - 1][col][1] !== gridContentType.EMPTY) {
                 // 检测是否可以掉落

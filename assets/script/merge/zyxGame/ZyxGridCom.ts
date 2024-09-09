@@ -51,4 +51,14 @@ export default class ZyxGridCom extends cc.Component {
     moveUp() {
         this.col -= 1;
     }
+
+    // 删除
+    eliminate(): void {
+        cc.tween(this.node)
+            .to(0.3, { scaleX: 0, scaleY: 0, opacity: 0 })
+            .call(() => {
+                this.node.removeFromParent();
+            })
+            .start();
+    }
 }

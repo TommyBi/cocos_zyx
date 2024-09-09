@@ -25,7 +25,7 @@ export default class ZyxGameModule extends DataModule {
     lock: boolean = false;
 
     // 格子当前使用到的唯一索引值
-    uniqueId: number = 1;
+    uniqueId: number = 9;
 
     constructor() {
         super();
@@ -43,8 +43,8 @@ export default class ZyxGameModule extends DataModule {
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-            [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
         ];
     }
@@ -96,8 +96,8 @@ export default class ZyxGameModule extends DataModule {
         } while (arr.length < 8);
 
         console.log('produce', arr);
-        const a = [[2, 1, 2], [2, 1, 2], [0, 0, 0], [0, 0, 0], [0, 0, 0], [2, 1, 3], [2, 1, 3], [0, 0, 0]];
-        return a;
+        // const a = [[2, 1, 10], [2, 1, 10], [0, 0, 0], [0, 0, 0], [0, 0, 0], [2, 1, 11], [2, 1, 11], [0, 0, 0]];
+        return arr;
     }
 }
 export const zyxGameModule = new ZyxGameModule();
