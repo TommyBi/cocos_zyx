@@ -6,6 +6,9 @@ export enum EventType {
     MERGE_END = 'merge_end',
     MOVE_CHECK_FAIL = 'move_check_fail',
     CANCEL_SELECT = 'CANCEL_SELECT',
+
+
+    ZYX_CHECK_MERGE = 'zyx_check_merge',
 }
 
 // 商品信息

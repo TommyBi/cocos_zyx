@@ -62,7 +62,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var PlayerModule_1 = require("../dataModule/PlayerModule");
 var ZyxGameModule_1 = require("../dataModule/ZyxGameModule");
 var TypeDefine_1 = require("../define/TypeDefine");
+var Define_1 = require("../manager/Define");
 var Uimanager_1 = require("../manager/Uimanager");
+var EventManager_1 = require("../util/EventManager");
 var ZyxGridCom_1 = require("./ZyxGridCom");
 var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
 // 游戏主玩法场景
@@ -82,15 +84,16 @@ var ZyxGame = /** @class */ (function (_super) {
         _this.uBtnClean = null;
         _this.uBoxGrid = null;
         _this.grids = [];
-        _this.gridsWidth = 84;
         // 掉落发生情况（掉落需要自底向上检测，一轮检测后再检测下一轮，直到最终可以发生掉落的情况全部检测完毕）
         _this.hasDropAction = false;
+        // 是否已经生产了新的
+        _this.hasProduce = false;
         return _this;
     }
     ZyxGame.prototype.onLoad = function () {
         this.initUI();
-        this.uBoxGrid.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
-        this.uBoxGrid.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
+        this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.produce, this);
+        EventManager_1.eventManager.on(Define_1.EventType.ZYX_CHECK_MERGE, this.check, this);
         ZyxGameModule_1.zyxGameModule.lock = false;
     };
     ZyxGame.prototype.start = function () {
@@ -125,7 +128,7 @@ var ZyxGame = /** @class */ (function (_super) {
                     case 3:
                         grid = _a.sent();
                         this.uBoxGrid.addChild(grid);
-                        grid.setPosition(new cc.Vec2(this.gridsWidth * col, this.gridsWidth * (10 - row) - this.gridsWidth));
+                        grid.setPosition(new cc.Vec2(ZyxGameModule_1.zyxGameModule.gridsWidth * col, ZyxGameModule_1.zyxGameModule.gridsWidth * (10 - row) - ZyxGameModule_1.zyxGameModule.gridsWidth));
                         grid.getComponent(ZyxGridCom_1.default).setRowCel(row, col);
                         this.grids.push(grid);
                         _a.label = 4;
@@ -136,7 +139,7 @@ var ZyxGame = /** @class */ (function (_super) {
                     case 6:
                         grid = _a.sent();
                         this.uBoxGrid.addChild(grid);
-                        grid.setPosition(new cc.Vec2(this.gridsWidth * col, this.gridsWidth * (10 - row) - this.gridsWidth));
+                        grid.setPosition(new cc.Vec2(ZyxGameModule_1.zyxGameModule.gridsWidth * col, ZyxGameModule_1.zyxGameModule.gridsWidth * (10 - row) - ZyxGameModule_1.zyxGameModule.gridsWidth));
                         grid.getComponent(ZyxGridCom_1.default).setRowCel(row, col);
                         this.grids.push(grid);
                         _a.label = 7;
@@ -151,21 +154,9 @@ var ZyxGame = /** @class */ (function (_super) {
             });
         });
     };
-    ZyxGame.prototype.onTouchStart = function (e) {
-        var posStart = e.currentTarget.getPosition();
-        console.log('onTouchStart', posStart);
-    };
-    ZyxGame.prototype.onTouchEnd = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                if (ZyxGameModule_1.zyxGameModule.lock)
-                    return [2 /*return*/];
-                ZyxGameModule_1.zyxGameModule.lock = true;
-                this.moveUp();
-                this.produceRow();
-                return [2 /*return*/];
-            });
-        });
+    ZyxGame.prototype.produce = function () {
+        this.moveUp();
+        this.produceRow();
     };
     // 生成新的一行
     ZyxGame.prototype.produceRow = function () {
@@ -189,7 +180,7 @@ var ZyxGame = /** @class */ (function (_super) {
                     case 2:
                         grid = _a.sent();
                         this.uBoxGrid.addChild(grid);
-                        grid.setPosition(new cc.Vec2(this.gridsWidth * i, -84));
+                        grid.setPosition(new cc.Vec2(ZyxGameModule_1.zyxGameModule.gridsWidth * i, -84));
                         grid.getComponent(ZyxGridCom_1.default).setRowCel(row, i);
                         this.grids.push(grid);
                         _a.label = 3;
@@ -200,7 +191,7 @@ var ZyxGame = /** @class */ (function (_super) {
                     case 5:
                         grid = _a.sent();
                         this.uBoxGrid.addChild(grid);
-                        grid.setPosition(new cc.Vec2(this.gridsWidth * i, -84));
+                        grid.setPosition(new cc.Vec2(ZyxGameModule_1.zyxGameModule.gridsWidth * i, -84));
                         grid.getComponent(ZyxGridCom_1.default).setRowCel(row, i);
                         this.grids.push(grid);
                         _a.label = 6;
@@ -261,6 +252,11 @@ var ZyxGame = /** @class */ (function (_super) {
                 .start();
         }
     };
+    // 循环检测是否可以掉落和消除
+    ZyxGame.prototype.check = function () {
+        this.hasProduce = false;
+        this.drop(9);
+    };
     // 进行合成操作
     ZyxGame.prototype.merge = function () {
         console.log('merge');
@@ -297,8 +293,15 @@ var ZyxGame = /** @class */ (function (_super) {
             this.drop(9);
         }
         else {
-            ZyxGameModule_1.zyxGameModule.lock = false;
-            this.checkGameOver();
+            console.log('掉落合成检测结束:', ZyxGameModule_1.zyxGameModule.gridInfo);
+            var isGameOver = this.checkGameOver();
+            if (!isGameOver && !this.hasProduce) {
+                this.hasProduce = true;
+                this.produce();
+            }
+            else {
+                ZyxGameModule_1.zyxGameModule.lock = false;
+            }
         }
     };
     // 消除
@@ -372,10 +375,10 @@ var ZyxGame = /** @class */ (function (_super) {
         for (var i = 0; i < this.grids.length; i++) {
             var grid = this.grids[i];
             if (grid.getComponent(ZyxGridCom_1.default).uniqueId === uniqueID) {
-                grid.getComponent(ZyxGridCom_1.default).setRowCel(row + 1, col);
-                var tarY = this.gridsWidth * (10 - row - 1) - this.gridsWidth;
+                grid.getComponent(ZyxGridCom_1.default).moveDown();
+                var tarY = ZyxGameModule_1.zyxGameModule.gridsWidth * (10 - row - 1) - ZyxGameModule_1.zyxGameModule.gridsWidth;
                 cc.tween(grid)
-                    .to(0.4, { y: tarY }, { easing: 'quartIn' })
+                    .to(0.2, { y: tarY }, { easing: 'quartIn' })
                     .start();
             }
         }
@@ -384,9 +387,11 @@ var ZyxGame = /** @class */ (function (_super) {
     // 检验是否结束
     ZyxGame.prototype.checkGameOver = function () {
         if (ZyxGameModule_1.zyxGameModule.checkGameOver()) {
-            ZyxGameModule_1.zyxGameModule.lock = true;
+            ZyxGameModule_1.zyxGameModule.lock = false;
             Uimanager_1.uimanager.showGameOver();
+            return true;
         }
+        return false;
     };
     __decorate([
         property(cc.Label)

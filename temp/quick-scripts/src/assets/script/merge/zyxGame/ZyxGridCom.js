@@ -23,7 +23,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var ZyxGameModule_1 = require("../dataModule/ZyxGameModule");
 var TypeDefine_1 = require("../define/TypeDefine");
+var Define_1 = require("../manager/Define");
+var Uimanager_1 = require("../manager/Uimanager");
+var EventManager_1 = require("../util/EventManager");
 var NewUtils_1 = require("../util/NewUtils");
 var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
 // 格子组件
@@ -38,14 +42,23 @@ var ZyxGridCom = /** @class */ (function (_super) {
         _this.uniqueId = 0;
         _this.row = -1;
         _this.col = -1;
+        // 便宜量
+        _this.offsetCnt = 0;
+        // 初始点击位置
+        _this.originX = 0;
+        // 格子原始位置
+        _this.originGridX = 0;
         return _this;
     }
-    ZyxGridCom.prototype.onLoad = function () { };
+    ZyxGridCom.prototype.onLoad = function () {
+        this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
+        this.node.on(cc.Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
+        this.node.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
+        this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
+    };
     ZyxGridCom.prototype.start = function () { };
     ZyxGridCom.prototype.init = function (info) {
-        this.uImgBg.node.width = 84 * info[0];
-        this.uImgBg.node.x = this.uImgBg.node.width / 2;
-        this.uImgDiamond.x = this.uImgBg.node.width / 2;
+        // 格子类型基础属性
         this.size = info[0];
         this.contentType = info[1];
         this.uniqueId = info[2];
@@ -53,6 +66,11 @@ var ZyxGridCom = /** @class */ (function (_super) {
             this.node.active = false;
             return;
         }
+        // 格子外观尺寸
+        this.node.width = 84 * info[0];
+        this.uImgBg.node.width = this.node.width;
+        this.uImgBg.node.x = this.uImgBg.node.width / 2;
+        this.uImgDiamond.x = this.uImgBg.node.width / 2;
         this.uImgDiamond.active = this.contentType === TypeDefine_1.gridContentType.DIAMOND;
         var skinUrl = "images/grid/color_" + NewUtils_1.default.randomIntInclusive(1, 13);
         NewUtils_1.default.setSpriteFrameByUrl(this.uImgBg, skinUrl);
@@ -62,7 +80,10 @@ var ZyxGridCom = /** @class */ (function (_super) {
         this.col = col;
     };
     ZyxGridCom.prototype.moveUp = function () {
-        this.col -= 1;
+        this.row -= 1;
+    };
+    ZyxGridCom.prototype.moveDown = function () {
+        this.row += 1;
     };
     // 删除
     ZyxGridCom.prototype.eliminate = function () {
@@ -73,6 +94,101 @@ var ZyxGridCom = /** @class */ (function (_super) {
             _this.node.removeFromParent();
         })
             .start();
+    };
+    ZyxGridCom.prototype.onTouchStart = function (e) {
+        if (ZyxGameModule_1.zyxGameModule.lock)
+            return;
+        ZyxGameModule_1.zyxGameModule.lock = true;
+        console.log("onTouchStart", this.uniqueId, e.touch.getLocation().x);
+        this.originX = e.touch.getLocation().x;
+        this.originGridX = this.node.x;
+        this.offsetCnt = 0;
+    };
+    ZyxGridCom.prototype.onTouchMove = function (e) {
+        var dx = e.touch.getLocation().x - this.originX;
+        var canMove = this.checkMove(dx);
+        if (canMove) {
+            this.node.opacity = 255;
+            this.node.x = this.originGridX + ZyxGameModule_1.zyxGameModule.gridsWidth * this.offsetCnt;
+        }
+        else {
+            this.node.opacity = 100;
+        }
+    };
+    ZyxGridCom.prototype.onTouchEnd = function (e) {
+        console.log("onTouchEnd", this.uniqueId);
+        var dx = e.touch.getLocation().x - this.originX;
+        var canMove = this.checkMove(dx);
+        this.node.opacity = 255;
+        if (canMove) {
+            this.moveCrossWise();
+        }
+        else {
+            this.node.x = this.originGridX;
+        }
+    };
+    // 检测是否可以移动, 标记状态
+    ZyxGridCom.prototype.checkMove = function (dx) {
+        // 实际上操作的位移格子空间
+        var offsetCnt = Math.floor(Math.abs(dx) / ZyxGameModule_1.zyxGameModule.gridsWidth);
+        // 理论上最大允许发生的最大位移空间
+        var rowData = ZyxGameModule_1.zyxGameModule.gridInfo[this.row];
+        var maxOffsetCnt = 0;
+        if (dx > 0) {
+            // 向右移动
+            for (var i = this.col + this.size; i < 8; i++) {
+                if (rowData[i][1] !== TypeDefine_1.gridContentType.EMPTY) {
+                    break;
+                }
+                maxOffsetCnt++;
+            }
+        }
+        else {
+            // 向左移动
+            for (var i = this.col - 1; i >= 0; i--) {
+                if (rowData[i][1] !== TypeDefine_1.gridContentType.EMPTY) {
+                    break;
+                }
+                maxOffsetCnt++;
+            }
+        }
+        console.log("\u65B9\u5411:" + (dx / Math.abs(dx) > 0 ? '右' : '左') + " \u62D6\u52A8: " + offsetCnt + ", \u6700\u5927: " + maxOffsetCnt);
+        if (Math.abs(offsetCnt) <= maxOffsetCnt) {
+            this.offsetCnt = dx / Math.abs(dx) * offsetCnt;
+            return true;
+        }
+        else {
+            this.offsetCnt = dx / Math.abs(dx) * maxOffsetCnt;
+            return false;
+        }
+    };
+    // 实际发生横向移动
+    ZyxGridCom.prototype.moveCrossWise = function () {
+        if (this.offsetCnt === 0)
+            return;
+        if (this.offsetCnt > 0) {
+            Uimanager_1.uimanager.showTips("\u53F3 -> " + this.offsetCnt);
+        }
+        else {
+            Uimanager_1.uimanager.showTips("\u5DE6\u79FB <- " + -this.offsetCnt);
+        }
+        // 挪走的位置置为空
+        for (var col = this.col; col < this.col + this.size; col++) {
+            ZyxGameModule_1.zyxGameModule.gridInfo[this.row][col] = [0, 0, 0];
+        }
+        // 新的位置 置为当前格子
+        var newStartCol = this.col + this.offsetCnt;
+        var newEnd = newStartCol + this.size;
+        for (var col = newStartCol; col < newEnd; col++) {
+            ZyxGameModule_1.zyxGameModule.gridInfo[this.row][col][0] = this.size;
+            ZyxGameModule_1.zyxGameModule.gridInfo[this.row][col][1] = this.contentType;
+            ZyxGameModule_1.zyxGameModule.gridInfo[this.row][col][2] = this.uniqueId;
+        }
+        // update col
+        this.setRowCel(this.row, this.col + this.offsetCnt);
+        this.originGridX = this.node.x;
+        EventManager_1.eventManager.dispatch(Define_1.EventType.ZYX_CHECK_MERGE);
+        console.log("\u7B2C" + this.row + "\u884C\uFF1A", ZyxGameModule_1.zyxGameModule.gridInfo);
     };
     __decorate([
         property(cc.Node)

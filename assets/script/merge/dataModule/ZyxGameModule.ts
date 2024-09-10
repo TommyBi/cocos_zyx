@@ -27,6 +27,9 @@ export default class ZyxGameModule extends DataModule {
     // 格子当前使用到的唯一索引值
     uniqueId: number = 9;
 
+    // 格子宽度
+    gridsWidth: number = 84;
+
     constructor() {
         super();
     }

@@ -44,6 +44,8 @@ var ZyxGameModule = /** @class */ (function (_super) {
         _this.lock = false;
         // 格子当前使用到的唯一索引值
         _this.uniqueId = 9;
+        // 格子宽度
+        _this.gridsWidth = 84;
         return _this;
     }
     ZyxGameModule.prototype.parseData = function (data) {

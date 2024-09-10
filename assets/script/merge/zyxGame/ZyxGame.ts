@@ -1,7 +1,9 @@
 import { playerModule } from "../dataModule/PlayerModule";
 import { zyxGameModule } from "../dataModule/ZyxGameModule";
 import { gridContentType } from "../define/TypeDefine";
+import { EventType } from "../manager/Define";
 import { uimanager } from "../manager/Uimanager";
+import { eventManager, EventManager } from "../util/EventManager";
 import ZyxGridCom from "./ZyxGridCom";
 
 const { ccclass, property } = cc._decorator;
@@ -45,16 +47,18 @@ export default class ZyxGame extends cc.Component {
 
     private grids: cc.Node[] = [];
 
-    private gridsWidth: number = 84;
-
     // 掉落发生情况（掉落需要自底向上检测，一轮检测后再检测下一轮，直到最终可以发生掉落的情况全部检测完毕）
     private hasDropAction: boolean = false;
+
+    // 是否已经生产了新的
+    private hasProduce: boolean = false;
 
     onLoad() {
         this.initUI();
 
-        this.uBoxGrid.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
-        this.uBoxGrid.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
+        this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.produce, this);
+
+        eventManager.on(EventType.ZYX_CHECK_MERGE, this.check, this);
 
         zyxGameModule.lock = false;
     }
@@ -82,14 +86,14 @@ export default class ZyxGame extends cc.Component {
                     if (zyxGameModule.gridInfo[row][col][1] !== gridContentType.EMPTY) {
                         const grid = await this.produceGrid(zyxGameModule.gridInfo[row][col]);
                         this.uBoxGrid.addChild(grid);
-                        grid.setPosition(new cc.Vec2(this.gridsWidth * col, this.gridsWidth * (10 - row) - this.gridsWidth));
+                        grid.setPosition(new cc.Vec2(zyxGameModule.gridsWidth * col, zyxGameModule.gridsWidth * (10 - row) - zyxGameModule.gridsWidth));
                         grid.getComponent(ZyxGridCom).setRowCel(row, col);
                         this.grids.push(grid);
                     }
                 } else if (zyxGameModule.gridInfo[row][col][1] != gridContentType.EMPTY && zyxGameModule.gridInfo[row][col][2] !== zyxGameModule.gridInfo[row][col - 1][2]) {
                     const grid = await this.produceGrid(zyxGameModule.gridInfo[row][col]);
                     this.uBoxGrid.addChild(grid);
-                    grid.setPosition(new cc.Vec2(this.gridsWidth * col, this.gridsWidth * (10 - row) - this.gridsWidth));
+                    grid.setPosition(new cc.Vec2(zyxGameModule.gridsWidth * col, zyxGameModule.gridsWidth * (10 - row) - zyxGameModule.gridsWidth));
                     grid.getComponent(ZyxGridCom).setRowCel(row, col);
                     this.grids.push(grid);
                 }
@@ -97,16 +101,7 @@ export default class ZyxGame extends cc.Component {
         }
     }
 
-    onTouchStart(e: cc.Event): void {
-        const posStart = e.currentTarget.getPosition();
-        console.log('onTouchStart', posStart);
-    }
-
-    async onTouchEnd() {
-
-        if (zyxGameModule.lock) return;
-        zyxGameModule.lock = true;
-
+    produce() {
         this.moveUp();
 
         this.produceRow();
@@ -126,14 +121,14 @@ export default class ZyxGame extends cc.Component {
                 if (zyxGameModule.gridInfo[row][i][1] !== gridContentType.EMPTY) {
                     const grid = await this.produceGrid(zyxGameModule.gridInfo[row][i]);
                     this.uBoxGrid.addChild(grid);
-                    grid.setPosition(new cc.Vec2(this.gridsWidth * i, -84));
+                    grid.setPosition(new cc.Vec2(zyxGameModule.gridsWidth * i, -84));
                     grid.getComponent(ZyxGridCom).setRowCel(row, i);
                     this.grids.push(grid);
                 }
             } else if (zyxGameModule.gridInfo[row][i][1] != gridContentType.EMPTY && zyxGameModule.gridInfo[row][i][2] !== zyxGameModule.gridInfo[row][i - 1][2]) {
                 const grid = await this.produceGrid(zyxGameModule.gridInfo[row][i]);
                 this.uBoxGrid.addChild(grid);
-                grid.setPosition(new cc.Vec2(this.gridsWidth * i, -84));
+                grid.setPosition(new cc.Vec2(zyxGameModule.gridsWidth * i, -84));
                 grid.getComponent(ZyxGridCom).setRowCel(row, i);
                 this.grids.push(grid);
             }
@@ -181,6 +176,12 @@ export default class ZyxGame extends cc.Component {
         }
     }
 
+    // 循环检测是否可以掉落和消除
+    check(): void {
+        this.hasProduce = false;
+        this.drop(9);
+    }
+
     // 进行合成操作
     merge(): void {
         console.log('merge');
@@ -220,8 +221,14 @@ export default class ZyxGame extends cc.Component {
             uimanager.showTips('發生消除');
             this.drop(9);
         } else {
-            zyxGameModule.lock = false;
-            this.checkGameOver();
+            console.log('掉落合成检测结束:', zyxGameModule.gridInfo);
+            const isGameOver = this.checkGameOver();
+            if (!isGameOver && !this.hasProduce) {
+                this.hasProduce = true;
+                this.produce();
+            } else {
+                zyxGameModule.lock = false;
+            }
         }
     }
 
@@ -304,10 +311,10 @@ export default class ZyxGame extends cc.Component {
         for (let i = 0; i < this.grids.length; i++) {
             const grid = this.grids[i];
             if (grid.getComponent(ZyxGridCom).uniqueId === uniqueID) {
-                grid.getComponent(ZyxGridCom).setRowCel(row + 1, col);
-                const tarY = this.gridsWidth * (10 - row - 1) - this.gridsWidth;
+                grid.getComponent(ZyxGridCom).moveDown();
+                const tarY = zyxGameModule.gridsWidth * (10 - row - 1) - zyxGameModule.gridsWidth;
                 cc.tween(grid)
-                    .to(0.4, { y: tarY }, { easing: 'quartIn' })
+                    .to(0.2, { y: tarY }, { easing: 'quartIn' })
                     .start();
             }
         }
@@ -316,10 +323,12 @@ export default class ZyxGame extends cc.Component {
     }
 
     // 检验是否结束
-    checkGameOver():void {
+    checkGameOver(): boolean {
         if (zyxGameModule.checkGameOver()) {
-            zyxGameModule.lock = true;
+            zyxGameModule.lock = false;
             uimanager.showGameOver();
+            return true;
         }
+        return false;
     }
 }

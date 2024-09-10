@@ -14,6 +14,7 @@ var EventType;
     EventType["MERGE_END"] = "merge_end";
     EventType["MOVE_CHECK_FAIL"] = "move_check_fail";
     EventType["CANCEL_SELECT"] = "CANCEL_SELECT";
+    EventType["ZYX_CHECK_MERGE"] = "zyx_check_merge";
 })(EventType = exports.EventType || (exports.EventType = {}));
 
 cc._RF.pop();
