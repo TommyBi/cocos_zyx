@@ -88,6 +88,10 @@ var ZyxGame = /** @class */ (function (_super) {
         _this.hasDropAction = false;
         // 是否已经生产了新的
         _this.hasProduce = false;
+        // 格子掉落时间
+        _this.timeGridDrop = 0.2;
+        _this.timeWaitDrop = 220;
+        _this.timeShowNewGrids = 0.44;
         return _this;
     }
     ZyxGame.prototype.onLoad = function () {
@@ -244,7 +248,7 @@ var ZyxGame = /** @class */ (function (_super) {
         for (var i = 0; i < this.grids.length; i++) {
             var grid = this.grids[i];
             cc.tween(grid)
-                .to(0.5, { y: grid.y + 84 }, { easing: 'cubicInOut' })
+                .to(this.timeShowNewGrids, { y: grid.y + 84 }, { easing: 'cubicInOut' })
                 .start();
             grid.getComponent(ZyxGridCom_1.default).moveUp();
         }
@@ -258,7 +262,7 @@ var ZyxGame = /** @class */ (function (_super) {
             if (grid.y !== -84)
                 continue;
             cc.tween(grid)
-                .to(0.5, { y: grid.y + 84 }, { easing: 'cubicInOut' })
+                .to(this.timeShowNewGrids, { y: grid.y + 84 }, { easing: 'cubicInOut' })
                 .call(function () {
                 if (showEnding)
                     return;
@@ -344,7 +348,7 @@ var ZyxGame = /** @class */ (function (_super) {
             else {
                 setTimeout(function () {
                     _this.merge();
-                }, 400);
+                }, this.timeWaitDrop);
             }
             return;
         }
@@ -394,7 +398,7 @@ var ZyxGame = /** @class */ (function (_super) {
                 grid.getComponent(ZyxGridCom_1.default).moveDown();
                 var tarY = ZyxGameModule_1.zyxGameModule.gridsWidth * (10 - row - 1) - ZyxGameModule_1.zyxGameModule.gridsWidth;
                 cc.tween(grid)
-                    .to(0.2, { y: tarY }, { easing: 'quartIn' })
+                    .to(this.timeGridDrop, { y: tarY }, { easing: 'quartIn' })
                     .start();
             }
         }

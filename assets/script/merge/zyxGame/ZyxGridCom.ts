@@ -36,6 +36,9 @@ export default class ZyxGridCom extends cc.Component {
     // 格子原始位置
     private originGridX: number = 0;
 
+    // 格子删除的时间
+    private timeDelGrid: number = 0.18;
+
     onLoad() {
         this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
@@ -89,7 +92,7 @@ export default class ZyxGridCom extends cc.Component {
         this.contentType = gridContentType.EMPTY;
         this.uniqueId = -1;
         cc.tween(this.node)
-            .to(0.3, { opacity: 0 })
+            .to(this.timeDelGrid, { opacity: 0 })
             .call(() => {
                 this.node.removeFromParent();
             })

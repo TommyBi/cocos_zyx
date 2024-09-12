@@ -53,6 +53,11 @@ export default class ZyxGame extends cc.Component {
     // 是否已经生产了新的
     private hasProduce: boolean = false;
 
+    // 格子掉落时间
+    private timeGridDrop: number = 0.2;
+    private timeWaitDrop: number = 220;
+    private timeShowNewGrids: number = 0.44;
+
     onLoad() {
         this.initUI();
 
@@ -170,7 +175,7 @@ export default class ZyxGame extends cc.Component {
         for (let i = 0; i < this.grids.length; i++) {
             const grid = this.grids[i];
             cc.tween(grid)
-                .to(0.5, { y: grid.y + 84 }, { easing: 'cubicInOut' })
+                .to(this.timeShowNewGrids, { y: grid.y + 84 }, { easing: 'cubicInOut' })
                 .start();
 
             grid.getComponent(ZyxGridCom).moveUp();
@@ -184,7 +189,7 @@ export default class ZyxGame extends cc.Component {
             const grid = this.grids[i];
             if (grid.y !== -84) continue;
             cc.tween(grid)
-                .to(0.5, { y: grid.y + 84 }, { easing: 'cubicInOut' })
+                .to(this.timeShowNewGrids, { y: grid.y + 84 }, { easing: 'cubicInOut' })
                 .call(() => {
                     if (showEnding) return;
                     showEnding = true;
@@ -273,7 +278,7 @@ export default class ZyxGame extends cc.Component {
             } else {
                 setTimeout(() => {
                     this.merge();
-                }, 400);
+                }, this.timeWaitDrop);
             }
             return;
         }
@@ -331,7 +336,7 @@ export default class ZyxGame extends cc.Component {
                 grid.getComponent(ZyxGridCom).moveDown();
                 const tarY = zyxGameModule.gridsWidth * (10 - row - 1) - zyxGameModule.gridsWidth;
                 cc.tween(grid)
-                    .to(0.2, { y: tarY }, { easing: 'quartIn' })
+                    .to(this.timeGridDrop, { y: tarY }, { easing: 'quartIn' })
                     .start();
             }
         }

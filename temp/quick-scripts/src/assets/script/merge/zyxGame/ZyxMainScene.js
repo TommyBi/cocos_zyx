@@ -125,7 +125,7 @@ var ZyxMainScene = /** @class */ (function (_super) {
                         topPre = _a.sent();
                         topNode = cc.instantiate(topPre);
                         Uimanager_1.uimanager.add(topNode, TypeDefine_1.LAYER.UI);
-                        topNode.setPosition(new cc.Vec2(0, cc.winSize.height / 2 - topNode.height / 2));
+                        topNode.setPosition(new cc.Vec2(0, cc.winSize.height / 2 - topNode.height / 2 - 50));
                         this.topCom = topNode;
                         return [2 /*return*/];
                 }

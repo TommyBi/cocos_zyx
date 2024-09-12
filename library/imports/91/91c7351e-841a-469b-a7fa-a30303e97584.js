@@ -49,6 +49,8 @@ var ZyxGridCom = /** @class */ (function (_super) {
         _this.originX = 0;
         // 格子原始位置
         _this.originGridX = 0;
+        // 格子删除的时间
+        _this.timeDelGrid = 0.18;
         return _this;
     }
     ZyxGridCom.prototype.onLoad = function () {
@@ -95,7 +97,7 @@ var ZyxGridCom = /** @class */ (function (_super) {
         this.contentType = TypeDefine_1.gridContentType.EMPTY;
         this.uniqueId = -1;
         cc.tween(this.node)
-            .to(0.3, { opacity: 0 })
+            .to(this.timeDelGrid, { opacity: 0 })
             .call(function () {
             _this.node.removeFromParent();
         })

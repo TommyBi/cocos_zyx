@@ -59,7 +59,7 @@ export default class ZyxMainScene extends cc.Component {
         const topPre = await uimanager.loadPrefab('prefab/zyx/uComTop');
         const topNode = cc.instantiate(topPre);
         uimanager.add(topNode, LAYER.UI);
-        topNode.setPosition(new cc.Vec2(0, cc.winSize.height / 2 - topNode.height/2));
+        topNode.setPosition(new cc.Vec2(0, cc.winSize.height / 2 - topNode.height / 2 - 50));
 
         this.topCom = topNode;
     }
