@@ -15,6 +15,7 @@ var EventType;
     EventType["MOVE_CHECK_FAIL"] = "move_check_fail";
     EventType["CANCEL_SELECT"] = "CANCEL_SELECT";
     EventType["ZYX_CHECK_MERGE"] = "zyx_check_merge";
+    EventType["ZYX_RESET_GAME"] = "zyx_reset_game";
 })(EventType = exports.EventType || (exports.EventType = {}));
 
 cc._RF.pop();

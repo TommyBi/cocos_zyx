@@ -56,15 +56,31 @@ export default class ZyxGame extends cc.Component {
     onLoad() {
         this.initUI();
 
-        this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.produce, this);
+        this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.test, this);
 
         eventManager.on(EventType.ZYX_CHECK_MERGE, this.check, this);
-
-        zyxGameModule.lock = false;
+        eventManager.on(EventType.ZYX_RESET_GAME, this.resetGame, this);
     }
 
     start() {
 
+    }
+
+    resetGame(): void {
+        zyxGameModule.gridInfo = [
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
+        ]
+
+        this.initUI();
     }
 
     initUI(): void {
@@ -80,6 +96,9 @@ export default class ZyxGame extends cc.Component {
 
     // 初始化棋盘信息
     async initChessBoard() {
+        this.uBoxGrid.destroyAllChildren();
+        this.grids = [];
+
         for (let row = 0; row < zyxGameModule.gridInfo.length; row++) {
             for (let col = 0; col < zyxGameModule.gridInfo[row].length; col++) {
                 if (col === 0) {
@@ -184,7 +203,6 @@ export default class ZyxGame extends cc.Component {
 
     // 进行合成操作
     merge(): void {
-        console.log('merge');
         let mergeTimes = 0;
         // 检测每一行是否有可以消除的格子
         for (let row = 0; row < zyxGameModule.gridInfo.length; row++) {
@@ -219,15 +237,16 @@ export default class ZyxGame extends cc.Component {
 
         if (mergeTimes > 0) {
             uimanager.showTips('發生消除');
+            this.addScore(mergeTimes);
             this.drop(9);
         } else {
-            console.log('掉落合成检测结束:', zyxGameModule.gridInfo);
             const isGameOver = this.checkGameOver();
             if (!isGameOver && !this.hasProduce) {
                 this.hasProduce = true;
                 this.produce();
             } else {
-                zyxGameModule.lock = false;
+                zyxGameModule.selectGirdUniqueId = -1;
+                console.log('action over:', zyxGameModule.gridInfo);
             }
         }
     }
@@ -236,7 +255,7 @@ export default class ZyxGame extends cc.Component {
     eliminateGrid(uniqueID: number): void {
         for (let i = 0; i < this.grids.length; i++) {
             if (this.grids[i].getComponent(ZyxGridCom).uniqueId === uniqueID) {
-                console.log('eliminateGrid', uniqueID, this.grids);
+                console.log('消除', uniqueID);
                 this.grids[i].getComponent(ZyxGridCom).eliminate();
                 this.grids.splice(i, 1);
                 break;
@@ -305,8 +324,6 @@ export default class ZyxGame extends cc.Component {
         }
 
         console.log('掉落:', uniqueID);
-        console.log('gridInfo over:', zyxGameModule.gridInfo);
-
 
         for (let i = 0; i < this.grids.length; i++) {
             const grid = this.grids[i];
@@ -325,10 +342,19 @@ export default class ZyxGame extends cc.Component {
     // 检验是否结束
     checkGameOver(): boolean {
         if (zyxGameModule.checkGameOver()) {
-            zyxGameModule.lock = false;
             uimanager.showGameOver();
             return true;
         }
         return false;
+    }
+
+    // 加分
+    addScore(score: number): void {
+        zyxGameModule.gameInfo.score += score;
+        this.ulblScore.string = zyxGameModule.gameInfo.score.toString();
+    }
+
+    test(): void {
+        console.log(zyxGameModule.gridInfo);
     }
 }

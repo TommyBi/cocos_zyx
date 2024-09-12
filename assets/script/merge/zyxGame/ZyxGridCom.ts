@@ -17,6 +17,9 @@ export default class ZyxGridCom extends cc.Component {
     @property(cc.Sprite)
     uImgBg: cc.Sprite = null;
 
+    @property(cc.Label)
+    ulblUniqueId: cc.Label = null;
+
     private size: gridSize = gridSize.ONE;
     private contentType: gridContentType = gridContentType.EMPTY;
     public uniqueId: number = 0;
@@ -59,7 +62,9 @@ export default class ZyxGridCom extends cc.Component {
         this.uImgBg.node.width = this.node.width;
         this.uImgBg.node.x = this.uImgBg.node.width / 2;
         this.uImgDiamond.x = this.uImgBg.node.width / 2;
+        this.ulblUniqueId.node.x = this.node.width / 2;
         this.uImgDiamond.active = this.contentType === gridContentType.DIAMOND;
+        this.ulblUniqueId.string = this.uniqueId.toString();
 
         const skinUrl = `images/grid/color_${NewUtils.randomIntInclusive(1, 13)}`;
         NewUtils.setSpriteFrameByUrl(this.uImgBg, skinUrl);
@@ -80,6 +85,9 @@ export default class ZyxGridCom extends cc.Component {
 
     // 删除
     eliminate(): void {
+        this.size = gridSize.ZERO;
+        this.contentType = gridContentType.EMPTY;
+        this.uniqueId = -1;
         cc.tween(this.node)
             .to(0.3, { opacity: 0 })
             .call(() => {
@@ -89,8 +97,8 @@ export default class ZyxGridCom extends cc.Component {
     }
 
     onTouchStart(e) {
-        if (zyxGameModule.lock) return;
-        zyxGameModule.lock = true;
+        if (zyxGameModule.selectGirdUniqueId !== -1) return;
+        zyxGameModule.selectGirdUniqueId = this.uniqueId;
         console.log("onTouchStart", this.uniqueId, e.touch.getLocation().x);
         this.originX = e.touch.getLocation().x;
         this.originGridX = this.node.x;
@@ -98,6 +106,7 @@ export default class ZyxGridCom extends cc.Component {
     }
 
     onTouchMove(e): void {
+        if (zyxGameModule.selectGirdUniqueId !== this.uniqueId) return;
         const dx = e.touch.getLocation().x - this.originX;
 
         const canMove = this.checkMove(dx);
@@ -110,6 +119,7 @@ export default class ZyxGridCom extends cc.Component {
     }
 
     onTouchEnd(e) {
+        if (zyxGameModule.selectGirdUniqueId !== this.uniqueId) return;
         console.log("onTouchEnd", this.uniqueId);
         const dx = e.touch.getLocation().x - this.originX;
         let canMove = this.checkMove(dx);
@@ -161,7 +171,12 @@ export default class ZyxGridCom extends cc.Component {
 
     // 实际发生横向移动
     moveCrossWise(): void {
-        if (this.offsetCnt === 0) return;
+        if (this.offsetCnt === 0) {
+            // 没有发生实际的位移
+            console.log('没有发生实际位移, 格子选中状态取消');
+            zyxGameModule.selectGirdUniqueId = -1;
+            return;
+        }
         if (this.offsetCnt > 0) {
             uimanager.showTips(`右 -> ${this.offsetCnt}`);
         } else {
@@ -187,6 +202,6 @@ export default class ZyxGridCom extends cc.Component {
         this.originGridX = this.node.x;
 
         eventManager.dispatch(EventType.ZYX_CHECK_MERGE);
-        console.log(`第${this.row}行：`, zyxGameModule.gridInfo);
+        console.log(`第${this.row}行发生移动：`, zyxGameModule.gridInfo);
     }
 }

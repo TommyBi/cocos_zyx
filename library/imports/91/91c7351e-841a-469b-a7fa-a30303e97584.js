@@ -37,6 +37,7 @@ var ZyxGridCom = /** @class */ (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.uImgDiamond = null;
         _this.uImgBg = null;
+        _this.ulblUniqueId = null;
         _this.size = TypeDefine_1.gridSize.ONE;
         _this.contentType = TypeDefine_1.gridContentType.EMPTY;
         _this.uniqueId = 0;
@@ -71,7 +72,9 @@ var ZyxGridCom = /** @class */ (function (_super) {
         this.uImgBg.node.width = this.node.width;
         this.uImgBg.node.x = this.uImgBg.node.width / 2;
         this.uImgDiamond.x = this.uImgBg.node.width / 2;
+        this.ulblUniqueId.node.x = this.node.width / 2;
         this.uImgDiamond.active = this.contentType === TypeDefine_1.gridContentType.DIAMOND;
+        this.ulblUniqueId.string = this.uniqueId.toString();
         var skinUrl = "images/grid/color_" + NewUtils_1.default.randomIntInclusive(1, 13);
         NewUtils_1.default.setSpriteFrameByUrl(this.uImgBg, skinUrl);
     };
@@ -88,6 +91,9 @@ var ZyxGridCom = /** @class */ (function (_super) {
     // 删除
     ZyxGridCom.prototype.eliminate = function () {
         var _this = this;
+        this.size = TypeDefine_1.gridSize.ZERO;
+        this.contentType = TypeDefine_1.gridContentType.EMPTY;
+        this.uniqueId = -1;
         cc.tween(this.node)
             .to(0.3, { opacity: 0 })
             .call(function () {
@@ -96,15 +102,17 @@ var ZyxGridCom = /** @class */ (function (_super) {
             .start();
     };
     ZyxGridCom.prototype.onTouchStart = function (e) {
-        if (ZyxGameModule_1.zyxGameModule.lock)
+        if (ZyxGameModule_1.zyxGameModule.selectGirdUniqueId !== -1)
             return;
-        ZyxGameModule_1.zyxGameModule.lock = true;
+        ZyxGameModule_1.zyxGameModule.selectGirdUniqueId = this.uniqueId;
         console.log("onTouchStart", this.uniqueId, e.touch.getLocation().x);
         this.originX = e.touch.getLocation().x;
         this.originGridX = this.node.x;
         this.offsetCnt = 0;
     };
     ZyxGridCom.prototype.onTouchMove = function (e) {
+        if (ZyxGameModule_1.zyxGameModule.selectGirdUniqueId !== this.uniqueId)
+            return;
         var dx = e.touch.getLocation().x - this.originX;
         var canMove = this.checkMove(dx);
         if (canMove) {
@@ -116,6 +124,8 @@ var ZyxGridCom = /** @class */ (function (_super) {
         }
     };
     ZyxGridCom.prototype.onTouchEnd = function (e) {
+        if (ZyxGameModule_1.zyxGameModule.selectGirdUniqueId !== this.uniqueId)
+            return;
         console.log("onTouchEnd", this.uniqueId);
         var dx = e.touch.getLocation().x - this.originX;
         var canMove = this.checkMove(dx);
@@ -164,8 +174,12 @@ var ZyxGridCom = /** @class */ (function (_super) {
     };
     // 实际发生横向移动
     ZyxGridCom.prototype.moveCrossWise = function () {
-        if (this.offsetCnt === 0)
+        if (this.offsetCnt === 0) {
+            // 没有发生实际的位移
+            console.log('没有发生实际位移, 格子选中状态取消');
+            ZyxGameModule_1.zyxGameModule.selectGirdUniqueId = -1;
             return;
+        }
         if (this.offsetCnt > 0) {
             Uimanager_1.uimanager.showTips("\u53F3 -> " + this.offsetCnt);
         }
@@ -188,7 +202,7 @@ var ZyxGridCom = /** @class */ (function (_super) {
         this.setRowCel(this.row, this.col + this.offsetCnt);
         this.originGridX = this.node.x;
         EventManager_1.eventManager.dispatch(Define_1.EventType.ZYX_CHECK_MERGE);
-        console.log("\u7B2C" + this.row + "\u884C\uFF1A", ZyxGameModule_1.zyxGameModule.gridInfo);
+        console.log("\u7B2C" + this.row + "\u884C\u53D1\u751F\u79FB\u52A8\uFF1A", ZyxGameModule_1.zyxGameModule.gridInfo);
     };
     __decorate([
         property(cc.Node)
@@ -196,6 +210,9 @@ var ZyxGridCom = /** @class */ (function (_super) {
     __decorate([
         property(cc.Sprite)
     ], ZyxGridCom.prototype, "uImgBg", void 0);
+    __decorate([
+        property(cc.Label)
+    ], ZyxGridCom.prototype, "ulblUniqueId", void 0);
     ZyxGridCom = __decorate([
         ccclass
     ], ZyxGridCom);

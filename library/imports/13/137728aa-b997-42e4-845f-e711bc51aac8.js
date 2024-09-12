@@ -41,7 +41,7 @@ var ZyxGameModule = /** @class */ (function (_super) {
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
         ];
         // 操作锁
-        _this.lock = false;
+        _this.selectGirdUniqueId = -1;
         // 格子当前使用到的唯一索引值
         _this.uniqueId = 9;
         // 格子宽度

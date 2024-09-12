@@ -92,11 +92,26 @@ var ZyxGame = /** @class */ (function (_super) {
     }
     ZyxGame.prototype.onLoad = function () {
         this.initUI();
-        this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.produce, this);
+        this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.test, this);
         EventManager_1.eventManager.on(Define_1.EventType.ZYX_CHECK_MERGE, this.check, this);
-        ZyxGameModule_1.zyxGameModule.lock = false;
+        EventManager_1.eventManager.on(Define_1.EventType.ZYX_RESET_GAME, this.resetGame, this);
     };
     ZyxGame.prototype.start = function () {
+    };
+    ZyxGame.prototype.resetGame = function () {
+        ZyxGameModule_1.zyxGameModule.gridInfo = [
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
+        ];
+        this.initUI();
     };
     ZyxGame.prototype.initUI = function () {
         this.ulblScore.string = "" + ZyxGameModule_1.zyxGameModule.gameInfo.score;
@@ -114,6 +129,8 @@ var ZyxGame = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        this.uBoxGrid.destroyAllChildren();
+                        this.grids = [];
                         row = 0;
                         _a.label = 1;
                     case 1:
@@ -259,7 +276,6 @@ var ZyxGame = /** @class */ (function (_super) {
     };
     // 进行合成操作
     ZyxGame.prototype.merge = function () {
-        console.log('merge');
         var mergeTimes = 0;
         // 检测每一行是否有可以消除的格子
         for (var row = 0; row < ZyxGameModule_1.zyxGameModule.gridInfo.length; row++) {
@@ -290,17 +306,18 @@ var ZyxGame = /** @class */ (function (_super) {
         }
         if (mergeTimes > 0) {
             Uimanager_1.uimanager.showTips('發生消除');
+            this.addScore(mergeTimes);
             this.drop(9);
         }
         else {
-            console.log('掉落合成检测结束:', ZyxGameModule_1.zyxGameModule.gridInfo);
             var isGameOver = this.checkGameOver();
             if (!isGameOver && !this.hasProduce) {
                 this.hasProduce = true;
                 this.produce();
             }
             else {
-                ZyxGameModule_1.zyxGameModule.lock = false;
+                ZyxGameModule_1.zyxGameModule.selectGirdUniqueId = -1;
+                console.log('action over:', ZyxGameModule_1.zyxGameModule.gridInfo);
             }
         }
     };
@@ -308,7 +325,7 @@ var ZyxGame = /** @class */ (function (_super) {
     ZyxGame.prototype.eliminateGrid = function (uniqueID) {
         for (var i = 0; i < this.grids.length; i++) {
             if (this.grids[i].getComponent(ZyxGridCom_1.default).uniqueId === uniqueID) {
-                console.log('eliminateGrid', uniqueID, this.grids);
+                console.log('消除', uniqueID);
                 this.grids[i].getComponent(ZyxGridCom_1.default).eliminate();
                 this.grids.splice(i, 1);
                 break;
@@ -371,7 +388,6 @@ var ZyxGame = /** @class */ (function (_super) {
             ZyxGameModule_1.zyxGameModule.gridInfo[row][col_2][2] = 0;
         }
         console.log('掉落:', uniqueID);
-        console.log('gridInfo over:', ZyxGameModule_1.zyxGameModule.gridInfo);
         for (var i = 0; i < this.grids.length; i++) {
             var grid = this.grids[i];
             if (grid.getComponent(ZyxGridCom_1.default).uniqueId === uniqueID) {
@@ -387,11 +403,18 @@ var ZyxGame = /** @class */ (function (_super) {
     // 检验是否结束
     ZyxGame.prototype.checkGameOver = function () {
         if (ZyxGameModule_1.zyxGameModule.checkGameOver()) {
-            ZyxGameModule_1.zyxGameModule.lock = false;
             Uimanager_1.uimanager.showGameOver();
             return true;
         }
         return false;
+    };
+    // 加分
+    ZyxGame.prototype.addScore = function (score) {
+        ZyxGameModule_1.zyxGameModule.gameInfo.score += score;
+        this.ulblScore.string = ZyxGameModule_1.zyxGameModule.gameInfo.score.toString();
+    };
+    ZyxGame.prototype.test = function () {
+        console.log(ZyxGameModule_1.zyxGameModule.gridInfo);
     };
     __decorate([
         property(cc.Label)

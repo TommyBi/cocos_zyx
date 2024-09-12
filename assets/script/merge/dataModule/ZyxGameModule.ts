@@ -22,7 +22,7 @@ export default class ZyxGameModule extends DataModule {
     ];
 
     // 操作锁
-    lock: boolean = false;
+    selectGirdUniqueId: number = -1;
 
     // 格子当前使用到的唯一索引值
     uniqueId: number = 9;

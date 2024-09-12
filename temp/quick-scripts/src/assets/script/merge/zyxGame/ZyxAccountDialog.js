@@ -23,6 +23,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var ZyxGameModule_1 = require("../dataModule/ZyxGameModule");
+var Define_1 = require("../manager/Define");
+var EventManager_1 = require("../util/EventManager");
 var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
 // 结算界面
 var ZyxAccountDialog = /** @class */ (function (_super) {
@@ -35,8 +38,29 @@ var ZyxAccountDialog = /** @class */ (function (_super) {
         _this.uBtnOk = null;
         return _this;
     }
-    ZyxAccountDialog.prototype.onLoad = function () { };
+    ZyxAccountDialog.prototype.onLoad = function () {
+        this.uBtnOk.on(cc.Node.EventType.TOUCH_END, this.close, this);
+    };
     ZyxAccountDialog.prototype.start = function () {
+        this.ulblScore.string = "\u5F97\u5206\uFF1A" + ZyxGameModule_1.zyxGameModule.gameInfo.score;
+    };
+    ZyxAccountDialog.prototype.close = function () {
+        var _this = this;
+        // 重置游戏
+        ZyxGameModule_1.zyxGameModule.gameInfo = {
+            adTimes: 3,
+            score: 0,
+            exp: 0,
+            diamond: 0,
+            star: 0,
+        };
+        EventManager_1.eventManager.dispatch(Define_1.EventType.ZYX_RESET_GAME);
+        cc.tween(this.node)
+            .to(0.2, { scale: 0 })
+            .call(function () {
+            _this.node.destroy();
+        })
+            .start();
     };
     __decorate([
         property(cc.Label)

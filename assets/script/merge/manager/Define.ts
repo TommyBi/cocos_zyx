@@ -9,6 +9,7 @@ export enum EventType {
 
 
     ZYX_CHECK_MERGE = 'zyx_check_merge',
+    ZYX_RESET_GAME = 'zyx_reset_game',
 }
 
 // 商品信息
