@@ -55,7 +55,7 @@ export default class ZyxGame extends cc.Component {
 
     // 格子掉落时间
     private timeGridDrop: number = 0.2;
-    private timeWaitDrop: number = 220;
+    private timeWaitDrop: number = 600;
     private timeShowNewGrids: number = 0.44;
 
     onLoad() {

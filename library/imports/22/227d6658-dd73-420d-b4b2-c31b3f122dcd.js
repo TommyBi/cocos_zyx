@@ -90,7 +90,7 @@ var ZyxGame = /** @class */ (function (_super) {
         _this.hasProduce = false;
         // 格子掉落时间
         _this.timeGridDrop = 0.2;
-        _this.timeWaitDrop = 220;
+        _this.timeWaitDrop = 600;
         _this.timeShowNewGrids = 0.44;
         return _this;
     }
