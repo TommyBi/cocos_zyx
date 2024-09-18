@@ -30,6 +30,9 @@ export default class ZyxGameModule extends DataModule {
     // 格子宽度
     gridsWidth: number = 84;
 
+    // 下一排信息
+    private nextGridInfo: any[] = [];
+
     constructor() {
         super();
     }
@@ -47,12 +50,13 @@ export default class ZyxGameModule extends DataModule {
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-            [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
+            [[0, 0, 0], [0, 0, 0], [2, 1, 1], [2, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [0, 0, 0], [0, 0, 0]],
         ];
+        this.produce();
     }
 
-    // 生产格子，服务器逻辑 返回格式为[gridsize][contentType]
+    // 生产格子，服务器逻辑 返回格式为[gridsize][contentType][uniqueId]
     produce(): number[][] {
 
         // 确定要生成的数字组合 nMax <= 7;
@@ -98,9 +102,12 @@ export default class ZyxGameModule extends DataModule {
 
         } while (arr.length < 8);
 
+        this.nextGridInfo = arr;
         console.log('produce', arr);
-        // const a = [[2, 1, 10], [2, 1, 10], [0, 0, 0], [0, 0, 0], [0, 0, 0], [2, 1, 11], [2, 1, 11], [0, 0, 0]];
         return arr;
+
+        // const a = [[2, 1, 10], [2, 1, 10], [2, 1, 11], [2, 1, 11], [2, 1, 12], [2, 1, 12], [2, 1, 13], [2, 1, 13]];
+        // return a;
     }
 
     // 检查游戏是否结束
@@ -112,6 +119,19 @@ export default class ZyxGameModule extends DataModule {
             }
         }
         return isGameOver;
+    }
+
+    // 将新格子的数据返回
+    copyNewGridData(): number[][] {
+        const newGridInfo = [];
+        for (let i = 0; i < this.nextGridInfo.length; i++) {
+            const gridInfo = [0, 0, 0];
+            gridInfo[0] = this.nextGridInfo[i][0];
+            gridInfo[1] = this.nextGridInfo[i][1];
+            gridInfo[2] = this.nextGridInfo[i][2];
+            newGridInfo.push(gridInfo);
+        }
+        return newGridInfo;
     }
 }
 export const zyxGameModule = new ZyxGameModule();

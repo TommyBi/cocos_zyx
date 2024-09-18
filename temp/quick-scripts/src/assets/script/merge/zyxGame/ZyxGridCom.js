@@ -70,15 +70,17 @@ var ZyxGridCom = /** @class */ (function (_super) {
             return;
         }
         // 格子外观尺寸
-        this.node.width = 84 * info[0];
-        this.uImgBg.node.width = this.node.width;
-        this.uImgBg.node.x = this.uImgBg.node.width / 2;
-        this.uImgDiamond.x = this.uImgBg.node.width / 2;
+        var nodeWidth = 84 * info[0];
+        this.node.width = nodeWidth;
+        this.uImgBg.width = this.node.width;
+        this.uImgBg.x = nodeWidth / 2;
+        this.uImgDiamond.x = this.uImgBg.width / 2;
         this.ulblUniqueId.node.x = this.node.width / 2;
         this.uImgDiamond.active = this.contentType === TypeDefine_1.gridContentType.DIAMOND;
         this.ulblUniqueId.string = this.uniqueId.toString();
         var skinUrl = "images/grid/color_" + NewUtils_1.default.randomIntInclusive(1, 13);
-        NewUtils_1.default.setSpriteFrameByUrl(this.uImgBg, skinUrl);
+        NewUtils_1.default.setSpriteFrameByUrl(this.uImgBg.getComponent(cc.Sprite), skinUrl);
+        this.node.getComponent(cc.Sprite)['_type'] = cc.Sprite.Type.SLICED;
     };
     ZyxGridCom.prototype.setRowCel = function (row, col) {
         this.row = row;
@@ -210,7 +212,7 @@ var ZyxGridCom = /** @class */ (function (_super) {
         property(cc.Node)
     ], ZyxGridCom.prototype, "uImgDiamond", void 0);
     __decorate([
-        property(cc.Sprite)
+        property(cc.Node)
     ], ZyxGridCom.prototype, "uImgBg", void 0);
     __decorate([
         property(cc.Label)

@@ -46,6 +46,8 @@ var ZyxGameModule = /** @class */ (function (_super) {
         _this.uniqueId = 9;
         // 格子宽度
         _this.gridsWidth = 84;
+        // 下一排信息
+        _this.nextGridInfo = [];
         return _this;
     }
     ZyxGameModule.prototype.parseData = function (data) {
@@ -60,11 +62,12 @@ var ZyxGameModule = /** @class */ (function (_super) {
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-            [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
+            [[0, 0, 0], [0, 0, 0], [2, 1, 1], [2, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [0, 0, 0], [0, 0, 0]],
         ];
+        this.produce();
     };
-    // 生产格子，服务器逻辑 返回格式为[gridsize][contentType]
+    // 生产格子，服务器逻辑 返回格式为[gridsize][contentType][uniqueId]
     ZyxGameModule.prototype.produce = function () {
         // 确定要生成的数字组合 nMax <= 7;
         var arr = [];
@@ -110,9 +113,11 @@ var ZyxGameModule = /** @class */ (function (_super) {
                 }
             }
         } while (arr.length < 8);
+        this.nextGridInfo = arr;
         console.log('produce', arr);
-        // const a = [[2, 1, 10], [2, 1, 10], [0, 0, 0], [0, 0, 0], [0, 0, 0], [2, 1, 11], [2, 1, 11], [0, 0, 0]];
         return arr;
+        // const a = [[2, 1, 10], [2, 1, 10], [2, 1, 11], [2, 1, 11], [2, 1, 12], [2, 1, 12], [2, 1, 13], [2, 1, 13]];
+        // return a;
     };
     // 检查游戏是否结束
     ZyxGameModule.prototype.checkGameOver = function () {
@@ -123,6 +128,18 @@ var ZyxGameModule = /** @class */ (function (_super) {
             }
         }
         return isGameOver;
+    };
+    // 将新格子的数据返回
+    ZyxGameModule.prototype.copyNewGridData = function () {
+        var newGridInfo = [];
+        for (var i = 0; i < this.nextGridInfo.length; i++) {
+            var gridInfo = [0, 0, 0];
+            gridInfo[0] = this.nextGridInfo[i][0];
+            gridInfo[1] = this.nextGridInfo[i][1];
+            gridInfo[2] = this.nextGridInfo[i][2];
+            newGridInfo.push(gridInfo);
+        }
+        return newGridInfo;
     };
     return ZyxGameModule;
 }(DataModule_1.default));

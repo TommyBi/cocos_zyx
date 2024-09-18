@@ -14,8 +14,8 @@ export default class ZyxGridCom extends cc.Component {
     @property(cc.Node)
     uImgDiamond: cc.Node = null;
 
-    @property(cc.Sprite)
-    uImgBg: cc.Sprite = null;
+    @property(cc.Node)
+    uImgBg: cc.Node = null;
 
     @property(cc.Label)
     ulblUniqueId: cc.Label = null;
@@ -59,18 +59,18 @@ export default class ZyxGridCom extends cc.Component {
             return;
         }
 
-
         // 格子外观尺寸
-        this.node.width = 84 * info[0];
-        this.uImgBg.node.width = this.node.width;
-        this.uImgBg.node.x = this.uImgBg.node.width / 2;
-        this.uImgDiamond.x = this.uImgBg.node.width / 2;
+        const nodeWidth = 84 * info[0];
+        this.node.width = nodeWidth;
+        this.uImgBg.width = this.node.width;
+        this.uImgBg.x = nodeWidth / 2;
+        this.uImgDiamond.x = this.uImgBg.width / 2;
         this.ulblUniqueId.node.x = this.node.width / 2;
         this.uImgDiamond.active = this.contentType === gridContentType.DIAMOND;
         this.ulblUniqueId.string = this.uniqueId.toString();
 
         const skinUrl = `images/grid/color_${NewUtils.randomIntInclusive(1, 13)}`;
-        NewUtils.setSpriteFrameByUrl(this.uImgBg, skinUrl);
+        NewUtils.setSpriteFrameByUrl(this.uImgBg.getComponent(cc.Sprite), skinUrl);
     }
 
     setRowCel(row: number, col: number) {

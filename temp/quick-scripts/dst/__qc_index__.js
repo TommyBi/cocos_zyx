@@ -36,6 +36,7 @@ require('./assets/script/merge/zyxGame/ZyxComTop');
 require('./assets/script/merge/zyxGame/ZyxGame');
 require('./assets/script/merge/zyxGame/ZyxGridCom');
 require('./assets/script/merge/zyxGame/ZyxMainScene');
+require('./assets/script/merge/zyxGame/ZyxNextLineCom');
 require('./assets/script/merge/zyxGame/ZyxRewardItem');
 
                     }

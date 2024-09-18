@@ -86,7 +86,7 @@ var ZyxGame = /** @class */ (function (_super) {
         _this.grids = [];
         // 掉落发生情况（掉落需要自底向上检测，一轮检测后再检测下一轮，直到最终可以发生掉落的情况全部检测完毕）
         _this.hasDropAction = false;
-        // 是否已经生产了新的
+        // 是否已经生产了新的 - 防止进行无限循环生成和检测
         _this.hasProduce = false;
         // 格子掉落时间
         _this.timeGridDrop = 0.2;
@@ -115,6 +115,7 @@ var ZyxGame = /** @class */ (function (_super) {
             [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
         ];
+        ZyxGameModule_1.zyxGameModule.produce();
         this.initUI();
     };
     ZyxGame.prototype.initUI = function () {
@@ -175,7 +176,8 @@ var ZyxGame = /** @class */ (function (_super) {
             });
         });
     };
-    ZyxGame.prototype.produce = function () {
+    // 加载下一行
+    ZyxGame.prototype.loadNext = function () {
         this.moveUp();
         this.produceRow();
     };
@@ -188,7 +190,7 @@ var ZyxGame = /** @class */ (function (_super) {
                     case 0:
                         // 剔除顶部空余的一行
                         ZyxGameModule_1.zyxGameModule.gridInfo.shift();
-                        newData = ZyxGameModule_1.zyxGameModule.produce();
+                        newData = ZyxGameModule_1.zyxGameModule.copyNewGridData();
                         ZyxGameModule_1.zyxGameModule.gridInfo.push(newData);
                         i = 0;
                         _a.label = 1;
@@ -243,16 +245,6 @@ var ZyxGame = /** @class */ (function (_super) {
             });
         });
     };
-    // 生成之前，先上移
-    ZyxGame.prototype.moveUp = function () {
-        for (var i = 0; i < this.grids.length; i++) {
-            var grid = this.grids[i];
-            cc.tween(grid)
-                .to(this.timeShowNewGrids, { y: grid.y + 84 }, { easing: 'cubicInOut' })
-                .start();
-            grid.getComponent(ZyxGridCom_1.default).moveUp();
-        }
-    };
     // 展示新格子
     ZyxGame.prototype.showNewGrids = function () {
         var _this = this;
@@ -268,10 +260,26 @@ var ZyxGame = /** @class */ (function (_super) {
                     return;
                 showEnding = true;
                 _this.hasDropAction = false;
+                // 下一排展示完成，开始检测是否可以进行合成
                 _this.drop(9);
             })
                 .start();
         }
+        this.updateNextGrid();
+    };
+    // 生成之前，先上移
+    ZyxGame.prototype.moveUp = function () {
+        for (var i = 0; i < this.grids.length; i++) {
+            var grid = this.grids[i];
+            cc.tween(grid)
+                .to(this.timeShowNewGrids, { y: grid.y + 84 }, { easing: 'cubicInOut' })
+                .start();
+            grid.getComponent(ZyxGridCom_1.default).moveUp();
+        }
+    };
+    // 刷新下一层格子的信息
+    ZyxGame.prototype.updateNextGrid = function () {
+        ZyxGameModule_1.zyxGameModule.produce();
     };
     // 循环检测是否可以掉落和消除
     ZyxGame.prototype.check = function () {
@@ -317,7 +325,7 @@ var ZyxGame = /** @class */ (function (_super) {
             var isGameOver = this.checkGameOver();
             if (!isGameOver && !this.hasProduce) {
                 this.hasProduce = true;
-                this.produce();
+                this.loadNext();
             }
             else {
                 ZyxGameModule_1.zyxGameModule.selectGirdUniqueId = -1;

@@ -3,7 +3,7 @@ import { zyxGameModule } from "../dataModule/ZyxGameModule";
 import { gridContentType } from "../define/TypeDefine";
 import { EventType } from "../manager/Define";
 import { uimanager } from "../manager/Uimanager";
-import { eventManager, EventManager } from "../util/EventManager";
+import { eventManager } from "../util/EventManager";
 import ZyxGridCom from "./ZyxGridCom";
 
 const { ccclass, property } = cc._decorator;
@@ -50,7 +50,7 @@ export default class ZyxGame extends cc.Component {
     // 掉落发生情况（掉落需要自底向上检测，一轮检测后再检测下一轮，直到最终可以发生掉落的情况全部检测完毕）
     private hasDropAction: boolean = false;
 
-    // 是否已经生产了新的
+    // 是否已经生产了新的 - 防止进行无限循环生成和检测
     private hasProduce: boolean = false;
 
     // 格子掉落时间
@@ -84,6 +84,7 @@ export default class ZyxGame extends cc.Component {
             [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
         ]
+        zyxGameModule.produce();
 
         this.initUI();
     }
@@ -125,7 +126,8 @@ export default class ZyxGame extends cc.Component {
         }
     }
 
-    produce() {
+    // 加载下一行
+    loadNext() {
         this.moveUp();
 
         this.produceRow();
@@ -136,8 +138,9 @@ export default class ZyxGame extends cc.Component {
         // 剔除顶部空余的一行
         zyxGameModule.gridInfo.shift();
 
-        // 生成新的一行数据
-        const newData = zyxGameModule.produce();
+        // 将新的一排的数据进行拷贝并使用
+        const newData = zyxGameModule.copyNewGridData();
+
         zyxGameModule.gridInfo.push(newData);
         for (let i = 0; i < 8; i++) {
             const row = 9;
@@ -170,18 +173,6 @@ export default class ZyxGame extends cc.Component {
         return gridNode;
     }
 
-    // 生成之前，先上移
-    moveUp(): void {
-        for (let i = 0; i < this.grids.length; i++) {
-            const grid = this.grids[i];
-            cc.tween(grid)
-                .to(this.timeShowNewGrids, { y: grid.y + 84 }, { easing: 'cubicInOut' })
-                .start();
-
-            grid.getComponent(ZyxGridCom).moveUp();
-        }
-    }
-
     // 展示新格子
     showNewGrids(): void {
         let showEnding: boolean = false;
@@ -194,10 +185,32 @@ export default class ZyxGame extends cc.Component {
                     if (showEnding) return;
                     showEnding = true;
                     this.hasDropAction = false;
+
+                    // 下一排展示完成，开始检测是否可以进行合成
                     this.drop(9);
                 })
                 .start();
         }
+
+        this.updateNextGrid();
+    }
+
+    // 生成之前，先上移
+    moveUp(): void {
+        for (let i = 0; i < this.grids.length; i++) {
+            const grid = this.grids[i];
+            cc.tween(grid)
+                .to(this.timeShowNewGrids, { y: grid.y + 84 }, { easing: 'cubicInOut' })
+                .start();
+
+            grid.getComponent(ZyxGridCom).moveUp();
+        }
+    }
+
+    // 刷新下一层格子的信息
+    updateNextGrid() {
+        zyxGameModule.produce();
+
     }
 
     // 循环检测是否可以掉落和消除
@@ -248,7 +261,7 @@ export default class ZyxGame extends cc.Component {
             const isGameOver = this.checkGameOver();
             if (!isGameOver && !this.hasProduce) {
                 this.hasProduce = true;
-                this.produce();
+                this.loadNext();
             } else {
                 zyxGameModule.selectGirdUniqueId = -1;
                 console.log('action over:', zyxGameModule.gridInfo);
