@@ -5,6 +5,8 @@ import { EventType } from "../manager/Define";
 import { uimanager } from "../manager/Uimanager";
 import { eventManager } from "../util/EventManager";
 import ZyxGridCom from "./ZyxGridCom";
+import ZyxLineCom from "./ZyxLineCom";
+
 
 const { ccclass, property } = cc._decorator;
 
@@ -44,6 +46,9 @@ export default class ZyxGame extends cc.Component {
 
     @property(cc.Node)
     uBoxGrid: cc.Node = null;
+
+    @property(cc.Node)
+    uBoxNew: cc.Node = null;
 
     private grids: cc.Node[] = [];
 
@@ -208,9 +213,32 @@ export default class ZyxGame extends cc.Component {
     }
 
     // 刷新下一层格子的信息
-    updateNextGrid() {
+    async updateNextGrid() {
+        // 数据刷新
         zyxGameModule.produce();
 
+        // 展示刷新
+        this.uBoxNew.destroyAllChildren();
+        for (let i = 0; i < 8; i++) {
+            if (i === 0) {
+                if (zyxGameModule.nextGridInfo[i][1] !== gridContentType.EMPTY) {
+                    const line = await this.produceNewLine(zyxGameModule.nextGridInfo[i][0]);
+                    this.uBoxNew.addChild(line);
+                    line.setPosition(new cc.Vec2(zyxGameModule.gridsWidth * i, 0));
+                }
+            } else if (zyxGameModule.nextGridInfo[i][1] != gridContentType.EMPTY && zyxGameModule.nextGridInfo[i][2] !== zyxGameModule.nextGridInfo[i - 1][2]) {
+                const line = await this.produceNewLine(zyxGameModule.nextGridInfo[i][0]);
+                this.uBoxNew.addChild(line);
+                line.setPosition(new cc.Vec2(zyxGameModule.gridsWidth * i, 0));
+            }
+        }
+    }
+
+    async produceNewLine(size: number) {
+        const line = await uimanager.loadPrefab('prefab/zyx/uComNextLine');
+        const node = cc.instantiate(line);
+        node.getComponent(ZyxLineCom).setW(size * zyxGameModule.gridsWidth);
+        return node;
     }
 
     // 循环检测是否可以掉落和消除

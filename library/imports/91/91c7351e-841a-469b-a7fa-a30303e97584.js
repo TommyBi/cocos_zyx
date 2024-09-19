@@ -80,7 +80,6 @@ var ZyxGridCom = /** @class */ (function (_super) {
         this.ulblUniqueId.string = this.uniqueId.toString();
         var skinUrl = "images/grid/color_" + NewUtils_1.default.randomIntInclusive(1, 13);
         NewUtils_1.default.setSpriteFrameByUrl(this.uImgBg.getComponent(cc.Sprite), skinUrl);
-        this.node.getComponent(cc.Sprite)['_type'] = cc.Sprite.Type.SLICED;
     };
     ZyxGridCom.prototype.setRowCel = function (row, col) {
         this.row = row;

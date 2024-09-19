@@ -52,8 +52,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -307,
-        -366,
+        0,
+        0,
         0,
         0,
         0,
@@ -116,8 +116,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        307,
-        366,
+        0,
+        0,
         0,
         0,
         0,
@@ -185,7 +185,7 @@
     "sync": false
   },
   {
-    "__type__": "c2a638omEJIFJHBIDhURbPJ",
+    "__type__": "05b9cpMY9tNoKTFozkcF+5r",
     "_name": "",
     "_objFlags": 0,
     "node": {

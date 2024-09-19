@@ -1,6 +1,6 @@
 "use strict";
-cc._RF.push(module, 'c2a638omEJIFJHBIDhURbPJ', 'ZyxNextLineCom');
-// script/merge/zyxGame/ZyxNextLineCom.ts
+cc._RF.push(module, '05b9cpMY9tNoKTFozkcF+5r', 'ZyxLineCom');
+// script/merge/zyxGame/ZyxLineCom.ts
 
 "use strict";
 // Learn TypeScript:
@@ -30,26 +30,28 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
-var ZyxNextLineCom = /** @class */ (function (_super) {
-    __extends(ZyxNextLineCom, _super);
-    function ZyxNextLineCom() {
+var ZyxLineCom = /** @class */ (function (_super) {
+    __extends(ZyxLineCom, _super);
+    function ZyxLineCom() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.uImgLine = null;
         return _this;
         // update (dt) {}
     }
-    ZyxNextLineCom.prototype.onLoad = function () { };
-    ZyxNextLineCom.prototype.setW = function (width) {
-        this.uImgLine.getComponent(cc.Sprite).width = width;
+    // onLoad () {}
+    ZyxLineCom.prototype.start = function () {
+    };
+    ZyxLineCom.prototype.setW = function (width) {
+        this.uImgLine.width = width;
     };
     __decorate([
         property(cc.Node)
-    ], ZyxNextLineCom.prototype, "uImgLine", void 0);
-    ZyxNextLineCom = __decorate([
+    ], ZyxLineCom.prototype, "uImgLine", void 0);
+    ZyxLineCom = __decorate([
         ccclass
-    ], ZyxNextLineCom);
-    return ZyxNextLineCom;
+    ], ZyxLineCom);
+    return ZyxLineCom;
 }(cc.Component));
-exports.default = ZyxNextLineCom;
+exports.default = ZyxLineCom;
 
 cc._RF.pop();

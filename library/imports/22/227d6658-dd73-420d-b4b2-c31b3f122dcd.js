@@ -66,6 +66,7 @@ var Define_1 = require("../manager/Define");
 var Uimanager_1 = require("../manager/Uimanager");
 var EventManager_1 = require("../util/EventManager");
 var ZyxGridCom_1 = require("./ZyxGridCom");
+var ZyxLineCom_1 = require("./ZyxLineCom");
 var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
 // 游戏主玩法场景
 var ZyxGame = /** @class */ (function (_super) {
@@ -83,6 +84,7 @@ var ZyxGame = /** @class */ (function (_super) {
         _this.uBtnBomb = null;
         _this.uBtnClean = null;
         _this.uBoxGrid = null;
+        _this.uBoxNew = null;
         _this.grids = [];
         // 掉落发生情况（掉落需要自底向上检测，一轮检测后再检测下一轮，直到最终可以发生掉落的情况全部检测完毕）
         _this.hasDropAction = false;
@@ -279,7 +281,58 @@ var ZyxGame = /** @class */ (function (_super) {
     };
     // 刷新下一层格子的信息
     ZyxGame.prototype.updateNextGrid = function () {
-        ZyxGameModule_1.zyxGameModule.produce();
+        return __awaiter(this, void 0, void 0, function () {
+            var i, line, line;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        // 数据刷新
+                        ZyxGameModule_1.zyxGameModule.produce();
+                        // 展示刷新
+                        this.uBoxNew.destroyAllChildren();
+                        i = 0;
+                        _a.label = 1;
+                    case 1:
+                        if (!(i < 8)) return [3 /*break*/, 7];
+                        if (!(i === 0)) return [3 /*break*/, 4];
+                        if (!(ZyxGameModule_1.zyxGameModule.nextGridInfo[i][1] !== TypeDefine_1.gridContentType.EMPTY)) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this.produceNewLine(ZyxGameModule_1.zyxGameModule.nextGridInfo[i][0])];
+                    case 2:
+                        line = _a.sent();
+                        this.uBoxNew.addChild(line);
+                        line.setPosition(new cc.Vec2(ZyxGameModule_1.zyxGameModule.gridsWidth * i, 0));
+                        _a.label = 3;
+                    case 3: return [3 /*break*/, 6];
+                    case 4:
+                        if (!(ZyxGameModule_1.zyxGameModule.nextGridInfo[i][1] != TypeDefine_1.gridContentType.EMPTY && ZyxGameModule_1.zyxGameModule.nextGridInfo[i][2] !== ZyxGameModule_1.zyxGameModule.nextGridInfo[i - 1][2])) return [3 /*break*/, 6];
+                        return [4 /*yield*/, this.produceNewLine(ZyxGameModule_1.zyxGameModule.nextGridInfo[i][0])];
+                    case 5:
+                        line = _a.sent();
+                        this.uBoxNew.addChild(line);
+                        line.setPosition(new cc.Vec2(ZyxGameModule_1.zyxGameModule.gridsWidth * i, 0));
+                        _a.label = 6;
+                    case 6:
+                        i++;
+                        return [3 /*break*/, 1];
+                    case 7: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    ZyxGame.prototype.produceNewLine = function (size) {
+        return __awaiter(this, void 0, void 0, function () {
+            var line, node;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, Uimanager_1.uimanager.loadPrefab('prefab/zyx/uComNextLine')];
+                    case 1:
+                        line = _a.sent();
+                        node = cc.instantiate(line);
+                        node.getComponent(ZyxLineCom_1.default).setW(size * ZyxGameModule_1.zyxGameModule.gridsWidth);
+                        return [2 /*return*/, node];
+                }
+            });
+        });
     };
     // 循环检测是否可以掉落和消除
     ZyxGame.prototype.check = function () {
@@ -461,6 +514,9 @@ var ZyxGame = /** @class */ (function (_super) {
     __decorate([
         property(cc.Node)
     ], ZyxGame.prototype, "uBoxGrid", void 0);
+    __decorate([
+        property(cc.Node)
+    ], ZyxGame.prototype, "uBoxNew", void 0);
     ZyxGame = __decorate([
         ccclass
     ], ZyxGame);

@@ -8,15 +8,18 @@
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class ZyxNextLineCom extends cc.Component {
+export default class ZyxLineCom extends cc.Component {
 
     @property(cc.Node)
-    uImgLine = null;
+    uImgLine: cc.Node = null;
+    // onLoad () {}
 
-    onLoad() { }
+    start() {
+
+    }
 
     setW(width: number): void {
-        this.uImgLine.getComponent(cc.Sprite).width = width;
+        this.uImgLine.width = width;
     }
 
     // update (dt) {}

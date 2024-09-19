@@ -2,7 +2,7 @@
                 (function() {
                     var nodeEnv = typeof require !== 'undefined' && typeof process !== 'undefined';
                     var __module = nodeEnv ? module : {exports:{}};
-                    var __filename = 'preview-scripts/assets/script/merge/zyxGame/ZyxNextLineCom.js';
+                    var __filename = 'preview-scripts/assets/script/merge/zyxGame/ZyxLineCom.js';
                     var __require = nodeEnv ? function (request) {
                         return cc.require(request);
                     } : function (request) {
@@ -10,8 +10,8 @@
                     };
                     function __define (exports, require, module) {
                         if (!nodeEnv) {__quick_compile_project__.registerModule(__filename, module);}"use strict";
-cc._RF.push(module, 'c2a638omEJIFJHBIDhURbPJ', 'ZyxNextLineCom');
-// script/merge/zyxGame/ZyxNextLineCom.ts
+cc._RF.push(module, '05b9cpMY9tNoKTFozkcF+5r', 'ZyxLineCom');
+// script/merge/zyxGame/ZyxLineCom.ts
 
 "use strict";
 // Learn TypeScript:
@@ -41,27 +41,29 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
-var ZyxNextLineCom = /** @class */ (function (_super) {
-    __extends(ZyxNextLineCom, _super);
-    function ZyxNextLineCom() {
+var ZyxLineCom = /** @class */ (function (_super) {
+    __extends(ZyxLineCom, _super);
+    function ZyxLineCom() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.uImgLine = null;
         return _this;
         // update (dt) {}
     }
-    ZyxNextLineCom.prototype.onLoad = function () { };
-    ZyxNextLineCom.prototype.setW = function (width) {
-        this.uImgLine.getComponent(cc.Sprite).width = width;
+    // onLoad () {}
+    ZyxLineCom.prototype.start = function () {
+    };
+    ZyxLineCom.prototype.setW = function (width) {
+        this.uImgLine.width = width;
     };
     __decorate([
         property(cc.Node)
-    ], ZyxNextLineCom.prototype, "uImgLine", void 0);
-    ZyxNextLineCom = __decorate([
+    ], ZyxLineCom.prototype, "uImgLine", void 0);
+    ZyxLineCom = __decorate([
         ccclass
-    ], ZyxNextLineCom);
-    return ZyxNextLineCom;
+    ], ZyxLineCom);
+    return ZyxLineCom;
 }(cc.Component));
-exports.default = ZyxNextLineCom;
+exports.default = ZyxLineCom;
 
 cc._RF.pop();
                     }
@@ -74,4 +76,4 @@ cc._RF.pop();
                         });
                     }
                 })();
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImFzc2V0cy9zY3JpcHQvbWVyZ2Uvenl4R2FtZS9aeXhOZXh0TGluZUNvbS50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7O0FBQUEsb0JBQW9CO0FBQ3BCLDRFQUE0RTtBQUM1RSxtQkFBbUI7QUFDbkIsc0ZBQXNGO0FBQ3RGLDhCQUE4QjtBQUM5QixzRkFBc0Y7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQUVoRixJQUFBLEtBQXdCLEVBQUUsQ0FBQyxVQUFVLEVBQW5DLE9BQU8sYUFBQSxFQUFFLFFBQVEsY0FBa0IsQ0FBQztBQUc1QztJQUE0QyxrQ0FBWTtJQUF4RDtRQUFBLHFFQVlDO1FBVEcsY0FBUSxHQUFHLElBQUksQ0FBQzs7UUFRaEIsaUJBQWlCO0lBQ3JCLENBQUM7SUFQRywrQkFBTSxHQUFOLGNBQVcsQ0FBQztJQUVaLDZCQUFJLEdBQUosVUFBSyxLQUFhO1FBQ2QsSUFBSSxDQUFDLFFBQVEsQ0FBQyxZQUFZLENBQUMsRUFBRSxDQUFDLE1BQU0sQ0FBQyxDQUFDLEtBQUssR0FBRyxLQUFLLENBQUM7SUFDeEQsQ0FBQztJQU5EO1FBREMsUUFBUSxDQUFDLEVBQUUsQ0FBQyxJQUFJLENBQUM7b0RBQ0Y7SUFIQyxjQUFjO1FBRGxDLE9BQU87T0FDYSxjQUFjLENBWWxDO0lBQUQscUJBQUM7Q0FaRCxBQVlDLENBWjJDLEVBQUUsQ0FBQyxTQUFTLEdBWXZEO2tCQVpvQixjQUFjIiwiZmlsZSI6IiIsInNvdXJjZVJvb3QiOiIvIiwic291cmNlc0NvbnRlbnQiOlsiLy8gTGVhcm4gVHlwZVNjcmlwdDpcbi8vICAtIGh0dHBzOi8vZG9jcy5jb2Nvcy5jb20vY3JlYXRvci8yLjQvbWFudWFsL2VuL3NjcmlwdGluZy90eXBlc2NyaXB0Lmh0bWxcbi8vIExlYXJuIEF0dHJpYnV0ZTpcbi8vICAtIGh0dHBzOi8vZG9jcy5jb2Nvcy5jb20vY3JlYXRvci8yLjQvbWFudWFsL2VuL3NjcmlwdGluZy9yZWZlcmVuY2UvYXR0cmlidXRlcy5odG1sXG4vLyBMZWFybiBsaWZlLWN5Y2xlIGNhbGxiYWNrczpcbi8vICAtIGh0dHBzOi8vZG9jcy5jb2Nvcy5jb20vY3JlYXRvci8yLjQvbWFudWFsL2VuL3NjcmlwdGluZy9saWZlLWN5Y2xlLWNhbGxiYWNrcy5odG1sXG5cbmNvbnN0IHsgY2NjbGFzcywgcHJvcGVydHkgfSA9IGNjLl9kZWNvcmF0b3I7XG5cbkBjY2NsYXNzXG5leHBvcnQgZGVmYXVsdCBjbGFzcyBaeXhOZXh0TGluZUNvbSBleHRlbmRzIGNjLkNvbXBvbmVudCB7XG5cbiAgICBAcHJvcGVydHkoY2MuTm9kZSlcbiAgICB1SW1nTGluZSA9IG51bGw7XG5cbiAgICBvbkxvYWQoKSB7IH1cblxuICAgIHNldFcod2lkdGg6IG51bWJlcik6IHZvaWQge1xuICAgICAgICB0aGlzLnVJbWdMaW5lLmdldENvbXBvbmVudChjYy5TcHJpdGUpLndpZHRoID0gd2lkdGg7XG4gICAgfVxuXG4gICAgLy8gdXBkYXRlIChkdCkge31cbn1cbiJdfQ==
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImFzc2V0cy9zY3JpcHQvbWVyZ2Uvenl4R2FtZS9aeXhMaW5lQ29tLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7QUFBQSxvQkFBb0I7QUFDcEIsNEVBQTRFO0FBQzVFLG1CQUFtQjtBQUNuQixzRkFBc0Y7QUFDdEYsOEJBQThCO0FBQzlCLHNGQUFzRjs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBRWhGLElBQUEsS0FBd0IsRUFBRSxDQUFDLFVBQVUsRUFBbkMsT0FBTyxhQUFBLEVBQUUsUUFBUSxjQUFrQixDQUFDO0FBRzVDO0lBQXdDLDhCQUFZO0lBQXBEO1FBQUEscUVBZUM7UUFaRyxjQUFRLEdBQVksSUFBSSxDQUFDOztRQVd6QixpQkFBaUI7SUFDckIsQ0FBQztJQVhHLGVBQWU7SUFFZiwwQkFBSyxHQUFMO0lBRUEsQ0FBQztJQUVELHlCQUFJLEdBQUosVUFBSyxLQUFhO1FBQ2QsSUFBSSxDQUFDLFFBQVEsQ0FBQyxLQUFLLEdBQUcsS0FBSyxDQUFDO0lBQ2hDLENBQUM7SUFURDtRQURDLFFBQVEsQ0FBQyxFQUFFLENBQUMsSUFBSSxDQUFDO2dEQUNPO0lBSFIsVUFBVTtRQUQ5QixPQUFPO09BQ2EsVUFBVSxDQWU5QjtJQUFELGlCQUFDO0NBZkQsQUFlQyxDQWZ1QyxFQUFFLENBQUMsU0FBUyxHQWVuRDtrQkFmb0IsVUFBVSIsImZpbGUiOiIiLCJzb3VyY2VSb290IjoiLyIsInNvdXJjZXNDb250ZW50IjpbIi8vIExlYXJuIFR5cGVTY3JpcHQ6XG4vLyAgLSBodHRwczovL2RvY3MuY29jb3MuY29tL2NyZWF0b3IvMi40L21hbnVhbC9lbi9zY3JpcHRpbmcvdHlwZXNjcmlwdC5odG1sXG4vLyBMZWFybiBBdHRyaWJ1dGU6XG4vLyAgLSBodHRwczovL2RvY3MuY29jb3MuY29tL2NyZWF0b3IvMi40L21hbnVhbC9lbi9zY3JpcHRpbmcvcmVmZXJlbmNlL2F0dHJpYnV0ZXMuaHRtbFxuLy8gTGVhcm4gbGlmZS1jeWNsZSBjYWxsYmFja3M6XG4vLyAgLSBodHRwczovL2RvY3MuY29jb3MuY29tL2NyZWF0b3IvMi40L21hbnVhbC9lbi9zY3JpcHRpbmcvbGlmZS1jeWNsZS1jYWxsYmFja3MuaHRtbFxuXG5jb25zdCB7IGNjY2xhc3MsIHByb3BlcnR5IH0gPSBjYy5fZGVjb3JhdG9yO1xuXG5AY2NjbGFzc1xuZXhwb3J0IGRlZmF1bHQgY2xhc3MgWnl4TGluZUNvbSBleHRlbmRzIGNjLkNvbXBvbmVudCB7XG5cbiAgICBAcHJvcGVydHkoY2MuTm9kZSlcbiAgICB1SW1nTGluZTogY2MuTm9kZSA9IG51bGw7XG4gICAgLy8gb25Mb2FkICgpIHt9XG5cbiAgICBzdGFydCgpIHtcblxuICAgIH1cblxuICAgIHNldFcod2lkdGg6IG51bWJlcik6IHZvaWQge1xuICAgICAgICB0aGlzLnVJbWdMaW5lLndpZHRoID0gd2lkdGg7XG4gICAgfVxuXG4gICAgLy8gdXBkYXRlIChkdCkge31cbn1cbiJdfQ==
