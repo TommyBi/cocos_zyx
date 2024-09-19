@@ -261,9 +261,8 @@ var ZyxGame = /** @class */ (function (_super) {
                 if (showEnding)
                     return;
                 showEnding = true;
-                _this.hasDropAction = false;
                 // 下一排展示完成，开始检测是否可以进行合成
-                _this.drop(9);
+                _this.check();
             })
                 .start();
         }
@@ -336,10 +335,9 @@ var ZyxGame = /** @class */ (function (_super) {
     };
     // 循环检测是否可以掉落和消除
     ZyxGame.prototype.check = function () {
-        this.hasProduce = false;
         this.drop(9);
     };
-    // 进行合成操作
+    // 进行合成操作 - 合成操作是一轮消除检测的最后一个动作
     ZyxGame.prototype.merge = function () {
         var mergeTimes = 0;
         // 检测每一行是否有可以消除的格子
@@ -370,21 +368,46 @@ var ZyxGame = /** @class */ (function (_super) {
             }
         }
         if (mergeTimes > 0) {
-            Uimanager_1.uimanager.showTips('發生消除');
+            Uimanager_1.uimanager.showTips('發生消除，持续下一轮检测');
             this.addScore(mergeTimes);
-            this.drop(9);
+            this.check();
         }
         else {
             var isGameOver = this.checkGameOver();
-            if (!isGameOver && !this.hasProduce) {
+            var isGridEmpty = this.checkGridEmpty();
+            if (isGameOver)
+                return;
+            if (!this.hasProduce) {
+                // 没有可以进行消除的了，并且还未展示新生成的一排，则展示下一排
                 this.hasProduce = true;
                 this.loadNext();
+                Uimanager_1.uimanager.showTips('展示下一行');
+            }
+            else if (isGridEmpty) {
+                // 新生成的已经展示了，且没有可合成，且场上没有棋子
+                this.hasProduce = true;
+                this.loadNext();
+                Uimanager_1.uimanager.showTips('棋盘为空，展示下一行');
             }
             else {
+                // 新生成的一排已经展示过了，且已经没有可合成，且场上还有棋子
+                this.hasProduce = false;
                 ZyxGameModule_1.zyxGameModule.selectGirdUniqueId = -1;
                 console.log('action over:', ZyxGameModule_1.zyxGameModule.gridInfo);
             }
         }
+    };
+    // 当前场景中是否已经为空
+    ZyxGame.prototype.checkGridEmpty = function () {
+        var isEmpty = true;
+        for (var i = 0; i < ZyxGameModule_1.zyxGameModule.gridInfo[9].length; i++) {
+            var gridData = ZyxGameModule_1.zyxGameModule.gridInfo[9][i];
+            if (gridData[1] !== TypeDefine_1.gridContentType.EMPTY) {
+                isEmpty = false;
+                break;
+            }
+        }
+        return isEmpty;
     };
     // 消除
     ZyxGame.prototype.eliminateGrid = function (uniqueID) {
@@ -400,11 +423,13 @@ var ZyxGame = /** @class */ (function (_super) {
     // 检测当前行的上一行是否有掉落情况，如果有则进行掉落操作
     ZyxGame.prototype.drop = function (row) {
         var _this = this;
+        if (row === 9) {
+            this.hasDropAction = false;
+        }
         if (row === 0) {
             if (this.hasDropAction) {
-                this.hasDropAction = false;
-                console.log('新一轮检测');
-                this.drop(9);
+                console.log('持续掉落检测');
+                this.check();
             }
             else {
                 setTimeout(function () {

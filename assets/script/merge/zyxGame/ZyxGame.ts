@@ -189,10 +189,9 @@ export default class ZyxGame extends cc.Component {
                 .call(() => {
                     if (showEnding) return;
                     showEnding = true;
-                    this.hasDropAction = false;
 
                     // 下一排展示完成，开始检测是否可以进行合成
-                    this.drop(9);
+                    this.check();
                 })
                 .start();
         }
@@ -243,11 +242,10 @@ export default class ZyxGame extends cc.Component {
 
     // 循环检测是否可以掉落和消除
     check(): void {
-        this.hasProduce = false;
         this.drop(9);
     }
 
-    // 进行合成操作
+    // 进行合成操作 - 合成操作是一轮消除检测的最后一个动作
     merge(): void {
         let mergeTimes = 0;
         // 检测每一行是否有可以消除的格子
@@ -282,19 +280,45 @@ export default class ZyxGame extends cc.Component {
         }
 
         if (mergeTimes > 0) {
-            uimanager.showTips('發生消除');
+            uimanager.showTips('發生消除，持续下一轮检测');
             this.addScore(mergeTimes);
-            this.drop(9);
+            this.check();
         } else {
             const isGameOver = this.checkGameOver();
-            if (!isGameOver && !this.hasProduce) {
+            const isGridEmpty = this.checkGridEmpty();
+
+            if (isGameOver) return;
+
+            if (!this.hasProduce) {
+                // 没有可以进行消除的了，并且还未展示新生成的一排，则展示下一排
                 this.hasProduce = true;
                 this.loadNext();
+                uimanager.showTips('展示下一行');
+            } else if (isGridEmpty) {
+                // 新生成的已经展示了，且没有可合成，且场上没有棋子
+                this.hasProduce = true;
+                this.loadNext();
+                uimanager.showTips('棋盘为空，展示下一行');
             } else {
+                // 新生成的一排已经展示过了，且已经没有可合成，且场上还有棋子
+                this.hasProduce = false;
                 zyxGameModule.selectGirdUniqueId = -1;
                 console.log('action over:', zyxGameModule.gridInfo);
             }
         }
+    }
+
+    // 当前场景中是否已经为空
+    checkGridEmpty(): boolean {
+        let isEmpty = true;
+        for (let i = 0; i < zyxGameModule.gridInfo[9].length; i++) {
+            const gridData = zyxGameModule.gridInfo[9][i];
+            if (gridData[1] !== gridContentType.EMPTY) {
+                isEmpty = false;
+                break;
+            }
+        }
+        return isEmpty;
     }
 
     // 消除
@@ -311,11 +335,14 @@ export default class ZyxGame extends cc.Component {
 
     // 检测当前行的上一行是否有掉落情况，如果有则进行掉落操作
     drop(row): void {
+        if (row === 9) {
+            this.hasDropAction = false;
+        }
+
         if (row === 0) {
             if (this.hasDropAction) {
-                this.hasDropAction = false;
-                console.log('新一轮检测');
-                this.drop(9);
+                console.log('持续掉落检测');
+                this.check();
             } else {
                 setTimeout(() => {
                     this.merge();

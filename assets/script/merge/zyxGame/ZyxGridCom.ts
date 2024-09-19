@@ -174,7 +174,7 @@ export default class ZyxGridCom extends cc.Component {
 
     // 实际发生横向移动
     moveCrossWise(): void {
-        if (this.offsetCnt === 0) {
+        if (this.offsetCnt === 0 || !this.offsetCnt) {
             // 没有发生实际的位移
             console.log('没有发生实际位移, 格子选中状态取消');
             zyxGameModule.selectGirdUniqueId = -1;
