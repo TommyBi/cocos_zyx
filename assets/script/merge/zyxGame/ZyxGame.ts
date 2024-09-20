@@ -334,10 +334,17 @@ export default class ZyxGame extends cc.Component {
         for (let i = 0; i < this.grids.length; i++) {
             if (this.grids[i].getComponent(ZyxGridCom).uniqueId === uniqueID) {
                 console.log('消除', uniqueID);
+                this.collectGoods(this.grids[i].getComponent(ZyxGridCom).contentType);
                 this.grids[i].getComponent(ZyxGridCom).eliminate();
                 this.grids.splice(i, 1);
                 break;
             }
+        }
+    }
+
+    collectGoods(contentType):void {
+        if (contentType === gridContentType.DIAMOND) {
+            this.addDimaond();
         }
     }
 
@@ -437,6 +444,12 @@ export default class ZyxGame extends cc.Component {
     addScore(score: number): void {
         zyxGameModule.gameInfo.score += score;
         this.ulblScore.string = zyxGameModule.gameInfo.score.toString();
+    }
+
+    // 加钻
+    addDimaond(): void {
+        zyxGameModule.gameInfo.diamond += 1;
+        this.ulblDiamond.string = zyxGameModule.gameInfo.diamond.toString();
     }
 
     test(): void {

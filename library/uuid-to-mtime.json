@@ -1364,11 +1364,6 @@
     "meta": 1726661736254,
     "relativePath": "resources/images/grid/color_9.png"
   },
-  "260831d0-5198-4db0-99dd-c69c558cc2f6": {
-    "asset": 1725536679758,
-    "meta": 1725536698815,
-    "relativePath": "script/merge/define/TypeDefine.ts"
-  },
   "ddbd4b76-0fdb-4965-bee9-b37c7d8a941a": {
     "asset": 1725957247061,
     "meta": 1725957247066,
@@ -1439,11 +1434,6 @@
     "meta": 1726729633103,
     "relativePath": "script/merge/zyxGame/ZyxLineCom.ts"
   },
-  "137728aa-b997-42e4-845f-e711bc51aac8": {
-    "asset": 1726737562655,
-    "meta": 1726737567554,
-    "relativePath": "script/merge/dataModule/ZyxGameModule.ts"
-  },
   "aa7f6e0b-8f02-43de-b8ab-515f80074d14": {
     "asset": 1726802909063,
     "meta": 1726813133961,
@@ -1474,11 +1464,6 @@
     "meta": 1726813133982,
     "relativePath": "resources/sounds/music_main2.mp3"
   },
-  "91c7351e-841a-469b-a7fa-a30303e97584": {
-    "asset": 1726813427065,
-    "meta": 1726813429288,
-    "relativePath": "script/merge/zyxGame/ZyxGridCom.ts"
-  },
   "b545b153-21bd-4957-92ee-2ee8b3e797e4": {
     "asset": 1726815308554,
     "meta": 1726815311302,
@@ -1489,9 +1474,24 @@
     "meta": 1726815443232,
     "relativePath": "script/merge/zyxGame/ZyxMainScene.ts"
   },
+  "137728aa-b997-42e4-845f-e711bc51aac8": {
+    "asset": 1726822806320,
+    "meta": 1726823137815,
+    "relativePath": "script/merge/dataModule/ZyxGameModule.ts"
+  },
+  "260831d0-5198-4db0-99dd-c69c558cc2f6": {
+    "asset": 1726822803665,
+    "meta": 1726823137829,
+    "relativePath": "script/merge/define/TypeDefine.ts"
+  },
   "227d6658-dd73-420d-b4b2-c31b3f122dcd": {
-    "asset": 1726815791276,
-    "meta": 1726815804299,
+    "asset": 1726823132185,
+    "meta": 1726823137987,
     "relativePath": "script/merge/zyxGame/ZyxGame.ts"
+  },
+  "91c7351e-841a-469b-a7fa-a30303e97584": {
+    "asset": 1726822969647,
+    "meta": 1726823138056,
+    "relativePath": "script/merge/zyxGame/ZyxGridCom.ts"
   }
 }

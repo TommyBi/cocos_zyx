@@ -33,6 +33,9 @@ export default class ZyxGameModule extends DataModule {
     // 下一排信息
     public nextGridInfo: any[] = [];
 
+    // 新生成的次数
+    public produceTimes: number = 0;
+
     constructor() {
         super();
     }
@@ -61,6 +64,7 @@ export default class ZyxGameModule extends DataModule {
 
         // 确定要生成的数字组合 nMax <= 7;
         const arr = [];
+        let hasProducedDiamond: boolean = false;
         do {
             // 生成新格子
             let newNum = NewUtils.randomIntInclusive(0, 10);
@@ -92,10 +96,14 @@ export default class ZyxGameModule extends DataModule {
                 }
 
                 // 空间足够，那就将对应数量的格子进行填充
+                const contentType = this.getContentType(hasProducedDiamond);
+                if (contentType === gridContentType.DIAMOND) {
+                    hasProducedDiamond = true;
+                }
                 if (surSpace >= newNum) {
                     this.uniqueId++;
                     for (let i = 0; i < newNum; i++) {
-                        arr.push([newNum, 1, this.uniqueId]);
+                        arr.push([newNum, contentType, this.uniqueId]);
                     }
                 }
             }
@@ -103,11 +111,20 @@ export default class ZyxGameModule extends DataModule {
         } while (arr.length < 8);
 
         this.nextGridInfo = arr;
+        this.produceTimes++;
         console.log('produce', arr);
         return arr;
 
         // const a = [[2, 1, 10], [2, 1, 10], [2, 1, 11], [2, 1, 11], [2, 1, 12], [2, 1, 12], [2, 1, 13], [2, 1, 13]];
         // return a;
+    }
+
+    // 获得随机生成格子的类型
+    getContentType(hasProducedDiamond: boolean): gridContentType {
+        if (hasProducedDiamond) return gridContentType.NORMAL;
+        if (this.produceTimes % 6 === 0 && Math.random() <= 0.5) {
+            return gridContentType.DIAMOND;
+        }
     }
 
     // 检查游戏是否结束

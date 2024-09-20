@@ -22,7 +22,7 @@ export default class ZyxGridCom extends cc.Component {
     ulblUniqueId: cc.Label = null;
 
     private size: gridSize = gridSize.ONE;
-    private contentType: gridContentType = gridContentType.EMPTY;
+    public contentType: gridContentType = gridContentType.EMPTY;
     public uniqueId: number = 0;
 
     private row: number = -1;
@@ -67,9 +67,15 @@ export default class ZyxGridCom extends cc.Component {
         this.uImgBg.x = nodeWidth / 2;
         this.uImgDiamond.x = this.uImgBg.width / 2;
         this.ulblUniqueId.node.x = this.node.width / 2;
-        this.uImgDiamond.active = this.contentType === gridContentType.DIAMOND;
+
         this.ulblUniqueId.string = this.uniqueId.toString();
         this.ulblUniqueId.node.active = false;
+
+        if (this.contentType === gridContentType.DIAMOND) {
+            this.uImgDiamond.active = true;
+        } else {
+            this.uImgDiamond.active = false;
+        }
 
         const skinUrl = `images/grid/color_${NewUtils.randomIntInclusive(1, 13)}`;
         NewUtils.setSpriteFrameByUrl(this.uImgBg.getComponent(cc.Sprite), skinUrl);

@@ -48,6 +48,8 @@ var ZyxGameModule = /** @class */ (function (_super) {
         _this.gridsWidth = 84;
         // 下一排信息
         _this.nextGridInfo = [];
+        // 新生成的次数
+        _this.produceTimes = 0;
         return _this;
     }
     ZyxGameModule.prototype.parseData = function (data) {
@@ -71,6 +73,7 @@ var ZyxGameModule = /** @class */ (function (_super) {
     ZyxGameModule.prototype.produce = function () {
         // 确定要生成的数字组合 nMax <= 7;
         var arr = [];
+        var hasProducedDiamond = false;
         do {
             // 生成新格子
             var newNum = NewUtils_1.default.randomIntInclusive(0, 10);
@@ -105,19 +108,32 @@ var ZyxGameModule = /** @class */ (function (_super) {
                     break;
                 }
                 // 空间足够，那就将对应数量的格子进行填充
+                var contentType = this.getContentType(hasProducedDiamond);
+                if (contentType === TypeDefine_1.gridContentType.DIAMOND) {
+                    hasProducedDiamond = true;
+                }
                 if (surSpace >= newNum) {
                     this.uniqueId++;
                     for (var i = 0; i < newNum; i++) {
-                        arr.push([newNum, 1, this.uniqueId]);
+                        arr.push([newNum, contentType, this.uniqueId]);
                     }
                 }
             }
         } while (arr.length < 8);
         this.nextGridInfo = arr;
+        this.produceTimes++;
         console.log('produce', arr);
         return arr;
         // const a = [[2, 1, 10], [2, 1, 10], [2, 1, 11], [2, 1, 11], [2, 1, 12], [2, 1, 12], [2, 1, 13], [2, 1, 13]];
         // return a;
+    };
+    // 获得随机生成格子的类型
+    ZyxGameModule.prototype.getContentType = function (hasProducedDiamond) {
+        if (hasProducedDiamond)
+            return TypeDefine_1.gridContentType.NORMAL;
+        if (this.produceTimes % 6 === 0 && Math.random() <= 0.5) {
+            return TypeDefine_1.gridContentType.DIAMOND;
+        }
     };
     // 检查游戏是否结束
     ZyxGameModule.prototype.checkGameOver = function () {

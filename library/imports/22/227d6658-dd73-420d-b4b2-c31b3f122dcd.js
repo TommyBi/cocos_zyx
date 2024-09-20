@@ -421,10 +421,16 @@ var ZyxGame = /** @class */ (function (_super) {
         for (var i = 0; i < this.grids.length; i++) {
             if (this.grids[i].getComponent(ZyxGridCom_1.default).uniqueId === uniqueID) {
                 console.log('消除', uniqueID);
+                this.collectGoods(this.grids[i].getComponent(ZyxGridCom_1.default).contentType);
                 this.grids[i].getComponent(ZyxGridCom_1.default).eliminate();
                 this.grids.splice(i, 1);
                 break;
             }
+        }
+    };
+    ZyxGame.prototype.collectGoods = function (contentType) {
+        if (contentType === TypeDefine_1.gridContentType.DIAMOND) {
+            this.addDimaond();
         }
     };
     // 检测当前行的上一行是否有掉落情况，如果有则进行掉落操作
@@ -513,6 +519,11 @@ var ZyxGame = /** @class */ (function (_super) {
     ZyxGame.prototype.addScore = function (score) {
         ZyxGameModule_1.zyxGameModule.gameInfo.score += score;
         this.ulblScore.string = ZyxGameModule_1.zyxGameModule.gameInfo.score.toString();
+    };
+    // 加钻
+    ZyxGame.prototype.addDimaond = function () {
+        ZyxGameModule_1.zyxGameModule.gameInfo.diamond += 1;
+        this.ulblDiamond.string = ZyxGameModule_1.zyxGameModule.gameInfo.diamond.toString();
     };
     ZyxGame.prototype.test = function () {
         console.log(ZyxGameModule_1.zyxGameModule.gridInfo);

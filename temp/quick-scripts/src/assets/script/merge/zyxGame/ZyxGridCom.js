@@ -77,9 +77,14 @@ var ZyxGridCom = /** @class */ (function (_super) {
         this.uImgBg.x = nodeWidth / 2;
         this.uImgDiamond.x = this.uImgBg.width / 2;
         this.ulblUniqueId.node.x = this.node.width / 2;
-        this.uImgDiamond.active = this.contentType === TypeDefine_1.gridContentType.DIAMOND;
         this.ulblUniqueId.string = this.uniqueId.toString();
         this.ulblUniqueId.node.active = false;
+        if (this.contentType === TypeDefine_1.gridContentType.DIAMOND) {
+            this.uImgDiamond.active = true;
+        }
+        else {
+            this.uImgDiamond.active = false;
+        }
         var skinUrl = "images/grid/color_" + NewUtils_1.default.randomIntInclusive(1, 13);
         NewUtils_1.default.setSpriteFrameByUrl(this.uImgBg.getComponent(cc.Sprite), skinUrl);
     };
