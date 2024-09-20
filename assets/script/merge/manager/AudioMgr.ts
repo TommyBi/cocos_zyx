@@ -10,6 +10,12 @@ export enum SoundType {
     MERGE_COIN = 'mergeCoin',
     ERROR = 'error',
 
+    ZYX_START = 'sound_start',
+    ZYX_END = 'sound_endding',
+    ZYX_DROP = 'sound_drop',
+
+    ZYX_MUSIC_MAIN = 'music_main1',
+    ZYX_MUSIC_GAME = 'music_game',
 }
 
 // 震动类型
@@ -35,7 +41,7 @@ export default class AudioMgr {
     private musicVolume: number = null
     private soundVolume: number = null
 
-    private curBgMusic: any = null;
+    private curBgMusicUrl: any = null;
     private canPlayMusic: boolean = true;
     private canPlaySound: boolean = true;//!GameConfig.DEBUG;
 
@@ -44,7 +50,7 @@ export default class AudioMgr {
 
     init() {
         cc.log("audioMgr init");
-        this.curBgMusic = null;
+        this.curBgMusicUrl = null;
 
         this.musicVolume = 0.2;
         this.soundVolume = 1.0;
@@ -54,21 +60,21 @@ export default class AudioMgr {
     }
 
     // 音乐
-    public playBGM(music, force) {
+    public playBGM(url) {
         // 如果已经播放着就不播放了
-        if (this.curBgMusic && this.curBgMusic == music) return;
+        if (this.curBgMusicUrl && this.curBgMusicUrl == url) return;
 
-        this.curBgMusic = music;
+        this.curBgMusicUrl = url;
         if (this.canPlayMusic) {
             this.stopBGM();
-            cc.resources.load(music, function (err, clip) {
-                if (this.curBGMUrl == music) {
+            cc.resources.load(`sounds/${url}`, (err, clip: cc.AudioClip) => {
+                if (this.curBgMusicUrl == url) {
                     cc.audioEngine.stopAll();
-                    this.bgmAudioID = cc.audioEngine.play(clip, true, this.bgmVolume);
+                    this.musicId = cc.audioEngine.play(clip, true, this.musicVolume);
                 } else {
                     console.log("播放背景音乐失败:", err)
                 }
-            }.bind(this));
+            });
         }
     }
 
@@ -185,7 +191,7 @@ export default class AudioMgr {
     clean() {
         this.stopAll();
         this.uncacheAll();
-        this.curBgMusic = '';
+        this.curBgMusicUrl = '';
         this.musicId = -1;
     }
 

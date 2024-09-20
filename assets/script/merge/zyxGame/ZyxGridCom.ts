@@ -69,6 +69,7 @@ export default class ZyxGridCom extends cc.Component {
         this.ulblUniqueId.node.x = this.node.width / 2;
         this.uImgDiamond.active = this.contentType === gridContentType.DIAMOND;
         this.ulblUniqueId.string = this.uniqueId.toString();
+        this.ulblUniqueId.node.active = false;
 
         const skinUrl = `images/grid/color_${NewUtils.randomIntInclusive(1, 13)}`;
         NewUtils.setSpriteFrameByUrl(this.uImgBg.getComponent(cc.Sprite), skinUrl);

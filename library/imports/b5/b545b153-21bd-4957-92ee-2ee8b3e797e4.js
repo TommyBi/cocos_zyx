@@ -16,6 +16,11 @@ var SoundType;
     SoundType["PRODUCE_COIN"] = "produceCoin";
     SoundType["MERGE_COIN"] = "mergeCoin";
     SoundType["ERROR"] = "error";
+    SoundType["ZYX_START"] = "sound_start";
+    SoundType["ZYX_END"] = "sound_endding";
+    SoundType["ZYX_DROP"] = "sound_drop";
+    SoundType["ZYX_MUSIC_MAIN"] = "music_main1";
+    SoundType["ZYX_MUSIC_GAME"] = "music_game";
 })(SoundType = exports.SoundType || (exports.SoundType = {}));
 // 震动类型
 var SHAKE_TYPE;
@@ -32,7 +37,7 @@ var AudioMgr = /** @class */ (function () {
         // 音量
         this.musicVolume = null;
         this.soundVolume = null;
-        this.curBgMusic = null;
+        this.curBgMusicUrl = null;
         this.canPlayMusic = true;
         this.canPlaySound = true; //!GameConfig.DEBUG;
         // 当前播放的背景音乐的播放索引
@@ -40,29 +45,30 @@ var AudioMgr = /** @class */ (function () {
     }
     AudioMgr.prototype.init = function () {
         cc.log("audioMgr init");
-        this.curBgMusic = null;
+        this.curBgMusicUrl = null;
         this.musicVolume = 0.2;
         this.soundVolume = 1.0;
         this.canPlayMusic = true;
         this.canPlaySound = true;
     };
     // 音乐
-    AudioMgr.prototype.playBGM = function (music, force) {
+    AudioMgr.prototype.playBGM = function (url) {
+        var _this = this;
         // 如果已经播放着就不播放了
-        if (this.curBgMusic && this.curBgMusic == music)
+        if (this.curBgMusicUrl && this.curBgMusicUrl == url)
             return;
-        this.curBgMusic = music;
+        this.curBgMusicUrl = url;
         if (this.canPlayMusic) {
             this.stopBGM();
-            cc.resources.load(music, function (err, clip) {
-                if (this.curBGMUrl == music) {
+            cc.resources.load("sounds/" + url, function (err, clip) {
+                if (_this.curBgMusicUrl == url) {
                     cc.audioEngine.stopAll();
-                    this.bgmAudioID = cc.audioEngine.play(clip, true, this.bgmVolume);
+                    _this.musicId = cc.audioEngine.play(clip, true, _this.musicVolume);
                 }
                 else {
                     console.log("播放背景音乐失败:", err);
                 }
-            }.bind(this));
+            });
         }
     };
     AudioMgr.prototype.stopBGM = function () {
@@ -175,7 +181,7 @@ var AudioMgr = /** @class */ (function () {
     AudioMgr.prototype.clean = function () {
         this.stopAll();
         this.uncacheAll();
-        this.curBgMusic = '';
+        this.curBgMusicUrl = '';
         this.musicId = -1;
     };
     AudioMgr.prototype.shake = function (type) {

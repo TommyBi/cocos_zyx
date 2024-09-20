@@ -1,7 +1,7 @@
 import { playerModule } from "../dataModule/PlayerModule";
 import { zyxGameModule } from "../dataModule/ZyxGameModule";
 import { gridContentType } from "../define/TypeDefine";
-import { audioMgr, SHAKE_TYPE } from "../manager/AudioMgr";
+import { audioMgr, SHAKE_TYPE, SoundType } from "../manager/AudioMgr";
 import { EventType } from "../manager/Define";
 import { uimanager } from "../manager/Uimanager";
 import { eventManager } from "../util/EventManager";
@@ -65,12 +65,12 @@ export default class ZyxGame extends cc.Component {
     private timeShowNewGrids: number = 0.44;
 
     onLoad() {
-        this.initUI();
-
         this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.test, this);
 
         eventManager.on(EventType.ZYX_CHECK_MERGE, this.check, this);
         eventManager.on(EventType.ZYX_RESET_GAME, this.resetGame, this);
+
+        this.initUI();
     }
 
     start() {
@@ -106,6 +106,10 @@ export default class ZyxGame extends cc.Component {
         this.ulblBombCnt.string = `${playerModule.bomb}`;
 
         this.initChessBoard();
+
+        setTimeout(() => {
+            audioMgr.playBGM(SoundType.ZYX_MUSIC_GAME);
+        }, 1000);
     }
 
     // 初始化棋盘信息
@@ -346,6 +350,7 @@ export default class ZyxGame extends cc.Component {
         if (row === 0) {
             if (this.hasDropAction) {
                 console.log('持续掉落检测');
+                audioMgr.playSound(SoundType.ZYX_DROP);
                 this.check();
             } else {
                 setTimeout(() => {
@@ -420,6 +425,9 @@ export default class ZyxGame extends cc.Component {
     checkGameOver(): boolean {
         if (zyxGameModule.checkGameOver()) {
             uimanager.showGameOver();
+            audioMgr.stopBGM();
+            audioMgr.shake(SHAKE_TYPE.HEAVY);
+            audioMgr.playSound(SoundType.ZYX_END);
             return true;
         }
         return false;

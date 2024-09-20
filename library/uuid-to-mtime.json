@@ -1190,8 +1190,8 @@
     "relativePath": "resources/prefab/zyx"
   },
   "84697e00-4123-4a13-a362-91e895327f6d": {
-    "asset": 1726748342966,
-    "meta": 1726748342987,
+    "asset": 1726816367820,
+    "meta": 1726816367833,
     "relativePath": "resources/prefab/zyx/zyxGame.prefab"
   },
   "00cc98ff-e3a3-4127-bb4a-175e5e163176": {
@@ -1419,11 +1419,6 @@
     "meta": 1726038161711,
     "relativePath": "script/merge/zyxGame/ZyxAccountDialog.ts"
   },
-  "384e0b28-5baf-42d4-aa5f-242801c0d927": {
-    "asset": 1726131952630,
-    "meta": 1726131954304,
-    "relativePath": "script/merge/zyxGame/ZyxMainScene.ts"
-  },
   "27179110-b3d5-44f3-b164-01816da69f83": {
     "asset": 1726643698993,
     "meta": 1726644429129,
@@ -1449,19 +1444,54 @@
     "meta": 1726737567554,
     "relativePath": "script/merge/dataModule/ZyxGameModule.ts"
   },
-  "b545b153-21bd-4957-92ee-2ee8b3e797e4": {
-    "asset": 1726747246636,
-    "meta": 1726747316285,
-    "relativePath": "script/merge/manager/AudioMgr.ts"
+  "aa7f6e0b-8f02-43de-b8ab-515f80074d14": {
+    "asset": 1726802909063,
+    "meta": 1726813133961,
+    "relativePath": "resources/sounds/sound_drop.mp3"
+  },
+  "cac945ef-e207-4d98-841f-c8ac5d88e44a": {
+    "asset": 1726803184228,
+    "meta": 1726813133963,
+    "relativePath": "resources/sounds/sound_start.mp3"
+  },
+  "cf47ae56-4824-4ed8-8be6-120fffad0e56": {
+    "asset": 1726813043150,
+    "meta": 1726813133967,
+    "relativePath": "resources/sounds/sound_endding.mp3"
+  },
+  "62ba9c2a-71e0-48c6-903f-43734a1cb064": {
+    "asset": 1726802076209,
+    "meta": 1726813133975,
+    "relativePath": "resources/sounds/music_game.mp3"
+  },
+  "f76bd106-0c53-4db6-bb5f-c6f1225b4945": {
+    "asset": 1726802112786,
+    "meta": 1726813133980,
+    "relativePath": "resources/sounds/music_main1.mp3"
+  },
+  "3681c778-c4b2-4b26-83ae-16f5dd352bab": {
+    "asset": 1726802150657,
+    "meta": 1726813133982,
+    "relativePath": "resources/sounds/music_main2.mp3"
   },
   "91c7351e-841a-469b-a7fa-a30303e97584": {
-    "asset": 1726747851431,
-    "meta": 1726747885988,
+    "asset": 1726813427065,
+    "meta": 1726813429288,
     "relativePath": "script/merge/zyxGame/ZyxGridCom.ts"
   },
+  "b545b153-21bd-4957-92ee-2ee8b3e797e4": {
+    "asset": 1726815308554,
+    "meta": 1726815311302,
+    "relativePath": "script/merge/manager/AudioMgr.ts"
+  },
+  "384e0b28-5baf-42d4-aa5f-242801c0d927": {
+    "asset": 1726815390231,
+    "meta": 1726815443232,
+    "relativePath": "script/merge/zyxGame/ZyxMainScene.ts"
+  },
   "227d6658-dd73-420d-b4b2-c31b3f122dcd": {
-    "asset": 1726748176121,
-    "meta": 1726748219123,
+    "asset": 1726815791276,
+    "meta": 1726815804299,
     "relativePath": "script/merge/zyxGame/ZyxGame.ts"
   }
 }

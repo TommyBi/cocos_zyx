@@ -95,6 +95,7 @@ var ZyxMainScene = /** @class */ (function (_super) {
                             // 初始化音频
                             AudioMgr_1.audioMgr.init();
                             _this.initUI();
+                            AudioMgr_1.audioMgr.playBGM(AudioMgr_1.SoundType.ZYX_MUSIC_MAIN);
                         });
                         this.onShow();
                         this.onHide();
@@ -107,6 +108,8 @@ var ZyxMainScene = /** @class */ (function (_super) {
         Uimanager_1.uimanager.udpateLayerShow();
     };
     ZyxMainScene.prototype.onStart = function () {
+        AudioMgr_1.audioMgr.playSound(AudioMgr_1.SoundType.ZYX_START);
+        AudioMgr_1.audioMgr.stopBGM();
         this.initGamePanel();
     };
     // 初始化游戏主场景信息

@@ -98,10 +98,10 @@ var ZyxGame = /** @class */ (function (_super) {
         return _this;
     }
     ZyxGame.prototype.onLoad = function () {
-        this.initUI();
         this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.test, this);
         EventManager_1.eventManager.on(Define_1.EventType.ZYX_CHECK_MERGE, this.check, this);
         EventManager_1.eventManager.on(Define_1.EventType.ZYX_RESET_GAME, this.resetGame, this);
+        this.initUI();
     };
     ZyxGame.prototype.start = function () {
     };
@@ -131,6 +131,9 @@ var ZyxGame = /** @class */ (function (_super) {
         this.ulblHammerCnt.string = "" + PlayerModule_1.playerModule.hammer;
         this.ulblBombCnt.string = "" + PlayerModule_1.playerModule.bomb;
         this.initChessBoard();
+        setTimeout(function () {
+            AudioMgr_1.audioMgr.playBGM(AudioMgr_1.SoundType.ZYX_MUSIC_GAME);
+        }, 1000);
     };
     // 初始化棋盘信息
     ZyxGame.prototype.initChessBoard = function () {
@@ -433,6 +436,7 @@ var ZyxGame = /** @class */ (function (_super) {
         if (row === 0) {
             if (this.hasDropAction) {
                 console.log('持续掉落检测');
+                AudioMgr_1.audioMgr.playSound(AudioMgr_1.SoundType.ZYX_DROP);
                 this.check();
             }
             else {
@@ -498,6 +502,9 @@ var ZyxGame = /** @class */ (function (_super) {
     ZyxGame.prototype.checkGameOver = function () {
         if (ZyxGameModule_1.zyxGameModule.checkGameOver()) {
             Uimanager_1.uimanager.showGameOver();
+            AudioMgr_1.audioMgr.stopBGM();
+            AudioMgr_1.audioMgr.shake(AudioMgr_1.SHAKE_TYPE.HEAVY);
+            AudioMgr_1.audioMgr.playSound(AudioMgr_1.SoundType.ZYX_END);
             return true;
         }
         return false;

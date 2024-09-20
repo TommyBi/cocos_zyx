@@ -1,6 +1,6 @@
 import { playerModule } from '../dataModule/PlayerModule';
 import { LAYER } from '../define/TypeDefine';
-import { audioMgr } from '../manager/AudioMgr';
+import { audioMgr, SoundType } from '../manager/AudioMgr';
 import { uimanager } from '../manager/Uimanager';
 import ZyxComTop from './ZyxComTop';
 
@@ -33,6 +33,8 @@ export default class ZyxMainScene extends cc.Component {
             audioMgr.init();
 
             this.initUI();
+
+            audioMgr.playBGM(SoundType.ZYX_MUSIC_MAIN);
         })
 
         this.onShow();
@@ -44,6 +46,8 @@ export default class ZyxMainScene extends cc.Component {
     }
 
     onStart(): void {
+        audioMgr.playSound(SoundType.ZYX_START);
+        audioMgr.stopBGM();
         this.initGamePanel();
     }
 
