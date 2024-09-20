@@ -1933,7 +1933,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uNodeScore",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 1
     },
@@ -2125,9 +2125,9 @@
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 14,
+      "g": 115,
+      "b": 36,
       "a": 255
     },
     "_contentSize": {

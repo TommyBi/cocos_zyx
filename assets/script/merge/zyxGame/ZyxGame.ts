@@ -1,6 +1,7 @@
 import { playerModule } from "../dataModule/PlayerModule";
 import { zyxGameModule } from "../dataModule/ZyxGameModule";
 import { gridContentType } from "../define/TypeDefine";
+import { audioMgr, SHAKE_TYPE } from "../manager/AudioMgr";
 import { EventType } from "../manager/Define";
 import { uimanager } from "../manager/Uimanager";
 import { eventManager } from "../util/EventManager";
@@ -90,6 +91,8 @@ export default class ZyxGame extends cc.Component {
             [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
         ]
         zyxGameModule.produce();
+        this.hasProduce = false;
+        zyxGameModule.selectGirdUniqueId = -1;
 
         this.initUI();
     }
@@ -281,6 +284,7 @@ export default class ZyxGame extends cc.Component {
 
         if (mergeTimes > 0) {
             uimanager.showTips('發生消除，持续下一轮检测');
+            audioMgr.shake(SHAKE_TYPE.HEAVY);
             this.addScore(mergeTimes);
             this.check();
         } else {

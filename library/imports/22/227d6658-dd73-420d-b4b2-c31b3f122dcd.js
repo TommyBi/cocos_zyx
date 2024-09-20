@@ -62,6 +62,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var PlayerModule_1 = require("../dataModule/PlayerModule");
 var ZyxGameModule_1 = require("../dataModule/ZyxGameModule");
 var TypeDefine_1 = require("../define/TypeDefine");
+var AudioMgr_1 = require("../manager/AudioMgr");
 var Define_1 = require("../manager/Define");
 var Uimanager_1 = require("../manager/Uimanager");
 var EventManager_1 = require("../util/EventManager");
@@ -118,6 +119,8 @@ var ZyxGame = /** @class */ (function (_super) {
             [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
         ];
         ZyxGameModule_1.zyxGameModule.produce();
+        this.hasProduce = false;
+        ZyxGameModule_1.zyxGameModule.selectGirdUniqueId = -1;
         this.initUI();
     };
     ZyxGame.prototype.initUI = function () {
@@ -369,6 +372,7 @@ var ZyxGame = /** @class */ (function (_super) {
         }
         if (mergeTimes > 0) {
             Uimanager_1.uimanager.showTips('發生消除，持续下一轮检测');
+            AudioMgr_1.audioMgr.shake(AudioMgr_1.SHAKE_TYPE.HEAVY);
             this.addScore(mergeTimes);
             this.check();
         }

@@ -4,7 +4,7 @@ cc._RF.push(module, 'b545bFTIb1JV5LuLuiz55fk', 'AudioMgr');
 
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.audioMgr = exports.SoundType = exports.MusicType = void 0;
+exports.audioMgr = exports.SHAKE_TYPE = exports.SoundType = exports.MusicType = void 0;
 // 背景音乐类型
 var MusicType;
 (function (MusicType) {
@@ -17,6 +17,14 @@ var SoundType;
     SoundType["MERGE_COIN"] = "mergeCoin";
     SoundType["ERROR"] = "error";
 })(SoundType = exports.SoundType || (exports.SoundType = {}));
+// 震动类型
+var SHAKE_TYPE;
+(function (SHAKE_TYPE) {
+    SHAKE_TYPE["HEAVY"] = "heavy";
+    SHAKE_TYPE["MEDIUM"] = "medium";
+    SHAKE_TYPE["LIGHT"] = "light";
+    SHAKE_TYPE["SUPER_HEAVY"] = "";
+})(SHAKE_TYPE = exports.SHAKE_TYPE || (exports.SHAKE_TYPE = {}));
 var AudioMgr = /** @class */ (function () {
     function AudioMgr() {
         this.soundClipCache = {};
@@ -169,6 +177,16 @@ var AudioMgr = /** @class */ (function () {
         this.uncacheAll();
         this.curBgMusic = '';
         this.musicId = -1;
+    };
+    AudioMgr.prototype.shake = function (type) {
+        if (!window['wx'])
+            return;
+        if (type === SHAKE_TYPE.SUPER_HEAVY) {
+            wx.vibrateLong();
+        }
+        else {
+            wx.vibrateShort({ type: type });
+        }
     };
     AudioMgr.Instance = new AudioMgr();
     return AudioMgr;

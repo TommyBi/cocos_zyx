@@ -25,6 +25,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 var ZyxGameModule_1 = require("../dataModule/ZyxGameModule");
 var TypeDefine_1 = require("../define/TypeDefine");
+var AudioMgr_1 = require("../manager/AudioMgr");
 var Define_1 = require("../manager/Define");
 var Uimanager_1 = require("../manager/Uimanager");
 var EventManager_1 = require("../util/EventManager");
@@ -112,6 +113,7 @@ var ZyxGridCom = /** @class */ (function (_super) {
         this.originX = e.touch.getLocation().x;
         this.originGridX = this.node.x;
         this.offsetCnt = 0;
+        AudioMgr_1.audioMgr.shake(AudioMgr_1.SHAKE_TYPE.LIGHT);
     };
     ZyxGridCom.prototype.onTouchMove = function (e) {
         if (ZyxGameModule_1.zyxGameModule.selectGirdUniqueId !== this.uniqueId)
@@ -123,22 +125,23 @@ var ZyxGridCom = /** @class */ (function (_super) {
             this.node.x = this.originGridX + ZyxGameModule_1.zyxGameModule.gridsWidth * this.offsetCnt;
         }
         else {
-            this.node.opacity = 100;
+            // this.node.opacity = 100;
         }
     };
     ZyxGridCom.prototype.onTouchEnd = function (e) {
         if (ZyxGameModule_1.zyxGameModule.selectGirdUniqueId !== this.uniqueId)
             return;
         console.log("onTouchEnd", this.uniqueId);
-        var dx = e.touch.getLocation().x - this.originX;
-        var canMove = this.checkMove(dx);
-        this.node.opacity = 255;
-        if (canMove) {
-            this.moveCrossWise();
-        }
-        else {
-            this.node.x = this.originGridX;
-        }
+        // const dx = e.touch.getLocation().x - this.originX;
+        // let canMove = this.checkMove(dx);
+        // this.node.opacity = 255;
+        // if (canMove) {
+        //     this.moveCrossWise();
+        // } else {
+        //     this.node.x = this.originGridX;
+        //     console.log('无法移动');
+        // }
+        this.moveCrossWise();
     };
     // 检测是否可以移动, 标记状态
     ZyxGridCom.prototype.checkMove = function (dx) {
@@ -181,6 +184,7 @@ var ZyxGridCom = /** @class */ (function (_super) {
             // 没有发生实际的位移
             console.log('没有发生实际位移, 格子选中状态取消');
             ZyxGameModule_1.zyxGameModule.selectGirdUniqueId = -1;
+            this.node.x = this.originGridX;
             return;
         }
         if (this.offsetCnt > 0) {

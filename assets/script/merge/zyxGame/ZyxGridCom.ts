@@ -1,5 +1,6 @@
 import { zyxGameModule } from "../dataModule/ZyxGameModule";
 import { gridContentType, gridSize } from "../define/TypeDefine";
+import { audioMgr, SHAKE_TYPE } from "../manager/AudioMgr";
 import { EventType } from "../manager/Define";
 import { uimanager } from "../manager/Uimanager";
 import { eventManager } from "../util/EventManager";
@@ -106,6 +107,8 @@ export default class ZyxGridCom extends cc.Component {
         this.originX = e.touch.getLocation().x;
         this.originGridX = this.node.x;
         this.offsetCnt = 0;
+
+        audioMgr.shake(SHAKE_TYPE.LIGHT);
     }
 
     onTouchMove(e): void {
@@ -117,23 +120,26 @@ export default class ZyxGridCom extends cc.Component {
             this.node.opacity = 255;
             this.node.x = this.originGridX + zyxGameModule.gridsWidth * this.offsetCnt;
         } else {
-            this.node.opacity = 100;
+            // this.node.opacity = 100;
         }
     }
 
     onTouchEnd(e) {
         if (zyxGameModule.selectGirdUniqueId !== this.uniqueId) return;
         console.log("onTouchEnd", this.uniqueId);
-        const dx = e.touch.getLocation().x - this.originX;
-        let canMove = this.checkMove(dx);
+        // const dx = e.touch.getLocation().x - this.originX;
+        // let canMove = this.checkMove(dx);
 
-        this.node.opacity = 255;
+        // this.node.opacity = 255;
 
-        if (canMove) {
-            this.moveCrossWise();
-        } else {
-            this.node.x = this.originGridX;
-        }
+        // if (canMove) {
+        //     this.moveCrossWise();
+        // } else {
+        //     this.node.x = this.originGridX;
+        //     console.log('无法移动');
+        // }
+
+        this.moveCrossWise();
     }
 
     // 检测是否可以移动, 标记状态
@@ -178,6 +184,7 @@ export default class ZyxGridCom extends cc.Component {
             // 没有发生实际的位移
             console.log('没有发生实际位移, 格子选中状态取消');
             zyxGameModule.selectGirdUniqueId = -1;
+            this.node.x = this.originGridX;
             return;
         }
         if (this.offsetCnt > 0) {

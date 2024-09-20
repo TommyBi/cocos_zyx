@@ -12,6 +12,14 @@ export enum SoundType {
 
 }
 
+// 震动类型
+export enum SHAKE_TYPE {
+    HEAVY = 'heavy',
+    MEDIUM = 'medium',
+    LIGHT = 'light',
+    SUPER_HEAVY = '',
+}
+
 export default class AudioMgr {
     public static Instance: AudioMgr = new AudioMgr();
 
@@ -179,6 +187,15 @@ export default class AudioMgr {
         this.uncacheAll();
         this.curBgMusic = '';
         this.musicId = -1;
+    }
+
+    shake(type: SHAKE_TYPE) {
+        if (!window['wx']) return;
+        if (type === SHAKE_TYPE.SUPER_HEAVY) {
+            wx.vibrateLong();
+        } else {
+            wx.vibrateShort({ type });
+        }
     }
 }
 export const audioMgr = AudioMgr.Instance;
