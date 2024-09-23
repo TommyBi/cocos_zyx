@@ -75,7 +75,9 @@
         "cocos-services",
         "console"
       ]
-    }
+    },
+    "window-1727080488591": {},
+    " build-worker-worker": {}
   },
   "panels": {
     "project-settings": {

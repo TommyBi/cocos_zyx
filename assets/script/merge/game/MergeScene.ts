@@ -1,7 +1,8 @@
 import { playerModule } from '../dataModule/PlayerModule';
 import { LAYER } from '../define/TypeDefine';
-import { audioMgr } from '../manager/AudioMgr';
+import { audioMgr, SoundType } from '../manager/AudioMgr';
 import { uimanager } from '../manager/Uimanager';
+import { wxApiManager } from '../util/WxApiManager';
 
 const { ccclass, property } = cc._decorator;
 
@@ -30,8 +31,8 @@ export default class MergeScene extends cc.Component {
             this.initUI();
         })
 
-        this.onShow();
-        this.onHide();
+        wxApiManager.onShow();
+        wxApiManager.onHide();
     }
 
     update() {
@@ -58,25 +59,14 @@ export default class MergeScene extends cc.Component {
 
     // 初始化游戏界面
     async initGamePanel() {
+        audioMgr.playSound(SoundType.ZYX_DROP);
         const prefab = await uimanager.loadPrefab('prefab/merge/game');
         const gameNode: cc.Node = cc.instantiate(prefab);
         uimanager.add(gameNode, LAYER.UI);
         gameNode.setPosition(new cc.Vec2(0, 0));
     }
 
-    onShow(): void {
-        if (!window['wx']) return;
-        wx.onShow(() => {
-            console.log('onShow');
-        })
-    }
 
-    onHide(): void {
-        if (!window['wx']) return;
-        wx.onHide(() => {
-            console.log('onHide');
-        })
-    }
 }
 
 /**

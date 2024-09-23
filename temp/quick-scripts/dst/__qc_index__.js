@@ -30,6 +30,7 @@ require('./assets/script/merge/pulicCom/Tips');
 require('./assets/script/merge/pulicCom/TouchEffect');
 require('./assets/script/merge/util/EventManager');
 require('./assets/script/merge/util/NewUtils');
+require('./assets/script/merge/util/WxApiManager');
 require('./assets/script/merge/util/logger');
 require('./assets/script/merge/zyxGame/ZyxAccountDialog');
 require('./assets/script/merge/zyxGame/ZyxComTop');

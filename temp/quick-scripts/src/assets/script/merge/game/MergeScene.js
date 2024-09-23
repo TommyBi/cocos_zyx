@@ -63,6 +63,7 @@ var PlayerModule_1 = require("../dataModule/PlayerModule");
 var TypeDefine_1 = require("../define/TypeDefine");
 var AudioMgr_1 = require("../manager/AudioMgr");
 var Uimanager_1 = require("../manager/Uimanager");
+var WxApiManager_1 = require("../util/WxApiManager");
 var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
 var MergeScene = /** @class */ (function (_super) {
     __extends(MergeScene, _super);
@@ -87,8 +88,8 @@ var MergeScene = /** @class */ (function (_super) {
             // 初始化界面UI
             _this.initUI();
         });
-        this.onShow();
-        this.onHide();
+        WxApiManager_1.wxApiManager.onShow();
+        WxApiManager_1.wxApiManager.onHide();
     };
     MergeScene.prototype.update = function () {
         Uimanager_1.uimanager.udpateLayerShow();
@@ -123,7 +124,9 @@ var MergeScene = /** @class */ (function (_super) {
             var prefab, gameNode;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, Uimanager_1.uimanager.loadPrefab('prefab/merge/game')];
+                    case 0:
+                        AudioMgr_1.audioMgr.playSound(AudioMgr_1.SoundType.ZYX_DROP);
+                        return [4 /*yield*/, Uimanager_1.uimanager.loadPrefab('prefab/merge/game')];
                     case 1:
                         prefab = _a.sent();
                         gameNode = cc.instantiate(prefab);
@@ -132,20 +135,6 @@ var MergeScene = /** @class */ (function (_super) {
                         return [2 /*return*/];
                 }
             });
-        });
-    };
-    MergeScene.prototype.onShow = function () {
-        if (!window['wx'])
-            return;
-        wx.onShow(function () {
-            console.log('onShow');
-        });
-    };
-    MergeScene.prototype.onHide = function () {
-        if (!window['wx'])
-            return;
-        wx.onHide(function () {
-            console.log('onHide');
         });
     };
     __decorate([

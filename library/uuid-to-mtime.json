@@ -1269,25 +1269,15 @@
     "meta": 1725611541014,
     "relativePath": "resources/images/common/img_com_exp_bar.png"
   },
-  "94a345f9-c042-4633-84a0-026aec14d79e": {
-    "asset": 1706522236227,
-    "meta": 1724989427224,
-    "relativePath": "resources/images/common/img_com_avatar.png"
-  },
   "a398c12a-96c2-4c94-99c6-d820f39b545e": {
     "asset": 1700622181000,
     "meta": 1724989427241,
     "relativePath": "resources/images/common/img_com_avatar_frame.png"
   },
   "a0708f7c-2a5f-479f-9dfd-36f9d8e038e4": {
-    "asset": 1725262006821,
-    "meta": 1725262006827,
+    "asset": 1727091811887,
+    "meta": 1727091811896,
     "relativePath": "resources/prefab/zyx/uComTop.prefab"
-  },
-  "0af54762-b9de-4937-a498-a483c8bdc45c": {
-    "asset": 1725260447423,
-    "meta": 1725261014530,
-    "relativePath": "script/merge/game/MergeScene.ts"
   },
   "ff5756ce-f18b-4c11-ab85-1218e5e9880e": {
     "asset": 1725261527699,
@@ -1490,8 +1480,23 @@
     "relativePath": "script/merge/zyxGame/ZyxAccountDialog.ts"
   },
   "227d6658-dd73-420d-b4b2-c31b3f122dcd": {
-    "asset": 1727076854555,
-    "meta": 1727076860356,
+    "asset": 1727091174020,
+    "meta": 1727091180638,
     "relativePath": "script/merge/zyxGame/ZyxGame.ts"
+  },
+  "eb26c84d-26f7-427c-91a6-6066ccad0a55": {
+    "asset": 1727091105694,
+    "meta": 1727091180651,
+    "relativePath": "script/merge/util/WxApiManager.ts"
+  },
+  "0af54762-b9de-4937-a498-a483c8bdc45c": {
+    "asset": 1727091242829,
+    "meta": 1727091785431,
+    "relativePath": "script/merge/game/MergeScene.ts"
+  },
+  "94a345f9-c042-4633-84a0-026aec14d79e": {
+    "asset": 1727062950000,
+    "meta": 1727091785448,
+    "relativePath": "resources/images/common/img_com_avatar.png"
   }
 }

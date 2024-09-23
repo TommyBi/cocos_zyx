@@ -5,6 +5,7 @@ import { audioMgr, SHAKE_TYPE, SoundType } from "../manager/AudioMgr";
 import { EventType } from "../manager/Define";
 import { uimanager } from "../manager/Uimanager";
 import { eventManager } from "../util/EventManager";
+import { wxApiManager } from "../util/WxApiManager";
 import ZyxGridCom from "./ZyxGridCom";
 import ZyxLineCom from "./ZyxLineCom";
 
@@ -74,6 +75,8 @@ export default class ZyxGame extends cc.Component {
 
     onLoad() {
         this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.test, this);
+        this.uBtnBomb.on(cc.Node.EventType.TOUCH_END, this.useBomb, this);
+        this.uBtnHammer.on(cc.Node.EventType.TOUCH_END, this.useHammer, this);
 
         eventManager.on(EventType.ZYX_CHECK_MERGE, this.check, this);
         eventManager.on(EventType.ZYX_RESET_GAME, this.resetGame, this);
@@ -497,5 +500,20 @@ export default class ZyxGame extends cc.Component {
 
     test(): void {
         console.log(zyxGameModule.gridInfo);
+        uimanager.showTips('分享');
+        wxApiManager.share('别卷啦，快来卡皮一下吧~');
     }
+
+    // 使用炸弹
+    useBomb(): void {
+        uimanager.showTips('使用炸弹');
+        wxApiManager.share('别卷啦，快来卡皮一下吧~');
+    }
+
+    // 使用卡皮巴拉
+    useHammer():void {
+        uimanager.showTips('使用卡皮巴拉');
+        wxApiManager.share('别卷啦，快来卡皮一下吧~');
+    }
+
 }

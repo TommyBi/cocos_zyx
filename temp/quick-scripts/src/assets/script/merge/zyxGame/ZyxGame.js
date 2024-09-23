@@ -66,6 +66,7 @@ var AudioMgr_1 = require("../manager/AudioMgr");
 var Define_1 = require("../manager/Define");
 var Uimanager_1 = require("../manager/Uimanager");
 var EventManager_1 = require("../util/EventManager");
+var WxApiManager_1 = require("../util/WxApiManager");
 var ZyxGridCom_1 = require("./ZyxGridCom");
 var ZyxLineCom_1 = require("./ZyxLineCom");
 var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
@@ -104,6 +105,8 @@ var ZyxGame = /** @class */ (function (_super) {
     }
     ZyxGame.prototype.onLoad = function () {
         this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.test, this);
+        this.uBtnBomb.on(cc.Node.EventType.TOUCH_END, this.useBomb, this);
+        this.uBtnHammer.on(cc.Node.EventType.TOUCH_END, this.useHammer, this);
         EventManager_1.eventManager.on(Define_1.EventType.ZYX_CHECK_MERGE, this.check, this);
         EventManager_1.eventManager.on(Define_1.EventType.ZYX_RESET_GAME, this.resetGame, this);
         this.initUI();
@@ -561,6 +564,18 @@ var ZyxGame = /** @class */ (function (_super) {
     };
     ZyxGame.prototype.test = function () {
         console.log(ZyxGameModule_1.zyxGameModule.gridInfo);
+        Uimanager_1.uimanager.showTips('分享');
+        WxApiManager_1.wxApiManager.share();
+    };
+    // 使用炸弹
+    ZyxGame.prototype.useBomb = function () {
+        Uimanager_1.uimanager.showTips('使用炸弹');
+        WxApiManager_1.wxApiManager.share();
+    };
+    // 使用卡皮巴拉
+    ZyxGame.prototype.useHammer = function () {
+        Uimanager_1.uimanager.showTips('使用卡皮巴拉');
+        WxApiManager_1.wxApiManager.share();
     };
     __decorate([
         property(cc.Label)

@@ -1849,11 +1849,24 @@
       "__id__": 1
     },
     "_enabled": true,
-    "uImgExpBar": null,
-    "ulblLv": null,
-    "ulblExp": null,
-    "uimgAvatar": null,
-    "ulblDiamond": null,
+    "uImgExpBar": {
+      "__id__": 9
+    },
+    "ulblLv": {
+      "__id__": 13
+    },
+    "ulblExp": {
+      "__id__": 16
+    },
+    "uImgAvatar": {
+      "__id__": 21
+    },
+    "ulblDiamond": {
+      "__id__": 47
+    },
+    "ulblStar": {
+      "__id__": 36
+    },
     "_id": ""
   },
   {
