@@ -29,14 +29,6 @@ export default class ZyxAccountDialog extends cc.Component {
     }
 
     close() {
-        // 重置游戏
-        zyxGameModule.gameInfo = {
-            adTimes: 3,
-            score: 0,
-            exp: 0,
-            diamond: 0,
-            star: 0,
-        }
         eventManager.dispatch(EventType.ZYX_RESET_GAME);
 
         cc.tween(this.node)

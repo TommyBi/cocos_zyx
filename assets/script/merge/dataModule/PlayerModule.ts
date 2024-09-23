@@ -35,6 +35,7 @@ export default class PlayerModule extends DataModule {
             lv: 1,
             exp: 10,
             expTar: 100,
+            scoreRecord: 10,
 
             // 状态信息
             gameInfo: {
@@ -43,6 +44,8 @@ export default class PlayerModule extends DataModule {
                 exp: 0,
                 diamond: 0,
                 star: 0,
+                // 格子当前使用到的唯一索引值
+                uniqueId: 9,
             },
         }
 

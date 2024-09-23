@@ -24,9 +24,6 @@ export default class ZyxGameModule extends DataModule {
     // 操作锁
     selectGirdUniqueId: number = -1;
 
-    // 格子当前使用到的唯一索引值
-    uniqueId: number = 9;
-
     // 格子宽度
     gridsWidth: number = 84;
 
@@ -35,6 +32,9 @@ export default class ZyxGameModule extends DataModule {
 
     // 新生成的次数
     public produceTimes: number = 0;
+
+    // 历史最高分
+    public scoreRecord: number = 0;
 
     constructor() {
         super();
@@ -56,6 +56,8 @@ export default class ZyxGameModule extends DataModule {
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [2, 1, 1], [2, 1, 1], [0, 0, 0], [0, 0, 0]],
             [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [0, 0, 0], [0, 0, 0]],
         ];
+        this.scoreRecord = data.scoreRecord || 0;
+
         this.produce();
     }
 
@@ -101,9 +103,9 @@ export default class ZyxGameModule extends DataModule {
                     hasProducedDiamond = true;
                 }
                 if (surSpace >= newNum) {
-                    this.uniqueId++;
+                    this.gameInfo.uniqueId++;
                     for (let i = 0; i < newNum; i++) {
-                        arr.push([newNum, contentType, this.uniqueId]);
+                        arr.push([newNum, contentType, this.gameInfo.uniqueId]);
                     }
                 }
             }
@@ -124,6 +126,8 @@ export default class ZyxGameModule extends DataModule {
         if (hasProducedDiamond) return gridContentType.NORMAL;
         if (this.produceTimes % 6 === 0 && Math.random() <= 0.5) {
             return gridContentType.DIAMOND;
+        } else {
+            return gridContentType.NORMAL;
         }
     }
 

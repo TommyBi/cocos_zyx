@@ -42,14 +42,14 @@ var ZyxGameModule = /** @class */ (function (_super) {
         ];
         // 操作锁
         _this.selectGirdUniqueId = -1;
-        // 格子当前使用到的唯一索引值
-        _this.uniqueId = 9;
         // 格子宽度
         _this.gridsWidth = 84;
         // 下一排信息
         _this.nextGridInfo = [];
         // 新生成的次数
         _this.produceTimes = 0;
+        // 历史最高分
+        _this.scoreRecord = 0;
         return _this;
     }
     ZyxGameModule.prototype.parseData = function (data) {
@@ -67,6 +67,7 @@ var ZyxGameModule = /** @class */ (function (_super) {
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [2, 1, 1], [2, 1, 1], [0, 0, 0], [0, 0, 0]],
             [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [0, 0, 0], [0, 0, 0]],
         ];
+        this.scoreRecord = data.scoreRecord || 0;
         this.produce();
     };
     // 生产格子，服务器逻辑 返回格式为[gridsize][contentType][uniqueId]
@@ -113,9 +114,9 @@ var ZyxGameModule = /** @class */ (function (_super) {
                     hasProducedDiamond = true;
                 }
                 if (surSpace >= newNum) {
-                    this.uniqueId++;
+                    this.gameInfo.uniqueId++;
                     for (var i = 0; i < newNum; i++) {
-                        arr.push([newNum, contentType, this.uniqueId]);
+                        arr.push([newNum, contentType, this.gameInfo.uniqueId]);
                     }
                 }
             }
@@ -133,6 +134,9 @@ var ZyxGameModule = /** @class */ (function (_super) {
             return TypeDefine_1.gridContentType.NORMAL;
         if (this.produceTimes % 6 === 0 && Math.random() <= 0.5) {
             return TypeDefine_1.gridContentType.DIAMOND;
+        }
+        else {
+            return TypeDefine_1.gridContentType.NORMAL;
         }
     };
     // 检查游戏是否结束

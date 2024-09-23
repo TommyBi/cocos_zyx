@@ -75,6 +75,7 @@ var ZyxGame = /** @class */ (function (_super) {
     function ZyxGame() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.ulblScore = null;
+        _this.ulblMaxScore = null;
         _this.ulblDiamond = null;
         _this.ulblStarCnt = null;
         _this.ulblHammerCnt = null;
@@ -95,6 +96,10 @@ var ZyxGame = /** @class */ (function (_super) {
         _this.timeGridDrop = 0.2;
         _this.timeWaitDrop = 600;
         _this.timeShowNewGrids = 0.44;
+        // star bar totalLength
+        _this.starBarLength = 500;
+        // 
+        _this.starMeasures = 10;
         return _this;
     }
     ZyxGame.prototype.onLoad = function () {
@@ -116,20 +121,32 @@ var ZyxGame = /** @class */ (function (_super) {
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
+            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [0, 0, 0]],
         ];
-        ZyxGameModule_1.zyxGameModule.produce();
+        ZyxGameModule_1.zyxGameModule.gameInfo = {
+            score: 0,
+            star: 0,
+            diamond: 0,
+            adTimes: 3,
+            exp: 0,
+            uniqueId: 9,
+        };
+        this.updateNextGrid();
         this.hasProduce = false;
         ZyxGameModule_1.zyxGameModule.selectGirdUniqueId = -1;
         this.initUI();
+        console.log('gridInfo: ', ZyxGameModule_1.zyxGameModule.gridInfo);
     };
     ZyxGame.prototype.initUI = function () {
         this.ulblScore.string = "" + ZyxGameModule_1.zyxGameModule.gameInfo.score;
+        this.ulblMaxScore.string = "BEST\uFF1A" + ZyxGameModule_1.zyxGameModule.scoreRecord;
+        this.ulblMaxScore.node.active = ZyxGameModule_1.zyxGameModule.scoreRecord > 0;
         this.ulblDiamond.string = "" + ZyxGameModule_1.zyxGameModule.gameInfo.diamond;
         this.ulblStarCnt.string = "" + ZyxGameModule_1.zyxGameModule.gameInfo.star;
         this.ulblAdCnt.string = "(" + ZyxGameModule_1.zyxGameModule.gameInfo.adTimes + ")";
-        this.ulblHammerCnt.string = "" + PlayerModule_1.playerModule.hammer;
-        this.ulblBombCnt.string = "" + PlayerModule_1.playerModule.bomb;
+        this.ulblHammerCnt.string = "x" + PlayerModule_1.playerModule.hammer;
+        this.ulblBombCnt.string = "x" + PlayerModule_1.playerModule.bomb;
+        this.uImgStarBar.width = ZyxGameModule_1.zyxGameModule.gameInfo.score % this.starMeasures * this.starBarLength / this.starMeasures;
         this.initChessBoard();
         setTimeout(function () {
             AudioMgr_1.audioMgr.playBGM(AudioMgr_1.SoundType.ZYX_MUSIC_GAME);
@@ -517,8 +534,25 @@ var ZyxGame = /** @class */ (function (_super) {
     };
     // 加分
     ZyxGame.prototype.addScore = function (score) {
+        // 当前分数
         ZyxGameModule_1.zyxGameModule.gameInfo.score += score;
         this.ulblScore.string = ZyxGameModule_1.zyxGameModule.gameInfo.score.toString();
+        // 最高分更新
+        if (ZyxGameModule_1.zyxGameModule.gameInfo.score >= ZyxGameModule_1.zyxGameModule.scoreRecord) {
+            ZyxGameModule_1.zyxGameModule.scoreRecord = ZyxGameModule_1.zyxGameModule.gameInfo.score;
+            this.ulblMaxScore.string = "BEST\uFF1A" + ZyxGameModule_1.zyxGameModule.scoreRecord;
+            this.ulblMaxScore.node.active = true;
+        }
+        // 星星
+        var tarW = ZyxGameModule_1.zyxGameModule.gameInfo.score % this.starMeasures * this.starBarLength / this.starMeasures;
+        cc.tween(this.uImgStarBar)
+            .to(0.5, { width: tarW })
+            .start();
+        if (tarW === 0) {
+            // 星星数量+1   
+            ZyxGameModule_1.zyxGameModule.gameInfo.star += 1;
+            this.ulblStarCnt.string = ZyxGameModule_1.zyxGameModule.gameInfo.star.toString();
+        }
     };
     // 加钻
     ZyxGame.prototype.addDimaond = function () {
@@ -531,6 +565,9 @@ var ZyxGame = /** @class */ (function (_super) {
     __decorate([
         property(cc.Label)
     ], ZyxGame.prototype, "ulblScore", void 0);
+    __decorate([
+        property(cc.Label)
+    ], ZyxGame.prototype, "ulblMaxScore", void 0);
     __decorate([
         property(cc.Label)
     ], ZyxGame.prototype, "ulblDiamond", void 0);

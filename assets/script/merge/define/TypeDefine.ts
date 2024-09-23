@@ -13,7 +13,10 @@ export type typeGameInfo = {
     score: number,
     exp: number,
     diamond: number,
+    // 当前回合累计得到的星星
     star: number,
+    // 格子当前使用到的唯一索引值
+    uniqueId: number,
 }
 
 // 格子的尺寸类型 空格子尺寸为0

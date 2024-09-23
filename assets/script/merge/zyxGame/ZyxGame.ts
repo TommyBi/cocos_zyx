@@ -19,6 +19,9 @@ export default class ZyxGame extends cc.Component {
     ulblScore: cc.Label = null;
 
     @property(cc.Label)
+    ulblMaxScore: cc.Label = null;
+
+    @property(cc.Label)
     ulblDiamond: cc.Label = null;
 
     @property(cc.Label)
@@ -64,6 +67,11 @@ export default class ZyxGame extends cc.Component {
     private timeWaitDrop: number = 600;
     private timeShowNewGrids: number = 0.44;
 
+    // star bar totalLength
+    private starBarLength: number = 500;
+    // 
+    private starMeasures: number = 10;
+
     onLoad() {
         this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.test, this);
 
@@ -88,22 +96,37 @@ export default class ZyxGame extends cc.Component {
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [1, 1, 9]],
+            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [0, 0, 0]],
         ]
-        zyxGameModule.produce();
+        zyxGameModule.gameInfo = {
+            score: 0,
+            star: 0,
+            diamond: 0,
+            adTimes: 3,
+            exp: 0,
+            uniqueId: 9,
+        }
+
+        this.updateNextGrid();
+
         this.hasProduce = false;
         zyxGameModule.selectGirdUniqueId = -1;
 
         this.initUI();
+
+        console.log('gridInfo: ', zyxGameModule.gridInfo);
     }
 
     initUI(): void {
         this.ulblScore.string = `${zyxGameModule.gameInfo.score}`;
+        this.ulblMaxScore.string = `BEST：${zyxGameModule.scoreRecord}`;
+        this.ulblMaxScore.node.active = zyxGameModule.scoreRecord > 0;
         this.ulblDiamond.string = `${zyxGameModule.gameInfo.diamond}`;
         this.ulblStarCnt.string = `${zyxGameModule.gameInfo.star}`;
         this.ulblAdCnt.string = `(${zyxGameModule.gameInfo.adTimes})`;
-        this.ulblHammerCnt.string = `${playerModule.hammer}`;
-        this.ulblBombCnt.string = `${playerModule.bomb}`;
+        this.ulblHammerCnt.string = `x${playerModule.hammer}`;
+        this.ulblBombCnt.string = `x${playerModule.bomb}`;
+        this.uImgStarBar.width = zyxGameModule.gameInfo.score % this.starMeasures * this.starBarLength / this.starMeasures;
 
         this.initChessBoard();
 
@@ -342,7 +365,7 @@ export default class ZyxGame extends cc.Component {
         }
     }
 
-    collectGoods(contentType):void {
+    collectGoods(contentType): void {
         if (contentType === gridContentType.DIAMOND) {
             this.addDimaond();
         }
@@ -442,8 +465,28 @@ export default class ZyxGame extends cc.Component {
 
     // 加分
     addScore(score: number): void {
+        // 当前分数
         zyxGameModule.gameInfo.score += score;
         this.ulblScore.string = zyxGameModule.gameInfo.score.toString();
+
+        // 最高分更新
+        if (zyxGameModule.gameInfo.score >= zyxGameModule.scoreRecord) {
+            zyxGameModule.scoreRecord = zyxGameModule.gameInfo.score;
+            this.ulblMaxScore.string = `BEST：${zyxGameModule.scoreRecord}`;
+            this.ulblMaxScore.node.active = true;
+        }
+
+        // 星星
+        const tarW = zyxGameModule.gameInfo.score % this.starMeasures * this.starBarLength / this.starMeasures;
+        cc.tween(this.uImgStarBar)
+            .to(0.5, { width: tarW })
+            .start();
+        if (tarW === 0) {
+            // 星星数量+1   
+            zyxGameModule.gameInfo.star += 1;
+            this.ulblStarCnt.string = zyxGameModule.gameInfo.star.toString();
+        }
+
     }
 
     // 加钻

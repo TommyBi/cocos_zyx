@@ -46,14 +46,6 @@ var ZyxAccountDialog = /** @class */ (function (_super) {
     };
     ZyxAccountDialog.prototype.close = function () {
         var _this = this;
-        // 重置游戏
-        ZyxGameModule_1.zyxGameModule.gameInfo = {
-            adTimes: 3,
-            score: 0,
-            exp: 0,
-            diamond: 0,
-            star: 0,
-        };
         EventManager_1.eventManager.dispatch(Define_1.EventType.ZYX_RESET_GAME);
         cc.tween(this.node)
             .to(0.2, { scale: 0 })
