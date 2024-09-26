@@ -77,7 +77,6 @@ var ZyxGame = /** @class */ (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.ulblScore = null;
         _this.ulblMaxScore = null;
-        _this.ulblDiamond = null;
         _this.ulblStarCnt = null;
         _this.ulblHammerCnt = null;
         _this.ulblBombCnt = null;
@@ -88,6 +87,8 @@ var ZyxGame = /** @class */ (function (_super) {
         _this.uBtnClean = null;
         _this.uBoxGrid = null;
         _this.uBoxNew = null;
+        _this.uNodeBasket = null;
+        _this.uImgSelectedBg = null;
         _this.grids = [];
         // 掉落发生情况（掉落需要自底向上检测，一轮检测后再检测下一轮，直到最终可以发生掉落的情况全部检测完毕）
         _this.hasDropAction = false;
@@ -99,8 +100,8 @@ var ZyxGame = /** @class */ (function (_super) {
         _this.timeShowNewGrids = 0.44;
         // star bar totalLength
         _this.starBarLength = 500;
-        // 
-        _this.starMeasures = 10;
+        // 一颗星星对应的层数
+        _this.starMeasures = 100;
         return _this;
     }
     ZyxGame.prototype.onLoad = function () {
@@ -109,6 +110,7 @@ var ZyxGame = /** @class */ (function (_super) {
         this.uBtnHammer.on(cc.Node.EventType.TOUCH_END, this.useHammer, this);
         EventManager_1.eventManager.on(Define_1.EventType.ZYX_CHECK_MERGE, this.check, this);
         EventManager_1.eventManager.on(Define_1.EventType.ZYX_RESET_GAME, this.resetGame, this);
+        EventManager_1.eventManager.on(Define_1.EventType.ZYX_MOVE_GRID, this.moveGrid, this);
         this.initUI();
     };
     ZyxGame.prototype.start = function () {
@@ -129,10 +131,10 @@ var ZyxGame = /** @class */ (function (_super) {
         ZyxGameModule_1.zyxGameModule.gameInfo = {
             score: 0,
             star: 0,
-            diamond: 0,
             adTimes: 3,
             exp: 0,
             uniqueId: 9,
+            goods: {}
         };
         this.updateNextGrid();
         this.hasProduce = false;
@@ -144,12 +146,12 @@ var ZyxGame = /** @class */ (function (_super) {
         this.ulblScore.string = "" + ZyxGameModule_1.zyxGameModule.gameInfo.score;
         this.ulblMaxScore.string = "BEST\uFF1A" + ZyxGameModule_1.zyxGameModule.scoreRecord;
         this.ulblMaxScore.node.active = ZyxGameModule_1.zyxGameModule.scoreRecord > 0;
-        this.ulblDiamond.string = "" + ZyxGameModule_1.zyxGameModule.gameInfo.diamond;
         this.ulblStarCnt.string = "" + ZyxGameModule_1.zyxGameModule.gameInfo.star;
         this.ulblAdCnt.string = "(" + ZyxGameModule_1.zyxGameModule.gameInfo.adTimes + ")";
         this.ulblHammerCnt.string = "x" + PlayerModule_1.playerModule.hammer;
         this.ulblBombCnt.string = "x" + PlayerModule_1.playerModule.bomb;
         this.uImgStarBar.width = ZyxGameModule_1.zyxGameModule.gameInfo.score % this.starMeasures * this.starBarLength / this.starMeasures;
+        this.uImgSelectedBg.active = false;
         this.initChessBoard();
         setTimeout(function () {
             AudioMgr_1.audioMgr.playBGM(AudioMgr_1.SoundType.ZYX_MUSIC_GAME);
@@ -448,10 +450,8 @@ var ZyxGame = /** @class */ (function (_super) {
             }
         }
     };
+    // 收集物品
     ZyxGame.prototype.collectGoods = function (contentType) {
-        if (contentType === TypeDefine_1.gridContentType.DIAMOND) {
-            this.addDimaond();
-        }
     };
     // 检测当前行的上一行是否有掉落情况，如果有则进行掉落操作
     ZyxGame.prototype.drop = function (row) {
@@ -557,25 +557,27 @@ var ZyxGame = /** @class */ (function (_super) {
             this.ulblStarCnt.string = ZyxGameModule_1.zyxGameModule.gameInfo.star.toString();
         }
     };
-    // 加钻
-    ZyxGame.prototype.addDimaond = function () {
-        ZyxGameModule_1.zyxGameModule.gameInfo.diamond += 1;
-        this.ulblDiamond.string = ZyxGameModule_1.zyxGameModule.gameInfo.diamond.toString();
+    // 移动格子中，提示当前移动的位置
+    ZyxGame.prototype.moveGrid = function (e) {
+        this.uImgSelectedBg.active = e.data.action === 'move';
+        var gridGlobalPos = e.data.node.parent.convertToWorldSpaceAR(e.data.node.getPosition());
+        this.uImgSelectedBg.x = this.node.convertToNodeSpaceAR(gridGlobalPos).x;
+        this.uImgSelectedBg.width = e.data.node.width;
     };
     ZyxGame.prototype.test = function () {
         console.log(ZyxGameModule_1.zyxGameModule.gridInfo);
         Uimanager_1.uimanager.showTips('分享');
-        WxApiManager_1.wxApiManager.share();
+        WxApiManager_1.wxApiManager.share('别卷啦，快来卡皮一下吧~');
     };
     // 使用炸弹
     ZyxGame.prototype.useBomb = function () {
         Uimanager_1.uimanager.showTips('使用炸弹');
-        WxApiManager_1.wxApiManager.share();
+        WxApiManager_1.wxApiManager.share('别卷啦，快来卡皮一下吧~');
     };
     // 使用卡皮巴拉
     ZyxGame.prototype.useHammer = function () {
         Uimanager_1.uimanager.showTips('使用卡皮巴拉');
-        WxApiManager_1.wxApiManager.share();
+        WxApiManager_1.wxApiManager.share('别卷啦，快来卡皮一下吧~');
     };
     __decorate([
         property(cc.Label)
@@ -583,9 +585,6 @@ var ZyxGame = /** @class */ (function (_super) {
     __decorate([
         property(cc.Label)
     ], ZyxGame.prototype, "ulblMaxScore", void 0);
-    __decorate([
-        property(cc.Label)
-    ], ZyxGame.prototype, "ulblDiamond", void 0);
     __decorate([
         property(cc.Label)
     ], ZyxGame.prototype, "ulblStarCnt", void 0);
@@ -616,6 +615,12 @@ var ZyxGame = /** @class */ (function (_super) {
     __decorate([
         property(cc.Node)
     ], ZyxGame.prototype, "uBoxNew", void 0);
+    __decorate([
+        property(cc.Node)
+    ], ZyxGame.prototype, "uNodeBasket", void 0);
+    __decorate([
+        property(cc.Node)
+    ], ZyxGame.prototype, "uImgSelectedBg", void 0);
     ZyxGame = __decorate([
         ccclass
     ], ZyxGame);

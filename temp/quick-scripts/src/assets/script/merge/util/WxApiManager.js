@@ -45,11 +45,11 @@ var WxApiManager = /** @class */ (function (_super) {
             console.log('onHide');
         });
     };
-    WxApiManager.prototype.share = function () {
+    WxApiManager.prototype.share = function (title) {
         if (!this.checkWxEnv)
             return;
         wx.shareAppMessage({
-            title: '别卷啦，快来卡皮一下吧~',
+            title: title,
         });
     };
     WxApiManager.Instance = new WxApiManager();

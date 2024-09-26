@@ -35,6 +35,20 @@ var gridContentType;
     gridContentType[gridContentType["BOMB"] = 3] = "BOMB";
     // 道具-锤子
     gridContentType[gridContentType["HAMMER"] = 4] = "HAMMER";
+    // 道具 - 山竹
+    gridContentType[gridContentType["MANGOSTEEN"] = 5] = "MANGOSTEEN";
+    // 道具 - 葡萄
+    gridContentType[gridContentType["GRAPE"] = 6] = "GRAPE";
+    // 道具 - 苹果
+    gridContentType[gridContentType["APPLE"] = 7] = "APPLE";
+    // 道具 - 鱼腥草
+    gridContentType[gridContentType["FISHGRASS"] = 8] = "FISHGRASS";
+    // 道具 - 菠萝
+    gridContentType[gridContentType["PINEAPPLE"] = 9] = "PINEAPPLE";
+    // 道具 - 桃子
+    gridContentType[gridContentType["PEACH"] = 10] = "PEACH";
+    // 道具 - 水草
+    gridContentType[gridContentType["WATERPLANT"] = 11] = "WATERPLANT";
 })(gridContentType = exports.gridContentType || (exports.gridContentType = {}));
 
 cc._RF.pop();

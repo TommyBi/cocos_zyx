@@ -38,6 +38,7 @@ var ZyxGridCom = /** @class */ (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.uImgDiamond = null;
         _this.uImgBg = null;
+        _this.uImgBgLine = null;
         _this.ulblUniqueId = null;
         _this.size = TypeDefine_1.gridSize.ONE;
         _this.contentType = TypeDefine_1.gridContentType.EMPTY;
@@ -75,6 +76,8 @@ var ZyxGridCom = /** @class */ (function (_super) {
         this.node.width = nodeWidth;
         this.uImgBg.width = this.node.width;
         this.uImgBg.x = nodeWidth / 2;
+        this.uImgBgLine.width = this.node.width - 8;
+        this.uImgBgLine.x = nodeWidth / 2;
         this.uImgDiamond.x = this.uImgBg.width / 2;
         this.ulblUniqueId.node.x = this.node.width / 2;
         this.ulblUniqueId.string = this.uniqueId.toString();
@@ -133,6 +136,11 @@ var ZyxGridCom = /** @class */ (function (_super) {
         else {
             // this.node.opacity = 100;
         }
+        var moveAction = {
+            action: 'move',
+            node: this.node,
+        };
+        EventManager_1.eventManager.dispatch(Define_1.EventType.ZYX_MOVE_GRID, moveAction);
     };
     ZyxGridCom.prototype.onTouchEnd = function (e) {
         if (ZyxGameModule_1.zyxGameModule.selectGirdUniqueId !== this.uniqueId)
@@ -147,6 +155,11 @@ var ZyxGridCom = /** @class */ (function (_super) {
         //     this.node.x = this.originGridX;
         //     console.log('无法移动');
         // }
+        var moveAction = {
+            action: 'done',
+            node: this.node,
+        };
+        EventManager_1.eventManager.dispatch(Define_1.EventType.ZYX_MOVE_GRID, moveAction);
         this.moveCrossWise();
     };
     // 检测是否可以移动, 标记状态
@@ -223,6 +236,9 @@ var ZyxGridCom = /** @class */ (function (_super) {
     __decorate([
         property(cc.Node)
     ], ZyxGridCom.prototype, "uImgBg", void 0);
+    __decorate([
+        property(cc.Node)
+    ], ZyxGridCom.prototype, "uImgBgLine", void 0);
     __decorate([
         property(cc.Label)
     ], ZyxGridCom.prototype, "ulblUniqueId", void 0);

@@ -65,6 +65,7 @@ var PlayerModule = /** @class */ (function (_super) {
                 star: 0,
                 // 格子当前使用到的唯一索引值
                 uniqueId: 9,
+                goods: {},
             },
         };
         GameModule_1.gameModule.parseData(loginData);

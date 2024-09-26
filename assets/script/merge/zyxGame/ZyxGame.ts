@@ -23,9 +23,6 @@ export default class ZyxGame extends cc.Component {
     ulblMaxScore: cc.Label = null;
 
     @property(cc.Label)
-    ulblDiamond: cc.Label = null;
-
-    @property(cc.Label)
     ulblStarCnt: cc.Label = null;
 
     @property(cc.Label)
@@ -55,6 +52,12 @@ export default class ZyxGame extends cc.Component {
     @property(cc.Node)
     uBoxNew: cc.Node = null;
 
+    @property(cc.Node)
+    uNodeBasket: cc.Node = null;
+
+    @property(cc.Node)
+    uImgSelectedBg: cc.Node = null;
+
     private grids: cc.Node[] = [];
 
     // 掉落发生情况（掉落需要自底向上检测，一轮检测后再检测下一轮，直到最终可以发生掉落的情况全部检测完毕）
@@ -70,8 +73,9 @@ export default class ZyxGame extends cc.Component {
 
     // star bar totalLength
     private starBarLength: number = 500;
-    // 
-    private starMeasures: number = 10;
+
+    // 一颗星星对应的层数
+    private starMeasures: number = 100;
 
     onLoad() {
         this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.test, this);
@@ -80,6 +84,7 @@ export default class ZyxGame extends cc.Component {
 
         eventManager.on(EventType.ZYX_CHECK_MERGE, this.check, this);
         eventManager.on(EventType.ZYX_RESET_GAME, this.resetGame, this);
+        eventManager.on(EventType.ZYX_MOVE_GRID, this.moveGrid, this);
 
         this.initUI();
     }
@@ -104,10 +109,10 @@ export default class ZyxGame extends cc.Component {
         zyxGameModule.gameInfo = {
             score: 0,
             star: 0,
-            diamond: 0,
             adTimes: 3,
             exp: 0,
             uniqueId: 9,
+            goods: {}
         }
 
         this.updateNextGrid();
@@ -124,12 +129,13 @@ export default class ZyxGame extends cc.Component {
         this.ulblScore.string = `${zyxGameModule.gameInfo.score}`;
         this.ulblMaxScore.string = `BEST：${zyxGameModule.scoreRecord}`;
         this.ulblMaxScore.node.active = zyxGameModule.scoreRecord > 0;
-        this.ulblDiamond.string = `${zyxGameModule.gameInfo.diamond}`;
         this.ulblStarCnt.string = `${zyxGameModule.gameInfo.star}`;
         this.ulblAdCnt.string = `(${zyxGameModule.gameInfo.adTimes})`;
         this.ulblHammerCnt.string = `x${playerModule.hammer}`;
         this.ulblBombCnt.string = `x${playerModule.bomb}`;
         this.uImgStarBar.width = zyxGameModule.gameInfo.score % this.starMeasures * this.starBarLength / this.starMeasures;
+
+        this.uImgSelectedBg.active = false;
 
         this.initChessBoard();
 
@@ -368,10 +374,8 @@ export default class ZyxGame extends cc.Component {
         }
     }
 
+    // 收集物品
     collectGoods(contentType): void {
-        if (contentType === gridContentType.DIAMOND) {
-            this.addDimaond();
-        }
     }
 
     // 检测当前行的上一行是否有掉落情况，如果有则进行掉落操作
@@ -492,10 +496,12 @@ export default class ZyxGame extends cc.Component {
 
     }
 
-    // 加钻
-    addDimaond(): void {
-        zyxGameModule.gameInfo.diamond += 1;
-        this.ulblDiamond.string = zyxGameModule.gameInfo.diamond.toString();
+    // 移动格子中，提示当前移动的位置
+    moveGrid(e): void {
+        this.uImgSelectedBg.active = e.data.action === 'move';
+        const gridGlobalPos = e.data.node.parent.convertToWorldSpaceAR(e.data.node.getPosition());
+        this.uImgSelectedBg.x = this.node.convertToNodeSpaceAR(gridGlobalPos).x;
+        this.uImgSelectedBg.width = e.data.node.width;
     }
 
     test(): void {
@@ -511,7 +517,7 @@ export default class ZyxGame extends cc.Component {
     }
 
     // 使用卡皮巴拉
-    useHammer():void {
+    useHammer(): void {
         uimanager.showTips('使用卡皮巴拉');
         wxApiManager.share('别卷啦，快来卡皮一下吧~');
     }

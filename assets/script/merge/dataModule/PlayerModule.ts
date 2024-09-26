@@ -46,6 +46,7 @@ export default class PlayerModule extends DataModule {
                 star: 0,
                 // 格子当前使用到的唯一索引值
                 uniqueId: 9,
+                goods: {},
             },
         }
 

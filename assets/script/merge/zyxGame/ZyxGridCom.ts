@@ -18,6 +18,9 @@ export default class ZyxGridCom extends cc.Component {
     @property(cc.Node)
     uImgBg: cc.Node = null;
 
+    @property(cc.Node)
+    uImgBgLine: cc.Node = null;
+
     @property(cc.Label)
     ulblUniqueId: cc.Label = null;
 
@@ -65,6 +68,8 @@ export default class ZyxGridCom extends cc.Component {
         this.node.width = nodeWidth;
         this.uImgBg.width = this.node.width;
         this.uImgBg.x = nodeWidth / 2;
+        this.uImgBgLine.width = this.node.width - 8;
+        this.uImgBgLine.x = nodeWidth / 2;
         this.uImgDiamond.x = this.uImgBg.width / 2;
         this.ulblUniqueId.node.x = this.node.width / 2;
 
@@ -129,6 +134,12 @@ export default class ZyxGridCom extends cc.Component {
         } else {
             // this.node.opacity = 100;
         }
+
+        let moveAction = {
+            action: 'move',
+            node: this.node,
+        }
+        eventManager.dispatch(EventType.ZYX_MOVE_GRID, moveAction);
     }
 
     onTouchEnd(e) {
@@ -145,6 +156,13 @@ export default class ZyxGridCom extends cc.Component {
         //     this.node.x = this.originGridX;
         //     console.log('无法移动');
         // }
+
+
+        let moveAction = {
+            action: 'done',
+            node: this.node,
+        }
+        eventManager.dispatch(EventType.ZYX_MOVE_GRID, moveAction);
 
         this.moveCrossWise();
     }

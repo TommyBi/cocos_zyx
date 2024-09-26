@@ -77,18 +77,21 @@
       },
       {
         "__id__": 7
+      },
+      {
+        "__id__": 12
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 12
-      },
-      {
-        "__id__": 13
-      },
-      {
         "__id__": 14
+      },
+      {
+        "__id__": 15
+      },
+      {
+        "__id__": 16
       }
     ],
     "_prefab": null,
@@ -141,7 +144,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "uImgBgMain",
+    "_name": "img_bg",
     "_objFlags": 0,
     "_parent": {
       "__id__": 2
@@ -164,8 +167,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 750,
-      "height": 1624
+      "width": 1173,
+      "height": 1680
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -199,7 +202,7 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "f6aFYInLRLm5ovba73uJUJ"
+    "_id": "06cP0zbMdGJrIPvvoeCxsu"
   },
   {
     "__type__": "cc.Sprite",
@@ -217,10 +220,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "92ad08a9-3450-451e-98b3-b5f303e1f839"
+      "__uuid__": "7fca8aee-ecc5-488c-92a8-c208e3ff0f1f"
     },
-    "_type": 1,
-    "_sizeMode": 0,
+    "_type": 0,
+    "_sizeMode": 1,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -231,7 +234,7 @@
     "_fillRange": 0,
     "_isTrimmedMode": true,
     "_atlas": null,
-    "_id": "9dZLME9WhBB4Cv23m7zqEP"
+    "_id": "07zsCmZ0lKW6x5mb3IAznU"
   },
   {
     "__type__": "cc.Node",
@@ -418,9 +421,9 @@
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 42,
+      "g": 118,
+      "b": 130,
       "a": 255
     },
     "_contentSize": {
@@ -511,7 +514,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "9ed0f6af-5ebb-42ef-8d66-4069d59176ad"
+      "__uuid__": "fcf5829a-90fc-409f-b578-b0aa6865bb56"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -537,6 +540,101 @@
     "_enabled": true,
     "scaleTime": 0.07,
     "_id": "e8YPeydZZFuaqQkEsdvZ45"
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "New Label",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 2
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 13
+      }
+    ],
+    "_prefab": null,
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 650,
+      "height": 75.6
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        0,
+        335.88,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "_groupIndex": 0,
+    "groupIndex": 0,
+    "_id": "42RbrRlBVEJKtkfqccOu4X"
+  },
+  {
+    "__type__": "cc.Label",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 12
+    },
+    "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+      }
+    ],
+    "_srcBlendFactor": 770,
+    "_dstBlendFactor": 771,
+    "_string": "卡皮巴拉和她的朋友们",
+    "_N$string": "卡皮巴拉和她的朋友们",
+    "_fontSize": 65,
+    "_lineHeight": 60,
+    "_enableWrapText": true,
+    "_N$file": null,
+    "_isSystemFontUsed": true,
+    "_spacingX": 0,
+    "_batchAsBitmap": false,
+    "_styleFlags": 1,
+    "_underlineHeight": 0,
+    "_N$horizontalAlign": 1,
+    "_N$verticalAlign": 1,
+    "_N$fontFamily": "Arial",
+    "_N$overflow": 0,
+    "_N$cacheMode": 0,
+    "_id": "97NMlPxEpN9LQct74ETToY"
   },
   {
     "__type__": "cc.Canvas",

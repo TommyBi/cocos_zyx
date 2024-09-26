@@ -94,11 +94,6 @@
     "meta": 1724744695584,
     "relativePath": "resources/spine/guangyun/guangyun.json"
   },
-  "6864309e-a883-4fbb-af0b-296d2279eef3": {
-    "asset": 1726639592361,
-    "meta": 1726639592369,
-    "relativePath": "scene/merge.fire"
-  },
   "0af8d08f-1998-46bc-8d21-8777c8042acf": {
     "asset": 1724742721613,
     "meta": 1724744695518,
@@ -1190,8 +1185,8 @@
     "relativePath": "resources/prefab/zyx"
   },
   "84697e00-4123-4a13-a362-91e895327f6d": {
-    "asset": 1726971573122,
-    "meta": 1726971573128,
+    "asset": 1727342880839,
+    "meta": 1727342880849,
     "relativePath": "resources/prefab/zyx/zyxGame.prefab"
   },
   "00cc98ff-e3a3-4127-bb4a-175e5e163176": {
@@ -1200,8 +1195,8 @@
     "relativePath": "script/merge/zyxGame"
   },
   "94a42122-8fd7-4bea-acda-40302b65b0fd": {
-    "asset": 1726661777484,
-    "meta": 1726661777488,
+    "asset": 1727159288333,
+    "meta": 1727159288337,
     "relativePath": "resources/prefab/zyx/uComGrid.prefab"
   },
   "b4d8a4b8-cf58-4fb3-a646-01d46236aca3": {
@@ -1214,16 +1209,6 @@
     "meta": 1725244780618,
     "relativePath": "resources/images/item"
   },
-  "4bdb5699-171b-4d59-87da-fbb6cd2d0785": {
-    "asset": 1724916484355,
-    "meta": 1724916590935,
-    "relativePath": "resources/images/item/img_item_hammer.png"
-  },
-  "4700685c-b510-4124-bc7f-24cba4c8005c": {
-    "asset": 1724916470187,
-    "meta": 1724916590937,
-    "relativePath": "resources/images/item/img_item_bomb.png"
-  },
   "a1118e86-6149-4992-a99b-4e85a6199473": {
     "asset": 1724916869350,
     "meta": 1724916890721,
@@ -1233,11 +1218,6 @@
     "asset": 1724986584829,
     "meta": 1724986732655,
     "relativePath": "resources/images/item/img_item_star.png"
-  },
-  "44ffd4b0-90af-4e13-94e0-cd82d1de0485": {
-    "asset": 1724913740172,
-    "meta": 1724987163104,
-    "relativePath": "resources/images/item/img_item_diamond.png"
   },
   "316cd247-1562-4e51-bdeb-910b65e5e714": {
     "asset": 1712561304611,
@@ -1389,11 +1369,6 @@
     "meta": 1725933965788,
     "relativePath": "resources/images/bg/img_bg_main1.png"
   },
-  "b316e7fd-eee2-49ac-bb63-8f5fba9fe95c": {
-    "asset": 1726037831439,
-    "meta": 1726037853130,
-    "relativePath": "script/merge/manager/Define.ts"
-  },
   "27179110-b3d5-44f3-b164-01816da69f83": {
     "asset": 1726643698993,
     "meta": 1726644429129,
@@ -1454,21 +1429,6 @@
     "meta": 1726815443232,
     "relativePath": "script/merge/zyxGame/ZyxMainScene.ts"
   },
-  "91c7351e-841a-469b-a7fa-a30303e97584": {
-    "asset": 1726822969647,
-    "meta": 1726823138056,
-    "relativePath": "script/merge/zyxGame/ZyxGridCom.ts"
-  },
-  "b9091023-9c1f-478f-aeda-1b19b855aab9": {
-    "asset": 1726824755358,
-    "meta": 1726824756312,
-    "relativePath": "script/merge/dataModule/PlayerModule.ts"
-  },
-  "260831d0-5198-4db0-99dd-c69c558cc2f6": {
-    "asset": 1726972988681,
-    "meta": 1726973526090,
-    "relativePath": "script/merge/define/TypeDefine.ts"
-  },
   "137728aa-b997-42e4-845f-e711bc51aac8": {
     "asset": 1727072930792,
     "meta": 1727072976575,
@@ -1479,16 +1439,6 @@
     "meta": 1727073797625,
     "relativePath": "script/merge/zyxGame/ZyxAccountDialog.ts"
   },
-  "227d6658-dd73-420d-b4b2-c31b3f122dcd": {
-    "asset": 1727091174020,
-    "meta": 1727091180638,
-    "relativePath": "script/merge/zyxGame/ZyxGame.ts"
-  },
-  "eb26c84d-26f7-427c-91a6-6066ccad0a55": {
-    "asset": 1727091105694,
-    "meta": 1727091180651,
-    "relativePath": "script/merge/util/WxApiManager.ts"
-  },
   "0af54762-b9de-4937-a498-a483c8bdc45c": {
     "asset": 1727091242829,
     "meta": 1727091785431,
@@ -1498,5 +1448,130 @@
     "asset": 1727062950000,
     "meta": 1727091785448,
     "relativePath": "resources/images/common/img_com_avatar.png"
+  },
+  "eb26c84d-26f7-427c-91a6-6066ccad0a55": {
+    "asset": 1727091863168,
+    "meta": 1727091945957,
+    "relativePath": "script/merge/util/WxApiManager.ts"
+  },
+  "5fb41026-f9bf-437c-aba8-903aa19c42a0": {
+    "asset": 1727158544819,
+    "meta": 1727159435806,
+    "relativePath": "resources/images/common/img_com_square.png"
+  },
+  "9bbeed51-e63d-40e3-ad99-15d4588f2d47": {
+    "asset": 1727244690674,
+    "meta": 1727249194178,
+    "relativePath": "resources/images/game/img_game_basket.png"
+  },
+  "b9091023-9c1f-478f-aeda-1b19b855aab9": {
+    "asset": 1727250230545,
+    "meta": 1727250941347,
+    "relativePath": "script/merge/dataModule/PlayerModule.ts"
+  },
+  "61f8c63c-f6b7-4e42-986e-cb861326263c": {
+    "asset": 1727332726552,
+    "meta": 1727333490803,
+    "relativePath": "resources/sounds/sound_confim.mp3"
+  },
+  "f3ac0ac5-ea54-4e32-9780-08166d6ec748": {
+    "asset": 1727332864035,
+    "meta": 1727333490805,
+    "relativePath": "resources/sounds/sound_collect.mp3"
+  },
+  "5c93fc9f-bb2c-4e3d-b09b-49658203ee8e": {
+    "asset": 1727332285680,
+    "meta": 1727333490807,
+    "relativePath": "resources/sounds/sound_bonus.mp3"
+  },
+  "0e91fec1-253a-4171-ae2f-2275cfae7e40": {
+    "asset": 1727331417597,
+    "meta": 1727333490181,
+    "relativePath": "resources/images/game/img_game_bonus.png"
+  },
+  "4bdb5699-171b-4d59-87da-fbb6cd2d0785": {
+    "asset": 1727304926000,
+    "meta": 1727333783866,
+    "relativePath": "resources/images/item/img_item_hammer.png"
+  },
+  "4700685c-b510-4124-bc7f-24cba4c8005c": {
+    "asset": 1727304926000,
+    "meta": 1727333783868,
+    "relativePath": "resources/images/item/img_item_bomb.png"
+  },
+  "44ffd4b0-90af-4e13-94e0-cd82d1de0485": {
+    "asset": 1727304926000,
+    "meta": 1727333783873,
+    "relativePath": "resources/images/item/img_item_diamond.png"
+  },
+  "c5781ea9-8bb2-4e7e-b33e-effaa5562a11": {
+    "asset": 1727304888000,
+    "meta": 1727334046175,
+    "relativePath": "resources/images/item/img_item_5.png"
+  },
+  "78d1883c-4d2b-44ce-ad28-9adcc61ffbc1": {
+    "asset": 1727160413280,
+    "meta": 1727334046178,
+    "relativePath": "resources/images/item/img_item_7.png"
+  },
+  "cffb0f54-a33a-436e-bafd-1e7b82544fd0": {
+    "asset": 1727304888000,
+    "meta": 1727334046190,
+    "relativePath": "resources/images/item/img_item_9.png"
+  },
+  "0b30c017-4e93-47e7-ab25-433930df7065": {
+    "asset": 1727160440948,
+    "meta": 1727334046192,
+    "relativePath": "resources/images/item/img_item_6.png"
+  },
+  "3edfc93d-8142-4f26-9e46-afbf0a968c02": {
+    "asset": 1727160352973,
+    "meta": 1727334046194,
+    "relativePath": "resources/images/item/img_item_8.png"
+  },
+  "260831d0-5198-4db0-99dd-c69c558cc2f6": {
+    "asset": 1727334164761,
+    "meta": 1727335339323,
+    "relativePath": "script/merge/define/TypeDefine.ts"
+  },
+  "313db6cd-a921-4d3b-ba02-e8d8a6d97dcf": {
+    "asset": 1727160308241,
+    "meta": 1727335339345,
+    "relativePath": "resources/images/item/img_item_11.png"
+  },
+  "b50788f8-d69d-41bc-a430-e6c0ef8fb13e": {
+    "asset": 1727160434250,
+    "meta": 1727335339347,
+    "relativePath": "resources/images/item/img_item_10.png"
+  },
+  "18a0f9be-1199-4a3c-bb49-31c4a0248cb2": {
+    "asset": 1727335539995,
+    "meta": 1727335555125,
+    "relativePath": "resources/images/bg/img_bg.jpg"
+  },
+  "6864309e-a883-4fbb-af0b-296d2279eef3": {
+    "asset": 1727335792565,
+    "meta": 1727335792569,
+    "relativePath": "scene/merge.fire"
+  },
+  "84e66e48-d272-40ad-9b99-24556bcad428": {
+    "asset": 1727339080688,
+    "meta": 1727339262634,
+    "relativePath": "resources/images/grid/gridSelectedBg.png"
+  },
+  "b316e7fd-eee2-49ac-bb63-8f5fba9fe95c": {
+    "asset": 1727339858406,
+    "meta": 1727340239641,
+    "relativePath": "script/merge/manager/Define.ts"
+  },
+  "91c7351e-841a-469b-a7fa-a30303e97584": {
+    "asset": 1727340142109,
+    "meta": 1727340239848,
+    "relativePath": "script/merge/zyxGame/ZyxGridCom.ts"
+  },
+  "227d6658-dd73-420d-b4b2-c31b3f122dcd": {
+    "asset": 1727343653085,
+    "meta": 1727343655104,
+    "relativePath": "script/merge/zyxGame/ZyxGame.ts"
   }
 }

@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "gridSelectedBg",
+    "texture": "84e66e48-d272-40ad-9b99-24556bcad428",
+    "atlas": "",
+    "rect": [
+      21,
+      42,
+      214,
+      214
+    ],
+    "offset": [
+      0,
+      -21
+    ],
+    "originalSize": [
+      256,
+      256
+    ],
+    "capInsets": [
+      36,
+      71,
+      30,
+      71
+    ]
+  }
+}
