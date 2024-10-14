@@ -45,5 +45,8 @@
     }
   },
   "last-module-event-record-time": 1727336011396,
-  "start-scene": "6864309e-a883-4fbb-af0b-296d2279eef3"
+  "start-scene": "6864309e-a883-4fbb-af0b-296d2279eef3",
+  "migrate-history": [
+    "cloud-function"
+  ]
 }
