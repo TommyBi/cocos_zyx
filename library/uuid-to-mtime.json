@@ -660,8 +660,8 @@
     "relativePath": "resources/images/coin/10.png"
   },
   "23c8fb79-e873-48fc-ab4c-64cb8c0ff1ff": {
-    "asset": 1727159422059,
-    "meta": 1728374706624,
+    "asset": 1729772129730,
+    "meta": 1729772130054,
     "relativePath": "resources/images/common"
   },
   "d323fa70-506e-4739-b783-16bc208bf7e1": {
@@ -1573,5 +1573,10 @@
     "asset": 1727343653085,
     "meta": 1727343655104,
     "relativePath": "script/merge/zyxGame/ZyxGame.ts"
+  },
+  "a3f52007-04a4-4c66-b917-5e6f8e9086ac": {
+    "asset": 1727339080688,
+    "meta": 1729772130094,
+    "relativePath": "resources/images/common/img_com_bg_white.png"
   }
 }
