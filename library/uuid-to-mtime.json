@@ -1185,8 +1185,8 @@
     "relativePath": "resources/prefab/zyx"
   },
   "84697e00-4123-4a13-a362-91e895327f6d": {
-    "asset": 1727342880839,
-    "meta": 1727342880849,
+    "asset": 1738737640943,
+    "meta": 1738737640952,
     "relativePath": "resources/prefab/zyx/zyxGame.prefab"
   },
   "00cc98ff-e3a3-4127-bb4a-175e5e163176": {
@@ -1359,11 +1359,6 @@
     "meta": 1725613819781,
     "relativePath": "script/merge/pulicCom/Tips.ts"
   },
-  "f6b0e684-6fc9-4ead-a4eb-f6c7e47b2c9f": {
-    "asset": 1725874727160,
-    "meta": 1725874728992,
-    "relativePath": "script/merge/manager/Uimanager.ts"
-  },
   "93ebeb29-90d5-4c15-95b5-951c9a0580e6": {
     "asset": 1725004359122,
     "meta": 1725933965788,
@@ -1418,16 +1413,6 @@
     "asset": 1726802150657,
     "meta": 1726813133982,
     "relativePath": "resources/sounds/music_main2.mp3"
-  },
-  "b545b153-21bd-4957-92ee-2ee8b3e797e4": {
-    "asset": 1726815308554,
-    "meta": 1726815311302,
-    "relativePath": "script/merge/manager/AudioMgr.ts"
-  },
-  "384e0b28-5baf-42d4-aa5f-242801c0d927": {
-    "asset": 1726815390231,
-    "meta": 1726815443232,
-    "relativePath": "script/merge/zyxGame/ZyxMainScene.ts"
   },
   "137728aa-b997-42e4-845f-e711bc51aac8": {
     "asset": 1727072930792,
@@ -1569,14 +1554,29 @@
     "meta": 1727340239848,
     "relativePath": "script/merge/zyxGame/ZyxGridCom.ts"
   },
-  "227d6658-dd73-420d-b4b2-c31b3f122dcd": {
-    "asset": 1727343653085,
-    "meta": 1727343655104,
-    "relativePath": "script/merge/zyxGame/ZyxGame.ts"
-  },
   "a3f52007-04a4-4c66-b917-5e6f8e9086ac": {
     "asset": 1727339080688,
     "meta": 1729772130094,
     "relativePath": "resources/images/common/img_com_bg_white.png"
+  },
+  "f6b0e684-6fc9-4ead-a4eb-f6c7e47b2c9f": {
+    "asset": 1738737142166,
+    "meta": 1738737360759,
+    "relativePath": "script/merge/manager/Uimanager.ts"
+  },
+  "b545b153-21bd-4957-92ee-2ee8b3e797e4": {
+    "asset": 1738737631163,
+    "meta": 1738737639598,
+    "relativePath": "script/merge/manager/AudioMgr.ts"
+  },
+  "227d6658-dd73-420d-b4b2-c31b3f122dcd": {
+    "asset": 1738737635308,
+    "meta": 1738737639816,
+    "relativePath": "script/merge/zyxGame/ZyxGame.ts"
+  },
+  "384e0b28-5baf-42d4-aa5f-242801c0d927": {
+    "asset": 1738737636039,
+    "meta": 1738737639850,
+    "relativePath": "script/merge/zyxGame/ZyxMainScene.ts"
   }
 }

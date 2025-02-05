@@ -55,6 +55,8 @@ var AudioMgr = /** @class */ (function () {
     AudioMgr.prototype.playBGM = function (url) {
         var _this = this;
         // 如果已经播放着就不播放了
+        console.warn("TODO:临时屏蔽音效");
+        return;
         if (this.curBgMusicUrl && this.curBgMusicUrl == url)
             return;
         this.curBgMusicUrl = url;

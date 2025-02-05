@@ -78,18 +78,18 @@ var Uimanager = /** @class */ (function () {
         node_dialog.height = this.scene.height;
         this.scene.addChild(node_dialog);
         this.layerArr.push(node_dialog);
-        // 提示层
-        var node_tip = new cc.Node(TypeDefine_1.LAYER.TIP);
-        node_tip.width = this.scene.width;
-        node_tip.height = this.scene.height;
-        this.scene.addChild(node_tip);
-        this.layerArr.push(node_tip);
         // 引导层
         var node_guide = new cc.Node(TypeDefine_1.LAYER.GUIDE);
         node_guide.width = this.scene.width;
         node_guide.height = this.scene.height;
         this.scene.addChild(node_guide);
         this.layerArr.push(node_guide);
+        // 提示层
+        var node_tip = new cc.Node(TypeDefine_1.LAYER.TIP);
+        node_tip.width = this.scene.width;
+        node_tip.height = this.scene.height;
+        this.scene.addChild(node_tip);
+        this.layerArr.push(node_tip);
     };
     Uimanager.prototype.getLayer = function (name) {
         var node = this.scene.getChildByName(name);
