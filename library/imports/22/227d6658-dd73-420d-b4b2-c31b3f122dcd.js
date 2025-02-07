@@ -96,7 +96,7 @@ var ZyxGame = /** @class */ (function (_super) {
         _this.hasProduce = false;
         // 格子掉落时间
         _this.timeGridDrop = 0.2;
-        _this.timeWaitDrop = 600;
+        _this.timeWaitDrop = 300;
         _this.timeShowNewGrids = 0.44;
         // star bar totalLength
         _this.starBarLength = 500;
@@ -485,7 +485,7 @@ var ZyxGame = /** @class */ (function (_super) {
         this.drop(row - 1);
     };
     ZyxGame.prototype.dropGrid = function (row, col) {
-        // 检测对应的空格子是否可以容纳掉下来的格子类型
+        // 检测格子是否可以掉落到下一行
         var uniqueID = ZyxGameModule_1.zyxGameModule.gridInfo[row][col][2];
         var checkCols = [];
         for (var i = 0; i < 8; i++) {
@@ -504,9 +504,11 @@ var ZyxGame = /** @class */ (function (_super) {
         // 如果可以掉落，那就将数据进行交换，同时更新格子的自身属性和位置信息
         for (var i = 0; i < checkCols.length; i++) {
             var col_2 = checkCols[i];
+            // 掉落后的位置
             ZyxGameModule_1.zyxGameModule.gridInfo[row + 1][col_2][0] = ZyxGameModule_1.zyxGameModule.gridInfo[row][col_2][0];
             ZyxGameModule_1.zyxGameModule.gridInfo[row + 1][col_2][1] = ZyxGameModule_1.zyxGameModule.gridInfo[row][col_2][1];
             ZyxGameModule_1.zyxGameModule.gridInfo[row + 1][col_2][2] = ZyxGameModule_1.zyxGameModule.gridInfo[row][col_2][2];
+            // 掉落前的位置
             ZyxGameModule_1.zyxGameModule.gridInfo[row][col_2][0] = 0;
             ZyxGameModule_1.zyxGameModule.gridInfo[row][col_2][1] = TypeDefine_1.gridContentType.EMPTY;
             ZyxGameModule_1.zyxGameModule.gridInfo[row][col_2][2] = 0;

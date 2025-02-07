@@ -1569,14 +1569,14 @@
     "meta": 1738737639598,
     "relativePath": "script/merge/manager/AudioMgr.ts"
   },
-  "227d6658-dd73-420d-b4b2-c31b3f122dcd": {
-    "asset": 1738737635308,
-    "meta": 1738737639816,
-    "relativePath": "script/merge/zyxGame/ZyxGame.ts"
-  },
   "384e0b28-5baf-42d4-aa5f-242801c0d927": {
     "asset": 1738737636039,
     "meta": 1738737639850,
     "relativePath": "script/merge/zyxGame/ZyxMainScene.ts"
+  },
+  "227d6658-dd73-420d-b4b2-c31b3f122dcd": {
+    "asset": 1738809730737,
+    "meta": 1738809737508,
+    "relativePath": "script/merge/zyxGame/ZyxGame.ts"
   }
 }

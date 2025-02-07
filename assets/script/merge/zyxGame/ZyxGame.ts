@@ -68,7 +68,7 @@ export default class ZyxGame extends cc.Component {
 
     // 格子掉落时间
     private timeGridDrop: number = 0.2;
-    private timeWaitDrop: number = 600;
+    private timeWaitDrop: number = 300;
     private timeShowNewGrids: number = 0.44;
 
     // star bar totalLength
@@ -319,7 +319,7 @@ export default class ZyxGame extends cc.Component {
         }
 
         if (mergeTimes > 0) {
-            uimanager.showTips('發生消除，持续下一轮检测');
+            uimanager.showTips('发生消除，持续检测');
             audioMgr.shake(SHAKE_TYPE.HEAVY);
             this.addScore(mergeTimes);
             this.check();
@@ -412,7 +412,7 @@ export default class ZyxGame extends cc.Component {
     }
 
     dropGrid(row: number, col: number): boolean {
-        // 检测对应的空格子是否可以容纳掉下来的格子类型
+        // 检测格子是否可以掉落到下一行
         const uniqueID = zyxGameModule.gridInfo[row][col][2];
         const checkCols = [];
         for (let i = 0; i < 8; i++) {
@@ -433,10 +433,12 @@ export default class ZyxGame extends cc.Component {
         // 如果可以掉落，那就将数据进行交换，同时更新格子的自身属性和位置信息
         for (let i = 0; i < checkCols.length; i++) {
             const col = checkCols[i];
+            // 掉落后的位置
             zyxGameModule.gridInfo[row + 1][col][0] = zyxGameModule.gridInfo[row][col][0];
             zyxGameModule.gridInfo[row + 1][col][1] = zyxGameModule.gridInfo[row][col][1];
             zyxGameModule.gridInfo[row + 1][col][2] = zyxGameModule.gridInfo[row][col][2];
 
+            // 掉落前的位置
             zyxGameModule.gridInfo[row][col][0] = 0;
             zyxGameModule.gridInfo[row][col][1] = gridContentType.EMPTY;
             zyxGameModule.gridInfo[row][col][2] = 0;
