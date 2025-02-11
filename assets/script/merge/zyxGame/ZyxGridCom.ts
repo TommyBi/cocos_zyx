@@ -70,7 +70,6 @@ export default class ZyxGridCom extends cc.Component {
         this.uImgBg.x = nodeWidth / 2;
         this.uImgBgLine.width = this.node.width - 8;
         this.uImgBgLine.x = nodeWidth / 2;
-        this.uImgDiamond.x = this.uImgBg.width / 2;
         this.ulblUniqueId.node.x = this.node.width / 2;
 
         this.ulblUniqueId.string = this.uniqueId.toString();
