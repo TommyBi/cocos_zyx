@@ -53,9 +53,6 @@ export default class ZyxGame extends cc.Component {
     uBoxNew: cc.Node = null;
 
     @property(cc.Node)
-    uNodeBasket: cc.Node = null;
-
-    @property(cc.Node)
     uImgSelectedBg: cc.Node = null;
 
     private grids: cc.Node[] = [];
