@@ -311,7 +311,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "ulblStar",
+    "_name": "ulblFlower",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -527,7 +527,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "uImgStar",
+    "_name": "uImgFlower",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -889,7 +889,7 @@
     "ulblName": {
       "__id__": 12
     },
-    "ulblStar": {
+    "ulblFlower": {
       "__id__": 9
     },
     "ulblInventory": null,

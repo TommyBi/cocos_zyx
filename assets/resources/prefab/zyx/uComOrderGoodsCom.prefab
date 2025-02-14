@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "uComOrder",
+    "_name": "uComOrderGoodsCom",
     "_objFlags": 0,
     "_parent": null,
     "_children": [
@@ -22,22 +22,19 @@
       },
       {
         "__id__": 5
-      },
-      {
-        "__id__": 7
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 10
+        "__id__": 8
       },
       {
-        "__id__": 11
+        "__id__": 9
       }
     ],
     "_prefab": {
-      "__id__": 12
+      "__id__": 10
     },
     "_opacity": 255,
     "_color": {
@@ -49,7 +46,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 200,
+      "width": 80,
       "height": 120
     },
     "_anchorPoint": {
@@ -61,8 +58,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        218.687,
-        567.666,
+        0,
+        0,
         0,
         0,
         0,
@@ -70,7 +67,7 @@
         1,
         1,
         1,
-        1
+        0.3
       ]
     },
     "_eulerAngles": {
@@ -88,7 +85,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "uImgBg",
+    "_name": "ulblCnt",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -106,27 +103,27 @@
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 0,
+      "g": 0,
+      "b": 0,
       "a": 255
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 200,
-      "height": 120
+      "width": 34.75,
+      "height": 50.4
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
+      "x": 0.5,
+      "y": 0.5
     },
     "_trs": {
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        0,
-        0,
+        40,
+        25,
         0,
         0,
         0,
@@ -151,7 +148,7 @@
     "_id": ""
   },
   {
-    "__type__": "cc.Sprite",
+    "__type__": "cc.Label",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -165,21 +162,22 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "e7862cb9-8ee2-48c9-a711-d5c1293de9d2"
-    },
-    "_type": 1,
-    "_sizeMode": 0,
-    "_fillType": 0,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_atlas": null,
+    "_string": "0/3",
+    "_N$string": "0/3",
+    "_fontSize": 25,
+    "_lineHeight": 40,
+    "_enableWrapText": true,
+    "_N$file": null,
+    "_isSystemFontUsed": true,
+    "_spacingX": 0,
+    "_batchAsBitmap": false,
+    "_styleFlags": 1,
+    "_underlineHeight": 0,
+    "_N$horizontalAlign": 1,
+    "_N$verticalAlign": 1,
+    "_N$fontFamily": "Arial",
+    "_N$overflow": 0,
+    "_N$cacheMode": 0,
     "_id": ""
   },
   {
@@ -190,83 +188,12 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "27jJN6mllMKYbnaLBeK7kU",
+    "fileId": "66YjbFFihIp7Krf6Yc41bf",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "uBoxGoods",
-    "_objFlags": 0,
-    "_parent": {
-      "__id__": 1
-    },
-    "_children": [],
-    "_active": true,
-    "_components": [],
-    "_prefab": {
-      "__id__": 6
-    },
-    "_opacity": 255,
-    "_color": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
-      "a": 255
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 160,
-      "height": 120
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_trs": {
-      "__type__": "TypedArray",
-      "ctor": "Float64Array",
-      "array": [
-        20,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        1,
-        1,
-        1
-      ]
-    },
-    "_eulerAngles": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_skewX": 0,
-    "_skewY": 0,
-    "_is3DNode": false,
-    "_groupIndex": 0,
-    "groupIndex": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "83wBTbATJHIobMkmazilxJ",
-    "sync": false
-  },
-  {
-    "__type__": "cc.Node",
-    "_name": "uImgStatus",
+    "_name": "uImgGoods",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -275,11 +202,11 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 8
+        "__id__": 6
       }
     ],
     "_prefab": {
-      "__id__": 9
+      "__id__": 7
     },
     "_opacity": 255,
     "_color": {
@@ -291,8 +218,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 204,
-      "height": 219
+      "width": 192,
+      "height": 187
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -303,16 +230,16 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        16.313,
-        104.334,
+        40,
+        69.631,
         0,
         0,
         0,
         0,
         1,
-        0.2,
-        0.2,
-        0.2
+        0.3,
+        0.3,
+        1
       ]
     },
     "_eulerAngles": {
@@ -333,7 +260,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 7
+      "__id__": 5
     },
     "_enabled": true,
     "_materials": [
@@ -344,7 +271,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "6b22aa63-de5e-4e45-8ea9-483fd73a24e5"
+      "__uuid__": "caa875c9-0126-4121-9c74-a2c6f77f2b54"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -368,7 +295,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "80ujxjb3lI+ZZEblJDsbkJ",
+    "fileId": "11+0szMZZIcpBmJ1yPHtRi",
     "sync": false
   },
   {
@@ -388,7 +315,7 @@
     "_dstBlendFactor": 771,
     "_spriteFrame": null,
     "_type": 0,
-    "_sizeMode": 0,
+    "_sizeMode": 1,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -402,20 +329,17 @@
     "_id": ""
   },
   {
-    "__type__": "19f6boKAxVJJ434wY5QsRdU",
+    "__type__": "7171571l5xHTpg8KpffitiY",
     "_name": "",
     "_objFlags": 0,
     "node": {
       "__id__": 1
     },
     "_enabled": true,
-    "uImgBg": {
-      "__id__": 2
+    "ulblCnt": {
+      "__id__": 3
     },
-    "uImgStatus": {
-      "__id__": 7
-    },
-    "uBoxGoods": {
+    "uImgGoods": {
       "__id__": 5
     },
     "_id": ""

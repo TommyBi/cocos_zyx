@@ -11,12 +11,14 @@ export enum EventType {
     ZYX_CHECK_MERGE = 'zyx_check_merge',
     ZYX_RESET_GAME = 'zyx_reset_game',
     ZYX_MOVE_GRID = 'zyx_move_grid',
+
+    ZYX_CHECK_ORDER_FINISH = 'zyx_check_order_finish',
 }
 
 // 商品信息
 export type GoodsType = {
     id: number,
-    star: number,
+    flower: number,
     total: number,
     used: number,
     name: string,

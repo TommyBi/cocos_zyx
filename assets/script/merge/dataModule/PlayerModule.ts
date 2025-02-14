@@ -1,12 +1,13 @@
 import DataModule from './DataModule';
 import { gameModule } from './GameModule';
 import { goodsModule } from './GoodsModule';
+import { orderModule } from './OrderModule';
 import { zyxGameModule } from './ZyxGameModule';
 
 export default class PlayerModule extends DataModule {
     // 资源信息
     diamond: number = 0;
-    star: number = 0;
+    flower: number = 0;
     hammer: number = 0;
     bomb: number = 0;
 
@@ -25,7 +26,7 @@ export default class PlayerModule extends DataModule {
         const loginData = {
             // 资源信息
             diamond: 10,
-            star: 3,
+            flower: 3,
             bomb: 3,
             hammer: 3,
 
@@ -43,16 +44,51 @@ export default class PlayerModule extends DataModule {
                 score: 0,
                 exp: 0,
                 diamond: 0,
-                star: 0,
+                flower: 0,
                 // 格子当前使用到的唯一索引值
                 uniqueId: 9,
                 goods: {},
             },
+
+            // 订单信息
+            orders: [
+                {
+                    goods: [
+                        {
+                            goodsId: 7,
+                            tarCnt: 12,
+                            schedule: 0
+                        }, {
+                            goodsId: 8,
+                            tarCnt: 5,
+                            schedule: 1
+                        }
+                    ],
+                    orderId: 1,
+                    score: 110,
+                },
+                {
+                    goods: [
+                        {
+                            goodsId: 9,
+                            tarCnt: 10,
+                            schedule: 0
+                        }, {
+                            goodsId: 10,
+                            tarCnt: 5,
+                            schedule: 1
+                        }
+                    ],
+                    orderId: 2,
+                    score: 150,
+                },
+            ],
         }
 
         gameModule.parseData(loginData);
         goodsModule.parseData(loginData);
         zyxGameModule.parseData(loginData);
+        orderModule.parseData(loginData);
 
         setTimeout(() => {
             cb && cb();
@@ -60,87 +96,3 @@ export default class PlayerModule extends DataModule {
     }
 }
 export const playerModule = new PlayerModule();
-
-
-
-/**
-// 初始化的筹码配置
-            slotData: [
-                [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                [2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
-                [1, 1, 2, 2, 0, 0, 0, 0, 0, 0],
-                [2, 2, 2, 3, 3, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            ],
-
-            // 奖励兑换配置信息
-            goods: [{
-                id: 1,
-                star: 1,
-                total: 100,
-                used: 0,
-                name: '1盒纸巾',
-                desc: '商品1',
-                url: ``,
-            }, {
-                id: 2,
-                star: 3,
-                total: 100,
-                used: 0,
-                name: '1箱牛奶',
-                desc: '商品2',
-                url: ``,
-            }, {
-                id: 3,
-                star: 5,
-                total: 100,
-                used: 0,
-                name: '一箱红牛',
-                desc: '商品3',
-                url: ``,
-            }, {
-                id: 4,
-                star: 5,
-                total: 100,
-                used: 0,
-                name: '一箱饼干',
-                desc: '商品4',
-                url: ``,
-            }, {
-                id: 5,
-                star: 8,
-                total: 100,
-                used: 0,
-                name: '星巴克100券',
-                desc: '商品5',
-                url: ``,
-            }, {
-                id: 6,
-                star: 10,
-                total: 100,
-                used: 0,
-                name: '电子手表',
-                desc: '商品6',
-                url: ``,
-            }, {
-                id: 7,
-                star: 10,
-                total: 100,
-                used: 0,
-                name: '北京1日游',
-                desc: '商品7',
-                url: ``,
-            }, {
-                id: 8,
-                star: 20,
-                total: 100,
-                used: 0,
-                name: '5克黄金',
-                desc: '商品8',
-                url: ``,
-            }
-            ]
- */

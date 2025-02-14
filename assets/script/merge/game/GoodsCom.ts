@@ -16,7 +16,7 @@ export default class GoodsCom extends cc.Component {
     ulblName: cc.Label = null;
 
     @property(cc.Label)
-    ulblStar: cc.Label = null;
+    ulblFlower: cc.Label = null;
 
     @property(cc.Label)
     ulblInventory: cc.Label = null;
@@ -56,7 +56,7 @@ export default class GoodsCom extends cc.Component {
         }));
 
         this.ulblName.string = goodsInfo.name;
-        this.ulblStar.string = `x ${goodsInfo.star}`;
+        this.ulblFlower.string = `x ${goodsInfo.flower}`;
     }
 
     // 展示商品详情页

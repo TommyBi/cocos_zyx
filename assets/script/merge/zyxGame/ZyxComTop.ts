@@ -22,7 +22,7 @@ export default class ZyxComTop extends cc.Component {
     ulblDiamond: cc.Label = null; 
 
     @property(cc.Label)
-    ulblStar: cc.Label = null;
+    ulblFlower: cc.Label = null;
 
     onLoad() {
 
@@ -33,10 +33,10 @@ export default class ZyxComTop extends cc.Component {
     }
 
     init(): void {
-        this.ulblStar.string = `${zyxGameModule.gameInfo.star}`;
+        this.ulblFlower.string = `${zyxGameModule.gameInfo.flower}`;
         this.ulblLv.string = `${playerModule.lv}`;
         this.ulblExp.string = `${playerModule.exp}/${playerModule.expTar}`;
         this.ulblDiamond.string = `${playerModule.diamond}`;
-        this.ulblStar.string = `${playerModule.star}`;
+        this.ulblFlower.string = `${playerModule.flower}`;
     }
 }

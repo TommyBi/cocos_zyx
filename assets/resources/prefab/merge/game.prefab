@@ -1206,7 +1206,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "uImgStar",
+    "_name": "uImgFlower",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -1274,7 +1274,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "ulblStar",
+    "_name": "ulblFlower",
     "_objFlags": 0,
     "_parent": {
       "__id__": 35
@@ -1449,7 +1449,7 @@
     "uPanel": {
       "__id__": 31
     },
-    "ulblStar": {
+    "ulblFlower": {
       "__id__": 37
     },
     "_id": ""

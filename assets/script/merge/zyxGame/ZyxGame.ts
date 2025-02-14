@@ -1,3 +1,4 @@
+import { orderModule } from "../dataModule/OrderModule";
 import { playerModule } from "../dataModule/PlayerModule";
 import { zyxGameModule } from "../dataModule/ZyxGameModule";
 import { gridContentType } from "../define/TypeDefine";
@@ -8,6 +9,7 @@ import { eventManager } from "../util/EventManager";
 import { wxApiManager } from "../util/WxApiManager";
 import ZyxGridCom from "./ZyxGridCom";
 import ZyxLineCom from "./ZyxLineCom";
+import ZyxOrderCom from "./ZyxOrderCom";
 
 
 const { ccclass, property } = cc._decorator;
@@ -23,7 +25,7 @@ export default class ZyxGame extends cc.Component {
     ulblMaxScore: cc.Label = null;
 
     @property(cc.Label)
-    ulblStarCnt: cc.Label = null;
+    ulblFlowerCnt: cc.Label = null;
 
     @property(cc.Label)
     ulblHammerCnt: cc.Label = null;
@@ -35,7 +37,7 @@ export default class ZyxGame extends cc.Component {
     ulblAdCnt: cc.Label = null;
 
     @property(cc.Node)
-    uImgStarBar: cc.Node = null;
+    uImgFlowerBar: cc.Node = null;
 
     @property(cc.Node)
     uBtnHammer: cc.Node = null;
@@ -55,6 +57,9 @@ export default class ZyxGame extends cc.Component {
     @property(cc.Node)
     uImgSelectedBg: cc.Node = null;
 
+    @property(cc.Node)
+    uBoxOrder: cc.Node = null;
+
     private grids: cc.Node[] = [];
 
     // 掉落发生情况（掉落需要自底向上检测，一轮检测后再检测下一轮，直到最终可以发生掉落的情况全部检测完毕）
@@ -68,11 +73,11 @@ export default class ZyxGame extends cc.Component {
     private timeWaitDrop: number = 300;
     private timeShowNewGrids: number = 0.44;
 
-    // star bar totalLength
-    private starBarLength: number = 500;
+    // Flower bar totalLength
+    private flowerBarLength: number = 500;
 
     // 一颗星星对应的层数
-    private starMeasures: number = 100;
+    private flowerMeasures: number = 100;
 
     onLoad() {
         this.uBtnClean.on(cc.Node.EventType.TOUCH_END, this.test, this);
@@ -105,7 +110,7 @@ export default class ZyxGame extends cc.Component {
         ]
         zyxGameModule.gameInfo = {
             score: 0,
-            star: 0,
+            flower: 0,
             adTimes: 3,
             exp: 0,
             uniqueId: 9,
@@ -126,15 +131,17 @@ export default class ZyxGame extends cc.Component {
         this.ulblScore.string = `${zyxGameModule.gameInfo.score}`;
         this.ulblMaxScore.string = `BEST：${zyxGameModule.scoreRecord}`;
         this.ulblMaxScore.node.active = zyxGameModule.scoreRecord > 0;
-        this.ulblStarCnt.string = `${zyxGameModule.gameInfo.star}`;
+        this.ulblFlowerCnt.string = `${zyxGameModule.gameInfo.flower}`;
         this.ulblAdCnt.string = `(${zyxGameModule.gameInfo.adTimes})`;
         this.ulblHammerCnt.string = `x${playerModule.hammer}`;
         this.ulblBombCnt.string = `x${playerModule.bomb}`;
-        this.uImgStarBar.width = zyxGameModule.gameInfo.score % this.starMeasures * this.starBarLength / this.starMeasures;
+        this.uImgFlowerBar.width = zyxGameModule.gameInfo.score % this.flowerMeasures * this.flowerBarLength / this.flowerMeasures;
 
         this.uImgSelectedBg.active = false;
 
         this.initChessBoard();
+
+        this.initOrder();
 
         setTimeout(() => {
             audioMgr.playBGM(SoundType.ZYX_MUSIC_GAME);
@@ -483,14 +490,14 @@ export default class ZyxGame extends cc.Component {
         }
 
         // 星星
-        const tarW = zyxGameModule.gameInfo.score % this.starMeasures * this.starBarLength / this.starMeasures;
-        cc.tween(this.uImgStarBar)
+        const tarW = zyxGameModule.gameInfo.score % this.flowerMeasures * this.flowerBarLength / this.flowerMeasures;
+        cc.tween(this.uImgFlowerBar)
             .to(0.5, { width: tarW })
             .start();
         if (tarW === 0) {
             // 星星数量+1   
-            zyxGameModule.gameInfo.star += 1;
-            this.ulblStarCnt.string = zyxGameModule.gameInfo.star.toString();
+            zyxGameModule.gameInfo.flower += 1;
+            this.ulblFlowerCnt.string = zyxGameModule.gameInfo.flower.toString();
         }
 
     }
@@ -520,5 +527,25 @@ export default class ZyxGame extends cc.Component {
         uimanager.showTips('使用卡皮巴拉');
         wxApiManager.share('别卷啦，快来卡皮一下吧~');
     }
+
+
+    /*----- order -----*/
+    async initOrder() {
+        this.uBoxOrder.destroyAllChildren();
+        for (let i = 0; i < orderModule.orders.length; i++) {
+            const orderData = orderModule.orders[i];
+            const orderCom = await this.produceOrder();
+            orderCom.setPosition(new cc.Vec2(orderCom.width * i, 0));
+            orderCom.getComponent(ZyxOrderCom).initOrder(orderData.orderId);
+            this.uBoxOrder.addChild(orderCom);
+        }
+    }
+
+    async produceOrder() {
+        const order = await uimanager.loadPrefab('prefab/zyx/uComOrder');
+        const orderCom = cc.instantiate(order);
+        return orderCom;
+    }
+
 
 }

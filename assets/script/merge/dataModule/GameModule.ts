@@ -19,8 +19,8 @@ export default class GameModule extends DataModule {
     // 生成筹码效果引用计数
     produceLock: number = 0;
 
-    // 当前星星数
-    star: number = 0;
+    // 当前花朵数
+    flower: number = 0;
 
     // 每回合额外获得的次数
     extraChance: number = 0;
@@ -32,7 +32,7 @@ export default class GameModule extends DataModule {
     parseData(data: any): void {
         super.parseData(data);
         this.slotData = data.slotData;
-        this.star = data.star;
+        this.flower = data.flower;
     }
 
     // 交互操作的检测，当前如果有正在发生的交互行为，则不允许触发更多的行为

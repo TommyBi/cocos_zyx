@@ -1037,7 +1037,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "uNodeStar",
+    "_name": "uNodeFlower",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -1107,7 +1107,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "uImgStarBg",
+    "_name": "uImgFlowerBg",
     "_objFlags": 0,
     "_parent": {
       "__id__": 28
@@ -1214,7 +1214,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "uImgStar",
+    "_name": "uImgFlower",
     "_objFlags": 0,
     "_parent": {
       "__id__": 28
@@ -1292,7 +1292,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "ad870f88-f16d-42f0-b248-4e12a3449a66"
+      "__uuid__": "c2766413-b62a-4bcc-8cdd-a48a8d0070b3"
     },
     "_type": 0,
     "_sizeMode": 0,
@@ -1321,7 +1321,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "ulblStar",
+    "_name": "ulblFlower",
     "_objFlags": 0,
     "_parent": {
       "__id__": 28
@@ -1864,7 +1864,7 @@
     "ulblDiamond": {
       "__id__": 47
     },
-    "ulblStar": {
+    "ulblFlower": {
       "__id__": 36
     },
     "_id": ""
