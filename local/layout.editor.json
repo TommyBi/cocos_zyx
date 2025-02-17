@@ -7,19 +7,19 @@
       "windowType": "dockable",
       "x": 0,
       "y": 25,
-      "width": 1792,
-      "height": 1034,
+      "width": 1440,
+      "height": 872,
       "layout": {
         "type": "dock-v",
         "children": [
           {
-            "width": 1792,
-            "height": 665.234375,
+            "width": 1440,
+            "height": 556,
             "type": "dock-h",
             "children": [
               {
-                "width": 423,
-                "height": 665.234375,
+                "width": 334.078125,
+                "height": 556,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -27,8 +27,8 @@
                 ]
               },
               {
-                "width": 295,
-                "height": 665.234375,
+                "width": 232.984375,
+                "height": 556,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -36,8 +36,8 @@
                 ]
               },
               {
-                "width": 709,
-                "height": 665.234375,
+                "width": 559.953125,
+                "height": 556,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -45,8 +45,8 @@
                 ]
               },
               {
-                "width": 356,
-                "height": 665.234375,
+                "width": 304,
+                "height": 556,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -57,8 +57,8 @@
             ]
           },
           {
-            "width": 1792,
-            "height": 276.265625,
+            "width": 1440,
+            "height": 226,
             "type": "panel",
             "active": 0,
             "children": [
@@ -75,7 +75,9 @@
         "cocos-services",
         "console"
       ]
-    }
+    },
+    " common-asset-worker-worker": {},
+    " load-media-worker": {}
   },
   "panels": {
     "project-settings": {
