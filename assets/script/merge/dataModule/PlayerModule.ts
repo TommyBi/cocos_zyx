@@ -1,6 +1,4 @@
 import DataModule from './DataModule';
-import { gameModule } from './GameModule';
-import { goodsModule } from './GoodsModule';
 import { orderModule } from './OrderModule';
 import { zyxGameModule } from './ZyxGameModule';
 
@@ -85,8 +83,6 @@ export default class PlayerModule extends DataModule {
             ],
         }
 
-        gameModule.parseData(loginData);
-        goodsModule.parseData(loginData);
         zyxGameModule.parseData(loginData);
         orderModule.parseData(loginData);
 
