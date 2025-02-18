@@ -11,6 +11,20 @@ export default class OrderModule extends DataModule {
         this.orders = data.orders;
     }
 
+    // 获取当前订单列表中的所有物品id
+    getAllGoodsId(): number[] {
+        const goodsIdArr: number[] = [];
+        for (let i = 0; i < this.orders.length; i++) {
+            for (let j = 0; j < this.orders[i].goods.length; j++) {
+                if (goodsIdArr.indexOf(this.orders[i].goods[j].goodsId) === -1) {
+                    goodsIdArr.push(this.orders[i].goods[j].goodsId);
+                }
+            }
+        }
+
+        return goodsIdArr;
+    }
+
     // 通过订单idd获取订单数据
     getOrderData(orderId: number): typeOrderData {
         for (let i = 0; i < this.orders.length; i++) {

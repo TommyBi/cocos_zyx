@@ -13,7 +13,7 @@ const { ccclass, property } = cc._decorator;
 export default class ZyxGridCom extends cc.Component {
 
     @property(cc.Node)
-    uImgDiamond: cc.Node = null;
+    uImgGoods: cc.Node = null;
 
     @property(cc.Node)
     uImgBg: cc.Node = null;
@@ -75,10 +75,12 @@ export default class ZyxGridCom extends cc.Component {
         this.ulblUniqueId.string = this.uniqueId.toString();
         this.ulblUniqueId.node.active = false;
 
-        if (this.contentType === gridContentType.DIAMOND) {
-            this.uImgDiamond.active = true;
+        if (this.contentType !== gridContentType.NORMAL) {
+            this.uImgGoods.active = true;
+            const contentUrl = `images/item/img_item_${this.contentType}`;
+            NewUtils.setSpriteFrameByUrl(this.uImgGoods.getComponent(cc.Sprite), contentUrl);
         } else {
-            this.uImgDiamond.active = false;
+            this.uImgGoods.active = false;
         }
 
         const skinUrl = `images/grid/color_${NewUtils.randomIntInclusive(1, 13)}`;

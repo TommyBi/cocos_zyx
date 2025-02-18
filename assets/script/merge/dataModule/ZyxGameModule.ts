@@ -1,6 +1,7 @@
 import { gridContentType, gridSize, typeGameInfo } from '../define/TypeDefine';
 import NewUtils from '../util/NewUtils';
 import DataModule from './DataModule';
+import { orderModule } from './OrderModule';
 
 export default class ZyxGameModule extends DataModule {
 
@@ -30,8 +31,8 @@ export default class ZyxGameModule extends DataModule {
     // 下一排信息
     public nextGridInfo: any[] = [];
 
-    // 新生成的次数
-    public produceTimes: number = 0;
+    // 钻石的层级间隔
+    public diamondInterval: number = 10;
 
     // 历史最高分
     public scoreRecord: number = 0;
@@ -61,7 +62,7 @@ export default class ZyxGameModule extends DataModule {
         this.produce();
     }
 
-    // 生产格子，服务器逻辑 返回格式为[gridsize][contentType][uniqueId]
+    // 生产格子，服务器逻辑 返回格式为[gridsize][contentType][uniqueId][]
     produce(): number[][] {
 
         // 确定要生成的数字组合 nMax <= 7;
@@ -85,7 +86,7 @@ export default class ZyxGameModule extends DataModule {
             if (newNum === 0) {
                 arr.push([0, 0, 0]);
             } else {
-                // 判断剩余空间是否仍然没有空格子区域
+                // 判断剩余空间是否有空格子区域
                 const surSpace = 8 - arr.length;
                 const emptyGrid = arr.filter(x => {
                     return x && x[1] === gridContentType.EMPTY;
@@ -113,7 +114,7 @@ export default class ZyxGameModule extends DataModule {
         } while (arr.length < 8);
 
         this.nextGridInfo = arr;
-        this.produceTimes++;
+        this.diamondInterval++;
         console.log('produce', arr);
         return arr;
 
@@ -124,11 +125,44 @@ export default class ZyxGameModule extends DataModule {
     // 获得随机生成格子的类型
     getContentType(hasProducedDiamond: boolean): gridContentType {
         if (hasProducedDiamond) return gridContentType.NORMAL;
-        if (this.produceTimes % 6 === 0 && Math.random() <= 0.5) {
-            return gridContentType.DIAMOND;
+
+        // 生成订单道具的权重是19，普通格子权重是80，钻石权重是（5 + 层级间隔）
+        const randomNum = NewUtils.randomIntInclusive(1, 100);
+        if (randomNum <= 5) {
+            // 钻石
+            const contnetType = this.diamondInterval > 50 ? gridContentType.DIAMOND : gridContentType.NORMAL;
+            if (contnetType === gridContentType.DIAMOND) this.diamondInterval = 0;
+            return contnetType;
+        } else if (randomNum <= 19) {
+            // 订单道具 60%是当前订单中相关的物品，40%是其他种类格子
+            const orderGoodsIds = orderModule.getAllGoodsId();
+            const contentType = this.getRandomNumberWithWeights(orderGoodsIds);
+            return contentType;
         } else {
+            // 普通格子
             return gridContentType.NORMAL;
         }
+    }
+
+    getRandomNumberWithWeights(excludedNumbers) {
+        // 创建一个包含7到25的数组
+        const allNumbers = Array.from({ length: 19 }, (_, i) => i + 7);
+
+        // 创建一个包含所有数字及其权重的对象数组
+        const weightedNumbers = [];
+
+        // 遍历所有数字，设置参数数组中的数字权重为60，其他为40
+        allNumbers.forEach(number => {
+            const weight = excludedNumbers.includes(number) ? 60 : 40;
+            // 将每个数字根据其权重添加到数组中多次
+            for (let i = 0; i < weight; i++) {
+                weightedNumbers.push(number);
+            }
+        });
+
+        // 从带有权重的数组中随机选择一个数字
+        const randomIndex = Math.floor(Math.random() * weightedNumbers.length);
+        return weightedNumbers[randomIndex];
     }
 
     // 检查游戏是否结束

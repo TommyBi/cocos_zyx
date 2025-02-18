@@ -302,7 +302,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "uImgDiamond",
+    "_name": "uImgGoods",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -382,9 +382,7 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "77f8f3e6-4a85-43de-a946-57948ed53b9a"
-    },
+    "_spriteFrame": null,
     "_type": 0,
     "_sizeMode": 0,
     "_fillType": 0,
@@ -536,7 +534,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "uImgDiamond": {
+    "uImgGoods": {
       "__id__": 8
     },
     "uImgBg": {

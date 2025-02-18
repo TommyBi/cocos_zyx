@@ -21,6 +21,7 @@ exports.zyxGameModule = void 0;
 var TypeDefine_1 = require("../define/TypeDefine");
 var NewUtils_1 = require("../util/NewUtils");
 var DataModule_1 = require("./DataModule");
+var OrderModule_1 = require("./OrderModule");
 var ZyxGameModule = /** @class */ (function (_super) {
     __extends(ZyxGameModule, _super);
     function ZyxGameModule() {
@@ -46,8 +47,8 @@ var ZyxGameModule = /** @class */ (function (_super) {
         _this.gridsWidth = 84;
         // 下一排信息
         _this.nextGridInfo = [];
-        // 新生成的次数
-        _this.produceTimes = 0;
+        // 钻石的层级间隔
+        _this.diamondInterval = 10;
         // 历史最高分
         _this.scoreRecord = 0;
         return _this;
@@ -70,7 +71,7 @@ var ZyxGameModule = /** @class */ (function (_super) {
         this.scoreRecord = data.scoreRecord || 0;
         this.produce();
     };
-    // 生产格子，服务器逻辑 返回格式为[gridsize][contentType][uniqueId]
+    // 生产格子，服务器逻辑 返回格式为[gridsize][contentType][uniqueId][]
     ZyxGameModule.prototype.produce = function () {
         // 确定要生成的数字组合 nMax <= 7;
         var arr = [];
@@ -97,7 +98,7 @@ var ZyxGameModule = /** @class */ (function (_super) {
                 arr.push([0, 0, 0]);
             }
             else {
-                // 判断剩余空间是否仍然没有空格子区域
+                // 判断剩余空间是否有空格子区域
                 var surSpace = 8 - arr.length;
                 var emptyGrid = arr.filter(function (x) {
                     return x && x[1] === TypeDefine_1.gridContentType.EMPTY;
@@ -122,7 +123,7 @@ var ZyxGameModule = /** @class */ (function (_super) {
             }
         } while (arr.length < 8);
         this.nextGridInfo = arr;
-        this.produceTimes++;
+        this.diamondInterval++;
         console.log('produce', arr);
         return arr;
         // const a = [[2, 1, 10], [2, 1, 10], [2, 1, 11], [2, 1, 11], [2, 1, 12], [2, 1, 12], [2, 1, 13], [2, 1, 13]];
@@ -132,12 +133,42 @@ var ZyxGameModule = /** @class */ (function (_super) {
     ZyxGameModule.prototype.getContentType = function (hasProducedDiamond) {
         if (hasProducedDiamond)
             return TypeDefine_1.gridContentType.NORMAL;
-        if (this.produceTimes % 6 === 0 && Math.random() <= 0.5) {
-            return TypeDefine_1.gridContentType.DIAMOND;
+        // 生成订单道具的权重是19，普通格子权重是80，钻石权重是（5 + 层级间隔）
+        var randomNum = NewUtils_1.default.randomIntInclusive(1, 100);
+        if (randomNum <= 5) {
+            // 钻石
+            var contnetType = this.diamondInterval > 50 ? TypeDefine_1.gridContentType.DIAMOND : TypeDefine_1.gridContentType.NORMAL;
+            if (contnetType === TypeDefine_1.gridContentType.DIAMOND)
+                this.diamondInterval = 0;
+            return contnetType;
+        }
+        else if (randomNum <= 19) {
+            // 订单道具 60%是当前订单中相关的物品，40%是其他种类格子
+            var orderGoodsIds = OrderModule_1.orderModule.getAllGoodsId();
+            var contentType = this.getRandomNumberWithWeights(orderGoodsIds);
+            return contentType;
         }
         else {
+            // 普通格子
             return TypeDefine_1.gridContentType.NORMAL;
         }
+    };
+    ZyxGameModule.prototype.getRandomNumberWithWeights = function (excludedNumbers) {
+        // 创建一个包含7到25的数组
+        var allNumbers = Array.from({ length: 19 }, function (_, i) { return i + 7; });
+        // 创建一个包含所有数字及其权重的对象数组
+        var weightedNumbers = [];
+        // 遍历所有数字，设置参数数组中的数字权重为60，其他为40
+        allNumbers.forEach(function (number) {
+            var weight = excludedNumbers.includes(number) ? 60 : 40;
+            // 将每个数字根据其权重添加到数组中多次
+            for (var i = 0; i < weight; i++) {
+                weightedNumbers.push(number);
+            }
+        });
+        // 从带有权重的数组中随机选择一个数字
+        var randomIndex = Math.floor(Math.random() * weightedNumbers.length);
+        return weightedNumbers[randomIndex];
     };
     // 检查游戏是否结束
     ZyxGameModule.prototype.checkGameOver = function () {
