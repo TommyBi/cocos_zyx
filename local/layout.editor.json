@@ -5,8 +5,8 @@
       "main": true,
       "url": "app://editor/index.html",
       "windowType": "dockable",
-      "x": 0,
-      "y": 25,
+      "x": 176,
+      "y": 66,
       "width": 1440,
       "height": 872,
       "layout": {
@@ -18,7 +18,7 @@
             "type": "dock-h",
             "children": [
               {
-                "width": 334.078125,
+                "width": 334,
                 "height": 556,
                 "type": "panel",
                 "active": 0,
@@ -27,7 +27,7 @@
                 ]
               },
               {
-                "width": 232.984375,
+                "width": 233,
                 "height": 556,
                 "type": "panel",
                 "active": 0,
@@ -36,7 +36,7 @@
                 ]
               },
               {
-                "width": 559.953125,
+                "width": 560,
                 "height": 556,
                 "type": "panel",
                 "active": 0,
@@ -75,9 +75,7 @@
         "cocos-services",
         "console"
       ]
-    },
-    " common-asset-worker-worker": {},
-    " load-media-worker": {}
+    }
   },
   "panels": {
     "project-settings": {
