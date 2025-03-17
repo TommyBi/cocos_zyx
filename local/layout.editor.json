@@ -75,7 +75,8 @@
         "cocos-services",
         "console"
       ]
-    }
+    },
+    " load-media-worker": {}
   },
   "panels": {
     "project-settings": {

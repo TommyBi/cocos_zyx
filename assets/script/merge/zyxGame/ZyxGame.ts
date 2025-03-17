@@ -71,7 +71,7 @@ export default class ZyxGame extends cc.Component {
     // Flower bar totalLength
     private flowerBarLength: number = 500;
 
-    // 一颗星星对应的层数
+    // 一颗花朵对应的层数
     private flowerMeasures: number = 100;
 
     onLoad() {
@@ -107,9 +107,7 @@ export default class ZyxGame extends cc.Component {
             score: 0,
             flower: 0,
             adTimes: 3,
-            exp: 0,
             uniqueId: 9,
-            goods: {}
         }
 
         this.updateNextGrid();
@@ -482,13 +480,13 @@ export default class ZyxGame extends cc.Component {
             this.ulblMaxScore.node.active = true;
         }
 
-        // 星星
+        // 花朵
         const tarW = zyxGameModule.gameInfo.score % this.flowerMeasures * this.flowerBarLength / this.flowerMeasures;
         cc.tween(this.uImgFlowerBar)
             .to(0.5, { width: tarW })
             .start();
         if (tarW === 0) {
-            // 星星数量+1   
+            // 花朵数量+1   
             zyxGameModule.gameInfo.flower += 1;
             this.ulblFlowerCnt.string = zyxGameModule.gameInfo.flower.toString();
         }

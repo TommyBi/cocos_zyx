@@ -8,7 +8,7 @@ const { ccclass, property } = cc._decorator;
 
 // 游戏主场景
 @ccclass
-export default class ZyxMainScene extends cc.Component {
+export default class ZyxScene extends cc.Component {
 
     @property(cc.Node)
     uBtnStart: cc.Node = null;
