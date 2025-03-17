@@ -44,28 +44,6 @@ export enum gridContentType {
     exp = 5,
     // 星星
     flower = 6,
-
-    // 道具 - 常规订单物品
-    vegetables_7 = 7,
-    vetetables_8 = 8,
-    vegetables_9 = 9,
-    vegetables_10 = 10,
-    vegetables_11 = 11,
-    vegetables_12 = 12,
-    vegetables_13 = 13,
-    vegetables_14 = 14,
-    vegetables_15 = 15,
-    vegetables_16 = 16,
-    vegetables_17 = 17,
-    vegetables_18 = 18,
-    vegetables_19 = 19,
-    vegetables_20 = 20,
-    vegetables_21 = 21,
-    vegetables_22 = 22,
-    vegetables_23 = 23,
-    vegetables_24 = 24,
-    vegetables_25 = 25,
-    
 }
 
 // 订单中的道具信息

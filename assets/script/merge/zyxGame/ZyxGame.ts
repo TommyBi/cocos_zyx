@@ -1,4 +1,3 @@
-import { orderModule } from "../dataModule/OrderModule";
 import { playerModule } from "../dataModule/PlayerModule";
 import { zyxGameModule } from "../dataModule/ZyxGameModule";
 import { gridContentType } from "../define/TypeDefine";
@@ -9,7 +8,6 @@ import { eventManager } from "../util/EventManager";
 import { wxApiManager } from "../util/WxApiManager";
 import ZyxGridCom from "./ZyxGridCom";
 import ZyxLineCom from "./ZyxLineCom";
-import ZyxOrderCom from "./ZyxOrderCom";
 
 
 const { ccclass, property } = cc._decorator;
@@ -56,9 +54,6 @@ export default class ZyxGame extends cc.Component {
 
     @property(cc.Node)
     uImgSelectedBg: cc.Node = null;
-
-    @property(cc.Node)
-    uBoxOrder: cc.Node = null;
 
     private grids: cc.Node[] = [];
 
@@ -140,8 +135,6 @@ export default class ZyxGame extends cc.Component {
         this.uImgSelectedBg.active = false;
 
         this.initChessBoard();
-
-        this.initOrder();
 
         setTimeout(() => {
             audioMgr.playBGM(SoundType.ZYX_MUSIC_GAME);
@@ -527,25 +520,4 @@ export default class ZyxGame extends cc.Component {
         uimanager.showTips('使用卡皮巴拉');
         wxApiManager.share('别卷啦，快来卡皮一下吧~');
     }
-
-
-    /*----- order -----*/
-    async initOrder() {
-        this.uBoxOrder.destroyAllChildren();
-        for (let i = 0; i < orderModule.orders.length; i++) {
-            const orderData = orderModule.orders[i];
-            const orderCom = await this.produceOrder();
-            orderCom.setPosition(new cc.Vec2(orderCom.width * i, 0));
-            orderCom.getComponent(ZyxOrderCom).initOrder(orderData.orderId);
-            this.uBoxOrder.addChild(orderCom);
-        }
-    }
-
-    async produceOrder() {
-        const order = await uimanager.loadPrefab('prefab/zyx/uComOrder');
-        const orderCom = cc.instantiate(order);
-        return orderCom;
-    }
-
-
 }

@@ -55,19 +55,16 @@
       },
       {
         "__id__": 65
-      },
-      {
-        "__id__": 67
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 70
+        "__id__": 68
       }
     ],
     "_prefab": {
-      "__id__": 71
+      "__id__": 69
     },
     "_opacity": 255,
     "_color": {
@@ -2339,77 +2336,6 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "uBoxOrder",
-    "_objFlags": 0,
-    "_parent": {
-      "__id__": 1
-    },
-    "_children": [],
-    "_active": true,
-    "_components": [],
-    "_prefab": {
-      "__id__": 66
-    },
-    "_opacity": 255,
-    "_color": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
-      "a": 255
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 400,
-      "height": 120
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_trs": {
-      "__type__": "TypedArray",
-      "ctor": "Float64Array",
-      "array": [
-        -333.788,
-        505.361,
-        0,
-        0,
-        0,
-        0,
-        1,
-        1,
-        1,
-        1
-      ]
-    },
-    "_eulerAngles": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_skewX": 0,
-    "_skewY": 0,
-    "_is3DNode": false,
-    "_groupIndex": 0,
-    "groupIndex": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "960OsUnDRK64NwZMalZCYa",
-    "sync": false
-  },
-  {
-    "__type__": "cc.Node",
     "_name": "New Label",
     "_objFlags": 0,
     "_parent": {
@@ -2419,11 +2345,11 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 68
+        "__id__": 66
       }
     ],
     "_prefab": {
-      "__id__": 69
+      "__id__": 67
     },
     "_opacity": 242.25,
     "_color": {
@@ -2477,7 +2403,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 67
+      "__id__": 65
     },
     "_enabled": true,
     "_materials": [
@@ -2562,9 +2488,6 @@
     },
     "uImgSelectedBg": {
       "__id__": 8
-    },
-    "uBoxOrder": {
-      "__id__": 65
     },
     "_id": ""
   },

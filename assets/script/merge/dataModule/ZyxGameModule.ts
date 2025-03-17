@@ -1,7 +1,6 @@
 import { gridContentType, gridSize, typeGameInfo } from '../define/TypeDefine';
 import NewUtils from '../util/NewUtils';
 import DataModule from './DataModule';
-import { orderModule } from './OrderModule';
 
 export default class ZyxGameModule extends DataModule {
 
@@ -133,11 +132,6 @@ export default class ZyxGameModule extends DataModule {
             const contnetType = this.diamondInterval > 50 ? gridContentType.DIAMOND : gridContentType.NORMAL;
             if (contnetType === gridContentType.DIAMOND) this.diamondInterval = 0;
             return contnetType;
-        } else if (randomNum <= 19) {
-            // 订单道具 60%是当前订单中相关的物品，40%是其他种类格子
-            const orderGoodsIds = orderModule.getAllGoodsId();
-            const contentType = this.getRandomNumberWithWeights(orderGoodsIds);
-            return contentType;
         } else {
             // 普通格子
             return gridContentType.NORMAL;

@@ -1,5 +1,4 @@
 import DataModule from './DataModule';
-import { orderModule } from './OrderModule';
 import { zyxGameModule } from './ZyxGameModule';
 
 export default class PlayerModule extends DataModule {
@@ -47,44 +46,9 @@ export default class PlayerModule extends DataModule {
                 uniqueId: 9,
                 goods: {},
             },
-
-            // 订单信息
-            orders: [
-                {
-                    goods: [
-                        {
-                            goodsId: 7,
-                            tarCnt: 12,
-                            schedule: 0
-                        }, {
-                            goodsId: 8,
-                            tarCnt: 5,
-                            schedule: 1
-                        }
-                    ],
-                    orderId: 1,
-                    score: 110,
-                },
-                {
-                    goods: [
-                        {
-                            goodsId: 9,
-                            tarCnt: 10,
-                            schedule: 0
-                        }, {
-                            goodsId: 10,
-                            tarCnt: 5,
-                            schedule: 1
-                        }
-                    ],
-                    orderId: 2,
-                    score: 150,
-                },
-            ],
         }
 
         zyxGameModule.parseData(loginData);
-        orderModule.parseData(loginData);
 
         setTimeout(() => {
             cb && cb();

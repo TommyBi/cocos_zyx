@@ -21,7 +21,6 @@ exports.zyxGameModule = void 0;
 var TypeDefine_1 = require("../define/TypeDefine");
 var NewUtils_1 = require("../util/NewUtils");
 var DataModule_1 = require("./DataModule");
-var OrderModule_1 = require("./OrderModule");
 var ZyxGameModule = /** @class */ (function (_super) {
     __extends(ZyxGameModule, _super);
     function ZyxGameModule() {
@@ -141,12 +140,6 @@ var ZyxGameModule = /** @class */ (function (_super) {
             if (contnetType === TypeDefine_1.gridContentType.DIAMOND)
                 this.diamondInterval = 0;
             return contnetType;
-        }
-        else if (randomNum <= 19) {
-            // 订单道具 60%是当前订单中相关的物品，40%是其他种类格子
-            var orderGoodsIds = OrderModule_1.orderModule.getAllGoodsId();
-            var contentType = this.getRandomNumberWithWeights(orderGoodsIds);
-            return contentType;
         }
         else {
             // 普通格子
