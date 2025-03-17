@@ -1,3 +1,10 @@
-library
-temp
+# 忽略 library 目录
+library/
 
+# 忽略 local 目录
+local/
+
+# 忽略 temp 目录
+temp/
+
+node_modules/
