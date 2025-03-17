@@ -1,4 +1,12 @@
-// 层级
+// 是否为开发环境
+export const isDev: boolean = true;
+
+// 服务器地址 - 开发环境
+export const svrUrlDev = 'http://localhost:8080';
+// 服务器地址 - 正式环境
+export const svrUrlPro = 'http://localhost:8080';
+
+// 层级 
 export enum LAYER {
     UI = 'ui',
     DIALOG = 'dialog',
