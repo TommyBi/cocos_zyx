@@ -1,1 +1,0 @@
-window._CCSettings={platform:"wechatgame",groupList:["default"],collisionMatrix:[[true]],hasResourcesBundle:true,hasStartSceneBundle:false,remoteBundles:["resources","main"],subpackages:[],launchScene:"db://assets/scene/merge.fire",orientation:"",server:"",jsList:[]};
