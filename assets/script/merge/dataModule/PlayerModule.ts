@@ -20,43 +20,42 @@ export default class PlayerModule extends DataModule {
         super.parseData(data);
     }
 
-    async login(cb: Function) {
+    async login() {
 
-        const loginData = await httpManager.post('/login', {
-            userId: 1,
-        })
+        // const loginData = await httpManager.post('/login', {
+        //     userId: 1,
+        // })
 
         // // mock login
-        // const loginData = {
-        //     // 资源信息
-        //     diamond: 10,
-        //     flower: 3,
-        //     bomb: 3,
-        //     hammer: 3,
+        const loginData = {
+            // 资源信息
+            diamond: 10,
+            flower: 3,
+            bomb: 3,
+            hammer: 3,
 
-        //     // 玩家信息
-        //     nickName: '测试用户',
-        //     avatar: '',
-        //     lv: 1,
-        //     exp: 10,
-        //     expTar: 100,
-        //     scoreRecord: 10,
+            // 玩家信息
+            nickName: '测试用户',
+            avatar: '',
+            lv: 1,
+            exp: 10,
+            expTar: 100,
+            scoreRecord: 10,
 
-        //     // 状态信息
-        //     gameInfo: {
-        //         adTimes: 3,
-        //         score: 0,
-        //         exp: 0,
-        //         diamond: 0,
-        //         flower: 0,
-        //         // 格子当前使用到的唯一索引值
-        //         uniqueId: 9,
-        //         goods: {},
-        //     },
-        // }
+            // 状态信息
+            gameInfo: {
+                adTimes: 3,
+                score: 0,
+                exp: 0,
+                diamond: 0,
+                flower: 0,
+                // 格子当前使用到的唯一索引值
+                uniqueId: 9,
+                goods: {},
+            },
+        }
 
         zyxGameModule.parseData(loginData);
-        cb && cb();
     }
 }
 export const playerModule = new PlayerModule();

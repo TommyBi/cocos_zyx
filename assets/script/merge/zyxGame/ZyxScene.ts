@@ -28,14 +28,14 @@ export default class ZyxScene extends cc.Component {
         await this.initTopCom();
 
         // login
-        playerModule.login(() => {
-            // 初始化音频
-            audioMgr.init();
+        await playerModule.login();
 
-            this.initUI();
+        // 初始化音频
+        audioMgr.init();
 
-            audioMgr.playBGM(SoundType.ZYX_MUSIC_MAIN);
-        })
+        this.initUI();
+
+        audioMgr.playBGM(SoundType.ZYX_MUSIC_MAIN);
 
         this.onShow();
         this.onHide();

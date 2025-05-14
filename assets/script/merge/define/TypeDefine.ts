@@ -53,17 +53,3 @@ export enum gridContentType {
     // 花朵
     flower = 6,
 }
-
-// 订单中的道具信息
-export type typeOrderGoodsData = {
-    goodsId: number,
-    tarCnt: number,
-    schedule: number
-}
-
-// 订单数据
-export type typeOrderData = {
-    goods: typeOrderGoodsData[],
-    orderId: number,
-    score: number,
-}
