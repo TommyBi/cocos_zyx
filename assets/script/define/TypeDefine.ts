@@ -53,3 +53,6 @@ export enum gridContentType {
     // 花朵
     flower = 6,
 }
+
+// 格子宽高单位长度
+export const GRID_WIDTH = 85;

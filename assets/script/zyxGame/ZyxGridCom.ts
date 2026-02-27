@@ -1,5 +1,5 @@
 import { zyxGameModule } from "../dataModule/ZyxGameModule";
-import { gridContentType, gridSize } from "../define/TypeDefine";
+import { GRID_WIDTH, gridContentType, gridSize } from "../define/TypeDefine";
 import { audioMgr, SHAKE_TYPE } from "../manager/AudioMgr";
 import { EventType } from "../manager/Define";
 import { uimanager } from "../manager/Uimanager";
@@ -17,9 +17,6 @@ export default class ZyxGridCom extends cc.Component {
 
     @property(cc.Node)
     uImgBg: cc.Node = null;
-
-    @property(cc.Node)
-    uImgBgLine: cc.Node = null;
 
     @property(cc.Label)
     ulblUniqueId: cc.Label = null;
@@ -64,12 +61,10 @@ export default class ZyxGridCom extends cc.Component {
         }
 
         // 格子外观尺寸
-        const nodeWidth = 84 * info[0];
+        const nodeWidth = GRID_WIDTH * info[0];
         this.node.width = nodeWidth;
         this.uImgBg.width = this.node.width;
         this.uImgBg.x = nodeWidth / 2;
-        this.uImgBgLine.width = this.node.width - 8;
-        this.uImgBgLine.x = nodeWidth / 2;
         this.ulblUniqueId.node.x = this.node.width / 2;
 
         this.ulblUniqueId.string = this.uniqueId.toString();
@@ -83,7 +78,7 @@ export default class ZyxGridCom extends cc.Component {
             this.uImgGoods.active = false;
         }
 
-        const skinUrl = `images/grid/color_${NewUtils.randomIntInclusive(1, 13)}`;
+        const skinUrl = `images/grid/color_${NewUtils.randomIntInclusive(1, 5)}`;
         NewUtils.setSpriteFrameByUrl(this.uImgBg.getComponent(cc.Sprite), skinUrl);
     }
 

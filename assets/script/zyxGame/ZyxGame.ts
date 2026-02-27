@@ -1,10 +1,12 @@
 import { playerModule } from "../dataModule/PlayerModule";
 import { zyxGameModule } from "../dataModule/ZyxGameModule";
-import { gridContentType } from "../define/TypeDefine";
+import { GRID_WIDTH, gridContentType } from "../define/TypeDefine";
 import { audioMgr, SHAKE_TYPE, SoundType } from "../manager/AudioMgr";
 import { EventType } from "../manager/Define";
 import { uimanager } from "../manager/Uimanager";
 import { eventManager } from "../util/EventManager";
+import { Logger } from "../util/logger";
+import NewUtils from "../util/NewUtils";
 import { wxApiManager } from "../util/WxApiManager";
 import ZyxGridCom from "./ZyxGridCom";
 import ZyxLineCom from "./ZyxLineCom";
@@ -15,6 +17,9 @@ const { ccclass, property } = cc._decorator;
 // 游戏主玩法场景
 @ccclass
 export default class ZyxGame extends cc.Component {
+
+    @property(cc.Node)
+    uImgBg: cc.Node = null;
 
     @property(cc.Label)
     ulblScore: cc.Label = null;
@@ -121,6 +126,12 @@ export default class ZyxGame extends cc.Component {
     }
 
     initUI(): void {
+        // 将场景节点高与舞台可见高保持一致
+        Logger.info('stage height: ', cc.winSize.height);
+        Logger.info('node height: ', this.node.height);
+        this.node.height = cc.winSize.height;
+        this.uImgBg.height = this.node.height;
+
         this.ulblScore.string = `${zyxGameModule.gameInfo.score}`;
         this.ulblMaxScore.string = `BEST：${zyxGameModule.scoreRecord}`;
         this.ulblMaxScore.node.active = zyxGameModule.scoreRecord > 0;
@@ -187,14 +198,14 @@ export default class ZyxGame extends cc.Component {
                 if (zyxGameModule.gridInfo[row][i][1] !== gridContentType.EMPTY) {
                     const grid = await this.produceGrid(zyxGameModule.gridInfo[row][i]);
                     this.uBoxGrid.addChild(grid);
-                    grid.setPosition(new cc.Vec2(zyxGameModule.gridsWidth * i, -84));
+                    grid.setPosition(new cc.Vec2(zyxGameModule.gridsWidth * i, -GRID_WIDTH));
                     grid.getComponent(ZyxGridCom).setRowCel(row, i);
                     this.grids.push(grid);
                 }
             } else if (zyxGameModule.gridInfo[row][i][1] != gridContentType.EMPTY && zyxGameModule.gridInfo[row][i][2] !== zyxGameModule.gridInfo[row][i - 1][2]) {
                 const grid = await this.produceGrid(zyxGameModule.gridInfo[row][i]);
                 this.uBoxGrid.addChild(grid);
-                grid.setPosition(new cc.Vec2(zyxGameModule.gridsWidth * i, -84));
+                grid.setPosition(new cc.Vec2(zyxGameModule.gridsWidth * i, -GRID_WIDTH));
                 grid.getComponent(ZyxGridCom).setRowCel(row, i);
                 this.grids.push(grid);
             }
@@ -217,9 +228,9 @@ export default class ZyxGame extends cc.Component {
         let showEnding: boolean = false;
         for (let i = 0; i < this.grids.length; i++) {
             const grid = this.grids[i];
-            if (grid.y !== -84) continue;
+            if (grid.y !== -GRID_WIDTH) continue;
             cc.tween(grid)
-                .to(this.timeShowNewGrids, { y: grid.y + 84 }, { easing: 'cubicInOut' })
+                .to(this.timeShowNewGrids, { y: grid.y + GRID_WIDTH }, { easing: 'cubicInOut' })
                 .call(() => {
                     if (showEnding) return;
                     showEnding = true;
@@ -238,7 +249,7 @@ export default class ZyxGame extends cc.Component {
         for (let i = 0; i < this.grids.length; i++) {
             const grid = this.grids[i];
             cc.tween(grid)
-                .to(this.timeShowNewGrids, { y: grid.y + 84 }, { easing: 'cubicInOut' })
+                .to(this.timeShowNewGrids, { y: grid.y + GRID_WIDTH }, { easing: 'cubicInOut' })
                 .start();
 
             grid.getComponent(ZyxGridCom).moveUp();

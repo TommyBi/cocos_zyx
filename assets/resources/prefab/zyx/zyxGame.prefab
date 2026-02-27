@@ -116,7 +116,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uImgBg",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 1
     },
@@ -141,7 +141,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 750,
-      "height": 1626
+      "height": 1680
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -193,10 +193,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "a356dda0-a52e-4590-be46-ed97c6784ed8"
+      "__uuid__": "77047bf5-1d8c-4794-93d2-3d6b577c4748"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 0,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -223,7 +223,7 @@
   {
     "__type__": "cc.Node",
     "_name": "uBoxGridBg",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 1
     },
@@ -247,8 +247,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 672,
-      "height": 840
+      "width": 680,
+      "height": 850
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -259,7 +259,7 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -336,
+        -335,
         -343,
         0,
         0,
@@ -300,7 +300,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "0c13872c-eab5-40a8-9fee-69e3f5397787"
+      "__uuid__": "4edc9407-8f46-481c-a730-d1fc1d23a2e0"
     },
     "_type": 0,
     "_sizeMode": 0,
@@ -544,8 +544,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        0,
-        -384.849,
+        -4.114,
+        -409.534,
         0,
         0,
         0,
@@ -2450,6 +2450,9 @@
       "__id__": 1
     },
     "_enabled": true,
+    "uImgBg": {
+      "__id__": 2
+    },
     "ulblScore": {
       "__id__": 59
     },

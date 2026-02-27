@@ -1,4 +1,4 @@
-import { gridContentType, gridSize, typeGameInfo } from '../define/TypeDefine';
+import { GRID_WIDTH, gridContentType, gridSize, typeGameInfo } from '../define/TypeDefine';
 import NewUtils from '../util/NewUtils';
 import DataModule from './DataModule';
 
@@ -25,7 +25,7 @@ export default class ZyxGameModule extends DataModule {
     selectGirdUniqueId: number = -1;
 
     // 格子宽度
-    gridsWidth: number = 84;
+    gridsWidth: number = GRID_WIDTH;
 
     // 下一排信息
     public nextGridInfo: any[] = [];
