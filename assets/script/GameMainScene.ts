@@ -48,8 +48,8 @@ export default class GameMainScene extends cc.Component {
     onStart(): void {
         audioMgr.playSound(SoundType.ZYX_START);
         audioMgr.stopBGM();
-        // this.initZyxGamePanel();
-        this.initMaJiangGamePanel();
+        this.initZyxGamePanel();
+        // this.initMaJiangGamePanel();
     }
 
 
