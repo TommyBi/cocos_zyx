@@ -1,36 +1,28 @@
-# ball
+# Game Core Gameplay
 
-#### Description
-{**When you're done, you can delete the content in this README and update the file with details for others getting started with your repository**}
+## Gameplay
 
-#### Software Architecture
-Software architecture description
+- **Match-3 (Left-Right Eliminate)**: Core elimination mechanic
+- **Collect & Exchange**: Collect items and exchange for rewards
+- **Collection Contest**: Collection-based competitive mode
 
-#### Installation
+## Scene Structure
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+Main scene + Match-3 scene + multiple popup dialogs
 
-#### Instructions
+## Main Flow
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+```
+New user
+  → Tutorial round 1 → Victory settlement
+  → Tutorial round 2 → Victory settlement
+  → Tutorial round 3 → Victory settlement
+  → Return to main screen
+  → Feature introduction
+  → Challenge tutorial start
+  → Free play
+```
 
-#### Contribution
+## Level Design
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
-
-
-#### Gitee Feature
-
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+The first 20 levels after free play ramp up in difficulty and introduce items as incentive currency.

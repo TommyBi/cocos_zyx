@@ -565,7 +565,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 650,
+      "width": 195,
       "height": 75.6
     },
     "_anchorPoint": {
@@ -617,8 +617,8 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_string": "卡皮巴拉和她的朋友们",
-    "_N$string": "卡皮巴拉和她的朋友们",
+    "_string": "左右消",
+    "_N$string": "左右消",
     "_fontSize": 65,
     "_lineHeight": 60,
     "_enableWrapText": true,
