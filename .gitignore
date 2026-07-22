@@ -8,3 +8,8 @@ local/
 temp/
 
 node_modules/
+build/
+data/
+server/node_modules/
+server/data/
+server/.env

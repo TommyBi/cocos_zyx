@@ -1,5 +1,13 @@
 {
+  "scripts": {
+    "prepare:wechat": "node scripts/upload-wechat.js --prepare-only",
+    "upload:wechat": "node scripts/upload-wechat.js",
+    "upload:wechat:local": "node scripts/upload-wechat.js --devtools"
+  },
   "dependencies": {
     "minigame-api-typings": "^3.8.4"
+  },
+  "devDependencies": {
+    "miniprogram-ci": "^2.1.31"
   }
 }

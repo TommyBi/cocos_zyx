@@ -1,6 +1,8 @@
-import { GRID_WIDTH, gridContentType, gridSize, typeGameInfo } from '../define/TypeDefine';
+import { GRID_WIDTH, gridContentType, typeDifficultyState, typeGameInfo } from '../define/TypeDefine';
+import { httpManager } from '../util/HttpManager';
 import NewUtils from '../util/NewUtils';
 import DataModule from './DataModule';
+import { typeDifficultyProduceResult, zyxDifficultyController } from './ZyxDifficultyController';
 
 export default class ZyxGameModule extends DataModule {
 
@@ -36,6 +38,9 @@ export default class ZyxGameModule extends DataModule {
     // 历史最高分
     public scoreRecord: number = 0;
 
+    // 当前难度控制状态
+    public difficultyState: typeDifficultyState = this.createDefaultDifficultyState();
+
     constructor() {
         super();
     }
@@ -43,7 +48,7 @@ export default class ZyxGameModule extends DataModule {
     parseData(data: any): void {
         super.parseData(data);
 
-        this.gameInfo = data.gameInfo;
+        this.gameInfo = this.normalizeGameInfo(data.gameInfo || this.createDefaultGameInfo());
         this.gridInfo = data.gridInfo || [
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
@@ -56,69 +61,227 @@ export default class ZyxGameModule extends DataModule {
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [2, 1, 1], [2, 1, 1], [0, 0, 0], [0, 0, 0]],
             [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [0, 0, 0], [0, 0, 0]],
         ];
-        this.scoreRecord = data.scoreRecord || 0;
+        this.scoreRecord = data.scoreRecord || data.highScore || 0;
+        this.difficultyState = this.createDefaultDifficultyState();
+        this.difficultyState.level = this.gameInfo.difficultyLevel;
+        this.difficultyState.generatedRows = this.gameInfo.generatedRows;
+        this.difficultyState.noMergeStreak = this.gameInfo.noMergeStreak;
+        this.difficultyState.reliefRows = this.gameInfo.reliefRows;
 
         this.produce();
     }
 
+    createDefaultGameInfo(): typeGameInfo {
+        return {
+            adTimes: 3,
+            score: 0,
+            flower: 0,
+            uniqueId: 9,
+            difficultyLevel: 1,
+            generatedRows: 0,
+            noMergeStreak: 0,
+            reliefRows: 0,
+            clearCount: 0,
+            drillSpawnCharge: 0,
+            drillFragments: 0,
+        };
+    }
+
+    createDefaultDifficultyState(): typeDifficultyState {
+        return {
+            level: 1,
+            generatedRows: 0,
+            noMergeStreak: 0,
+            reliefRows: 0,
+            balanceTriggered: false,
+            balanceReason: '',
+            targetFill: 3,
+            stackHeight: 0,
+            largeCellRatio: 0,
+            difficultyChanged: false,
+        };
+    }
+
+    normalizeGameInfo(info: any): typeGameInfo {
+        const defaultInfo = this.createDefaultGameInfo();
+        return {
+            adTimes: info.adTimes !== undefined ? info.adTimes : defaultInfo.adTimes,
+            score: info.score !== undefined ? info.score : defaultInfo.score,
+            flower: info.flower !== undefined ? info.flower : defaultInfo.flower,
+            uniqueId: info.uniqueId !== undefined ? info.uniqueId : defaultInfo.uniqueId,
+            difficultyLevel: info.difficultyLevel !== undefined ? info.difficultyLevel : defaultInfo.difficultyLevel,
+            generatedRows: info.generatedRows !== undefined ? info.generatedRows : defaultInfo.generatedRows,
+            noMergeStreak: info.noMergeStreak !== undefined ? info.noMergeStreak : defaultInfo.noMergeStreak,
+            reliefRows: info.reliefRows !== undefined ? info.reliefRows : defaultInfo.reliefRows,
+            clearCount: info.clearCount !== undefined ? info.clearCount : defaultInfo.clearCount,
+            drillSpawnCharge: info.drillSpawnCharge !== undefined ? info.drillSpawnCharge : defaultInfo.drillSpawnCharge,
+            drillFragments: info.drillFragments !== undefined ? info.drillFragments : defaultInfo.drillFragments,
+        };
+    }
+
+    createEmptyGridInfo(): any[] {
+        return [
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0], [3, 1, 1], [3, 1, 1], [3, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            [[1, 1, 2], [1, 1, 3], [1, 1, 4], [1, 1, 5], [1, 1, 6], [1, 1, 7], [1, 1, 8], [0, 0, 0]],
+        ];
+    }
+
+    resetRound(): void {
+        this.gridInfo = this.createEmptyGridInfo();
+        this.gameInfo = this.createDefaultGameInfo();
+        this.difficultyState = this.createDefaultDifficultyState();
+        this.selectGirdUniqueId = -1;
+        this.produce();
+    }
+
     // 生产格子，服务器逻辑 返回格式为[gridsize][contentType][uniqueId][]
-    produce(): number[][] {
+    produce(comboTimes: number = 0): number[][] {
+        const result = zyxDifficultyController.produceSegments({
+            score: this.gameInfo.score,
+            gridInfo: this.gridInfo,
+            previousLevel: this.gameInfo.difficultyLevel,
+            generatedRows: this.gameInfo.generatedRows,
+            noMergeStreak: this.gameInfo.noMergeStreak,
+            reliefRows: this.gameInfo.reliefRows,
+            comboTimes,
+        });
 
-        // 确定要生成的数字组合 nMax <= 7;
-        const arr = [];
+        const arr: number[][] = [];
         let hasProducedDiamond: boolean = false;
-        do {
-            // 生成新格子
-            let newNum = NewUtils.randomIntInclusive(0, 10);
-            if (newNum >= 0 && newNum < 4) {
-                newNum = 0;
-            } else if (newNum >= 4 && newNum < 6) {
-                newNum = 1;
-            } else if (newNum >= 6 && newNum < 8) {
-                newNum = 2;
-            } else if (newNum >= 8 && newNum < 10) {
-                newNum = 3;
-            } else if (newNum === 10) {
-                newNum = 4;
-            }
-
-            if (newNum === 0) {
+        let shouldAttachDrillFragment = this.gameInfo.drillSpawnCharge >= 5;
+        for (let i = 0; i < result.segments.length && arr.length < 8; i++) {
+            const newNum = result.segments[i];
+            if (newNum <= 0) {
                 arr.push([0, 0, 0]);
             } else {
-                // 判断剩余空间是否有空格子区域
-                const surSpace = 8 - arr.length;
-                const emptyGrid = arr.filter(x => {
-                    return x && x[1] === gridContentType.EMPTY;
-                })
-                if (surSpace <= newNum && emptyGrid.length === 0) {
-                    for (let i = 0; i < surSpace; i++) {
-                        arr.push([0, 0, 0]);
-                    }
-                    break;
+                let contentType = this.getContentType(hasProducedDiamond);
+                if (shouldAttachDrillFragment && i === result.drillFragmentIndex) {
+                    contentType = gridContentType.DRILL_FRAGMENT;
+                    shouldAttachDrillFragment = false;
+                    this.gameInfo.drillSpawnCharge = Math.max(0, this.gameInfo.drillSpawnCharge - 5);
                 }
-
-                // 空间足够，那就将对应数量的格子进行填充
-                const contentType = this.getContentType(hasProducedDiamond);
                 if (contentType === gridContentType.DIAMOND) {
                     hasProducedDiamond = true;
                 }
-                if (surSpace >= newNum) {
-                    this.gameInfo.uniqueId++;
-                    for (let i = 0; i < newNum; i++) {
-                        arr.push([newNum, contentType, this.gameInfo.uniqueId]);
-                    }
+                this.gameInfo.uniqueId++;
+                const safeSize = Math.min(newNum, 8 - arr.length);
+                for (let j = 0; j < safeSize; j++) {
+                    arr.push([newNum, contentType, this.gameInfo.uniqueId]);
                 }
             }
+        }
 
-        } while (arr.length < 8);
+        while (arr.length < 8) {
+            arr.push([0, 0, 0]);
+        }
 
         this.nextGridInfo = arr;
+        this.applyDifficultyResult(result);
         this.diamondInterval++;
-        console.log('produce', arr);
+        console.log('produce', arr, this.difficultyState);
         return arr;
+    }
 
-        // const a = [[2, 1, 10], [2, 1, 10], [2, 1, 11], [2, 1, 11], [2, 1, 12], [2, 1, 12], [2, 1, 13], [2, 1, 13]];
-        // return a;
+    async produceByServer(token: string, comboTimes: number = 0): Promise<boolean> {
+        if (!token || !httpManager.getOnline()) return false;
+
+        try {
+            const res = await httpManager.post('/produce', {
+                token,
+                gridInfo: this.gridInfo,
+                gameInfo: this.gameInfo,
+                difficultyState: this.difficultyState,
+                comboTimes,
+                diamondInterval: this.diamondInterval,
+            }, 800);
+            const data = res.data || res;
+            if (!data || !Array.isArray(data.nextGridInfo) || data.nextGridInfo.length !== 8) return false;
+
+            this.nextGridInfo = data.nextGridInfo;
+            this.gameInfo = this.normalizeGameInfo(data.gameInfo || this.gameInfo);
+            if (data.uniqueId !== undefined) this.gameInfo.uniqueId = data.uniqueId;
+            if (data.diamondInterval !== undefined) this.diamondInterval = data.diamondInterval;
+            this.applyRemoteDifficultyState(data.difficultyState || data);
+            return true;
+        } catch (e) {
+            console.warn('produce fallback to local', e);
+            return false;
+        }
+    }
+
+    recordMergeResult(mergeRows: number): void {
+        if (mergeRows > 0) {
+            this.gameInfo.noMergeStreak = 0;
+            this.gameInfo.clearCount += mergeRows;
+            this.gameInfo.drillSpawnCharge += mergeRows;
+        } else {
+            this.gameInfo.noMergeStreak += 1;
+        }
+        this.difficultyState.noMergeStreak = this.gameInfo.noMergeStreak;
+    }
+
+    refreshDifficultyByScore(): boolean {
+        const oldLevel = this.gameInfo.difficultyLevel || 1;
+        const nextLevel = zyxDifficultyController.getLevel(this.gameInfo.score, this.gameInfo.generatedRows);
+        this.gameInfo.difficultyLevel = nextLevel;
+        this.difficultyState.level = nextLevel;
+        this.difficultyState.difficultyChanged = oldLevel !== nextLevel;
+        return oldLevel !== nextLevel;
+    }
+
+    private applyDifficultyResult(result: typeDifficultyProduceResult): void {
+        this.gameInfo.difficultyLevel = result.level;
+        this.gameInfo.generatedRows = result.generatedRows;
+        this.gameInfo.noMergeStreak = result.noMergeStreak;
+        this.gameInfo.reliefRows = result.reliefRows;
+        this.difficultyState = {
+            level: result.level,
+            generatedRows: result.generatedRows,
+            noMergeStreak: result.noMergeStreak,
+            reliefRows: result.reliefRows,
+            balanceTriggered: result.balanceTriggered,
+            balanceReason: result.balanceReason,
+            targetFill: result.targetFill,
+            stackHeight: result.pressure.stackHeight,
+            largeCellRatio: result.pressure.largeCellRatio,
+            difficultyChanged: result.difficultyChanged,
+        };
+    }
+
+    private applyRemoteDifficultyState(data: any): void {
+        this.difficultyState = {
+            level: data.level || this.gameInfo.difficultyLevel || 1,
+            generatedRows: data.generatedRows || this.gameInfo.generatedRows || 0,
+            noMergeStreak: data.noMergeStreak || this.gameInfo.noMergeStreak || 0,
+            reliefRows: data.reliefRows || this.gameInfo.reliefRows || 0,
+            balanceTriggered: !!data.balanceTriggered,
+            balanceReason: data.balanceReason || '',
+            targetFill: data.targetFill || 3,
+            stackHeight: data.stackHeight || 0,
+            largeCellRatio: data.largeCellRatio || 0,
+            difficultyChanged: !!data.difficultyChanged,
+        };
+        this.gameInfo.difficultyLevel = this.difficultyState.level;
+        this.gameInfo.generatedRows = this.difficultyState.generatedRows;
+        this.gameInfo.noMergeStreak = this.difficultyState.noMergeStreak;
+        this.gameInfo.reliefRows = this.difficultyState.reliefRows;
+    }
+
+    addDrillFragment(count: number = 1): boolean {
+        this.gameInfo.drillFragments += count;
+        if (this.gameInfo.drillFragments >= 20) {
+            this.gameInfo.drillFragments -= 20;
+            return true;
+        }
+        return false;
     }
 
     // 获得随机生成格子的类型
@@ -178,6 +341,7 @@ export default class ZyxGameModule extends DataModule {
             gridInfo[0] = this.nextGridInfo[i][0];
             gridInfo[1] = this.nextGridInfo[i][1];
             gridInfo[2] = this.nextGridInfo[i][2];
+            if (this.nextGridInfo[i][3] !== undefined) gridInfo[3] = this.nextGridInfo[i][3];
             newGridInfo.push(gridInfo);
         }
         return newGridInfo;

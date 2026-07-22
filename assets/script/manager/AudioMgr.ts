@@ -1,18 +1,10 @@
-// 背景音乐类型
-export enum MusicType {
-
-}
-
 // 音效类型
 export enum SoundType {
-    MOVE_COIN = 'moveCoin',
-    PRODUCE_COIN = 'produceCoin',
-    MERGE_COIN = 'mergeCoin',
-    ERROR = 'error',
-
     ZYX_START = 'sound_start',
     ZYX_END = 'sound_endding',
     ZYX_DROP = 'sound_drop',
+    ZYX_MERGE = 'mergeCoin',
+    ZYX_HAMMER = 'sound_collect',
 
     ZYX_MUSIC_MAIN = 'music_main1',
     ZYX_MUSIC_GAME = 'music_game',
@@ -44,6 +36,7 @@ export default class AudioMgr {
     private curBgMusicUrl: any = null;
     private canPlayMusic: boolean = true;
     private canPlaySound: boolean = true;//!GameConfig.DEBUG;
+    private canVibrate: boolean = true;
 
     // 当前播放的背景音乐的播放索引
     private musicId: number = -1;
@@ -55,15 +48,16 @@ export default class AudioMgr {
         this.musicVolume = 0.2;
         this.soundVolume = 1.0;
 
-        this.canPlayMusic = true;
-        this.canPlaySound = true;
+        this.canPlayMusic = cc.sys.localStorage.getItem('zyx_music_enabled') !== '0';
+        this.canPlaySound = cc.sys.localStorage.getItem('zyx_sound_enabled') !== '0';
+        this.canVibrate = cc.sys.localStorage.getItem('zyx_vibrate_enabled') !== '0';
     }
 
     // 音乐
     public playBGM(url) {
-        // 如果已经播放着就不播放了
-        console.warn("TODO:临时屏蔽音效");
+        // 当前版本优先控制主包体积，BGM 资源待美术/音频统一压缩后再启用。
         return;
+        // 如果已经播放着就不播放了
         if (this.curBgMusicUrl && this.curBgMusicUrl == url) return;
 
         this.curBgMusicUrl = url;
@@ -114,8 +108,6 @@ export default class AudioMgr {
                         if (!err) {
                             const audioId = cc.audioEngine.play(clip, loop, volume);
                             this.audioIds[url] = audioId;
-                        } else {
-                            console.error(err);
                         }
                         onStart && onStart();
                     });
@@ -125,8 +117,6 @@ export default class AudioMgr {
                             const audioId = cc.audioEngine.play(clip, loop, volume);
                             this.soundClipCache[`${url}`] = clip;
                             this.audioIds[url] = audioId;
-                        } else {
-                            console.error(err);
                         }
                         onStart && onStart();
                     }));
@@ -198,12 +188,40 @@ export default class AudioMgr {
     }
 
     shake(type: SHAKE_TYPE) {
-        if (!window['wx']) return;
+        if (!this.canVibrate || !window['wx']) return;
         if (type === SHAKE_TYPE.SUPER_HEAVY) {
             wx.vibrateLong();
         } else {
             wx.vibrateShort({ type });
         }
+    }
+
+    setMusicEnabled(value: boolean): void {
+        this.canPlayMusic = value;
+        cc.sys.localStorage.setItem('zyx_music_enabled', value ? '1' : '0');
+        if (!value) this.stopBGM();
+    }
+
+    getMusicEnabled(): boolean {
+        return this.canPlayMusic;
+    }
+
+    setSoundEnabled(value: boolean): void {
+        this.canPlaySound = value;
+        cc.sys.localStorage.setItem('zyx_sound_enabled', value ? '1' : '0');
+    }
+
+    getSoundEnabled(): boolean {
+        return this.canPlaySound;
+    }
+
+    setVibrateEnabled(value: boolean): void {
+        this.canVibrate = value;
+        cc.sys.localStorage.setItem('zyx_vibrate_enabled', value ? '1' : '0');
+    }
+
+    getVibrateEnabled(): boolean {
+        return this.canVibrate;
     }
 }
 export const audioMgr = AudioMgr.Instance;

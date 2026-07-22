@@ -1,0 +1,22 @@
+name: tcjstory-xiaochu-fannao
+
+services:
+  xiaochu_fannao_api:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 8080
+      DB_PATH: /app/data/game.sqlite
+    volumes:
+      - xiaochu_fannao_data:/app/data
+    networks:
+      - tcjstory_gateway
+
+networks:
+  tcjstory_gateway:
+    external: true
+
+volumes:
+  xiaochu_fannao_data:

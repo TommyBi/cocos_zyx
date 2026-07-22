@@ -1,10 +1,13 @@
 // 是否为开发环境
-export const isDev: boolean = true;
+export const isDev: boolean = false;
 
 // 服务器地址 - 开发环境
-export const svrUrlDev = 'http://localhost:8080';
+export const svrUrlDev = 'http://127.0.0.1:8080/api';
 // 服务器地址 - 正式环境
-export const svrUrlPro = 'http://localhost:8080';
+export const svrUrlPro = 'https://api.tcjstory.cn/v1/xiaochu-fannao/api';
+
+// 微信小游戏 AppId。appsecret 只允许放在服务端环境变量中。
+export const wxAppId = 'wxdc39c78bfd045896';
 
 // 层级 
 export enum LAYER {
@@ -25,6 +28,46 @@ export type typeGameInfo = {
     flower: number,
     // 格子当前使用到的唯一索引值
     uniqueId: number,
+    // 当前难度等级
+    difficultyLevel: number,
+    // 已生成的新行数量
+    generatedRows: number,
+    // 连续未发生消除次数
+    noMergeStreak: number,
+    // 动态降难剩余行数
+    reliefRows: number,
+    // 当前回合累计消除次数，用于控制电钻碎片生成
+    clearCount: number,
+    // 电钻碎片生成蓄力，每 5 次消除生成 1 个碎片
+    drillSpawnCharge: number,
+    // 当前回合电钻碎片收集进度，满 20 个获得 1 个电钻
+    drillFragments: number,
+}
+
+export type typeDifficultyState = {
+    level: number,
+    generatedRows: number,
+    noMergeStreak: number,
+    reliefRows: number,
+    balanceTriggered: boolean,
+    balanceReason: string,
+    targetFill: number,
+    stackHeight: number,
+    largeCellRatio: number,
+    difficultyChanged: boolean,
+}
+
+export type typeRankItem = {
+    rank: number,
+    nickName: string,
+    avatar?: string,
+    score: number,
+}
+
+export type typeRankResult = {
+    list: typeRankItem[],
+    selfRank: number,
+    selfScore: number,
 }
 
 // 格子的尺寸类型 空格子尺寸为0
@@ -52,6 +95,8 @@ export enum gridContentType {
     exp = 5,
     // 花朵
     flower = 6,
+    // 电钻碎片
+    DRILL_FRAGMENT = 7,
 }
 
 // 格子宽高单位长度

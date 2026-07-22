@@ -19,7 +19,7 @@ export default class HttpManager {
      * @param params 请求参数
      * @returns Promise
      */
-    public post(path: string, params: any = {}): Promise<any> {
+    public post(path: string, params: any = {}, timeoutMs: number = 10000): Promise<any> {
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             const url = this.baseUrl + path;
@@ -50,7 +50,7 @@ export default class HttpManager {
 
             xhr.open('POST', url, true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.timeout = 10000; // 10秒超时
+            xhr.timeout = timeoutMs;
 
             try {
                 xhr.send(JSON.stringify(params));
@@ -106,6 +106,10 @@ export default class HttpManager {
                 reject(new Error('发送请求失败'));
             }
         });
+    }
+
+    public getOnline(): boolean {
+        return !!this.baseUrl && this.baseUrl.indexOf('your-domain.example.com') === -1;
     }
 }
 export const httpManager = new HttpManager();

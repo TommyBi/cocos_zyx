@@ -30,6 +30,46 @@ export class WxApiManager extends cc.EventTarget {
             title: title,
         })
     }
+
+    login(): Promise<string> {
+        return new Promise((resolve) => {
+            if (!this.checkWxEnv) {
+                resolve('');
+                return;
+            }
+
+            wx.login({
+                success: (res) => {
+                    resolve(res && res.code ? res.code : '');
+                },
+                fail: () => {
+                    resolve('');
+                },
+            });
+        });
+    }
+
+    showRewardedAd(adUnitId: string = ''): Promise<boolean> {
+        return new Promise((resolve) => {
+            if (!this.checkWxEnv || !wx.createRewardedVideoAd || !adUnitId) {
+                resolve(true);
+                return;
+            }
+
+            const ad = wx.createRewardedVideoAd({ adUnitId });
+            ad.onClose((res) => {
+                resolve(!res || res.isEnded);
+            });
+            ad.onError(() => {
+                resolve(false);
+            });
+            ad.show().catch(() => {
+                ad.load()
+                    .then(() => ad.show())
+                    .catch(() => resolve(false));
+            });
+        });
+    }
 }
 
 export const wxApiManager = WxApiManager.Instance;
