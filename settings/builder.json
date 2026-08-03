@@ -1,5 +1,5 @@
 {
-  "title": "mergeZyx",
+  "title": "烦恼排排消",
   "packageName": "org.cocos2d.demo",
   "startScene": "6864309e-a883-4fbb-af0b-296d2279eef3",
   "excludeScenes": [],
@@ -13,7 +13,7 @@
   "inlineSpriteFrames": false,
   "inlineSpriteFrames_native": true,
   "mainCompressionType": "default",
-  "mainIsRemote": true,
+  "mainIsRemote": false,
   "optimizeHotUpdate": false,
   "md5Cache": false,
   "nativeMd5Cache": true,

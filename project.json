@@ -1,7 +1,7 @@
 {
   "engine": "cocos-creator-js",
   "packages": "packages",
-  "name": "word_connect",
+  "name": "left_right_clear",
   "id": "f2766ad7-a17a-42ae-8c4e-b85d5f71d8ae",
   "version": "2.4.13",
   "isNew": false
