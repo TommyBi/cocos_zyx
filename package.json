@@ -2,9 +2,10 @@
   "name": "left-right-clear",
   "private": true,
   "scripts": {
-    "build:web": "/Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/MacOS/CocosCreator --path . --build \"platform=web-mobile;debug=true;md5Cache=false\" --nologin --force",
+    "build:web": "env -u ELECTRON_RUN_AS_NODE /Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/MacOS/CocosCreator --path . --build \"platform=web-mobile;debug=true;md5Cache=false\" --nologin --force",
     "serve:web": "python3 -m http.server 7457 --directory build/web-mobile",
-    "build:wechat": "/Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/MacOS/CocosCreator --path . --build \"platform=wechatgame;debug=false;md5Cache=false;appid=wxdc39c78bfd045896\" --nologin --force && node scripts/prepare-wechat-build.js",
-    "open:wechat": "/Applications/wechatwebdevtools.app/Contents/MacOS/cli open --project build/wechatgame --lang zh"
+    "build:wechat": "env -u ELECTRON_RUN_AS_NODE /Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/MacOS/CocosCreator --path . --build \"platform=wechatgame;debug=false;md5Cache=false;appid=wxdc39c78bfd045896;remoteServerAddress=https://api.tcjstory.cn/v1/cocos-zyx/cdn/\" --nologin --force && node scripts/prepare-wechat-build.js",
+    "open:wechat": "/Applications/wechatwebdevtools.app/Contents/MacOS/cli open --project build/wechatgame --lang zh",
+    "sync:wechat-cdn": "node scripts/sync-wechat-cdn.js"
   }
 }

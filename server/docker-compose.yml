@@ -1,0 +1,26 @@
+name: tcjstory-cocos-zyx
+
+services:
+  cocos_zyx_api:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 8080
+      DB_PATH: /app/data/game.sqlite
+      CDN_PATH: /app/cdn
+    volumes:
+      - cocos_zyx_data:/app/data
+      - ./cdn:/app/cdn:ro
+    networks:
+      - cocos_zyx_internal
+      - tcjstory_gateway
+
+networks:
+  cocos_zyx_internal:
+  tcjstory_gateway:
+    external: true
+
+volumes:
+  cocos_zyx_data:

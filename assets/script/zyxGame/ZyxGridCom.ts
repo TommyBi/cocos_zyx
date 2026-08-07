@@ -52,7 +52,7 @@ export default class ZyxGridCom extends cc.Component {
         this.range = this.callbacks.getMoveRange(this.pieceId);
         this.node.zIndex = 100;
         const stamp = this.node.getChildByName('moodStamp');
-        if (stamp) cc.tween(stamp).to(0.08, { opacity: 138, scale: 1.08 }).start();
+        if (stamp) cc.tween(stamp).to(0.08, { opacity: 222, scale: 1.12 }).start();
         cc.tween(this.node).to(0.06, { scale: 1.04 }).start();
     }
 
@@ -69,7 +69,7 @@ export default class ZyxGridCom extends cc.Component {
         this.touching = false;
         this.node.zIndex = 10;
         const stamp = this.node.getChildByName('moodStamp');
-        if (stamp) cc.tween(stamp).to(0.08, { opacity: 76, scale: 1 }).start();
+        if (stamp) cc.tween(stamp).to(0.08, { opacity: 172, scale: 1 }).start();
         cc.tween(this.node).to(0.08, { scale: 1 }).start();
 
         if (this.offset !== 0) this.callbacks.onMove(this.pieceId, this.offset);

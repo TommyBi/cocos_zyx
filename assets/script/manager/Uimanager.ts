@@ -1,3 +1,5 @@
+import { loadSpriteFrame } from './AssetLoader';
+
 declare const wx: any;
 
 export type ModalAction = {
@@ -164,7 +166,7 @@ export default class Uimanager {
         parent.addChild(node);
         const sprite = node.addComponent(cc.Sprite);
         sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        cc.resources.load(resourcePath, cc.SpriteFrame, (error: Error, frame: cc.SpriteFrame) => {
+        loadSpriteFrame('resources', resourcePath, (error, frame) => {
             if (error || !frame || !cc.isValid(node)) return;
             sprite.spriteFrame = frame;
             node.width = width;
@@ -320,6 +322,7 @@ export default class Uimanager {
         actions: ModalAction[],
         decoration: ModalDecoration = null,
         contentHeight: number = 0,
+        horizontalActions: boolean = false,
     ): cc.Node {
         if (!this.scene) return null;
         this.closeModal();
@@ -334,7 +337,8 @@ export default class Uimanager {
         this.modal = root;
 
         this.createRect(root, 'mask', root.width, root.height, new cc.Color(65, 46, 40), 190);
-        const panelHeight = 300 + actions.length * 92 + contentHeight;
+        const actionRows = horizontalActions ? 1 : Math.max(1, actions.length);
+        const panelHeight = 300 + actionRows * 92 + contentHeight;
         const panel = this.createRect(root, 'panel', 560, panelHeight, new cc.Color(211, 164, 98), 255, 26, 0, 0);
         this.createRect(panel, 'panelInner', 540, panelHeight - 20, new cc.Color(255, 244, 220), 255, 22);
         this.createLabel(panel, title, 0, panelHeight / 2 - 72, 40, new cc.Color(90, 64, 58), 460, 64);
@@ -346,13 +350,37 @@ export default class Uimanager {
             decoration(panel, contentCenterY);
             startY = contentCenterY - contentHeight / 2 - 70;
         }
-        actions.forEach((action, index) => {
-            const button = this.createButton(panel, action.text, 0, startY - index * 92, 420, 72, action.color, () => {
-                this.closeModal();
-                action.onClick();
-            }, 27);
-            if (action.icon) action.icon(button);
-        });
+        if (horizontalActions && actions.length > 0) {
+            const buttonWidth = actions.length === 2 ? 214 : Math.min(420, Math.floor(480 / actions.length) - 12);
+            const gap = 18;
+            const totalWidth = actions.length * buttonWidth + (actions.length - 1) * gap;
+            const left = -totalWidth / 2 + buttonWidth / 2;
+            actions.forEach((action, index) => {
+                const button = this.createButton(
+                    panel,
+                    action.text,
+                    left + index * (buttonWidth + gap),
+                    startY,
+                    buttonWidth,
+                    72,
+                    action.color,
+                    () => {
+                        this.closeModal();
+                        action.onClick();
+                    },
+                    24,
+                );
+                if (action.icon) action.icon(button);
+            });
+        } else {
+            actions.forEach((action, index) => {
+                const button = this.createButton(panel, action.text, 0, startY - index * 92, 420, 72, action.color, () => {
+                    this.closeModal();
+                    action.onClick();
+                }, 27);
+                if (action.icon) action.icon(button);
+            });
+        }
 
         panel.scale = 0.82;
         panel.opacity = 0;

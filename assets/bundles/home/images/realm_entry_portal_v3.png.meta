@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "a8089ddd-122c-4dd2-9bdb-ed9206be85af",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 256,
+  "height": 256,
+  "platformSettings": {},
+  "subMetas": {
+    "realm_entry_portal_v3": {
+      "ver": "1.0.6",
+      "uuid": "eab2ed68-311a-4ab7-8399-fdf73debf3f3",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "a8089ddd-122c-4dd2-9bdb-ed9206be85af",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 5.5,
+      "trimX": 55,
+      "trimY": 26,
+      "width": 146,
+      "height": 193,
+      "rawWidth": 256,
+      "rawHeight": 256,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

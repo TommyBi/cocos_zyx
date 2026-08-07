@@ -3,13 +3,22 @@ import {
     BOARD_ROWS,
     BoardPiece,
     CELL_SIZE,
-    DAILY_WISH_TARGET,
+    HAPPY_BOTTLE_TARGET,
     EliminateResult,
     GravityMove,
     RoundSettlement,
     zyxGameModule,
 } from '../dataModule/ZyxGameModule';
 import { BUTTON_COLORS, uimanager } from '../manager/Uimanager';
+import { settingsPanel } from '../manager/SettingsPanel';
+import { gameSettings } from '../manager/GameSettings';
+import {
+    USE_SHARE_INSTEAD_OF_VIDEO,
+    getRewardOfferFailToast,
+    getRewardOfferIcon,
+    requestShareReward,
+} from '../manager/ShareReward';
+import { ensureGameResourcesReady, loadSkeletonData, loadSpriteFrame } from '../manager/AssetLoader';
 import ZyxGridCom from './ZyxGridCom';
 import {
     createGameRoomBackground,
@@ -22,7 +31,7 @@ import {
     getMoodName,
     MOOD_COLORS,
     playBottleBurp,
-    updateWishBottleProgress,
+    presentWishBottleAbsoluteProgress,
 } from './MoodArt';
 
 declare const wx: any;
@@ -31,9 +40,10 @@ const { ccclass } = cc._decorator;
 const NEXT_PREVIEW_HEIGHT = 32;
 const NEXT_PREVIEW_OPACITY = 210;
 const TOOL_BUTTON_SIZE = 88;
-const BOARD_CENTER_Y = 70;
-const NEXT_ROW_CENTER_Y = -364;
-const TOOL_DOCK_CENTER_Y = -482;
+// 竖屏节奏：资源区贴近棋盘顶部，棋盘/下一排/道具区之间分别保留可辨认的独立留白。
+const BOARD_CENTER_Y = 140;
+const NEXT_ROW_CENTER_Y = -330;
+const TOOL_DOCK_CENTER_Y = -505;
 const BOTTOM_TIP_Y = -618;
 const HUD_VALUE_COLOR = new cc.Color(112, 78, 65);
 const HUD_LABEL_COLOR = new cc.Color(132, 96, 80);
@@ -112,6 +122,24 @@ export default class ZyxGame extends cc.Component {
         }
     }
 
+    /** 供场景根部 GM 气泡在发放道具后同步当前 HUD；可选同步收集瓶进度。 */
+    public refreshInventoryHud(progressAdded: number = 0): void {
+        this.updateHud();
+        if (!this.moodBottle || !cc.isValid(this.moodBottle)) return;
+        const absolute = zyxGameModule.happyBottleProgress + this.displayedRoundMoods;
+        if (progressAdded > 0) {
+            const prevAbs = Number((this.moodBottle as any).absoluteProgress);
+            const fromAbs = Number.isFinite(prevAbs) ? prevAbs : Math.max(0, absolute - progressAdded);
+            presentWishBottleAbsoluteProgress(this.moodBottle, fromAbs + progressAdded, HAPPY_BOTTLE_TARGET, {
+                flyTargetLocal: cc.v2(this.moodBottle.x + 40, this.moodBottle.y + 320),
+            });
+            return;
+        }
+        presentWishBottleAbsoluteProgress(this.moodBottle, absolute, HAPPY_BOTTLE_TARGET, {
+            flyTargetLocal: cc.v2(this.moodBottle.x + 40, this.moodBottle.y + 320),
+        });
+    }
+
     private buildUI(): void {
         this.node.removeAllChildren();
         this.buildBackground();
@@ -166,8 +194,8 @@ export default class ZyxGame extends cc.Component {
             this.node,
             bottleX,
             topY + 2,
-            zyxGameModule.dailyMoodCount + this.displayedRoundMoods,
-            DAILY_WISH_TARGET,
+            zyxGameModule.happyBottleProgress + this.displayedRoundMoods,
+            HAPPY_BOTTLE_TARGET,
             hasWeChatCapsule ? 0.31 : 0.35,
         );
         const bottleTextX = bottleCardX + bottleCardWidth * 0.16;
@@ -381,7 +409,7 @@ export default class ZyxGame extends cc.Component {
         uimanager.drawButtonSurface(this.hammerButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, BUTTON_COLORS.yellow, 23);
         this.hammerButton.addComponent(cc.Button);
         this.hammerButton.name = 'hammerToolButton';
-        this.hammerIcon = this.createHammerGlyph(this.hammerButton, 0, -1, 0.78);
+        this.hammerIcon = this.createHammerGlyph(this.hammerButton, 0, -1, 0.84);
         this.hammerCountLabel = this.createToolCountBadge(this.hammerButton, 'hammerCountBadge');
 
         this.purifierButton = uimanager.createRect(
@@ -397,7 +425,7 @@ export default class ZyxGame extends cc.Component {
         );
         uimanager.drawButtonSurface(this.purifierButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, BUTTON_COLORS.green, 23);
         this.purifierButton.addComponent(cc.Button);
-        this.purifierIcon = this.createPurifierGlyph(this.purifierButton, 0, -1, 0.78);
+        this.purifierIcon = this.createPurifierGlyph(this.purifierButton, 0, -1, 0.84);
         this.purifierCountLabel = this.createToolCountBadge(this.purifierButton, 'purifierCountBadge');
 
         this.bindToolGestures();
@@ -601,12 +629,14 @@ export default class ZyxGame extends cc.Component {
     }
 
     private loadEffectAssets(): void {
-        cc.resources.load('spine/get_1', sp.SkeletonData, (error: Error, data: sp.SkeletonData) => {
-            if (error || !data) {
-                cc.warn('Spine clear effect failed to load', error);
-                return;
-            }
-            this.clearSpineData = data;
+        ensureGameResourcesReady().then(() => {
+            loadSkeletonData('resources', 'spine/get_1', (error, data) => {
+                if (error || !data) {
+                    cc.warn('Spine clear effect failed to load', error);
+                    return;
+                }
+                this.clearSpineData = data;
+            });
         });
     }
 
@@ -638,10 +668,12 @@ export default class ZyxGame extends cc.Component {
         node.addChild(art);
         const sprite = art.addComponent(cc.Sprite);
         sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        cc.resources.load('images/formal/relief_hammer_v2', cc.SpriteFrame, (error: Error, frame: cc.SpriteFrame) => {
+        loadSpriteFrame('resources', 'images/formal/relief_hammer_v2', (error, frame) => {
             if (error || !frame || !cc.isValid(art)) return;
             sprite.spriteFrame = frame;
             uimanager.fitSpriteFrameInside(art, frame, 66, 84);
+            // 锤子与魔法棒统一为“手柄朝左下、作用端朝右上”的视觉方向。
+            art.scaleX = -Math.abs(art.scaleX || 1);
         });
         return node;
     }
@@ -673,7 +705,7 @@ export default class ZyxGame extends cc.Component {
         node.addChild(art);
         const sprite = art.addComponent(cc.Sprite);
         sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        cc.resources.load('images/formal/magic_wand_v1', cc.SpriteFrame, (error: Error, frame: cc.SpriteFrame) => {
+        loadSpriteFrame('resources', 'images/formal/magic_wand_v1', (error, frame) => {
             if (error || !frame || !cc.isValid(art)) return;
             sprite.spriteFrame = frame;
             uimanager.fitSpriteFrameInside(art, frame, 68, 86);
@@ -702,17 +734,21 @@ export default class ZyxGame extends cc.Component {
         return node;
     }
 
-    private decorateActionButton(button: cc.Node, icon: 'video' | 'home' | 'restart'): void {
+    private decorateActionButton(button: cc.Node, icon: 'video' | 'share' | 'home' | 'restart'): void {
         const label = button.getChildByName('label');
+        const iconX = -Math.min(92, button.width * 0.34);
         if (label) {
-            label.x = 30;
-            label.width = 280;
+            label.x = button.width <= 260 ? 22 : 30;
+            label.width = Math.max(96, button.width - 110);
         }
-        if (icon === 'video') this.createVideoGlyph(button, -92, 2, 0.76);
-        else if (icon === 'home') this.createHomeGlyph(button, -92, 1, 0.78);
-        else this.createRestartGlyph(button, -92, 1, 0.8);
+        const glyphScale = button.width <= 260 ? 0.7 : 0.78;
+        if (icon === 'video') this.createVideoGlyph(button, iconX, 2, glyphScale);
+        else if (icon === 'share') this.createShareGlyph(button, iconX, 2, glyphScale);
+        else if (icon === 'home') this.createHomeGlyph(button, iconX, 1, glyphScale);
+        else this.createRestartGlyph(button, iconX, 1, glyphScale);
     }
 
+    /** 保留：激励视频恢复后，decorateActionButton('video') 仍可直接使用。 */
     private createVideoGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
         const node = new cc.Node('videoGlyph');
         node.setPosition(x, y);
@@ -747,6 +783,57 @@ export default class ZyxGame extends cc.Component {
         return node;
     }
 
+    /** 分享获取入口图标：暖色纸飞机，替代当前视频图标展示。 */
+    private createShareGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
+        const node = new cc.Node('shareGlyph');
+        node.setPosition(x, y);
+        node.scale = scale;
+        node.zIndex = 60;
+        parent.addChild(node);
+        const graphics = node.addComponent(cc.Graphics);
+        graphics.fillColor = new cc.Color(85, 56, 49, 48);
+        graphics.roundRect(-31, -23, 62, 49, 15);
+        graphics.fill();
+        graphics.fillColor = new cc.Color(255, 247, 220);
+        graphics.strokeColor = new cc.Color(119, 78, 66);
+        graphics.lineWidth = 2.4;
+        graphics.roundRect(-32, -20, 64, 48, 15);
+        graphics.fill();
+        graphics.stroke();
+
+        // 纸飞机主体
+        graphics.fillColor = new cc.Color(105, 181, 129);
+        graphics.moveTo(-22, -2);
+        graphics.lineTo(22, 12);
+        graphics.lineTo(4, -2);
+        graphics.close();
+        graphics.fill();
+        graphics.fillColor = new cc.Color(244, 181, 60);
+        graphics.moveTo(-22, -2);
+        graphics.lineTo(22, 12);
+        graphics.lineTo(8, -14);
+        graphics.close();
+        graphics.fill();
+        graphics.strokeColor = new cc.Color(90, 64, 56);
+        graphics.lineWidth = 2;
+        graphics.moveTo(-22, -2);
+        graphics.lineTo(4, -2);
+        graphics.lineTo(22, 12);
+        graphics.moveTo(4, -2);
+        graphics.lineTo(8, -14);
+        graphics.stroke();
+
+        // 右侧小点，暗示“发出去”
+        graphics.fillColor = new cc.Color(226, 104, 95);
+        graphics.circle(24, -8, 3.5);
+        graphics.fill();
+        graphics.fillColor = new cc.Color(248, 194, 72);
+        graphics.circle(24, 4, 3.5);
+        graphics.fill();
+        return node;
+    }
+
+    /** 与 createRestartGlyph 同底板尺寸：奶油色圆角牌 + 填色象形。 */
     private createHomeGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
         const node = new cc.Node('homeGlyph');
         node.setPosition(x, y);
@@ -754,6 +841,49 @@ export default class ZyxGame extends cc.Component {
         node.zIndex = 60;
         parent.addChild(node);
         const graphics = node.addComponent(cc.Graphics);
+        this.drawActionGlyphPlate(graphics);
+        graphics.fillColor = new cc.Color(239, 133, 104);
+        graphics.strokeColor = new cc.Color(119, 78, 66);
+        graphics.lineWidth = 2.2;
+        graphics.moveTo(-14, 2);
+        graphics.lineTo(0, 16);
+        graphics.lineTo(14, 2);
+        graphics.lineTo(11, -1);
+        graphics.lineTo(0, 9);
+        graphics.lineTo(-11, -1);
+        graphics.close();
+        graphics.fill();
+        graphics.stroke();
+        graphics.fillColor = new cc.Color(105, 181, 129);
+        graphics.roundRect(-5, -12, 10, 14, 3);
+        graphics.fill();
+        return node;
+    }
+
+    /** 与 createHomeGlyph 同底板与填色风格，避免线稿箭头和实心房子混用。 */
+    private createRestartGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
+        const node = new cc.Node('restartGlyph');
+        node.setPosition(x, y);
+        node.scale = scale;
+        node.zIndex = 60;
+        parent.addChild(node);
+        const graphics = node.addComponent(cc.Graphics);
+        this.drawActionGlyphPlate(graphics);
+        graphics.strokeColor = new cc.Color(105, 181, 129);
+        graphics.fillColor = new cc.Color(105, 181, 129);
+        graphics.lineWidth = 5;
+        graphics.lineCap = cc.Graphics.LineCap.ROUND;
+        graphics.arc(0, -1, 11, cc.misc.degreesToRadians(-40), cc.misc.degreesToRadians(220), false);
+        graphics.stroke();
+        graphics.moveTo(7, 10);
+        graphics.lineTo(14, 4);
+        graphics.lineTo(4, 2);
+        graphics.close();
+        graphics.fill();
+        return node;
+    }
+
+    private drawActionGlyphPlate(graphics: cc.Graphics): void {
         graphics.fillColor = new cc.Color(83, 54, 47, 48);
         graphics.roundRect(-21, -20, 44, 35, 9);
         graphics.fill();
@@ -763,44 +893,6 @@ export default class ZyxGame extends cc.Component {
         graphics.roundRect(-22, -18, 44, 36, 9);
         graphics.fill();
         graphics.stroke();
-        graphics.fillColor = new cc.Color(239, 133, 104);
-        graphics.moveTo(-30, 9);
-        graphics.lineTo(0, 34);
-        graphics.lineTo(30, 9);
-        graphics.lineTo(24, 2);
-        graphics.lineTo(0, 22);
-        graphics.lineTo(-24, 2);
-        graphics.close();
-        graphics.fill();
-        graphics.stroke();
-        graphics.fillColor = new cc.Color(105, 181, 129);
-        graphics.roundRect(-7, -18, 14, 24, 6);
-        graphics.fill();
-        return node;
-    }
-
-    private createRestartGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
-        const node = new cc.Node('restartGlyph');
-        node.setPosition(x, y);
-        node.scale = scale;
-        node.zIndex = 60;
-        parent.addChild(node);
-        const graphics = node.addComponent(cc.Graphics);
-        graphics.strokeColor = new cc.Color(255, 244, 214);
-        graphics.lineWidth = 8;
-        graphics.lineCap = cc.Graphics.LineCap.ROUND;
-        graphics.moveTo(18, 18);
-        graphics.bezierCurveTo(29, 7, 27, -10, 16, -20);
-        graphics.bezierCurveTo(3, -31, -16, -27, -25, -12);
-        graphics.bezierCurveTo(-34, 3, -25, 21, -8, 26);
-        graphics.stroke();
-        graphics.fillColor = new cc.Color(255, 244, 214);
-        graphics.moveTo(-8, 35);
-        graphics.lineTo(8, 24);
-        graphics.lineTo(-10, 17);
-        graphics.close();
-        graphics.fill();
-        return node;
     }
 
     private renderAll(): void {
@@ -935,13 +1027,12 @@ export default class ZyxGame extends cc.Component {
             if (!piece || !node) continue;
 
             const distance = move.toRow - move.fromRow;
-            const duration = Math.min(0.28, 0.075 + distance * 0.035);
+            // 消行后直接匀速落位，避免 quadIn 的慢启动看起来像掉落卡住。
+            const duration = Math.min(0.18, 0.055 + distance * 0.02);
             const target = this.getPiecePosition(piece.row, piece.col, piece.size);
             longestDuration = Math.max(longestDuration, duration);
             cc.tween(node).stop();
-            cc.tween(node)
-                .to(duration, { x: target.x, y: target.y }, { easing: 'quadIn' })
-                .start();
+            cc.tween(node).to(duration, { x: target.x, y: target.y }).start();
         }
 
         if (longestDuration > 0) {
@@ -1275,7 +1366,9 @@ export default class ZyxGame extends cc.Component {
                         : 62 + (index % 8) * 22
                 );
                 const startRotation = ((index * 13) % 19) - 9;
-                const fadeDuration = 0.34 + (index % 4) * 0.025;
+                // 碎片只走一次「爆散并消失」；不再先落一半、再进入第二段下坠。
+                const burstDuration = 0.28 + (index % 4) * 0.015;
+                const burstY = startY + lift * 0.42 - fall * 0.24;
                 const shardState = {
                     x: startX,
                     y: startY,
@@ -1292,27 +1385,13 @@ export default class ZyxGame extends cc.Component {
                 };
                 updateShard();
                 cc.tween(shardState)
-                    .delay(rowClear ? (index % 5) * 0.004 : 0)
-                    .to(0.17, {
-                        x: startX + spread * 0.55,
-                        y: startY + lift,
-                        rotation: turn * 0.45,
-                        scale: 0.9 + (index % 3) * 0.03,
-                    }, { easing: 'quadOut', onUpdate: updateShard })
-                    .to(0.24, {
-                        x: startX + spread * 0.82,
-                        y: startY - fall * 0.38,
-                        rotation: turn * 0.72,
-                        scale: 0.72 + (index % 3) * 0.04,
-                        alpha: 0.88,
-                    }, { easing: 'quadIn', onUpdate: updateShard })
-                    .to(fadeDuration, {
+                    .to(burstDuration, {
                         x: startX + spread,
-                        y: startY - fall,
+                        y: burstY,
                         rotation: turn,
                         scale: 0.22 + (index % 4) * 0.045,
                         alpha: 0,
-                    }, { easing: 'quadIn', onUpdate: updateShard })
+                    }, { easing: 'quadOut', onUpdate: updateShard })
                     .call(() => shard.destroy())
                     .start();
             }
@@ -1568,7 +1647,7 @@ export default class ZyxGame extends cc.Component {
             targets.push({ id, node, color });
             cc.tween(node).stop();
             cc.tween(node)
-                .to(0.08, { scaleX: 1.03, scaleY: 0.72 }, { easing: 'quadOut' })
+                .to(0.045, { scaleX: 1.03, scaleY: 0.72 }, { easing: 'quadOut' })
                 .start();
         }
 
@@ -1579,7 +1658,7 @@ export default class ZyxGame extends cc.Component {
                 delete this.pieceColors[target.id];
                 target.node.destroy();
             }
-        }, 0.09);
+        }, 0.05);
     }
 
     private animateElimination(result: EliminateResult, onComplete: () => void): void {
@@ -1591,7 +1670,8 @@ export default class ZyxGame extends cc.Component {
         this.playRowClearEffects(result.clearedRowIndexes);
         this.playMoodCollect(result.removedPieceIds);
         this.animateRowShatter(result.removedPieceIds);
-        this.scheduleOnce(onComplete, 0.095);
+        // 源格子一爆散就开始重力结算，碎片留在前景完成淡出即可。
+        this.scheduleOnce(onComplete, 0.05);
     }
 
     private playMoodCollect(pieceIds: number[]): void {
@@ -1648,11 +1728,14 @@ export default class ZyxGame extends cc.Component {
 
     private addMoodInsideBottle(): void {
         if (!this.moodBottle || !cc.isValid(this.moodBottle)) return;
-        updateWishBottleProgress(
-            this.moodBottle,
-            zyxGameModule.dailyMoodCount + this.displayedRoundMoods,
-            DAILY_WISH_TARGET,
-        );
+        const absolute = zyxGameModule.happyBottleProgress + this.displayedRoundMoods;
+        presentWishBottleAbsoluteProgress(this.moodBottle, absolute, HAPPY_BOTTLE_TARGET, {
+            flyTargetLocal: cc.v2(this.moodBottle.x + 40, this.moodBottle.y + 320),
+            onSlotProgress: (slot) => {
+                // 局内右侧文案仍是本局收集数；瓶身进度用绝对量驱动满瓶上飞。
+                if (slot >= HAPPY_BOTTLE_TARGET) playBottleBurp(this.moodBottle);
+            },
+        });
     }
 
     private resolveStableBoard(chain: number, onStable: () => void): void {
@@ -1664,6 +1747,7 @@ export default class ZyxGame extends cc.Component {
 
         const elimination = zyxGameModule.eliminateFullRows(chain);
         if (elimination.clearedRows > 0) {
+            gameSettings.vibrateLight();
             this.animateElimination(elimination, () => this.resolveStableBoard(chain + 1, onStable));
             return;
         }
@@ -1697,12 +1781,15 @@ export default class ZyxGame extends cc.Component {
         this.locked = true;
         uimanager.showModal(
             '给整理台腾点位置',
-            '心情块距离顶部只剩两行了。\n看完视频，立即清除数量最多的一种颜色。',
+            USE_SHARE_INSTEAD_OF_VIDEO
+                ? '心情块距离顶部只剩两行了。\n分享给好友后，立即清除数量最多的一种颜色。'
+                : '心情块距离顶部只剩两行了。\n看完视频，立即清除数量最多的一种颜色。',
             [
                 {
                     text: '获取',
                     color: BUTTON_COLORS.green,
                     onClick: () => this.requestRoundRescue(),
+                    icon: (button) => this.decorateActionButton(button, getRewardOfferIcon()),
                 },
                 {
                     text: '不需要',
@@ -1747,12 +1834,12 @@ export default class ZyxGame extends cc.Component {
         if (this.rewardedAdLoading) return;
         this.rewardedAdLoading = true;
         this.locked = true;
-        this.showRewardedVideo((rewarded) => {
+        this.showRewardOffer((rewarded) => {
             this.rewardedAdLoading = false;
             if (!rewarded) {
                 this.locked = false;
                 this.idleSeconds = 0;
-                uimanager.showToast('完整看完视频才能获得帮助');
+                uimanager.showToast(getRewardOfferFailToast('rescue'));
                 return;
             }
             this.applyRoundRescue();
@@ -1790,7 +1877,7 @@ export default class ZyxGame extends cc.Component {
         this.updateRecordTag(isNewRecord);
         const hammerColor = this.hammerMode ? BUTTON_COLORS.green : BUTTON_COLORS.yellow;
         uimanager.drawButtonSurface(this.hammerButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, hammerColor, 23);
-        if (this.hammerIcon) this.hammerIcon.angle = this.hammerMode ? 8 : 0;
+        if (this.hammerIcon) this.hammerIcon.angle = this.hammerMode ? -8 : 0;
         if (this.hammerCountLabel) this.hammerCountLabel.string = String(zyxGameModule.hammerCount);
         const purifierColor = this.purifierMode ? BUTTON_COLORS.yellow : BUTTON_COLORS.green;
         uimanager.drawButtonSurface(this.purifierButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, purifierColor, 23);
@@ -1881,6 +1968,7 @@ export default class ZyxGame extends cc.Component {
 
         this.setToolSelectionMode(null);
         this.markInteraction();
+        gameSettings.vibrateLight();
         uimanager.showToast('这个心结已经敲开了');
         this.resolveTurn([id], true);
     }
@@ -1899,6 +1987,7 @@ export default class ZyxGame extends cc.Component {
         this.setToolSelectionMode(null);
         this.markInteraction();
         this.locked = true;
+        gameSettings.vibrateLight();
         uimanager.showToast(`${getMoodName(colorIndex)}色块已全部净空`);
         this.animateColorPurifierRemoval(removedPieceIds, colorIndex, () => {
             this.resolveStableBoard(1, () => this.appendNextRowAndResolve());
@@ -1931,7 +2020,7 @@ export default class ZyxGame extends cc.Component {
                         this.locked = false;
                         this.requestRewardedHammer();
                     },
-                    icon: (button) => this.decorateActionButton(button, 'video'),
+                    icon: (button) => this.decorateActionButton(button, getRewardOfferIcon()),
                 },
                 { text: '先不用', color: BUTTON_COLORS.red, onClick: () => { this.locked = false; } },
             ];
@@ -1965,11 +2054,11 @@ export default class ZyxGame extends cc.Component {
         this.markInteraction();
         this.rewardedAdLoading = true;
         this.locked = true;
-        this.showRewardedVideo((rewarded) => {
+        this.showRewardOffer((rewarded) => {
             this.rewardedAdLoading = false;
             this.locked = false;
             if (!rewarded) {
-                uimanager.showToast('完整看完视频才能获得使用机会');
+                uimanager.showToast(getRewardOfferFailToast('tool'));
                 return;
             }
             zyxGameModule.grantRewardedHammer();
@@ -2003,7 +2092,7 @@ export default class ZyxGame extends cc.Component {
                         this.locked = false;
                         this.requestRewardedColorPurifier();
                     },
-                    icon: (button) => this.decorateActionButton(button, 'video'),
+                    icon: (button) => this.decorateActionButton(button, getRewardOfferIcon()),
                 },
                 { text: '先不用', color: BUTTON_COLORS.red, onClick: () => { this.locked = false; } },
             ];
@@ -2037,11 +2126,11 @@ export default class ZyxGame extends cc.Component {
         this.markInteraction();
         this.rewardedAdLoading = true;
         this.locked = true;
-        this.showRewardedVideo((rewarded) => {
+        this.showRewardOffer((rewarded) => {
             this.rewardedAdLoading = false;
             this.locked = false;
             if (!rewarded) {
-                uimanager.showToast('完整看完视频才能获得使用机会');
+                uimanager.showToast(getRewardOfferFailToast('tool'));
                 return;
             }
             zyxGameModule.grantRewardedColorPurifier();
@@ -2049,6 +2138,16 @@ export default class ZyxGame extends cc.Component {
         });
     }
 
+    /** 统一获取入口：当前分享；开关关闭后仍走完整激励视频实现。 */
+    private showRewardOffer(onResult: (rewarded: boolean) => void): void {
+        if (USE_SHARE_INSTEAD_OF_VIDEO) {
+            requestShareReward(onResult);
+            return;
+        }
+        this.showRewardedVideo(onResult);
+    }
+
+    /** 保留完整激励视频链路，待用户量达标后把 USE_SHARE_INSTEAD_OF_VIDEO 改为 false 即可恢复。 */
     private showRewardedVideo(onResult: (rewarded: boolean) => void): void {
         let wxApi: any = null;
         try {
@@ -2327,13 +2426,15 @@ export default class ZyxGame extends cc.Component {
         this.locked = true;
         const modal = uimanager.showModal(
             '再给心情一次机会',
-            '是否需要复活，创造更高纪录？\n看完视频，将清理棋盘上半区后继续挑战。',
+            USE_SHARE_INSTEAD_OF_VIDEO
+                ? '是否需要复活，创造更高纪录？\n分享给好友后，将清理棋盘上半区后继续挑战。'
+                : '是否需要复活，创造更高纪录？\n看完视频，将清理棋盘上半区后继续挑战。',
             [
                 {
                     text: '复活',
                     color: BUTTON_COLORS.yellow,
                     onClick: () => this.requestRevive(reason),
-                    icon: (button) => this.decorateActionButton(button, 'video'),
+                    icon: (button) => this.decorateActionButton(button, getRewardOfferIcon()),
                 },
                 {
                     text: '不需要',
@@ -2353,7 +2454,8 @@ export default class ZyxGame extends cc.Component {
                     0,
                     centerY,
                 );
-                this.createVideoGlyph(badge, -128, 0, 0.92);
+                if (USE_SHARE_INSTEAD_OF_VIDEO) this.createShareGlyph(badge, -128, 0, 0.92);
+                else this.createVideoGlyph(badge, -128, 0, 0.92);
                 const label = uimanager.createLabel(
                     badge,
                     '闪电清理上半区\n保留下半区继续挑战',
@@ -2388,10 +2490,10 @@ export default class ZyxGame extends cc.Component {
         if (this.rewardedAdLoading) return;
         this.rewardedAdLoading = true;
         this.locked = true;
-        this.showRewardedVideo((rewarded) => {
+        this.showRewardOffer((rewarded) => {
             this.rewardedAdLoading = false;
             if (!rewarded) {
-                uimanager.showToast('完整看完视频才能复活');
+                uimanager.showToast(getRewardOfferFailToast('revive'));
                 this.showReviveModal(reason);
                 return;
             }
@@ -2535,7 +2637,8 @@ export default class ZyxGame extends cc.Component {
         this.markInteraction();
         this.setToolSelectionMode(null);
         this.locked = true;
-        uimanager.showModal('已暂停', `当前分数 ${zyxGameModule.score}`, [
+        settingsPanel.show({
+            actions: [
             {
                 text: '继续游戏',
                 color: BUTTON_COLORS.green,
@@ -2554,7 +2657,8 @@ export default class ZyxGame extends cc.Component {
                 color: BUTTON_COLORS.red,
                 onClick: () => this.finishGame('今天先整理到这里'),
             },
-        ]);
+            ],
+        });
     }
 
     private finishGame(_reason: string): void {
@@ -2566,12 +2670,12 @@ export default class ZyxGame extends cc.Component {
         uimanager.showModal('本局结算', this.getSettlementMessage(settlement), [
             {
                 text: '返回',
-                color: BUTTON_COLORS.red,
+                color: BUTTON_COLORS.yellow,
                 onClick: () => this.leaveSettlement(false, settlement),
                 icon: (button) => this.decorateActionButton(button, 'home'),
             },
             {
-                text: '重新再来',
+                text: '再来一次',
                 color: BUTTON_COLORS.green,
                 onClick: () => this.leaveSettlement(true, settlement),
                 icon: (button) => this.decorateActionButton(button, 'restart'),
@@ -2613,7 +2717,7 @@ export default class ZyxGame extends cc.Component {
             createExperienceToken(experienceChip, -57, 0, 36);
             const experienceValue = uimanager.createLabel(experienceChip, `×${settlement.gainedExperience}`, 24, 0, 23, HUD_VALUE_COLOR, 112, 34);
             this.makeHintLabelBold(experienceValue, new cc.Color(255, 249, 232), 0.6);
-        }, 250);
+        }, 250, true);
     }
 
     private leaveSettlement(restart: boolean, settlement: RoundSettlement): void {

@@ -1,3 +1,5 @@
+import { loadSpriteFrame } from '../manager/AssetLoader';
+
 export type MoodVisual = {
     name: string;
     color: cc.Color;
@@ -109,16 +111,27 @@ export function createMoodStamp(
     opacity: number = 128,
 ): cc.Node {
     const node = new cc.Node('moodStamp');
-    node.width = 32;
-    node.height = 32;
-    node.opacity = Math.max(96, Math.min(210, opacity));
+    node.width = 38;
+    node.height = 38;
+    node.opacity = Math.max(172, Math.min(235, opacity + 40));
     node.setAnchorPoint(0.5, 0.5);
     node.setPosition(-parent.width / 2 + (stampCell + 0.5) * cellSize, -1);
     node.zIndex = 4;
     (node as any).moodIndex = moodIndex;
     parent.addChild(node);
 
-    drawMoodFace(node, moodIndex, 25, new cc.Color(MOOD_COLORS.cocoa.r, MOOD_COLORS.cocoa.g, MOOD_COLORS.cocoa.b, 236));
+    const face = drawMoodFace(node, moodIndex, 31, new cc.Color(MOOD_COLORS.cocoa.r, MOOD_COLORS.cocoa.g, MOOD_COLORS.cocoa.b, 248));
+    const idleDelay = (Math.abs(Math.round(node.x)) % 11) * 0.12 + moodIndex * 0.05;
+    cc.tween(face)
+        .delay(idleDelay)
+        .repeatForever(
+            cc.tween()
+                .delay(1.7 + (moodIndex % 3) * 0.22)
+                .to(0.08, { scaleY: 0.78, y: -0.5 }, { easing: 'sineIn' })
+                .to(0.12, { scaleY: 1.05, y: 0.25 }, { easing: 'sineOut' })
+                .to(0.15, { scaleY: 1, y: 0 }, { easing: 'sineInOut' }),
+        )
+        .start();
     return node;
 }
 
@@ -229,8 +242,9 @@ export function drawMoodFace(parent: cc.Node, moodIndex: number, size: number, c
     const eyeY = 3.5 * s;
     g.strokeColor = color;
     g.fillColor = color;
-    g.lineWidth = Math.max(1.4, 2 * s);
+    g.lineWidth = Math.max(1.85, 2.45 * s);
     g.lineCap = cc.Graphics.LineCap.ROUND;
+    g.lineJoin = cc.Graphics.LineJoin.ROUND;
 
     switch (moodIndex) {
         case 1: // 欢喜
@@ -323,7 +337,7 @@ export function drawMoodFace(parent: cc.Node, moodIndex: number, size: number, c
 
 export function getWishLabel(progress: number, target: number): string {
     if (progress <= 0) return '等一个好心情';
-    if (progress >= target) return '今日已装满';
+    if (progress >= target) return '这一瓶满啦';
     if (progress >= Math.ceil(target / 2)) return '已经过半';
     return '慢慢收集';
 }
@@ -345,8 +359,11 @@ export function createWishBottle(
     node.scale = scale;
     node.zIndex = 90;
     parent.addChild(node);
+    (node as any).baseScale = scale;
+    (node as any).absoluteProgress = Math.max(0, progress);
+    (node as any).homeSlotX = x;
+    (node as any).homeSlotY = y;
 
-    const ratio = Math.max(0, Math.min(1, progress / target));
     const shadow = node.addComponent(cc.Graphics);
     shadow.fillColor = new cc.Color(85, 55, 47, 35);
     shadow.ellipse(0, -98, 118, 25);
@@ -358,8 +375,8 @@ export function createWishBottle(
     bottle.setPosition(0, -8);
     node.addChild(bottle);
     const g = bottle.addComponent(cc.Graphics);
-    g.fillColor = new cc.Color(197, 231, 220, 70);
-    g.strokeColor = new cc.Color(94, 121, 111, 205);
+    g.fillColor = new cc.Color(245, 236, 214, 72);
+    g.strokeColor = new cc.Color(132, 108, 86, 210);
     g.lineWidth = 4;
     g.moveTo(-35, 88);
     g.lineTo(-35, 65);
@@ -374,24 +391,29 @@ export function createWishBottle(
     g.fill();
     g.stroke();
 
-    g.fillColor = new cc.Color(255, 255, 255, 90);
-    g.roundRect(-59, -65, 12, 112, 6);
-    g.fill();
-    g.fillColor = new cc.Color(255, 255, 255, 54);
-    g.ellipse(15, 58, 30, 10);
-    g.fill();
-    g.strokeColor = new cc.Color(255, 255, 255, 125);
-    g.lineWidth = 2;
-    g.moveTo(-48, 53);
-    g.bezierCurveTo(-61, 24, -61, -34, -48, -70);
-    g.stroke();
+    const ballFill = new cc.Node('bottleBallFill');
+    ballFill.width = 140;
+    ballFill.height = 150;
+    ballFill.zIndex = 2;
+    bottle.addChild(ballFill);
+    drawBottleBallFill(ballFill, progress, target);
 
-    const waterFill = new cc.Node('bottleWaterFill');
-    waterFill.width = 140;
-    waterFill.height = 150;
-    waterFill.zIndex = 2;
-    bottle.addChild(waterFill);
-    drawBottleWaterFill(waterFill, ratio);
+    // 玻璃高光叠在小球之上，保持瓶身统一质感。
+    const glass = new cc.Node('bottleGlass');
+    glass.zIndex = 8;
+    bottle.addChild(glass);
+    const glassG = glass.addComponent(cc.Graphics);
+    glassG.fillColor = new cc.Color(255, 255, 255, 78);
+    glassG.roundRect(-59, -65, 12, 112, 6);
+    glassG.fill();
+    glassG.fillColor = new cc.Color(255, 255, 255, 42);
+    glassG.ellipse(15, 58, 30, 10);
+    glassG.fill();
+    glassG.strokeColor = new cc.Color(255, 255, 255, 110);
+    glassG.lineWidth = 2;
+    glassG.moveTo(-48, 53);
+    glassG.bezierCurveTo(-61, 24, -61, -34, -48, -70);
+    glassG.stroke();
 
     const neck = new cc.Node('bottleNeck');
     neck.width = 72;
@@ -399,8 +421,8 @@ export function createWishBottle(
     neck.setPosition(0, 81);
     node.addChild(neck);
     const neckG = neck.addComponent(cc.Graphics);
-    neckG.fillColor = new cc.Color(219, 241, 233, 98);
-    neckG.strokeColor = new cc.Color(94, 121, 111, 205);
+    neckG.fillColor = new cc.Color(245, 236, 214, 96);
+    neckG.strokeColor = new cc.Color(132, 108, 86, 210);
     neckG.lineWidth = 4;
     neckG.roundRect(-34, -18, 68, 36, 9);
     neckG.fill();
@@ -429,38 +451,10 @@ export function createWishBottle(
     return node;
 }
 
-function mixChannel(from: number, to: number, ratio: number): number {
-    return Math.round(from + (to - from) * ratio);
-}
+type BottleBodySample = { y: number; halfWidth: number };
 
-function getBottleWaterColor(ratio: number): cc.Color {
-    if (ratio <= 0.5) {
-        const t = ratio / 0.5;
-        return new cc.Color(
-            mixChannel(MOOD_COLORS.coral.r, MOOD_COLORS.honey.r, t),
-            mixChannel(MOOD_COLORS.coral.g, MOOD_COLORS.honey.g, t),
-            mixChannel(MOOD_COLORS.coral.b, MOOD_COLORS.honey.b, t),
-        );
-    }
-    const t = (ratio - 0.5) / 0.5;
-    return new cc.Color(
-        mixChannel(MOOD_COLORS.honey.r, MOOD_COLORS.sage.r, t),
-        mixChannel(MOOD_COLORS.honey.g, MOOD_COLORS.sage.g, t),
-        mixChannel(MOOD_COLORS.honey.b, MOOD_COLORS.sage.b, t),
-    );
-}
-
-function drawBottleWaterFill(node: cc.Node, ratio: number): void {
-    const safeRatio = Math.max(0, Math.min(1, ratio));
-    const graphics = node.getComponent(cc.Graphics) || node.addComponent(cc.Graphics);
-    graphics.clear();
-    node.opacity = safeRatio <= 0 ? 0 : 255;
-    if (safeRatio <= 0) {
-        (node as any).progressRatio = 0;
-        return;
-    }
-
-    const samples = [
+function getBottleBodySamples(): BottleBodySample[] {
+    return [
         { y: -82, halfWidth: 51 },
         { y: -72, halfWidth: 61 },
         { y: -54, halfWidth: 66 },
@@ -469,66 +463,330 @@ function drawBottleWaterFill(node: cc.Node, ratio: number): void {
         { y: 45, halfWidth: 44 },
         { y: 56, halfWidth: 28 },
     ];
-    const waterY = samples[0].y + (samples[samples.length - 1].y - samples[0].y) * safeRatio;
-    let upperIndex = 1;
-    while (upperIndex < samples.length && samples[upperIndex].y < waterY) upperIndex++;
-    const lower = samples[Math.max(0, upperIndex - 1)];
-    const upper = samples[Math.min(samples.length - 1, upperIndex)];
-    const segmentRatio = upper.y === lower.y ? 0 : (waterY - lower.y) / (upper.y - lower.y);
-    const waterHalfWidth = lower.halfWidth + (upper.halfWidth - lower.halfWidth) * segmentRatio;
-
-    const color = getBottleWaterColor(safeRatio);
-    graphics.fillColor = new cc.Color(color.r, color.g, color.b, 192);
-    graphics.moveTo(-samples[0].halfWidth, samples[0].y);
-    for (const sample of samples.slice(1)) {
-        if (sample.y >= waterY) break;
-        graphics.lineTo(-sample.halfWidth, sample.y);
-    }
-    graphics.lineTo(-waterHalfWidth, waterY);
-    graphics.quadraticCurveTo(0, waterY + 4, waterHalfWidth, waterY);
-    for (const sample of samples.slice().reverse()) {
-        if (sample.y >= waterY || sample.y <= samples[0].y) continue;
-        graphics.lineTo(sample.halfWidth, sample.y);
-    }
-    graphics.lineTo(samples[0].halfWidth, samples[0].y);
-    graphics.close();
-    graphics.fill();
-    graphics.strokeColor = new cc.Color(255, 255, 255, 152);
-    graphics.lineWidth = 2.2;
-    graphics.moveTo(-waterHalfWidth + 3, waterY + 1);
-    graphics.quadraticCurveTo(0, waterY + 5, waterHalfWidth - 3, waterY + 1);
-    graphics.stroke();
-    (node as any).progressRatio = safeRatio;
 }
 
-/** 将飞入瓶子的表情换算为进度增长，不在瓶内堆叠圆形代币。 */
-export function updateWishBottleProgress(bottle: cc.Node, progress: number, target: number): void {
-    if (!bottle || !cc.isValid(bottle)) return;
+function halfWidthAtBottleY(y: number, samples: BottleBodySample[]): number {
+    if (y <= samples[0].y) return samples[0].halfWidth;
+    if (y >= samples[samples.length - 1].y) return samples[samples.length - 1].halfWidth;
+    let upperIndex = 1;
+    while (upperIndex < samples.length && samples[upperIndex].y < y) upperIndex++;
+    const lower = samples[upperIndex - 1];
+    const upper = samples[upperIndex];
+    const t = (y - lower.y) / Math.max(0.001, upper.y - lower.y);
+    return lower.halfWidth + (upper.halfWidth - lower.halfWidth) * t;
+}
+
+function drawMoodBall(graphics: cc.Graphics, x: number, y: number, radius: number, color: cc.Color): void {
+    graphics.fillColor = new cc.Color(
+        Math.max(40, Math.round(color.r * 0.55)),
+        Math.max(36, Math.round(color.g * 0.55)),
+        Math.max(34, Math.round(color.b * 0.55)),
+        90,
+    );
+    graphics.circle(x + 1.2, y - 1.6, radius);
+    graphics.fill();
+    graphics.fillColor = color;
+    graphics.circle(x, y, radius);
+    graphics.fill();
+    graphics.fillColor = new cc.Color(
+        Math.round(color.r * 0.78 + 55),
+        Math.round(color.g * 0.78 + 55),
+        Math.round(color.b * 0.78 + 45),
+        255,
+    );
+    graphics.circle(x - radius * 0.18, y + radius * 0.16, radius * 0.72);
+    graphics.fill();
+    graphics.fillColor = new cc.Color(255, 255, 255, 165);
+    graphics.ellipse(x - radius * 0.28, y + radius * 0.28, radius * 0.34, radius * 0.22);
+    graphics.fill();
+}
+
+/**
+ * 瓶内进度：少于 10 个画具体个数；达到 10 个后按进度百分比堆到瓶身高度。
+ * 小球六角密排、略重叠，呈现立体堆积而不是液面。
+ */
+function drawBottleBallFill(node: cc.Node, progress: number, target: number): void {
+    if (!node || !cc.isValid(node)) return;
+    const graphics = node.getComponent(cc.Graphics) || node.addComponent(cc.Graphics);
+    graphics.clear();
+    const safeProgress = Math.max(0, progress);
+    const safeTarget = Math.max(1, target);
+    (node as any).progressCount = safeProgress;
+    (node as any).progressTarget = safeTarget;
+    if (safeProgress <= 0) {
+        node.opacity = 0;
+        return;
+    }
+    node.opacity = 255;
+
+    const samples = getBottleBodySamples();
+    const minY = samples[0].y;
+    const maxY = samples[samples.length - 1].y;
+    const radius = 9.4;
+    const rowGap = radius * 1.62;
+    const colGap = radius * 1.78;
+    const exactCount = Math.floor(safeProgress + 1e-6);
+    const useExactCount = exactCount < 10;
+    const fillRatio = useExactCount ? 1 : Math.min(1, safeProgress / safeTarget);
+    const fillTopY = minY + (maxY - minY) * fillRatio;
+    const maxBalls = useExactCount ? exactCount : 220;
+
+    const positions: Array<{ x: number; y: number; mood: number }> = [];
+    let row = 0;
+    let y = minY + radius * 0.78;
+    while (positions.length < maxBalls && y - radius * 0.2 <= fillTopY + (useExactCount ? radius * 3 : 0)) {
+        if (!useExactCount && y - radius * 0.35 > fillTopY) break;
+        const hw = halfWidthAtBottleY(y, samples) - radius * 0.55;
+        if (hw >= radius * 0.45) {
+            const offset = (row % 2) * (colGap * 0.5);
+            let x = -hw + offset;
+            while (x <= hw + 0.01 && positions.length < maxBalls) {
+                if (Math.abs(x) + radius * 0.42 <= halfWidthAtBottleY(y, samples)) {
+                    const mood = 1 + ((positions.length * 3 + row) % 6);
+                    positions.push({ x, y, mood });
+                }
+                x += colGap;
+            }
+        }
+        row += 1;
+        y += rowGap;
+        if (useExactCount && positions.length >= exactCount) break;
+        if (row > 40) break;
+    }
+
+    // 底层先画，上层后画，增强堆叠体积感。
+    positions.sort((a, b) => (a.y - b.y) || (a.x - b.x));
+    for (const ball of positions) {
+        drawMoodBall(graphics, ball.x, ball.y, radius, getMoodColor(ball.mood));
+    }
+}
+
+export type WishBottlePresentOptions = {
+    /** 满瓶飞向的目标（与瓶子同一父节点坐标系）。缺省则向上淡出。 */
+    flyTargetLocal?: cc.Vec2;
+    /** 每成功飞走一瓶回调一次。 */
+    onCompletedBottle?: () => void;
+    /** 当前瓶内进度（0～target-1，满瓶瞬间可为 target）。 */
+    onSlotProgress?: (slotProgress: number) => void;
+    /** 本次进度与可能触发的满瓶演出全部完成。 */
+    onPresentationComplete?: () => void;
+};
+
+/** 飞入瓶子后刷新球堆高度；少量时按个数，较多时按进度百分比。 */
+export function updateWishBottleProgress(
+    bottle: cc.Node,
+    progress: number,
+    target: number,
+    onComplete?: () => void,
+): void {
+    if (!bottle || !cc.isValid(bottle)) {
+        if (onComplete) onComplete();
+        return;
+    }
     const body = bottle.getChildByName('bottleBody');
-    const fill = body && body.getChildByName('bottleWaterFill');
-    if (!fill) return;
-    const ratio = Math.max(0, Math.min(1, progress / Math.max(1, target)));
-    const state = { ratio: Number((fill as any).progressRatio) || 0 };
+    const fill = body && body.getChildByName('bottleBallFill');
+    if (!fill) {
+        if (onComplete) onComplete();
+        return;
+    }
+    const nextProgress = Math.max(0, progress);
+    const state = { progress: Number((fill as any).progressCount) || 0 };
     const previousState = (fill as any).waterTweenState;
     if (previousState) cc.Tween.stopAllByTarget(previousState);
     (fill as any).waterTweenState = state;
+    if (Math.abs(state.progress - nextProgress) < 0.01) {
+        drawBottleBallFill(fill, nextProgress, target);
+        if (onComplete) onComplete();
+        return;
+    }
     cc.tween(state)
-        .to(0.26, { ratio }, {
+        .to(0.26, { progress: nextProgress }, {
             easing: 'sineOut',
-            onUpdate: () => drawBottleWaterFill(fill, state.ratio),
+            onUpdate: () => {
+                if (cc.isValid(fill)) drawBottleBallFill(fill, state.progress, target);
+            },
+        })
+        .call(() => {
+            if (onComplete) onComplete();
         })
         .start();
 }
 
-/** 奖励回流动画开始前同步设置水位，避免先展示结算后的最终值再跳回旧值。 */
+/** 奖励回流动画开始前同步球堆，避免先展示结算终值再跳回旧值。 */
 export function setWishBottleProgressImmediately(bottle: cc.Node, progress: number, target: number): void {
     if (!bottle || !cc.isValid(bottle)) return;
     const body = bottle.getChildByName('bottleBody');
-    const fill = body && body.getChildByName('bottleWaterFill');
+    const fill = body && body.getChildByName('bottleBallFill');
     if (!fill) return;
     const previousState = (fill as any).waterTweenState;
     if (previousState) cc.Tween.stopAllByTarget(previousState);
-    drawBottleWaterFill(fill, Math.max(0, Math.min(1, progress / Math.max(1, target))));
+    const safeProgress = Math.max(0, progress);
+    const safeTarget = Math.max(1, target);
+    (bottle as any).absoluteProgress = safeProgress;
+    drawBottleBallFill(fill, safeProgress % safeTarget, safeTarget);
+}
+
+/**
+ * 用「绝对收集量」驱动瓶子表现：越过整瓶时先装满 → 向上飞走 → 原地生成空瓶 → 再补余数。
+ */
+export function presentWishBottleAbsoluteProgress(
+    bottle: cc.Node,
+    absoluteProgress: number,
+    target: number,
+    options: WishBottlePresentOptions = {},
+): void {
+    if (!bottle || !cc.isValid(bottle)) return;
+    const safeTarget = Math.max(1, target);
+    const nextAbs = Math.max(0, absoluteProgress);
+
+    if ((bottle as any).rolloverBusy) {
+        (bottle as any).pendingAbsolute = nextAbs;
+        (bottle as any).pendingPresentOptions = options;
+        return;
+    }
+
+    const prevAbsRaw = Number((bottle as any).absoluteProgress);
+    const fromAbs = Number.isFinite(prevAbsRaw) ? prevAbsRaw : nextAbs;
+    (bottle as any).absoluteProgress = nextAbs;
+
+    const fromCompleted = Math.floor(fromAbs / safeTarget);
+    const toCompleted = Math.floor(nextAbs / safeTarget);
+    if (toCompleted <= fromCompleted) {
+        const slot = nextAbs % safeTarget;
+        updateWishBottleProgress(bottle, slot, safeTarget, options.onPresentationComplete);
+        if (options.onSlotProgress) options.onSlotProgress(slot);
+        return;
+    }
+
+    runWishBottleRollover(bottle, fromAbs, nextAbs, safeTarget, options);
+}
+
+function runWishBottleRollover(
+    bottle: cc.Node,
+    fromAbs: number,
+    toAbs: number,
+    target: number,
+    options: WishBottlePresentOptions,
+): void {
+    (bottle as any).rolloverBusy = true;
+    const completedDelta = Math.floor(toAbs / target) - Math.floor(fromAbs / target);
+    const endSlot = toAbs % target;
+    if (options.onSlotProgress) options.onSlotProgress(target);
+
+    const finish = (): void => {
+        (bottle as any).rolloverBusy = false;
+        const pending = Number((bottle as any).pendingAbsolute);
+        const pendingOptions = (bottle as any).pendingPresentOptions as WishBottlePresentOptions;
+        (bottle as any).pendingAbsolute = null;
+        (bottle as any).pendingPresentOptions = null;
+        if (Number.isFinite(pending)) {
+            presentWishBottleAbsoluteProgress(bottle, pending, target, pendingOptions || options);
+            return;
+        }
+        if (options.onSlotProgress) options.onSlotProgress(endSlot);
+        if (options.onPresentationComplete) options.onPresentationComplete();
+    };
+
+    updateWishBottleProgress(bottle, target, target, () => {
+        let flown = 0;
+        const flyNext = (): void => {
+            flyFullWishBottleAway(bottle, target, options.flyTargetLocal, () => {
+                flown += 1;
+                if (options.onCompletedBottle) options.onCompletedBottle();
+                appearEmptyWishBottle(bottle, () => {
+                    if (flown < completedDelta) {
+                        updateWishBottleProgress(bottle, target, target, flyNext);
+                        return;
+                    }
+                    updateWishBottleProgress(bottle, endSlot, target, finish);
+                });
+            });
+        };
+        flyNext();
+    });
+}
+
+function clearWishBottleFillVisual(bottle: cc.Node, target: number): void {
+    const body = bottle.getChildByName('bottleBody');
+    const fill = body && body.getChildByName('bottleBallFill');
+    if (!fill) return;
+    const previousState = (fill as any).waterTweenState;
+    if (previousState) cc.Tween.stopAllByTarget(previousState);
+    drawBottleBallFill(fill, 0, Math.max(1, target));
+}
+
+/**
+ * 满瓶演出：先上移并略放大 → 短停 → 飞向目标点（须为瓶子父节点本地坐标）。
+ * 始终移动真实瓶身；抵达后才清空并回到原位，避免运行时 Graphics 克隆体不可见。
+ */
+function flyFullWishBottleAway(
+    bottle: cc.Node,
+    fillTarget: number,
+    flyTargetLocal: cc.Vec2,
+    onDone: () => void,
+): void {
+    if (!bottle || !cc.isValid(bottle) || !bottle.parent) {
+        onDone();
+        return;
+    }
+    const baseScale = Number((bottle as any).baseScale) || bottle.scale || 1;
+    const homeX = Number((bottle as any).homeSlotX);
+    const homeY = Number((bottle as any).homeSlotY);
+    const originX = Number.isFinite(homeX) ? homeX : bottle.x;
+    const originY = Number.isFinite(homeY) ? homeY : bottle.y;
+    const originZIndex = bottle.zIndex;
+    const riseY = originY + 50;
+    const celebrateScale = baseScale * 1.14;
+    const flyTo = flyTargetLocal && Number.isFinite(flyTargetLocal.x) && Number.isFinite(flyTargetLocal.y)
+        ? flyTargetLocal
+        : cc.v2(originX, originY + 360);
+
+    cc.Tween.stopAllByTarget(bottle);
+    bottle.opacity = 255;
+    bottle.setPosition(originX, originY);
+    bottle.scale = baseScale;
+    bottle.zIndex = Math.max(bottle.zIndex, 400);
+
+    cc.tween(bottle)
+        .to(0.3, { y: riseY, scale: celebrateScale }, { easing: 'backOut' })
+        .delay(0.32)
+        .to(0.72, {
+            x: flyTo.x,
+            y: flyTo.y,
+            scale: Math.max(0.14, baseScale * 0.2),
+            opacity: 0,
+        }, { easing: 'quadIn' })
+        .call(() => {
+            if (!cc.isValid(bottle)) {
+                onDone();
+                return;
+            }
+            clearWishBottleFillVisual(bottle, fillTarget);
+            bottle.setPosition(originX, originY);
+            bottle.scale = baseScale * 0.62;
+            bottle.zIndex = originZIndex;
+            onDone();
+        })
+        .start();
+}
+
+function appearEmptyWishBottle(bottle: cc.Node, onDone: () => void): void {
+    if (!bottle || !cc.isValid(bottle)) {
+        onDone();
+        return;
+    }
+    const baseScale = Number((bottle as any).baseScale) || 1;
+    const homeX = Number((bottle as any).homeSlotX);
+    const homeY = Number((bottle as any).homeSlotY);
+    if (Number.isFinite(homeX) && Number.isFinite(homeY)) {
+        bottle.setPosition(homeX, homeY);
+    }
+    bottle.opacity = 0;
+    bottle.scale = baseScale * 0.7;
+    cc.tween(bottle)
+        .to(0.24, { opacity: 255, scale: baseScale }, { easing: 'backOut' })
+        .call(onDone)
+        .start();
 }
 
 /** 同时支持顶部小瓶与结算大瓶的瓶盖反馈。 */
@@ -539,11 +797,11 @@ export function playBottleBurp(bottle: cc.Node): void {
     const baseY = 109;
     cc.Tween.stopAllByTarget(cap);
     cap.y = baseY;
-    cap.rotation = 0;
+    cap.angle = 0;
     cc.tween(cap)
-        .to(0.07, { y: baseY + 18, rotation: 8, scale: 1.06 }, { easing: 'backOut' })
-        .to(0.1, { y: baseY - 3, rotation: -3, scale: 0.98 }, { easing: 'quadIn' })
-        .to(0.08, { y: baseY, rotation: 0, scale: 1 }, { easing: 'backOut' })
+        .to(0.07, { y: baseY + 18, angle: -8, scale: 1.06 }, { easing: 'backOut' })
+        .to(0.1, { y: baseY - 3, angle: 3, scale: 0.98 }, { easing: 'quadIn' })
+        .to(0.08, { y: baseY, angle: 0, scale: 1 }, { easing: 'backOut' })
         .start();
 }
 
@@ -577,7 +835,7 @@ export function createMoodCanvasBackground(parent: cc.Node, width: number, heigh
     root.addChild(illustration);
     const sprite = illustration.addComponent(cc.Sprite);
     sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-    cc.resources.load('images/formal/home_studio_bg_v3', cc.SpriteFrame, (error: Error, frame: cc.SpriteFrame) => {
+    loadSpriteFrame('home', 'images/home_studio_bg_v3', (error, frame) => {
         if (error || !frame || !cc.isValid(illustration)) {
             cc.warn('Home studio background failed to load', error);
             return;
@@ -611,7 +869,7 @@ export function createGameRoomBackground(parent: cc.Node, width: number, height:
     root.addChild(illustration);
     const sprite = illustration.addComponent(cc.Sprite);
     sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-    cc.resources.load('images/formal/game_room_bg_v3', cc.SpriteFrame, (error: Error, frame: cc.SpriteFrame) => {
+    loadSpriteFrame('resources', 'images/formal/game_room_bg_v3', (error, frame) => {
         if (error || !frame || !cc.isValid(illustration)) {
             cc.warn('Game room background failed to load', error);
             return;
@@ -635,7 +893,7 @@ export function createMoodWatermarkWall(parent: cc.Node, width: number, height: 
     const layer = new cc.Node('watermarkLayer');
     layer.width = width + 480;
     layer.height = height + 480;
-    layer.rotation = -21;
+    layer.angle = 21;
     layer.setPosition(-42, 42);
     root.addChild(layer);
 

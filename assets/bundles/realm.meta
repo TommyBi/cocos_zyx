@@ -1,0 +1,21 @@
+{
+  "ver": "1.1.3",
+  "uuid": "0708ec2c-1d42-469c-91cf-b92d9b897fe3",
+  "importer": "folder",
+  "isBundle": true,
+  "bundleName": "realm",
+  "priority": 5,
+  "compressionType": {
+    "wechatgame": "subpackage"
+  },
+  "optimizeHotUpdate": {
+    "wechatgame": false
+  },
+  "inlineSpriteFrames": {
+    "wechatgame": false
+  },
+  "isRemoteBundle": {
+    "wechatgame": false
+  },
+  "subMetas": {}
+}

@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "eadf9826-c352-4909-a7e6-e823d515f6d3",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 315,
+  "height": 420,
+  "platformSettings": {},
+  "subMetas": {
+    "realm_comic_book_01": {
+      "ver": "1.0.6",
+      "uuid": "be1d3025-7f75-415a-8537-255eef4adf2b",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "eadf9826-c352-4909-a7e6-e823d515f6d3",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 315,
+      "height": 420,
+      "rawWidth": 315,
+      "rawHeight": 420,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}
