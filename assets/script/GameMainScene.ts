@@ -17,8 +17,11 @@ import {
     presentWishBottleAbsoluteProgress,
     setWishBottleProgressImmediately,
 } from './zyxGame/MoodArt';
-import { ART_ALBUMS, countUnlockedArts, isAlbumUnlockedByLevel, renderAlbumView } from './zyxGame/ArtAlbum';
-import { ensureGameResourcesReady, ensureHomeReady, ensureRealmReady, loadSpriteFrame } from './manager/AssetLoader';
+import { ART_ALBUMS, renderAlbumShelf, renderAlbumView, syncRealmCloudState } from './zyxGame/ArtAlbum';
+import { playBookPageTransition } from './zyxGame/BookTransition';
+import { ensureAlbumArtReady, ensureGameResourcesReady, ensureHomeReady, ensureRealmReady, isBundleReady, loadSpriteFrame } from './manager/AssetLoader';
+import { registerSystemShare } from './manager/ShareReward';
+import { audioManager, MusicName } from './manager/AudioManager';
 
 const { ccclass } = cc._decorator;
 declare const wx: any;
@@ -33,7 +36,9 @@ export default class GameMainScene extends cc.Component {
     private profileLevelLabel: cc.Label = null;
     private profileExperienceFill: cc.Node = null;
     private profileExperienceLabel: cc.Label = null;
-    private profileExperienceTrackWidth: number = 220;
+    private profileExperienceTrackWidth: number = 238;
+    private profileExperienceFillWidth: number = 192;
+    private profileExperienceFillLeft: number = -88;
     private nativeWeChatProfileButton: any = null;
     private homeMoodBottle: cc.Node = null;
     private homeMoodCountLabel: cc.Label = null;
@@ -51,9 +56,20 @@ export default class GameMainScene extends cc.Component {
     private gmBubble: cc.Node = null;
     private albumArtIndex: number = 0;
     private currentAlbumId: string = ART_ALBUMS[0] ? ART_ALBUMS[0].id : 'album_city';
+    private albumArrowHoldDirection: number = 0;
+    private albumArrowHoldRepeated: boolean = false;
+    private albumArrowHoldDelay: () => void = null;
+    private albumArrowRepeatTick: () => void = null;
+    private albumArrowNavigate: (direction: number) => void = null;
+    private bookTransitionLayer: cc.Node = null;
+    private bookTransitioning: boolean = false;
+    private gameAssetsLoading: boolean = false;
+    private realmAssetsLoading: boolean = false;
+    private albumAssetsLoading: boolean = false;
 
     public onLoad(): void {
         uimanager.init(this.node);
+        registerSystemShare();
         cc.debug.setDisplayStats(false);
         const canvas = this.node.getComponent(cc.Canvas);
         const frame = cc.view.getFrameSize();
@@ -62,6 +78,8 @@ export default class GameMainScene extends cc.Component {
             canvas.fitWidth = false;
             canvas.fitHeight = true;
         }
+        this.node.on(cc.Node.EventType.TOUCH_END, this.handleGlobalAlbumTouchEnd, this, true);
+        this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.handleGlobalAlbumTouchCancel, this, true);
         this.createGmBubble();
     }
 
@@ -71,21 +89,27 @@ export default class GameMainScene extends cc.Component {
             && typeof window.location.search === 'string'
             ? window.location.search
             : '';
+        const seedMatch = search.match(/[?&]seed=(\d+)/);
+        zyxGameModule.setRoundSeedOverride(seedMatch ? Number(seedMatch[1]) : 0);
         if (search.indexOf('autostart=1') >= 0) {
-            ensureGameResourcesReady()
-                .then(() => this.startGame())
-                .catch(() => this.startGame());
+            this.startGame();
             return;
         }
         ensureHomeReady()
             .then(() => this.showHome())
-            .catch(() => {
-                uimanager.showToast('首页资源加载中，请稍候再试');
-                this.showHome();
-            });
+            .catch((error: Error) => this.showResourceLoadFailure('首页', () => this.start()));
     }
 
     public onDestroy(): void {
+        this.stopAlbumArrowHold();
+        if (this.bookTransitionLayer && cc.isValid(this.bookTransitionLayer)) {
+            this.stopScreenTweens(this.bookTransitionLayer);
+            this.bookTransitionLayer.destroy();
+        }
+        this.bookTransitionLayer = null;
+        this.bookTransitioning = false;
+        this.node.off(cc.Node.EventType.TOUCH_END, this.handleGlobalAlbumTouchEnd, this, true);
+        this.node.off(cc.Node.EventType.TOUCH_CANCEL, this.handleGlobalAlbumTouchCancel, this, true);
         this.destroyNativeWeChatProfileButton();
     }
 
@@ -128,7 +152,15 @@ export default class GameMainScene extends cc.Component {
             () => this.startGame(),
             40,
         );
+        this.decorateStartButton();
         this.createStartButtonGuide();
+        this.preloadGameResourcesSilently();
+    }
+
+    /** 首页可交互后立即预热消除分包；失败不打扰用户，点击开始时会自动重试。 */
+    private preloadGameResourcesSilently(): void {
+        ensureGameResourcesReady()
+            .catch((error: Error) => cc.warn('Game resource preload failed', error));
     }
 
     /** 首页正式艺术字标题：位图保持等比显示，不再使用程序文字。 */
@@ -151,72 +183,88 @@ export default class GameMainScene extends cc.Component {
         });
     }
 
-    /** 档案卡右侧：小瓶压住数量底左缘，读起来是「这个瓶子 ×N」。 */
+    /** 档案卡右侧独立资产区：只保留区域底与数量底，不再给瓶子叠圆环。 */
     private createHappyBottleCount(profile: cc.Node): void {
-        const cardWidth = 126;
-        const cardHeight = 76;
-        const card = uimanager.createRect(profile, 'happyBottleCount', cardWidth, cardHeight, new cc.Color(245, 224, 180), 238, 16, 160, 0);
+        const cardWidth = 116;
+        const cardHeight = 84;
+        const cardX = 184;
+        const card = uimanager.createRect(profile, 'happyBottleCount', cardWidth, cardHeight, new cc.Color(237, 244, 222), 255, 18, cardX, 0);
         card.zIndex = 25;
         this.happyBottleCountCard = card;
-        const border = card.addComponent(cc.Graphics);
-        border.strokeColor = new cc.Color(157, 112, 61, 142);
-        border.lineWidth = 1.8;
-        border.roundRect(-cardWidth / 2 + 2, -cardHeight / 2 + 2, cardWidth - 4, cardHeight - 4, 14);
+        const borderNode = new cc.Node('happyBottleCountBorder');
+        borderNode.zIndex = 2;
+        card.addChild(borderNode);
+        const border = borderNode.addComponent(cc.Graphics);
+        border.strokeColor = new cc.Color(126, 175, 146, 150);
+        border.lineWidth = 1.5;
+        border.roundRect(-cardWidth / 2 + 1.5, -cardHeight / 2 + 1.5, cardWidth - 3, cardHeight - 3, 16.5);
         border.stroke();
-        // 先画数量底，再画瓶子，让瓶身压住底的左侧。
-        const badge = uimanager.createRect(card, 'happyBottleBadge', 52, 34, MOOD_COLORS.cocoa, 255, 17, 28, -6);
+
+        this.drawHudHappyBottle(card, -31, -1);
+
+        const name = uimanager.createLabel(card, '开心瓶', 27, 18, 13, MOOD_COLORS.cocoaSoft, 54, 20);
+        this.makeCartoonBold(name, new cc.Color(255, 249, 232), 0.55);
+        const badge = uimanager.createRect(card, 'happyBottleBadge', 54, 30, MOOD_COLORS.honey, 255, 15, 27, -14);
         badge.zIndex = 8;
         this.happyBottleCountBadge = badge;
+        const badgeBorderNode = new cc.Node('happyBottleBadgeBorder');
+        badgeBorderNode.zIndex = 2;
+        badge.addChild(badgeBorderNode);
+        const badgeBorder = badgeBorderNode.addComponent(cc.Graphics);
+        badgeBorder.strokeColor = new cc.Color(124, 83, 54, 94);
+        badgeBorder.lineWidth = 1.2;
+        badgeBorder.roundRect(-26, -13, 52, 26, 13);
+        badgeBorder.stroke();
         this.happyBottleCountLabel = uimanager.createLabel(
             badge,
-            `×${zyxGameModule.happyBottleCount}`,
-            3,
+            String(zyxGameModule.happyBottleCount),
+            0,
             1,
-            22,
-            cc.Color.WHITE,
-            48,
-            28,
+            24,
+            MOOD_COLORS.cocoa,
+            50,
+            26,
         );
-        this.drawHudHappyBottle(card, -10, 2);
+        this.makeCartoonBold(this.happyBottleCountLabel, new cc.Color(255, 246, 224), 0.7);
         this.layoutHappyBottleCountBadge();
         card.addComponent(cc.Button);
-        card.on(cc.Node.EventType.TOUCH_END, () => this.showWorryFreeRealm(), this);
+        card.on(cc.Node.EventType.TOUCH_START, () => {
+            cc.Tween.stopAllByTarget(card);
+            cc.tween(card).to(0.06, { scale: 0.96 }).start();
+        }, this);
+        card.on(cc.Node.EventType.TOUCH_END, () => {
+            cc.Tween.stopAllByTarget(card);
+            cc.tween(card).to(0.12, { scale: 1 }, { easing: 'backOut' }).start();
+            this.showWorryFreeRealm();
+        }, this);
+        card.on(cc.Node.EventType.TOUCH_CANCEL, () => {
+            cc.Tween.stopAllByTarget(card);
+            cc.tween(card).to(0.1, { scale: 1 }).start();
+        }, this);
     }
 
-    /** 数量角标：字号加大；瓶图标叠在底左侧，宽度随位数向右伸。 */
+    /** 数量保持在固定胶囊内，位数增加时只缩字号，不改变卡片布局。 */
     private layoutHappyBottleCountBadge(countOverride?: number): void {
         if (!this.happyBottleCountBadge || !this.happyBottleCountLabel) return;
         if (!cc.isValid(this.happyBottleCountBadge) || !cc.isValid(this.happyBottleCountLabel.node)) return;
         const count = Math.max(0, Math.floor(
             Number.isFinite(countOverride) ? countOverride : zyxGameModule.happyBottleCount,
         ));
-        const text = `×${count}`;
-        this.happyBottleCountLabel.string = text;
+        this.happyBottleCountLabel.string = String(count);
         const digits = String(count).length;
-        const width = Math.max(52, 34 + digits * 14);
-        const height = 34;
-        this.happyBottleCountBadge.width = width;
-        this.happyBottleCountBadge.height = height;
-        // 左缘藏进瓶身下方，右缘露出数字。
-        this.happyBottleCountBadge.setPosition(8 + width / 2, -6);
-        uimanager.drawRect(this.happyBottleCountBadge, width, height, MOOD_COLORS.cocoa, height / 2);
-        this.happyBottleCountLabel.node.x = 4;
-        this.happyBottleCountLabel.node.width = width - 10;
-        this.happyBottleCountLabel.node.height = height - 4;
-        this.happyBottleCountLabel.fontSize = digits >= 3 ? 19 : 22;
+        this.happyBottleCountLabel.node.setPosition(0, 1);
+        this.happyBottleCountLabel.node.width = 50;
+        this.happyBottleCountLabel.node.height = 26;
+        this.happyBottleCountLabel.fontSize = digits >= 4 ? 16 : (digits >= 3 ? 20 : 24);
     }
 
-    /** 顶部入口专用小瓶：粗轮廓 + 少量彩球；层级高于数量底以便压住底边。 */
+    /** 小尺寸开心瓶：只画瓶体和彩球，不附加圆环或落地阴影。 */
     private drawHudHappyBottle(parent: cc.Node, x: number, y: number): void {
         const icon = new cc.Node('hudHappyBottle');
         icon.setPosition(x, y);
         icon.zIndex = 16;
         parent.addChild(icon);
         const g = icon.addComponent(cc.Graphics);
-
-        g.fillColor = new cc.Color(90, 64, 52, 48);
-        g.ellipse(0, -26, 18, 5);
-        g.fill();
 
         // 瓶身：暖玻璃底 + 深描边，保证小尺寸可读。
         g.fillColor = new cc.Color(255, 244, 220, 230);
@@ -434,47 +482,55 @@ export default class GameMainScene extends cc.Component {
         );
     }
 
-    /** 右下角独立设置入口：沿用参考图的奶油色齿轮，而不混入右侧功能卡。 */
+    /** 右下角独立设置入口：用高对比度的软糖按钮承接全局设置。 */
     private createHomeSettingsEntry(): void {
         const safeArea = uimanager.getSafeAreaMetrics();
-        const radius = 34;
-        const x = this.screen.width / 2 - safeArea.right - 15 - radius;
-        const y = -this.screen.height / 2 + safeArea.bottom + 90;
-        const shadow = uimanager.createCircle(this.screen, 'settingsEntryShadow', radius + 2, new cc.Color(89, 63, 52, 52), x - 2, y - 4);
-        shadow.zIndex = 145;
-        const entry = uimanager.createCircle(this.screen, 'settingsEntry', radius, new cc.Color(255, 244, 218), x, y);
+        const buttonWidth = 104;
+        const buttonHeight = 88;
+        const x = this.screen.width / 2 - safeArea.right - 15 - buttonWidth / 2;
+        const y = -this.screen.height / 2 + safeArea.bottom + 95;
+        const entry = uimanager.createRect(this.screen, 'settingsEntry', buttonWidth, buttonHeight, MOOD_COLORS.mistBlue, 255, 24, x, y);
         entry.zIndex = 150;
-        const border = entry.addComponent(cc.Graphics);
-        border.strokeColor = new cc.Color(145, 100, 66, 230);
-        border.lineWidth = 2.4;
-        border.circle(0, 0, radius - 1.4);
-        border.stroke();
-        this.drawSettingsGear(entry);
-        const title = uimanager.createLabel(this.screen, '设置', x, y - 48, 16, MOOD_COLORS.cocoa, 70, 24);
-        title.node.zIndex = 151;
-        this.makeCartoonBold(title, MOOD_COLORS.cocoa, 0.72);
+        uimanager.drawButtonSurface(entry, buttonWidth, buttonHeight, MOOD_COLORS.mistBlue, 24);
+        const gear = this.drawSettingsGear(entry);
+        const title = uimanager.createLabel(entry, '设置', 0, -27, 18, new cc.Color(255, 250, 237), 76, 26);
+        this.makeCartoonBold(title, new cc.Color(55, 91, 107), 1.1);
         entry.addComponent(cc.Button);
-        entry.on(cc.Node.EventType.TOUCH_START, () => cc.tween(entry).to(0.07, { scale: 0.92 }).start(), this);
+        entry.on(cc.Node.EventType.TOUCH_START, () => {
+            cc.Tween.stopAllByTarget(entry);
+            cc.Tween.stopAllByTarget(gear);
+            cc.tween(entry).to(0.07, { scale: 0.93 }).start();
+            cc.tween(gear).to(0.07, { angle: 12 }).start();
+        }, this);
         entry.on(cc.Node.EventType.TOUCH_END, () => {
-            cc.tween(entry).to(0.1, { scale: 1 }).start();
+            cc.Tween.stopAllByTarget(entry);
+            cc.Tween.stopAllByTarget(gear);
+            cc.tween(entry).to(0.12, { scale: 1 }, { easing: 'backOut' }).start();
+            cc.tween(gear).to(0.16, { angle: 0 }, { easing: 'backOut' }).start();
             this.showSettings();
         }, this);
-        entry.on(cc.Node.EventType.TOUCH_CANCEL, () => cc.tween(entry).to(0.1, { scale: 1 }).start(), this);
+        entry.on(cc.Node.EventType.TOUCH_CANCEL, () => {
+            cc.Tween.stopAllByTarget(entry);
+            cc.Tween.stopAllByTarget(gear);
+            cc.tween(entry).to(0.1, { scale: 1 }).start();
+            cc.tween(gear).to(0.1, { angle: 0 }).start();
+        }, this);
     }
 
-    private drawSettingsGear(parent: cc.Node): void {
+    private drawSettingsGear(parent: cc.Node): cc.Node {
         const gear = new cc.Node('settingsGearGlyph');
+        gear.setPosition(0, 14);
         gear.zIndex = 4;
         parent.addChild(gear);
         const g = gear.addComponent(cc.Graphics);
-        g.fillColor = new cc.Color(255, 231, 171);
-        g.strokeColor = new cc.Color(145, 100, 66);
-        g.lineWidth = 2.2;
+        g.fillColor = MOOD_COLORS.cream;
+        g.strokeColor = MOOD_COLORS.cocoa;
+        g.lineWidth = 2.6;
         const points: cc.Vec2[] = [];
-        for (let index = 0; index < 24; index++) {
-            const phase = index % 3;
-            const radius = phase === 1 ? 21 : 16;
-            const angle = Math.PI / 2 + index * Math.PI * 2 / 24;
+        for (let index = 0; index < 32; index++) {
+            const phase = index % 4;
+            const radius = phase === 1 || phase === 2 ? 21 : 16.5;
+            const angle = Math.PI / 2 + index * Math.PI * 2 / 32;
             points.push(new cc.Vec2(Math.cos(angle) * radius, Math.sin(angle) * radius));
         }
         g.moveTo(points[0].x, points[0].y);
@@ -482,13 +538,23 @@ export default class GameMainScene extends cc.Component {
         g.close();
         g.fill();
         g.stroke();
-        g.fillColor = new cc.Color(255, 248, 225);
-        g.circle(0, 0, 8);
+        g.fillColor = MOOD_COLORS.honey;
+        g.circle(0, 0, 10);
         g.fill();
-        g.strokeColor = new cc.Color(145, 100, 66);
+        g.strokeColor = MOOD_COLORS.cocoa;
         g.lineWidth = 1.8;
-        g.circle(0, 0, 8);
+        g.circle(0, 0, 10);
         g.stroke();
+        g.fillColor = MOOD_COLORS.cocoa;
+        g.circle(-3.8, 2.2, 1.35);
+        g.circle(3.8, 2.2, 1.35);
+        g.fill();
+        g.strokeColor = MOOD_COLORS.cocoa;
+        g.lineWidth = 1.6;
+        g.moveTo(-4, -1.4);
+        g.quadraticCurveTo(0, -5.2, 4, -1.4);
+        g.stroke();
+        return gear;
     }
 
     private showSettings(): void {
@@ -1241,63 +1307,73 @@ export default class GameMainScene extends cc.Component {
 
     private createHomeProfile(panelY: number): cc.Node {
         const panelX = -102;
-        uimanager.createRect(this.screen, 'profileShadow', 506, 106, new cc.Color(78, 53, 46), 32, 28, panelX, panelY - 5);
-        const panel = uimanager.createRect(this.screen, 'profileCard', 500, 102, new cc.Color(255, 249, 232), 244, 26, panelX, panelY);
+        uimanager.createRect(this.screen, 'profileShadow', 506, 114, new cc.Color(78, 53, 46), 32, 28, panelX, panelY - 5);
+        const panel = uimanager.createRect(this.screen, 'profileCard', 500, 108, new cc.Color(255, 249, 232), 244, 26, panelX, panelY);
 
-        uimanager.createCircle(panel, 'avatarBorder', 39, MOOD_COLORS.cocoaSoft, -194, 1);
+        const avatarX = -202;
+        const avatarFrame = new cc.Node('avatarRoundedFrame');
+        avatarFrame.width = 86;
+        avatarFrame.height = 82;
+        avatarFrame.setPosition(avatarX, 0);
+        avatarFrame.zIndex = 10;
+        panel.addChild(avatarFrame);
+        const avatarFrameGraphics = avatarFrame.addComponent(cc.Graphics);
+        avatarFrameGraphics.fillColor = new cc.Color(255, 239, 190);
+        avatarFrameGraphics.strokeColor = MOOD_COLORS.cocoaSoft;
+        avatarFrameGraphics.lineWidth = 4;
+        avatarFrameGraphics.roundRect(-41, -39, 82, 78, 20);
+        avatarFrameGraphics.fill();
+        avatarFrameGraphics.stroke();
+
         const avatarMask = new cc.Node('avatarMask');
         avatarMask.width = 68;
-        avatarMask.height = 68;
-        avatarMask.setPosition(-194, 1);
+        avatarMask.height = 64;
+        avatarMask.setPosition(avatarX, 0);
         avatarMask.zIndex = 20;
         panel.addChild(avatarMask);
         const mask = avatarMask.addComponent(cc.Mask);
-        mask.type = cc.Mask.Type.ELLIPSE;
-        mask.segements = 48;
+        mask.type = cc.Mask.Type.RECT;
 
         this.profileAvatarContent = new cc.Node('avatarContent');
         this.profileAvatarContent.width = 68;
-        this.profileAvatarContent.height = 68;
+        this.profileAvatarContent.height = 64;
         avatarMask.addChild(this.profileAvatarContent);
         this.drawDefaultAvatar();
 
         const avatarHit = new cc.Node('avatarAuthorizationButton');
-        avatarHit.width = 78;
-        avatarHit.height = 78;
-        avatarHit.setPosition(-194, 1);
+        avatarHit.width = 86;
+        avatarHit.height = 82;
+        avatarHit.setPosition(avatarX, 0);
         avatarHit.zIndex = 60;
         avatarHit.addComponent(cc.Button);
         panel.addChild(avatarHit);
         avatarHit.on(cc.Node.EventType.TOUCH_END, () => this.requestWeChatProfile(), this);
 
-        this.profileNameLabel = uimanager.createLabel(panel, '顺心朋友', -137, 29, 22, MOOD_COLORS.cocoa, 132, 32);
+        this.profileNameLabel = uimanager.createLabel(panel, '顺心朋友', -151, 20, 22, MOOD_COLORS.cocoa, 150, 30);
         this.profileNameLabel.horizontalAlign = cc.Label.HorizontalAlign.LEFT;
         this.profileNameLabel.node.setAnchorPoint(0, 0.5);
-        this.profileNameLabel.node.setPosition(-137, 29);
+        this.profileNameLabel.node.setPosition(-151, 20);
 
         this.profileAuthorizationButton = uimanager.createButton(
             panel,
             '授权',
-            39,
-            29,
-            66,
-            34,
+            70,
+            20,
+            64,
+            32,
             BUTTON_COLORS.green,
             () => this.requestWeChatProfile(),
-            15,
+            14,
         );
         this.profileAuthorizationButton.name = 'profileAuthorizationButton';
 
-        const levelBadge = uimanager.createRect(panel, 'levelBadge', 62, 32, MOOD_COLORS.cocoa, 255, 10, -128, -27);
-        this.profileLevelLabel = uimanager.createLabel(levelBadge, `Lv.${zyxGameModule.level}`, 0, 0, 17, cc.Color.WHITE, 58, 28);
         const target = zyxGameModule.getExperienceTarget();
         const ratio = Math.max(0, Math.min(1, zyxGameModule.experience / target));
         const trackWidth = this.profileExperienceTrackWidth;
-        const trackInner = trackWidth - 8;
-        const trackX = -2;
-        uimanager.createRect(panel, 'experienceTrack', trackWidth, 30, new cc.Color(87, 79, 72), 220, 10, trackX, -27);
-        const fillWidth = Math.max(10, trackInner * ratio);
-        const fillLeft = trackX - trackWidth / 2 + 4;
+        const trackX = -11;
+        const trackY = -20;
+        uimanager.createRect(panel, 'experienceTrack', trackWidth, 30, new cc.Color(87, 79, 72), 220, 10, trackX, trackY);
+        const fillWidth = Math.max(8, this.profileExperienceFillWidth * ratio);
         this.profileExperienceFill = uimanager.createRect(
             panel,
             'experienceFill',
@@ -1306,20 +1382,23 @@ export default class GameMainScene extends cc.Component {
             MOOD_COLORS.sage,
             255,
             7,
-            fillLeft + fillWidth / 2,
-            -27,
+            this.profileExperienceFillLeft + fillWidth / 2,
+            trackY,
         );
         this.profileExperienceLabel = uimanager.createLabel(
             panel,
             `经验 ${zyxGameModule.experience}/${target}`,
-            trackX,
-            -27,
-            17,
+            8,
+            trackY,
+            16,
             cc.Color.WHITE,
-            trackWidth - 16,
-            26,
+            190,
+            25,
         );
         this.makeCartoonBold(this.profileExperienceLabel, new cc.Color(65, 58, 53), 0.85);
+        const levelBadge = uimanager.createRect(panel, 'levelBadge', 72, 34, MOOD_COLORS.cocoa, 255, 11, -126, trackY);
+        levelBadge.zIndex = 12;
+        this.profileLevelLabel = uimanager.createLabel(levelBadge, `Lv.${zyxGameModule.level}`, 0, 0, 17, cc.Color.WHITE, 66, 28);
 
         const stored = cc.sys.localStorage.getItem('zyx_wechat_profile');
         let hasCachedProfile = false;
@@ -1333,7 +1412,7 @@ export default class GameMainScene extends cc.Component {
             }
         }
         this.profileAuthorizationButton.active = !hasCachedProfile;
-        this.configureWeChatProfileAccess(panelX + 39, panelY + 29, 66, 34, hasCachedProfile);
+        this.configureWeChatProfileAccess(panelX + 70, panelY + 20, 64, 32, hasCachedProfile);
         return panel;
     }
 
@@ -1342,35 +1421,40 @@ export default class GameMainScene extends cc.Component {
         this.profileAvatarContent.removeAllChildren();
         const avatar = new cc.Node('defaultAvatar');
         avatar.width = 68;
-        avatar.height = 68;
+        avatar.height = 64;
         this.profileAvatarContent.addChild(avatar);
         const g = avatar.addComponent(cc.Graphics);
-        g.fillColor = new cc.Color(246, 197, 95);
-        g.circle(0, 0, 36);
+        g.fillColor = new cc.Color(246, 210, 126);
+        g.roundRect(-34, -32, 68, 64, 14);
+        g.fill();
+
+        // 默认头像是一张完整的圆角方形插画，而不是再塞进圆形头像套娃。
+        g.fillColor = new cc.Color(126, 190, 157);
+        g.roundRect(-22, -34, 44, 21, 10);
         g.fill();
         g.fillColor = new cc.Color(255, 239, 190);
-        g.circle(0, -4, 25);
+        g.roundRect(-22, -19, 44, 42, 17);
         g.fill();
         g.fillColor = MOOD_COLORS.cocoa;
-        g.circle(-8, 2, 2.2);
-        g.circle(8, 2, 2.2);
+        g.circle(-8, 1, 2.2);
+        g.circle(8, 1, 2.2);
         g.fill();
         g.strokeColor = MOOD_COLORS.cocoa;
         g.lineWidth = 2;
         g.arc(0, -4, 8, 0.15 * Math.PI, 0.85 * Math.PI, false);
         g.stroke();
         g.fillColor = new cc.Color(239, 151, 105);
-        g.ellipse(-14, -5, 6, 3);
-        g.ellipse(14, -5, 6, 3);
+        g.ellipse(-14, -5, 5, 2.5);
+        g.ellipse(14, -5, 5, 2.5);
         g.fill();
         g.fillColor = new cc.Color(255, 226, 125);
-        g.moveTo(-16, 23);
-        g.lineTo(-5, 15);
-        g.lineTo(0, 27);
-        g.lineTo(7, 15);
-        g.lineTo(17, 23);
-        g.lineTo(13, 33);
-        g.lineTo(-13, 33);
+        g.moveTo(-17, 20);
+        g.lineTo(-7, 14);
+        g.lineTo(0, 24);
+        g.lineTo(7, 14);
+        g.lineTo(17, 20);
+        g.lineTo(14, 27);
+        g.lineTo(-14, 27);
         g.close();
         g.fill();
     }
@@ -1463,6 +1547,7 @@ export default class GameMainScene extends cc.Component {
         });
         this.nativeWeChatProfileButton = nativeButton;
         nativeButton.onTap((response: any) => {
+            uimanager.tapFeedback();
             if (response && response.userInfo) {
                 this.handleWeChatProfileResponse(response);
                 return;
@@ -1513,13 +1598,13 @@ export default class GameMainScene extends cc.Component {
             content.removeAllChildren();
             const spriteNode = new cc.Node('wechatAvatar');
             spriteNode.width = 68;
-            spriteNode.height = 68;
+            spriteNode.height = 64;
             content.addChild(spriteNode);
             const sprite = spriteNode.addComponent(cc.Sprite);
             sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
             sprite.spriteFrame = new cc.SpriteFrame(texture);
             spriteNode.width = 68;
-            spriteNode.height = 68;
+            spriteNode.height = 64;
         });
     }
 
@@ -1546,6 +1631,46 @@ export default class GameMainScene extends cc.Component {
                     .to(0.42, { opacity: 255 }, { easing: 'sineOut' }),
             )
             .start();
+    }
+
+    /** 主操作按钮：用游戏里的笑脸方块作低对比水印，文字保持最高阅读层级。 */
+    private decorateStartButton(): void {
+        if (!this.startButton || !cc.isValid(this.startButton)) return;
+        const watermark = new cc.Node('startButtonMoodWatermark');
+        watermark.setPosition(-155, 4);
+        watermark.angle = -8;
+        watermark.zIndex = 18;
+        this.startButton.addChild(watermark);
+        const g = watermark.addComponent(cc.Graphics);
+        g.fillColor = new cc.Color(255, 255, 255, 20);
+        g.strokeColor = new cc.Color(255, 255, 255, 42);
+        g.lineWidth = 4;
+        g.roundRect(-46, -43, 92, 86, 22);
+        g.fill();
+        g.stroke();
+        g.fillColor = new cc.Color(255, 255, 255, 72);
+        g.circle(-14, 8, 4);
+        g.circle(14, 8, 4);
+        g.fill();
+        g.strokeColor = new cc.Color(255, 255, 255, 74);
+        g.lineWidth = 4;
+        g.moveTo(-18, -7);
+        g.quadraticCurveTo(0, -24, 18, -7);
+        g.stroke();
+        g.fillColor = new cc.Color(255, 255, 255, 36);
+        g.ellipse(-27, -4, 7, 3.5);
+        g.ellipse(27, -4, 7, 3.5);
+        g.fill();
+
+        const labelNode = this.startButton.getChildByName('label');
+        const label = labelNode ? labelNode.getComponent(cc.Label) : null;
+        if (!label || !labelNode) return;
+        labelNode.x = 34;
+        labelNode.width = 330;
+        labelNode.height = 92;
+        label.fontSize = 48;
+        label.lineHeight = 60;
+        this.makeCartoonBold(label, new cc.Color(46, 99, 68), 1.8);
     }
 
     private createStartButtonGuide(): void {
@@ -1710,9 +1835,6 @@ export default class GameMainScene extends cc.Component {
         }
         // 结算时模块已写入终值；动画期间从「完成前数量」逐瓶加回，配合上飞反馈。
         let visualBottleCount = Math.max(0, zyxGameModule.happyBottleCount - settlement.completedHappyBottles);
-        if (this.happyBottleCountLabel) {
-            this.happyBottleCountLabel.string = `×${visualBottleCount}`;
-        }
         this.layoutHappyBottleCountBadge(visualBottleCount);
 
         const finishSettlementPresentation = (): void => {
@@ -1791,9 +1913,6 @@ export default class GameMainScene extends cc.Component {
                 flyTargetLocal: flyTarget,
                 onCompletedBottle: () => {
                     visualBottleCount += 1;
-                    if (this.happyBottleCountLabel) {
-                        this.happyBottleCountLabel.string = `×${visualBottleCount}`;
-                    }
                     this.layoutHappyBottleCountBadge(visualBottleCount);
                     if (this.happyBottleCountCard) this.pulseRewardTarget(this.happyBottleCountCard);
                 },
@@ -1920,13 +2039,9 @@ export default class GameMainScene extends cc.Component {
         if (this.profileExperienceLabel) this.profileExperienceLabel.string = `经验 ${experience}/${target}`;
         if (!this.profileExperienceFill || !cc.isValid(this.profileExperienceFill)) return;
         const ratio = Math.max(0, Math.min(1, experience / Math.max(1, target)));
-        const trackWidth = this.profileExperienceTrackWidth;
-        const trackInner = trackWidth - 8;
-        const trackX = -2;
-        const fillWidth = Math.max(10, trackInner * ratio);
-        const fillLeft = trackX - trackWidth / 2 + 4;
+        const fillWidth = Math.max(8, this.profileExperienceFillWidth * ratio);
         this.profileExperienceFill.width = fillWidth;
-        this.profileExperienceFill.x = fillLeft + fillWidth / 2;
+        this.profileExperienceFill.x = this.profileExperienceFillLeft + fillWidth / 2;
         uimanager.drawRect(this.profileExperienceFill, fillWidth, 20, MOOD_COLORS.sage, 7, 255);
     }
 
@@ -1948,109 +2063,141 @@ export default class GameMainScene extends cc.Component {
         outline.width = width;
     }
 
-    /** 解忧秘境：主题画册书架；等级开册，开心瓶点亮画作。 */
+    /** 解忧秘境：开心瓶开册，册内画作再按顺序点亮。 */
     private showWorryFreeRealm(): void {
-        ensureRealmReady()
-            .catch(() => null)
-            .then(() => this.renderWorryFreeRealm());
+        if (this.realmAssetsLoading) return;
+        this.stopAlbumArrowHold();
+        this.realmAssetsLoading = true;
+        if (!isBundleReady('realm')) uimanager.showToast('正在加载解忧秘境…');
+        Promise.all([
+            ensureRealmReady(),
+            syncRealmCloudState().catch((error: Error) => cc.warn('Realm cloud sync failed', error)),
+        ]).then(() => {
+            this.realmAssetsLoading = false;
+            this.renderWorryFreeRealm();
+        }).catch((error: Error) => {
+            this.realmAssetsLoading = false;
+            this.showResourceLoadFailure('解忧秘境', () => this.showWorryFreeRealm());
+        });
     }
 
     private renderWorryFreeRealm(): void {
         this.replaceScreen('worryFreeRealm');
         createMoodCanvasBackground(this.screen, this.screen.width, this.screen.height);
-        createMoodWatermarkWall(this.screen, this.screen.width, this.screen.height);
-        const height = this.screen.height;
-        uimanager.createLabel(this.screen, '解忧秘境', 0, height / 2 - 100, 42, MOOD_COLORS.cocoa, 400, 56);
-        uimanager.createLabel(this.screen, '每一本画册，都等你慢慢点亮', 0, height / 2 - 142, 17, MOOD_COLORS.cocoaSoft, 440, 28);
-        const back = uimanager.createButton(this.screen, '返回', -250, height / 2 - 82, 104, 50, BUTTON_COLORS.green, () => this.showHome(), 20);
-        back.zIndex = 100;
-        const bottleHud = uimanager.createRect(this.screen, 'realmBottleCount', 150, 48, new cc.Color(255, 248, 226), 245, 18, 220, height / 2 - 82);
-        uimanager.createLabel(bottleHud, `开心瓶 × ${zyxGameModule.happyBottleCount}`, 0, 0, 16, MOOD_COLORS.cocoa, 136, 28);
-
-        const columns = 2;
-        const cardWidth = 236;
-        const cardHeight = 156;
-        const startY = height / 2 - 255;
-        ART_ALBUMS.forEach((album, index) => {
-            const unlocked = isAlbumUnlockedByLevel(album);
-            const lit = countUnlockedArts(album);
-            const col = index % columns;
-            const row = Math.floor(index / columns);
-            const x = col === 0 ? -128 : 128;
-            const y = startY - row * 174;
-            const card = uimanager.createRect(
-                this.screen,
-                `artAlbum_${album.id}`,
-                cardWidth,
-                cardHeight,
-                unlocked ? new cc.Color(255, 235, 190) : new cc.Color(209, 196, 177),
-                unlocked ? 255 : 185,
-                18,
-                x,
-                y,
-            );
-            const coverColor = unlocked ? album.arts[0].accent : new cc.Color(153, 144, 135);
-            const art = uimanager.createRect(card, 'albumCoverArt', 82, 116, coverColor, 255, 12, -65, 0);
-            const g = art.addComponent(cc.Graphics);
-            g.fillColor = unlocked ? new cc.Color(255, 221, 139, 140) : new cc.Color(255, 255, 255, 38);
-            g.circle(-12, 20, 20);
-            g.fill();
-            g.fillColor = unlocked ? new cc.Color(117, 164, 133, 135) : new cc.Color(91, 82, 77, 72);
-            g.roundRect(5, -44, 28, 72, 8);
-            g.fill();
-            uimanager.createLabel(card, album.title, 36, 24, 19, unlocked ? MOOD_COLORS.cocoa : new cc.Color(108, 97, 88), 120, 30);
-            uimanager.createLabel(
-                card,
-                unlocked ? `${album.theme} · ${lit}/${album.arts.length}` : `Lv.${album.unlockLevel} 解锁`,
-                36,
-                -14,
-                14,
-                unlocked ? MOOD_COLORS.cocoaSoft : new cc.Color(126, 115, 105),
-                120,
-                26,
-            );
-            if (unlocked) {
-                uimanager.createLabel(card, '打开画册 ›', 36, -46, 14, new cc.Color(48, 111, 74), 120, 24);
-                card.addComponent(cc.Button);
-                card.on(cc.Node.EventType.TOUCH_END, () => this.playRealmTransition(album.id), this);
-            } else {
-                uimanager.createLabel(card, '🔒', 36, -46, 15, new cc.Color(126, 115, 105), 120, 24);
-            }
+        renderAlbumShelf({
+            screen: this.screen,
+            onBack: () => this.showHome(),
+            onOpenAlbum: (albumId) => this.playRealmTransition(albumId),
+            drawMiniBottle: (parent, x, y) => this.drawMiniBottle(parent, x, y),
         });
     }
 
-    /** 云层闭合后进入指定画册。 */
+    /** 从列表进入画册：合拢书页、切换内容，再完整展开。 */
     private playRealmTransition(albumId: string): void {
+        if (this.bookTransitioning || this.albumAssetsLoading) return;
         this.currentAlbumId = albumId;
         this.albumArtIndex = 0;
-        const cloudLayer = new cc.Node('realmCloudTransition');
-        cloudLayer.width = this.screen.width;
-        cloudLayer.height = this.screen.height;
-        cloudLayer.zIndex = 1000;
-        this.screen.addChild(cloudLayer);
-        const top = uimanager.createRect(cloudLayer, 'cloudTop', cloudLayer.width + 80, cloudLayer.height / 2 + 100, new cc.Color(255, 246, 224), 255, 0, 0, cloudLayer.height);
-        const bottom = uimanager.createRect(cloudLayer, 'cloudBottom', cloudLayer.width + 80, cloudLayer.height / 2 + 100, new cc.Color(255, 246, 224), 255, 0, 0, -cloudLayer.height);
-        cc.tween(top).to(0.34, { y: cloudLayer.height / 4 - 10 }, { easing: 'sineInOut' }).start();
-        cc.tween(bottom).to(0.34, { y: -cloudLayer.height / 4 + 10 }, { easing: 'sineInOut' }).call(() => {
-            this.showArtAlbum(0, true);
-        }).start();
+        this.albumAssetsLoading = true;
+        if (!isBundleReady('album-art')) uimanager.showToast('正在加载画册内容…');
+        ensureAlbumArtReady().then(() => {
+            this.albumAssetsLoading = false;
+            this.playAlbumBookTransition(() => this.showArtAlbum(0));
+        }).catch((error: Error) => {
+            this.albumAssetsLoading = false;
+            this.showResourceLoadFailure('画册', () => this.playRealmTransition(albumId));
+        });
     }
 
-    private showArtAlbum(artIndex: number = this.albumArtIndex, withCloud: boolean = false): void {
+    /** 从画册详情返回列表，复用完全相同的书页层。 */
+    private returnToAlbumShelf(): void {
+        if (this.bookTransitioning) return;
+        this.playAlbumBookTransition(() => this.renderWorryFreeRealm());
+    }
+
+    private playAlbumBookTransition(onCovered: () => void): void {
+        if (this.bookTransitioning) return;
+        this.bookTransitioning = true;
+        this.stopAlbumArrowHold();
+        this.bookTransitionLayer = playBookPageTransition({
+            host: this.node,
+            onCovered,
+            onComplete: () => {
+                this.bookTransitionLayer = null;
+                this.bookTransitioning = false;
+            },
+        });
+    }
+
+    private showArtAlbum(artIndex: number = this.albumArtIndex): void {
         this.albumArtIndex = Math.max(0, artIndex);
         this.replaceScreen('artAlbum');
         renderAlbumView({
             screen: this.screen,
             albumId: this.currentAlbumId,
             artIndex: this.albumArtIndex,
-            onBackToShelf: () => this.showWorryFreeRealm(),
-            onShowArt: (nextIndex) => this.showArtAlbum(nextIndex, false),
+            onBackToShelf: () => this.returnToAlbumShelf(),
+            onShowArt: (nextIndex) => this.showArtAlbum(nextIndex),
+            onArrowPressStart: (direction) => this.startAlbumArrowHold(direction),
+            onArrowPressEnd: (direction) => this.finishAlbumArrowPress(direction),
+            onArrowNavigatorReady: (navigate) => this.albumArrowNavigate = navigate,
             drawMiniBottle: (parent, x, y) => this.drawMiniBottle(parent, x, y),
         });
-        if (!withCloud) return;
-        const cloud = uimanager.createRect(this.screen, 'albumCloudOpen', this.screen.width, this.screen.height, new cc.Color(255, 246, 224), 255);
-        cloud.zIndex = 900;
-        cc.tween(cloud).to(0.42, { opacity: 0 }, { easing: 'sineInOut' }).call(() => cloud.destroy()).start();
+    }
+
+    private startAlbumArrowHold(direction: number): void {
+        if (direction !== -1 && direction !== 1) return;
+        this.stopAlbumArrowHold();
+        this.albumArrowHoldDirection = direction;
+        this.albumArrowHoldRepeated = false;
+        this.albumArrowHoldDelay = () => {
+            if (this.albumArrowHoldDirection !== direction) return;
+            this.albumArrowHoldRepeated = true;
+            if (!this.stepAlbumArt(direction)) {
+                this.stopAlbumArrowHold();
+                return;
+            }
+            this.albumArrowRepeatTick = () => {
+                if (this.albumArrowHoldDirection !== direction || !this.stepAlbumArt(direction)) {
+                    this.stopAlbumArrowHold();
+                }
+            };
+            this.schedule(this.albumArrowRepeatTick, 0.42);
+        };
+        this.scheduleOnce(this.albumArrowHoldDelay, 0.46);
+    }
+
+    private finishAlbumArrowPress(direction: number): boolean {
+        if (this.albumArrowHoldDirection !== direction) return false;
+        const shouldNavigateOnce = !this.albumArrowHoldRepeated;
+        this.stopAlbumArrowHold();
+        return shouldNavigateOnce;
+    }
+
+    private stepAlbumArt(direction: number): boolean {
+        const album = ART_ALBUMS.find((candidate) => candidate.id === this.currentAlbumId);
+        if (!album) return false;
+        const nextIndex = this.albumArtIndex + direction;
+        if (nextIndex < 0 || nextIndex >= album.arts.length) return false;
+        if (!this.albumArrowNavigate) return false;
+        this.albumArrowNavigate(direction);
+        return true;
+    }
+
+    private stopAlbumArrowHold(): void {
+        if (this.albumArrowHoldDelay) this.unschedule(this.albumArrowHoldDelay);
+        if (this.albumArrowRepeatTick) this.unschedule(this.albumArrowRepeatTick);
+        this.albumArrowHoldDirection = 0;
+        this.albumArrowHoldRepeated = false;
+        this.albumArrowHoldDelay = null;
+        this.albumArrowRepeatTick = null;
+    }
+
+    private handleGlobalAlbumTouchEnd(): void {
+        if (this.albumArrowHoldRepeated) this.stopAlbumArrowHold();
+    }
+
+    private handleGlobalAlbumTouchCancel(): void {
+        if (this.albumArrowHoldDirection !== 0) this.stopAlbumArrowHold();
     }
 
     private drawMiniBottle(parent: cc.Node, x: number, y: number): void {
@@ -2063,14 +2210,33 @@ export default class GameMainScene extends cc.Component {
     }
 
     private startGame(): void {
+        if (this.gameAssetsLoading) return;
+        this.gameAssetsLoading = true;
+        if (!isBundleReady('game-assets')) uimanager.showToast('正在加载消除资源…');
         ensureGameResourcesReady()
-            .catch(() => null)
             .then(() => {
+                this.gameAssetsLoading = false;
                 this.roundStartedAt = Date.now();
                 this.replaceScreen('game');
                 const game = this.screen.addComponent(ZyxGame);
                 game.initialize((request) => this.handleSettlementExit(request));
+            })
+            .catch((error: Error) => {
+                this.gameAssetsLoading = false;
+                this.showResourceLoadFailure('消除玩法', () => this.startGame());
             });
+    }
+
+    private showResourceLoadFailure(feature: string, retry: () => void): void {
+        uimanager.showModal(
+            '资源加载失败',
+            `${feature}资源未能加载，请检查网络后重试。`,
+            [{ text: '重新加载', color: BUTTON_COLORS.green, onClick: retry }],
+            null,
+            0,
+            false,
+            true,
+        );
     }
 
     private stopScreenTweens(root: cc.Node): void {
@@ -2086,6 +2252,10 @@ export default class GameMainScene extends cc.Component {
     }
 
     private replaceScreen(name: string): void {
+        if (name !== 'artAlbum') {
+            this.stopAlbumArrowHold();
+            this.albumArrowNavigate = null;
+        }
         this.destroyNativeWeChatProfileButton();
         if (this.screen && this.screen.isValid) {
             this.stopScreenTweens(this.screen);
@@ -2112,5 +2282,9 @@ export default class GameMainScene extends cc.Component {
         this.screen.height = cc.winSize.height;
         this.screen.setAnchorPoint(0.5, 0.5);
         this.node.addChild(this.screen);
+        const music: MusicName = name === 'game'
+            ? 'game'
+            : (name === 'worryFreeRealm' || name === 'artAlbum' ? 'puzzle' : 'main');
+        audioManager.playMusic(music);
     }
 }

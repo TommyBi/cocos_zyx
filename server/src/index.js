@@ -28,8 +28,15 @@ app.use(express.json({ limit: '32kb' }));
 app.use('/v1/cocos-zyx/cdn', express.static(cdnRoot, {
   maxAge: '7d',
   fallthrough: true,
-  setHeaders(res) {
+  setHeaders(res, filePath) {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    const fileName = path.basename(filePath);
+    if (fileName === 'config.json' || fileName === 'res.zip') {
+      res.setHeader('Cache-Control', 'no-cache');
+    } else if (/\.[a-f0-9]{5,}\.[^.]+$/i.test(fileName)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
   },
 }));
 

@@ -1,0 +1,69 @@
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        blurParams: { value: [0.0013333333, 0.001, 36, 0] }
+}%
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  in vec2 a_uv0;
+  out vec4 v_color;
+  out vec2 v_uv0;
+
+  void main () {
+    vec4 pos = vec4(a_position, 1.0);
+    #if CC_USE_MODEL
+      pos = cc_matViewProj * cc_matWorld * pos;
+    #else
+      pos = cc_matViewProj * pos;
+    #endif
+    v_color = a_color;
+    v_uv0 = a_uv0;
+    gl_Position = pos;
+  }
+}%
+
+CCProgram fs %{
+  precision highp float;
+
+  in vec4 v_color;
+  in vec2 v_uv0;
+  uniform sampler2D texture;
+  uniform Blur {
+    vec4 blurParams;
+  };
+
+  void main () {
+    vec2 stepUV = blurParams.xy * blurParams.z;
+    vec2 halfUV = stepUV * 0.5;
+    vec4 color = texture2D(texture, v_uv0) * 0.16;
+    color += texture2D(texture, v_uv0 + vec2(halfUV.x, 0.0)) * 0.11;
+    color += texture2D(texture, v_uv0 - vec2(halfUV.x, 0.0)) * 0.11;
+    color += texture2D(texture, v_uv0 + vec2(0.0, halfUV.y)) * 0.11;
+    color += texture2D(texture, v_uv0 - vec2(0.0, halfUV.y)) * 0.11;
+    color += texture2D(texture, v_uv0 + halfUV) * 0.07;
+    color += texture2D(texture, v_uv0 - halfUV) * 0.07;
+    color += texture2D(texture, v_uv0 + vec2(halfUV.x, -halfUV.y)) * 0.07;
+    color += texture2D(texture, v_uv0 + vec2(-halfUV.x, halfUV.y)) * 0.07;
+    color += texture2D(texture, v_uv0 + vec2(stepUV.x, 0.0)) * 0.03;
+    color += texture2D(texture, v_uv0 - vec2(stepUV.x, 0.0)) * 0.03;
+    color += texture2D(texture, v_uv0 + vec2(0.0, stepUV.y)) * 0.03;
+    color += texture2D(texture, v_uv0 - vec2(0.0, stepUV.y)) * 0.03;
+    gl_FragColor = color * v_color;
+  }
+}%

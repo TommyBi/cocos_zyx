@@ -1,4 +1,4 @@
-import { loadSpriteFrame } from './AssetLoader';
+import { gameSettings } from './GameSettings';
 
 declare const wx: any;
 
@@ -41,9 +41,73 @@ export default class Uimanager {
     private scene: cc.Node = null;
     private modal: cc.Node = null;
     private toast: cc.Node = null;
+    private hapticRoot: cc.Node = null;
+    private hapticTouchStart: cc.Vec2 = null;
+    private hapticTouchMoved: boolean = false;
 
     public init(scene: cc.Node): void {
         this.scene = scene;
+        if (this.hapticRoot === scene) return;
+        this.unbindGlobalHaptics();
+        this.hapticRoot = scene;
+        if (!this.hapticRoot) return;
+        this.hapticRoot.on(cc.Node.EventType.TOUCH_START, this.handleHapticTouchStart, this, true);
+        this.hapticRoot.on(cc.Node.EventType.TOUCH_MOVE, this.handleHapticTouchMove, this, true);
+        this.hapticRoot.on(cc.Node.EventType.TOUCH_END, this.handleHapticTouchEnd, this, true);
+        this.hapticRoot.on(cc.Node.EventType.TOUCH_CANCEL, this.handleHapticTouchCancel, this, true);
+    }
+
+    /** 非 cc.Button 的点击区域（例如轮播侧击、滑杆）也通过这个入口保持反馈一致。 */
+    public tapFeedback(): void {
+        gameSettings.vibrateLight();
+    }
+
+    private unbindGlobalHaptics(): void {
+        if (!this.hapticRoot || !cc.isValid(this.hapticRoot)) return;
+        this.hapticRoot.off(cc.Node.EventType.TOUCH_START, this.handleHapticTouchStart, this, true);
+        this.hapticRoot.off(cc.Node.EventType.TOUCH_MOVE, this.handleHapticTouchMove, this, true);
+        this.hapticRoot.off(cc.Node.EventType.TOUCH_END, this.handleHapticTouchEnd, this, true);
+        this.hapticRoot.off(cc.Node.EventType.TOUCH_CANCEL, this.handleHapticTouchCancel, this, true);
+    }
+
+    private handleHapticTouchStart(event: cc.Event.EventTouch): void {
+        this.hapticTouchStart = event.getLocation();
+        this.hapticTouchMoved = false;
+    }
+
+    private handleHapticTouchMove(event: cc.Event.EventTouch): void {
+        if (!this.hapticTouchStart || this.hapticTouchMoved) return;
+        const point = event.getLocation();
+        const dx = point.x - this.hapticTouchStart.x;
+        const dy = point.y - this.hapticTouchStart.y;
+        this.hapticTouchMoved = dx * dx + dy * dy > 144;
+    }
+
+    private handleHapticTouchEnd(event: cc.Event.EventTouch): void {
+        if (!this.hapticTouchMoved && this.hasInteractiveButtonAncestor((event as any).target)) {
+            this.tapFeedback();
+        }
+        this.resetHapticTouch();
+    }
+
+    private handleHapticTouchCancel(): void {
+        this.resetHapticTouch();
+    }
+
+    private resetHapticTouch(): void {
+        this.hapticTouchStart = null;
+        this.hapticTouchMoved = false;
+    }
+
+    private hasInteractiveButtonAncestor(target: cc.Node): boolean {
+        let node = target;
+        while (node) {
+            const button = node.getComponent(cc.Button);
+            if (button) return button.enabled && button.interactable;
+            if (node === this.hapticRoot) break;
+            node = node.parent;
+        }
+        return false;
     }
 
     /**
@@ -145,33 +209,6 @@ export default class Uimanager {
         graphics.fillColor = color;
         graphics.circle(0, 0, radius);
         graphics.fill();
-        return node;
-    }
-
-    public createResourceSprite(
-        parent: cc.Node,
-        name: string,
-        resourcePath: string,
-        width: number,
-        height: number,
-        x: number = 0,
-        y: number = 0,
-    ): cc.Node {
-        const node = new cc.Node(name);
-        node.width = width;
-        node.height = height;
-        node.setAnchorPoint(0.5, 0.5);
-        node.setPosition(x, y);
-        node.zIndex = -20;
-        parent.addChild(node);
-        const sprite = node.addComponent(cc.Sprite);
-        sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        loadSpriteFrame('resources', resourcePath, (error, frame) => {
-            if (error || !frame || !cc.isValid(node)) return;
-            sprite.spriteFrame = frame;
-            node.width = width;
-            node.height = height;
-        });
         return node;
     }
 
@@ -323,6 +360,7 @@ export default class Uimanager {
         decoration: ModalDecoration = null,
         contentHeight: number = 0,
         horizontalActions: boolean = false,
+        dismissible: boolean = false,
     ): cc.Node {
         if (!this.scene) return null;
         this.closeModal();
@@ -336,12 +374,21 @@ export default class Uimanager {
         this.scene.addChild(root);
         this.modal = root;
 
-        this.createRect(root, 'mask', root.width, root.height, new cc.Color(65, 46, 40), 190);
+        const mask = this.createRect(root, 'mask', root.width, root.height, new cc.Color(65, 46, 40), 190);
         const actionRows = horizontalActions ? 1 : Math.max(1, actions.length);
         const panelHeight = 300 + actionRows * 92 + contentHeight;
         const panel = this.createRect(root, 'panel', 560, panelHeight, new cc.Color(211, 164, 98), 255, 26, 0, 0);
+        if (dismissible) {
+            mask.on(cc.Node.EventType.TOUCH_END, () => {
+                if (this.modal === root) this.closeModal();
+            }, this);
+            panel.addComponent(cc.BlockInputEvents);
+            this.createModalCloseButton(panel, panelHeight, () => {
+                if (this.modal === root) this.closeModal();
+            });
+        }
         this.createRect(panel, 'panelInner', 540, panelHeight - 20, new cc.Color(255, 244, 220), 255, 22);
-        this.createLabel(panel, title, 0, panelHeight / 2 - 72, 40, new cc.Color(90, 64, 58), 460, 64);
+        this.createModalTitlePlate(panel, title, panelHeight);
         this.createLabel(panel, message, 0, panelHeight / 2 - 150, 24, new cc.Color(124, 92, 76), 470, 82);
 
         let startY = panelHeight / 2 - 245;
@@ -356,7 +403,8 @@ export default class Uimanager {
             const totalWidth = actions.length * buttonWidth + (actions.length - 1) * gap;
             const left = -totalWidth / 2 + buttonWidth / 2;
             actions.forEach((action, index) => {
-                const button = this.createButton(
+                let button: cc.Node = null;
+                button = this.createButton(
                     panel,
                     action.text,
                     left + index * (buttonWidth + gap),
@@ -365,6 +413,7 @@ export default class Uimanager {
                     72,
                     action.color,
                     () => {
+                        cc.Tween.stopAllByTarget(button);
                         this.closeModal();
                         action.onClick();
                     },
@@ -374,7 +423,9 @@ export default class Uimanager {
             });
         } else {
             actions.forEach((action, index) => {
-                const button = this.createButton(panel, action.text, 0, startY - index * 92, 420, 72, action.color, () => {
+                let button: cc.Node = null;
+                button = this.createButton(panel, action.text, 0, startY - index * 92, 420, 72, action.color, () => {
+                    cc.Tween.stopAllByTarget(button);
                     this.closeModal();
                     action.onClick();
                 }, 27);
@@ -386,6 +437,87 @@ export default class Uimanager {
         panel.opacity = 0;
         cc.tween(panel).to(0.2, { scale: 1, opacity: 255 }, { easing: 'backOut' }).start();
         return root;
+    }
+
+    /** 可关闭弹窗专用的奶油色关闭钮，与标题牌和正文的暖色纸张风格一致。 */
+    private createModalCloseButton(panel: cc.Node, panelHeight: number, onClose: () => void): void {
+        const button = this.createCircle(
+            panel,
+            'modalCloseButton',
+            28,
+            new cc.Color(255, 244, 220),
+            panel.width / 2 - 25,
+            panelHeight / 2 - 25,
+        );
+        button.zIndex = 80;
+        // 图形保持轻巧，触摸热区单独放大，便于真机手指操作。
+        button.width = 72;
+        button.height = 72;
+        const graphics = button.getComponent(cc.Graphics);
+        graphics.strokeColor = new cc.Color(137, 98, 76);
+        graphics.lineWidth = 2.4;
+        graphics.circle(0, 0, 26.5);
+        graphics.stroke();
+        const label = this.createLabel(button, '×', 0, 2, 36, new cc.Color(101, 70, 58), 42, 42);
+        label.node.zIndex = 2;
+        button.addComponent(cc.Button);
+        button.on(cc.Node.EventType.TOUCH_START, () => {
+            cc.Tween.stopAllByTarget(button);
+            cc.tween(button).to(0.06, { scale: 0.9 }).start();
+        }, this);
+        button.on(cc.Node.EventType.TOUCH_END, () => {
+            cc.Tween.stopAllByTarget(button);
+            onClose();
+        }, this);
+        button.on(cc.Node.EventType.TOUCH_CANCEL, () => {
+            cc.Tween.stopAllByTarget(button);
+            cc.tween(button).to(0.1, { scale: 1 }).start();
+        }, this);
+    }
+
+    /** 所有业务弹窗共用的跨框标题牌；宽度随标题长度伸缩。 */
+    private createModalTitlePlate(panel: cc.Node, title: string, panelHeight: number): void {
+        const plateWidth = Math.max(220, Math.min(500, 96 + title.length * 44));
+        const plateHeight = 76;
+        const plateY = panelHeight / 2 - 4;
+        const shadow = this.createRect(
+            panel,
+            'modalTitleShadow',
+            plateWidth + 6,
+            plateHeight + 4,
+            new cc.Color(88, 61, 55),
+            118,
+            24,
+            0,
+            plateY - 6,
+        );
+        shadow.zIndex = 18;
+        const plate = this.createRect(
+            panel,
+            'modalTitlePlate',
+            plateWidth,
+            plateHeight,
+            new cc.Color(220, 155, 70),
+            255,
+            23,
+            0,
+            plateY,
+        );
+        plate.zIndex = 20;
+        const inner = this.createRect(
+            plate,
+            'modalTitlePlateInner',
+            plateWidth - 12,
+            plateHeight - 12,
+            new cc.Color(245, 199, 102),
+            255,
+            19,
+            0,
+            2,
+        );
+        this.createCircle(plate, 'modalTitleRivetLeft', 3.2, new cc.Color(255, 244, 220), -plateWidth / 2 + 22, 2);
+        this.createCircle(plate, 'modalTitleRivetRight', 3.2, new cc.Color(255, 244, 220), plateWidth / 2 - 22, 2);
+        this.createLabel(inner, title, 0, 0, 36, new cc.Color(90, 64, 58), plateWidth - 54, 52);
     }
 
     public closeModal(): void {

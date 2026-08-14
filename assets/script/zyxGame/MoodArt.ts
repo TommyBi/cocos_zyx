@@ -869,7 +869,7 @@ export function createGameRoomBackground(parent: cc.Node, width: number, height:
     root.addChild(illustration);
     const sprite = illustration.addComponent(cc.Sprite);
     sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-    loadSpriteFrame('resources', 'images/formal/game_room_bg_v3', (error, frame) => {
+    loadSpriteFrame('game-assets', 'images/formal/game_room_bg_v3', (error, frame) => {
         if (error || !frame || !cc.isValid(illustration)) {
             cc.warn('Game room background failed to load', error);
             return;
@@ -890,16 +890,23 @@ export function createMoodWatermarkWall(parent: cc.Node, width: number, height: 
     root.zIndex = -20;
     parent.addChild(root);
 
+    const spacing = 202;
+    const layerAngle = 21;
+    const angleRadians = layerAngle * Math.PI / 180;
+    const angleCos = Math.cos(angleRadians);
+    const angleSin = Math.sin(angleRadians);
+    // 按旋转后的可视包围盒生成额外格子，确保回收边界始终在屏幕外。
+    const projectedWidth = Math.abs(width * angleCos) + Math.abs(height * angleSin);
+    const projectedHeight = Math.abs(width * angleSin) + Math.abs(height * angleCos);
+    const columns = Math.ceil(projectedWidth / spacing) + 3;
+    const rows = Math.ceil(projectedHeight / spacing) + 3;
+
     const layer = new cc.Node('watermarkLayer');
-    layer.width = width + 480;
-    layer.height = height + 480;
-    layer.angle = 21;
-    layer.setPosition(-42, 42);
+    layer.width = columns * spacing;
+    layer.height = rows * spacing;
+    layer.angle = layerAngle;
     root.addChild(layer);
 
-    const spacing = 202;
-    const columns = Math.ceil(layer.width / spacing) + 2;
-    const rows = Math.ceil(layer.height / spacing) + 2;
     const positiveMoods = [1, 2, 3, 4, 5, 6, 1, 2];
     const gentleNegativeMoods = [7, 8, 9, 10];
     for (let row = 0; row < rows; row++) {
@@ -907,8 +914,8 @@ export function createMoodWatermarkWall(parent: cc.Node, width: number, height: 
             const diagonalSeed = row + col;
             const sizeVariation = ((diagonalSeed * 37 + 11) % 21) / 100;
             const size = 74 * (0.9 + sizeVariation);
-            const x = -layer.width / 2 + 70 + col * spacing;
-            const y = layer.height / 2 - 70 - row * spacing;
+            const x = -layer.width / 2 + spacing / 2 + col * spacing;
+            const y = layer.height / 2 - spacing / 2 - row * spacing;
             const tile = new cc.Node('watermarkMood');
             tile.width = size;
             tile.height = size;
@@ -920,26 +927,46 @@ export function createMoodWatermarkWall(parent: cc.Node, width: number, height: 
                 : positiveMoods[diagonalSeed % positiveMoods.length];
             const moodColor = getMoodColor(moodIndex);
             const bg = tile.addComponent(cc.Graphics);
-            bg.fillColor = new cc.Color(moodColor.r, moodColor.g, moodColor.b, 48);
+            bg.fillColor = new cc.Color(moodColor.r, moodColor.g, moodColor.b, 64);
             bg.strokeColor = new cc.Color(
                 Math.round(moodColor.r * 0.66),
                 Math.round(moodColor.g * 0.66),
                 Math.round(moodColor.b * 0.66),
-                24,
+                32,
             );
             bg.lineWidth = 1.6;
             bg.roundRect(-size / 2, -size / 2, size, size, size * 0.25);
             bg.fill();
             bg.stroke();
-            drawMoodFace(tile, moodIndex, size * 0.46, new cc.Color(88, 61, 55, 38));
+            drawMoodFace(tile, moodIndex, size * 0.46, new cc.Color(88, 61, 55, 52));
         }
     }
 
+    const movementX = spacing * 0.78;
+    const movementY = -spacing;
+    const startX = -movementX / 2;
+    const startY = -movementY / 2;
+    const driftSpeed = 15.75;
+    const localShiftX = movementX * angleCos + movementY * angleSin;
+    const localShiftY = -movementX * angleSin + movementY * angleCos;
+    const halfLayerWidth = layer.width / 2;
+    const halfLayerHeight = layer.height / 2;
+    layer.setPosition(startX, startY);
     cc.tween(layer)
         .repeatForever(
             cc.tween()
-                .to(8, { x: 42, y: -42 }, { easing: 'sineInOut' })
-                .to(8, { x: -42, y: 42 }, { easing: 'sineInOut' }),
+                .to(spacing / driftSpeed, { x: startX + movementX, y: startY + movementY })
+                .call(() => {
+                    // 父层瞬时复位时补偿子节点坐标；仅越界格子会在屏幕外回收到左侧/顶部。
+                    for (const tile of layer.children) {
+                        let nextX = tile.x + localShiftX;
+                        let nextY = tile.y + localShiftY;
+                        if (nextX > halfLayerWidth) nextX -= layer.width;
+                        if (nextY < -halfLayerHeight) nextY += layer.height;
+                        tile.setPosition(nextX, nextY);
+                    }
+                    layer.setPosition(startX, startY);
+                }),
         )
         .start();
     return root;

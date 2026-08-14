@@ -76,6 +76,25 @@ export type AutoPurifyResult = {
     removedPieceIds: number[];
 };
 
+export type RowGenerationDebug = {
+    seed: number;
+    turn: number;
+    targetCells: number;
+    sizes: number[];
+    gaps: number[];
+    colors: number[];
+    stampCount: number;
+    movablePieces: number;
+    attempts: number;
+};
+
+type GeneratedRowCandidate = {
+    pieces: NextPiece[];
+    sizes: number[];
+    gaps: number[];
+    movablePieces: number;
+};
+
 /**
  * 左右消的唯一数据源。
  * UI 只负责展示和手势，棋盘碰撞、重力、消除与计分都集中在这里。
@@ -98,9 +117,13 @@ export default class ZyxGameModule {
     public experience: number = 0;
     public challengeCount: number = 0;
     public startingBestScore: number = 0;
+    public roundSeed: number = 0;
+    public generationDebugLog: RowGenerationDebug[] = [];
 
     private nextId: number = 1;
     private roundSettled: boolean = false;
+    private seedOverride: number = 0;
+    private randomState: number = 1;
 
     public resetRound(): void {
         this.score = 0;
@@ -113,9 +136,13 @@ export default class ZyxGameModule {
         this.roundSettled = false;
         this.bestScore = this.readNumber('zyx_best_score', 0);
         this.startingBestScore = this.bestScore;
+        this.roundSeed = this.seedOverride || this.createRandomSeed();
+        this.randomState = this.roundSeed;
+        this.generationDebugLog = [];
         this.challengeCount = this.readNumber('zyx_challenge_count', 0) + 1;
         cc.sys.localStorage.setItem('zyx_challenge_count', String(this.challengeCount));
         this.syncPersistentProgress();
+        cc.log(`[棋盘调试] 本局随机种子 ${this.roundSeed}`);
 
         this.pieces = [
             // 开局保留一个真实可消除机会：把倒数第二行的 2 格块左移，它会落下并填满底行。
@@ -128,6 +155,12 @@ export default class ZyxGameModule {
             this.createPiece(7, 4, 2, 7, 0),
         ];
         this.nextPieces = this.generateNextRow();
+    }
+
+    /** 调试复现：传入正整数后，后续每局都使用同一随机序列；传 0 恢复随机。 */
+    public setRoundSeedOverride(seed: number): void {
+        const normalized = Math.floor(Number(seed)) >>> 0;
+        this.seedOverride = normalized || 0;
     }
 
     public refreshPersistentProgress(): void {
@@ -243,11 +276,18 @@ export default class ZyxGameModule {
         return { color, removedPieceIds };
     }
 
-    /** 复活时清理棋盘上半区，只保留下半区色块继续挑战。 */
-    public removeTopHalfForRevive(): number[] {
-        const firstBottomRow = Math.ceil(BOARD_ROWS / 2);
+    /** 紧急广告救场：一次性清空当前棋盘，并返回需要播放退场动画的色块。 */
+    public removeAllPieces(): number[] {
+        const removedPieceIds = this.pieces.map((piece) => piece.id);
+        this.pieces = [];
+        return removedPieceIds;
+    }
+
+    /** 复活时清理顶部指定行数；默认清掉 8 行，仅保留底部 2 行继续挑战。 */
+    public removeTopRowsForRevive(rowCount: number = 8): number[] {
+        const firstPreservedRow = Math.max(0, Math.min(BOARD_ROWS, Math.floor(rowCount)));
         const removedPieceIds = this.pieces
-            .filter((piece) => piece.row < firstBottomRow)
+            .filter((piece) => piece.row < firstPreservedRow)
             .map((piece) => piece.id);
         if (removedPieceIds.length === 0) return [];
 
@@ -504,7 +544,9 @@ export default class ZyxGameModule {
         this.savePersistentProgress();
         this.saveToolInventory();
         cc.sys.localStorage.setItem('zyx_best_score', '0');
+        cc.sys.localStorage.setItem('zyx_unlocked_albums', '{}');
         cc.sys.localStorage.setItem('zyx_unlocked_album_arts', '{}');
+        cc.sys.localStorage.setItem('zyx_pending_realm_unlocks', '[]');
         cc.sys.localStorage.removeItem('zyx_daily_moods');
         cc.sys.localStorage.removeItem('zyx_daily_wish');
     }
@@ -518,6 +560,38 @@ export default class ZyxGameModule {
         } catch (error) {
             return {};
         }
+    }
+
+    /** 已用开心瓶打开的画册；与册内单幅画作的点亮进度分开保存。 */
+    public getUnlockedAlbums(): { [key: string]: boolean } {
+        const raw = cc.sys.localStorage.getItem('zyx_unlocked_albums');
+        if (!raw) return {};
+        try {
+            const value = JSON.parse(raw);
+            return value && typeof value === 'object' ? value : {};
+        } catch (error) {
+            return {};
+        }
+    }
+
+    public isAlbumUnlocked(albumId: string): boolean {
+        const unlockedAlbums = this.getUnlockedAlbums();
+        if (unlockedAlbums[albumId]) return true;
+
+        // 兼容旧版：玩家只要已经点亮过本册任意画作，就视为已经拥有该画册。
+        const unlockedArts = this.getUnlockedAlbumArts();
+        const artPrefix = `${albumId}_art_`;
+        return Object.keys(unlockedArts).some((artId) => unlockedArts[artId] && artId.indexOf(artPrefix) === 0);
+    }
+
+    /** 使用开心瓶打开整本画册；重复调用不会重复扣除。 */
+    public unlockAlbum(albumId: string, cost: number): boolean {
+        if (this.isAlbumUnlocked(albumId)) return true;
+        if (!this.spendHappyBottles(cost)) return false;
+        const unlockedAlbums = this.getUnlockedAlbums();
+        unlockedAlbums[albumId] = true;
+        cc.sys.localStorage.setItem('zyx_unlocked_albums', JSON.stringify(unlockedAlbums));
+        return true;
     }
 
     public unlockAlbumArt(artId: string, cost: number): boolean {
@@ -560,14 +634,58 @@ export default class ZyxGameModule {
      * 旧逻辑从左往右填，空格几乎总落在右侧；现在空位会铺开，并略偏向已堆高的一侧。
      */
     private generateNextRow(): NextPiece[] {
-        const targetCells = Math.min(6, 4 + Math.floor(this.turn / 8));
+        const targetCells = this.pickTargetCells();
+        let best: GeneratedRowCandidate = null;
+        let attempts = 0;
+        const minimumMovablePieces = 2;
+        while (attempts < 6) {
+            attempts++;
+            const candidate = this.createNextRowCandidate(targetCells);
+            if (!best || candidate.movablePieces > best.movablePieces) best = candidate;
+            if (candidate.movablePieces >= minimumMovablePieces) {
+                best = candidate;
+                break;
+            }
+        }
+
+        const debug: RowGenerationDebug = {
+            seed: this.roundSeed,
+            turn: this.turn,
+            targetCells,
+            sizes: best.sizes.slice(),
+            gaps: best.gaps.slice(),
+            colors: best.pieces.map((piece) => piece.color),
+            stampCount: best.pieces.filter((piece) => piece.stampMood > 0).length,
+            movablePieces: best.movablePieces,
+            attempts,
+        };
+        this.generationDebugLog.push(debug);
+        if (this.generationDebugLog.length > 120) this.generationDebugLog.shift();
+        cc.log(
+            `[棋盘生成] seed=${debug.seed} turn=${debug.turn} cells=${debug.targetCells}`
+            + ` sizes=${debug.sizes.join('-')} gaps=${debug.gaps.join('-')}`
+            + ` movable=${debug.movablePieces} attempts=${debug.attempts}`,
+        );
+        return best.pieces;
+    }
+
+    /** 4→5→6 格使用概率坡度过渡，避免第 9/17 排突然阶跃。 */
+    private pickTargetCells(): number {
+        const fiveCellChance = Math.max(0, Math.min(1, (this.turn - 4) / 8));
+        const sixCellChance = Math.max(0, Math.min(1, (this.turn - 13) / 10));
+        if (sixCellChance > 0 && this.random() < sixCellChance) return 6;
+        if (fiveCellChance > 0 && this.random() < fiveCellChance) return 5;
+        return 4;
+    }
+
+    private createNextRowCandidate(targetCells: number): GeneratedRowCandidate {
         const emptyCells = BOARD_COLS - targetCells;
 
         const sizes: number[] = [];
         let cellsLeft = targetCells;
         while (cellsLeft > 0) {
             const maxSize = Math.min(3, cellsLeft);
-            const size = 1 + Math.floor(Math.random() * maxSize);
+            const size = 1 + Math.floor(this.random() * maxSize);
             sizes.push(size);
             cellsLeft -= size;
         }
@@ -595,7 +713,7 @@ export default class ZyxGameModule {
         for (let i = 0; i < sizes.length; i++) {
             const size = sizes[i];
             const color = this.pickMoodColor();
-            const hasStamp = Math.random() < 0.5;
+            const hasStamp = this.random() < 0.5;
             pieces.push({
                 col,
                 size,
@@ -607,7 +725,24 @@ export default class ZyxGameModule {
             });
             col += size + gaps[i + 1];
         }
-        return pieces;
+        return {
+            pieces,
+            sizes,
+            gaps,
+            movablePieces: this.countMovableNextPieces(pieces),
+        };
+    }
+
+    /** 至少保留两个可横移块，避免所有空位挤在边缘时只剩单一操作。 */
+    private countMovableNextPieces(pieces: NextPiece[]): number {
+        let movable = 0;
+        for (let i = 0; i < pieces.length; i++) {
+            const piece = pieces[i];
+            const leftEdge = i > 0 ? pieces[i - 1].col + pieces[i - 1].size : 0;
+            const rightEdge = i < pieces.length - 1 ? pieces[i + 1].col : BOARD_COLS;
+            if (piece.col > leftEdge || piece.col + piece.size < rightEdge) movable++;
+        }
+        return movable;
     }
 
     /** 各列当前堆高（从底往上有块的行数），供下一排空位偏向使用。 */
@@ -625,8 +760,8 @@ export default class ZyxGameModule {
     private pickWeightedIndex(weights: number[]): number {
         let total = 0;
         for (const weight of weights) total += Math.max(0, weight);
-        if (total <= 0) return Math.floor(Math.random() * weights.length);
-        let roll = Math.random() * total;
+        if (total <= 0) return Math.floor(this.random() * weights.length);
+        let roll = this.random() * total;
         for (let i = 0; i < weights.length; i++) {
             roll -= Math.max(0, weights[i]);
             if (roll <= 0) return i;
@@ -644,7 +779,7 @@ export default class ZyxGameModule {
         collectibleType: number = 0,
         collectibleCell: number = 0,
     ): BoardPiece {
-        const resolvedStamp = stampMood < 0 ? (Math.random() < 0.5 ? color : 0) : stampMood;
+        const resolvedStamp = stampMood < 0 ? (this.random() < 0.5 ? color : 0) : stampMood;
         return {
             id: this.nextId++,
             row,
@@ -668,7 +803,22 @@ export default class ZyxGameModule {
         if (this.roundClearedRows >= 12) pool = [1, 2, 2, 3, 5, 5, 6, 6];
         else if (this.roundClearedRows >= 7) pool = [1, 2, 3, 3, 4, 5, 5, 6, 7, 9];
         else if (this.roundClearedRows >= 3) pool = [1, 2, 3, 4, 5, 6, 1, 3, 5, 7, 9];
-        return pool[Math.floor(Math.random() * pool.length)];
+        return pool[Math.floor(this.random() * pool.length)];
+    }
+
+    private createRandomSeed(): number {
+        const seed = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+        return seed || 1;
+    }
+
+    /** xorshift32：轻量、可复现，足够用于棋盘生成而不改变游戏存档。 */
+    private random(): number {
+        let value = this.randomState | 0;
+        value ^= value << 13;
+        value ^= value >>> 17;
+        value ^= value << 5;
+        this.randomState = value >>> 0;
+        return this.randomState / 0x100000000;
     }
 
     private syncPersistentProgress(): void {

@@ -20,6 +20,9 @@ type SharePending = {
 
 let pending: SharePending | null = null;
 let onShowHooked: boolean = false;
+let systemShareRegistered: boolean = false;
+
+const SHARE_TITLE = '烦恼排排消｜整理心情，装进开心瓶';
 
 function getWxApi(): any {
     try {
@@ -59,6 +62,29 @@ function ensureOnShowHook(): void {
     if (!wxApi || typeof wxApi.onShow !== 'function') return;
     wxApi.onShow(() => resolvePendingFromShow());
     onShowHooked = true;
+}
+
+/** 注册微信右上角胶囊菜单里的原生“转发给朋友”。全局生命周期只注册一次。 */
+export function registerSystemShare(): void {
+    if (systemShareRegistered) return;
+    const wxApi = getWxApi();
+    if (!wxApi || typeof wxApi.onShareAppMessage !== 'function') return;
+
+    try {
+        if (typeof wxApi.showShareMenu === 'function') {
+            wxApi.showShareMenu({
+                withShareTicket: true,
+                menus: ['shareAppMessage'],
+            });
+        }
+        wxApi.onShareAppMessage(() => ({
+            title: SHARE_TITLE,
+            query: 'from=system_share',
+        }));
+        systemShareRegistered = true;
+    } catch (error) {
+        // Web 预览和旧基础库静默降级，不影响游戏启动。
+    }
 }
 
 /** 当前获取奖励入口应展示的动作图标类型。 */
@@ -119,8 +145,7 @@ export function requestShareReward(onResult: (rewarded: boolean) => void): void 
 
     try {
         wxApi.shareAppMessage({
-            title: '烦恼排排消｜整理心情，装进开心瓶',
-            imageUrl: '',
+            title: SHARE_TITLE,
             query: 'from=share_reward',
         });
     } catch (error) {

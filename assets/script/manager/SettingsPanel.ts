@@ -1,6 +1,7 @@
 import { HAPPY_BOTTLE_TARGET, zyxGameModule } from '../dataModule/ZyxGameModule';
 import { BUTTON_COLORS, ModalAction, uimanager } from './Uimanager';
 import { gameSettings } from './GameSettings';
+import { audioManager } from './AudioManager';
 
 export type SettingsPanelOptions = {
     /** 局内暂停时，将继续、重开、结束直接追加在设置项下方。 */
@@ -35,7 +36,7 @@ export default class SettingsPanel {
                 onClick: () => undefined,
             },
         ];
-        uimanager.showModal('游戏设置', '', actions, render, 260);
+        uimanager.showModal('设   置', '', actions, render, 260);
     }
 
     /** GM 只由全局悬浮气泡打开；发放后由场景回调同步云端与 HUD。 */
@@ -46,11 +47,19 @@ export default class SettingsPanel {
     ): void {
         const grant = { amount: 10 };
         const render = (panel: cc.Node, centerY: number): void => {
-            const inventory = uimanager.createRect(panel, 'gmInventorySummary', 438, 56, new cc.Color(232, 241, 221), 255, 13, 0, centerY + 178);
-            const inventoryLabel = uimanager.createLabel(inventory, '', 0, 0, 15, COCOA, 412, 44);
+            const inventory = uimanager.createRect(panel, 'gmInventorySummary', 438, 74, new cc.Color(232, 241, 221), 255, 13, 0, centerY + 178);
+            const inventoryLabel = uimanager.createLabel(inventory, '', 0, 0, 14, COCOA, 412, 64);
             inventoryLabel.enableWrapText = true;
             const updateInventory = (): void => {
-                inventoryLabel.string = `收集中 ${zyxGameModule.happyBottleProgress}/${HAPPY_BOTTLE_TARGET}  ·  开心瓶 ${zyxGameModule.happyBottleCount}\n解压锤 ${zyxGameModule.hammerCount}  ·  魔法棒 ${zyxGameModule.colorPurifierCount}`;
+                const lastRow = zyxGameModule.generationDebugLog.length > 0
+                    ? zyxGameModule.generationDebugLog[zyxGameModule.generationDebugLog.length - 1]
+                    : null;
+                const boardDebug = lastRow
+                    ? `种子 ${zyxGameModule.roundSeed}  ·  下一排 ${lastRow.targetCells} 格  ·  可移动 ${lastRow.movablePieces} 块`
+                    : `种子 ${zyxGameModule.roundSeed || '未开局'}`;
+                inventoryLabel.string = `收集中 ${zyxGameModule.happyBottleProgress}/${HAPPY_BOTTLE_TARGET}  ·  开心瓶 ${zyxGameModule.happyBottleCount}`
+                    + `\n解压锤 ${zyxGameModule.hammerCount}  ·  魔法棒 ${zyxGameModule.colorPurifierCount}`
+                    + `\n${boardDebug}`;
             };
             updateInventory();
 
@@ -141,7 +150,7 @@ export default class SettingsPanel {
     }
 
     private createSoundRow(parent: cc.Node, y: number): void {
-        const row = this.createSettingRow(parent, '音效', y);
+        const row = this.createSettingRow(parent, '声音', y);
         const state = uimanager.createLabel(row, '', 89, 0, 15, COCOA_SOFT, 90, 24);
         const update = (): void => {
             state.string = gameSettings.soundEnabled ? '已开启' : '已关闭';
@@ -149,6 +158,7 @@ export default class SettingsPanel {
         update();
         this.createSwitch(row, 176, 0, gameSettings.soundEnabled, (enabled) => {
             gameSettings.setSoundEnabled(enabled);
+            audioManager.applySettings();
             if (enabled) gameSettings.vibrateLight();
             update();
         });
@@ -191,6 +201,7 @@ export default class SettingsPanel {
             const local = slider.convertToNodeSpaceAR(point);
             const volume = Math.max(0, Math.min(1, (local.x + sliderWidth / 2) / sliderWidth));
             gameSettings.setSoundVolume(volume);
+            audioManager.applySettings();
             update();
         };
         let dragging = false;
@@ -204,6 +215,7 @@ export default class SettingsPanel {
         slider.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
             if (dragging) updateFromTouch(event);
             dragging = false;
+            uimanager.tapFeedback();
         });
         slider.on(cc.Node.EventType.TOUCH_CANCEL, () => dragging = false);
         update();
@@ -230,24 +242,64 @@ export default class SettingsPanel {
     }
 
     private createSwitch(parent: cc.Node, x: number, y: number, initial: boolean, onChange: (enabled: boolean) => void): void {
-        const node = uimanager.createRect(parent, 'settingSwitch', 66, 34, initial ? SAGE : MUTED, 255, 17, x, y);
+        const switchWidth = 72;
+        const switchHeight = 38;
+        const thumbTravel = 17;
+        const node = uimanager.createRect(parent, 'settingSwitch', switchWidth, switchHeight, initial ? SAGE : MUTED, 255, 19, x, y);
         node.addComponent(cc.Button);
-        let enabled = initial;
-        const paint = (): void => {
-            uimanager.drawRect(node, 66, 34, enabled ? SAGE : MUTED, 17);
-            const thumb = node.getChildByName('switchThumb');
-            if (thumb) thumb.x = enabled ? 16 : -16;
-        };
-        const thumb = uimanager.createCircle(node, 'switchThumb', 12, new cc.Color(255, 250, 237), enabled ? 16 : -16, 0);
-        const outline = thumb.addComponent(cc.Graphics);
+
+        const trackOutline = new cc.Node('switchTrackOutline');
+        trackOutline.zIndex = 1;
+        node.addChild(trackOutline);
+        const trackGraphics = trackOutline.addComponent(cc.Graphics);
+        trackGraphics.strokeColor = new cc.Color(101, 70, 58, 42);
+        trackGraphics.lineWidth = 1.2;
+        trackGraphics.roundRect(-switchWidth / 2 + 0.8, -switchHeight / 2 + 0.8, switchWidth - 1.6, switchHeight - 1.6, 18.2);
+        trackGraphics.stroke();
+
+        const thumb = new cc.Node('switchThumb');
+        thumb.width = 28;
+        thumb.height = 28;
+        thumb.zIndex = 2;
+        thumb.setPosition(initial ? thumbTravel : -thumbTravel, 0);
+        node.addChild(thumb);
+        const shadow = uimanager.createCircle(thumb, 'switchThumbShadow', 14, new cc.Color(91, 63, 50, 38), 0, -2);
+        shadow.zIndex = -1;
+        const surface = uimanager.createCircle(thumb, 'switchThumbSurface', 14, new cc.Color(255, 250, 237));
+        surface.zIndex = 1;
+        const outlineNode = new cc.Node('switchThumbOutline');
+        outlineNode.zIndex = 2;
+        thumb.addChild(outlineNode);
+        const outline = outlineNode.addComponent(cc.Graphics);
         outline.strokeColor = new cc.Color(111, 81, 67, 90);
         outline.lineWidth = 1.2;
-        outline.circle(0, 0, 11.4);
+        outline.circle(0, 0, 13.3);
         outline.stroke();
+        const highlight = uimanager.createCircle(thumb, 'switchThumbHighlight', 3, new cc.Color(255, 255, 255, 190), -5, 5);
+        highlight.zIndex = 3;
+
+        let enabled = initial;
+        const paint = (): void => {
+            uimanager.drawRect(node, switchWidth, switchHeight, enabled ? SAGE : MUTED, switchHeight / 2);
+            cc.Tween.stopAllByTarget(thumb);
+            cc.tween(thumb)
+                .to(0.14, { x: enabled ? thumbTravel : -thumbTravel }, { easing: 'sineOut' })
+                .start();
+        };
+        node.on(cc.Node.EventType.TOUCH_START, () => {
+            cc.Tween.stopAllByTarget(node);
+            cc.tween(node).to(0.06, { scale: 0.96 }).start();
+        });
         node.on(cc.Node.EventType.TOUCH_END, () => {
             enabled = !enabled;
             paint();
+            cc.Tween.stopAllByTarget(node);
+            cc.tween(node).to(0.12, { scale: 1 }, { easing: 'backOut' }).start();
             onChange(enabled);
+        });
+        node.on(cc.Node.EventType.TOUCH_CANCEL, () => {
+            cc.Tween.stopAllByTarget(node);
+            cc.tween(node).to(0.1, { scale: 1 }).start();
         });
     }
 

@@ -68,6 +68,20 @@ export default class CloudService {
         return await this.request(`/leaderboards?type=${type}`, 'GET', null, true) as LeaderboardResult;
     }
 
+    /** 幂等消费开心瓶并记录一个秘境解锁项。 */
+    public async unlockPuzzlePiece(puzzlePieceId: string, cost: number): Promise<CloudProfile> {
+        const data = await this.request('/puzzles/pieces/unlock', 'POST', {
+            puzzlePieceId,
+            cost,
+        }, true);
+        return data.profile as CloudProfile;
+    }
+
+    public async getPuzzleUnlocks(): Promise<string[]> {
+        const data = await this.request('/puzzles/unlocks', 'GET', null, true);
+        return Array.isArray(data.pieces) ? data.pieces : [];
+    }
+
     /** GM：把本地调试后的开心瓶/等级绝对值同步到服务端。 */
     public async syncDebugProfile(profile: {
         happyBottleBalance: number;
