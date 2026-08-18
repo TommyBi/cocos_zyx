@@ -1,6 +1,6 @@
-import { BUTTON_COLORS, uimanager } from '../manager/Uimanager';
+import { BUTTON_COLORS, uimanager } from '../manager/UIManager';
 import { cloudService } from '../manager/CloudService';
-import { loadEffectAsset, loadSpriteFrame } from '../manager/AssetLoader';
+import { ASSET_PATHS, getEffectAsset, getRealmSpriteFrame } from '../manager/AssetLoader';
 import { zyxGameModule } from '../dataModule/ZyxGameModule';
 import { MOOD_COLORS } from './MoodArt';
 import { audioManager } from '../manager/AudioManager';
@@ -16,7 +16,6 @@ const SHELF_FIRST_CARD_Y = -228;
 const SHELF_CARD_STEP_Y = 392;
 const CAROUSEL_SIDE_SCALE = 0.76;
 const CAROUSEL_SIDE_OPACITY = 152;
-const ART_UNLOCK_COST = 30;
 const LOCKED_ART_BLUR_RADIUS = 72;
 
 const PENDING_REALM_UNLOCKS_KEY = 'zyx_pending_realm_unlocks';
@@ -63,8 +62,8 @@ const ALBUM_SEEDS: AlbumSeed[] = [
         title: '四季物语',
         theme: '四季里的温柔片刻',
         description: '从春花到冬雪，收藏每一次相遇',
-        coverPath: 'pics/title/title_1',
-        artFolder: 'pics/theme_1',
+        coverPath: ASSET_PATHS.realm.firstCover,
+        artFolder: 'albums/art/theme_1',
         artCount: 48,
         accent: new cc.Color(189, 112, 74),
     },
@@ -73,8 +72,8 @@ const ALBUM_SEEDS: AlbumSeed[] = [
         title: '京城掠影',
         theme: '城市与旧时光',
         description: '沿着城墙与街巷，慢慢看见北京',
-        coverPath: 'pics/title/title_2',
-        artFolder: 'pics/theme_2',
+        coverPath: ASSET_PATHS.realm.secondCover,
+        artFolder: 'albums/art/theme_2',
         artCount: 12,
         accent: new cc.Color(70, 103, 116),
     },
@@ -87,12 +86,12 @@ function buildAlbums(): AlbumDef[] {
         theme: seed.theme,
         description: seed.description,
         coverPath: seed.coverPath,
-        unlockCost: albumIndex === 0 ? 1 : 30,
+        unlockCost: albumIndex === 0 ? 1 : (albumIndex === 1 ? 10 : 30),
         accent: seed.accent,
         arts: Array.from({ length: seed.artCount }, (_, index) => ({
             id: `${seed.id}_art_${index}`,
             title: `${seed.title} · ${String(index + 1).padStart(2, '0')}`,
-            cost: ART_UNLOCK_COST,
+            cost: albumIndex === 0 ? index + 1 : (albumIndex === 1 ? 20 : 30),
             imagePath: `${seed.artFolder}/pic_${index + 1}`,
         })),
     }));
@@ -197,14 +196,13 @@ export function renderAlbumShelf(options: AlbumShelfOptions): void {
     const height = screen.height;
     const safeArea = uimanager.getSafeAreaMetrics();
     const safeTop = Math.max(44, safeArea.top + 12);
-    loadSpriteFrame('album-art', 'pics/icon_lock', () => undefined);
-
     drawShelfBackdrop(screen);
 
     const headerY = height / 2 - safeTop - 58;
     const title = uimanager.createLabel(screen, '解忧秘境', 0, headerY + 8, 42, MOOD_COLORS.cocoa, 330, 56);
     title.node.zIndex = 220;
-    const subtitle = uimanager.createLabel(screen, '把喜欢的时光，一册一册收好', 0, headerY - 34, 17, MOOD_COLORS.cocoaSoft, 420, 30);
+    const subtitleY = Math.max(-height / 2 + 50, -height / 2 + safeArea.bottom + 34);
+    const subtitle = uimanager.createLabel(screen, '把美好的时光，一册一册收好', 0, subtitleY, 23, MOOD_COLORS.cocoaSoft, 460, 38);
     subtitle.node.zIndex = 220;
 
     const back = uimanager.createButton(
@@ -228,14 +226,14 @@ export function renderAlbumShelf(options: AlbumShelfOptions): void {
         new cc.Color(255, 248, 226),
         248,
         19,
-        width / 2 - safeArea.right - 84,
-        headerY + 8,
+        0,
+        headerY - 48,
     );
     bottleHud.zIndex = 230;
     drawMiniBottle(bottleHud, -48, 0);
     uimanager.createLabel(bottleHud, `× ${zyxGameModule.happyBottleCount}`, 19, 1, 19, MOOD_COLORS.cocoa, 78, 30);
 
-    const viewportTop = headerY - 76;
+    const viewportTop = headerY - 82;
     const footerReserve = 82;
     const viewportHeight = viewportTop + height / 2 - safeArea.bottom - footerReserve;
     const viewport = new cc.Node('albumShelfViewport');
@@ -388,26 +386,27 @@ function createAlbumCoverCard(
         return;
     }
 
-    const maskNode = mountResourceSprite(
+    const maskNode = uimanager.createRect(
         card,
         'albumDarkMask',
-        'pics/icon_mask',
         ALBUM_COVER_WIDTH,
         ALBUM_COVER_HEIGHT,
-        0,
-        0,
+        new cc.Color(18, 16, 14),
+        255,
         20,
     );
+    maskNode.zIndex = 20;
     maskNode.opacity = 132;
     const lockNode = mountResourceSprite(
         card,
         'albumLock',
-        'pics/icon_lock',
+        ASSET_PATHS.realm.lock,
         ALBUM_COVER_WIDTH / 2,
         ALBUM_COVER_HEIGHT / 2,
         0,
         28,
         31,
+        undefined,
     );
 
     const enough = zyxGameModule.happyBottleCount >= album.unlockCost;
@@ -539,8 +538,6 @@ export function renderAlbumView(options: AlbumViewOptions): void {
     const unlockedCount = countUnlockedArts(album);
     const currentUnlocked = artIndex < unlockedCount;
     const canUnlockCurrent = !currentUnlocked && artIndex === unlockedCount;
-    loadSpriteFrame('album-art', 'pics/icon_lock', () => undefined);
-
     createAlbumBackdrop(screen, album.accent);
 
     const topBarHeight = 118 + safeTop;
@@ -865,7 +862,17 @@ function createGalleryArtItem(
         const mist = uimanager.createRect(veil, 'lockedArtMist', displayW, displayH, new cc.Color(229, 223, 214), 124, 5);
         mist.zIndex = 1;
         if (offset === 0) {
-            (item as any).lockedArtLock = mountResourceSprite(veil, 'lockedArtIcon', 'pics/icon_lock', 210, 263, 0, 24, 2);
+            (item as any).lockedArtLock = mountResourceSprite(
+                veil,
+                'lockedArtIcon',
+                ASSET_PATHS.realm.lock,
+                210,
+                263,
+                0,
+                24,
+                2,
+                undefined,
+            );
         }
         (item as any).lockedVeil = veil;
     }
@@ -879,16 +886,14 @@ function shakeGalleryArtLock(item: cc.Node): void {
 
 function applyLockedArtBlur(item: cc.Node, sprite: cc.Sprite): void {
     (item as any).blurRadius = LOCKED_ART_BLUR_RADIUS;
-    loadEffectAsset('album-art', 'effects/album-blur', (error, effectAsset) => {
-        if (error || !effectAsset || !cc.isValid(item) || !cc.isValid(sprite.node)) return;
-        const material = cc.Material.create(effectAsset);
-        if (!material) return;
-        const params = cc.v4(1 / ALBUM_ART_WIDTH, 1 / ALBUM_ART_HEIGHT, Number((item as any).blurRadius) || 0, 0);
-        material.setProperty('blurParams', params);
-        const appliedMaterial = sprite.setMaterial(0, material);
-        (item as any).blurMaterial = appliedMaterial;
-        (item as any).blurParams = params;
-    });
+    const effectAsset = getEffectAsset('realm', ASSET_PATHS.realm.blurEffect);
+    const material = cc.Material.create(effectAsset);
+    if (!material) return;
+    const params = new cc.Vec4(1 / ALBUM_ART_WIDTH, 1 / ALBUM_ART_HEIGHT, Number((item as any).blurRadius) || 0, 0);
+    material.setProperty('blurParams', params);
+    const appliedMaterial = sprite.setMaterial(0, material);
+    (item as any).blurMaterial = appliedMaterial;
+    (item as any).blurParams = params;
 }
 
 function updateLockedArtBlur(item: cc.Node, radius: number): void {
@@ -1093,12 +1098,9 @@ function mountResourceSprite(
     parent.addChild(node);
     const sprite = node.addComponent(cc.Sprite);
     sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-    loadSpriteFrame('album-art', resourcePath, (error, frame) => {
-        if (error || !frame || !cc.isValid(node)) return;
-        sprite.spriteFrame = frame;
-        node.width = width;
-        node.height = height;
-        if (onReady) onReady(sprite);
-    });
+    sprite.spriteFrame = getRealmSpriteFrame(resourcePath);
+    node.width = width;
+    node.height = height;
+    if (onReady) onReady(sprite);
     return node;
 }

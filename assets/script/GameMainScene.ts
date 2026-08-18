@@ -1,5 +1,7 @@
-import { BUTTON_COLORS, uimanager } from './manager/Uimanager';
-import { cloudService, LeaderboardEntry, LeaderboardResult } from './manager/CloudService';
+import { BUTTON_COLORS, uimanager } from './manager/UIManager';
+import { getWxApi } from './manager/PlatformAdapter';
+import { cloudService } from './manager/CloudService';
+import WeChatProfileController from './manager/WeChatProfileController';
 import { settingsPanel } from './manager/SettingsPanel';
 import { HAPPY_BOTTLE_TARGET, zyxGameModule } from './dataModule/ZyxGameModule';
 import ZyxGame, { SettlementExitRequest } from './zyxGame/ZyxGame';
@@ -18,13 +20,21 @@ import {
     setWishBottleProgressImmediately,
 } from './zyxGame/MoodArt';
 import { ART_ALBUMS, renderAlbumShelf, renderAlbumView, syncRealmCloudState } from './zyxGame/ArtAlbum';
+import { showLeaderboardPanel } from './zyxGame/LeaderboardPanel';
 import { playBookPageTransition } from './zyxGame/BookTransition';
-import { ensureAlbumArtReady, ensureGameResourcesReady, ensureHomeReady, ensureRealmReady, isBundleReady, loadSpriteFrame } from './manager/AssetLoader';
+import {
+    ASSET_PATHS,
+    getSpriteFrame,
+    isFeatureReady,
+    loadRemoteTexture,
+    prepareAlbumArt,
+    prepareFeature,
+    releaseUnusedAlbumArt,
+} from './manager/AssetLoader';
 import { registerSystemShare } from './manager/ShareReward';
 import { audioManager, MusicName } from './manager/AudioManager';
 
 const { ccclass } = cc._decorator;
-declare const wx: any;
 
 /** 开始页与核心玩法之间的唯一场景入口。 */
 @ccclass
@@ -39,7 +49,14 @@ export default class GameMainScene extends cc.Component {
     private profileExperienceTrackWidth: number = 238;
     private profileExperienceFillWidth: number = 192;
     private profileExperienceFillLeft: number = -88;
-    private nativeWeChatProfileButton: any = null;
+    private wechatProfileController: WeChatProfileController = new WeChatProfileController({
+        getAuthorizationButton: () => (
+            this.profileAuthorizationButton && cc.isValid(this.profileAuthorizationButton)
+                ? this.profileAuthorizationButton
+                : null
+        ),
+        onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl),
+    });
     private homeMoodBottle: cc.Node = null;
     private homeMoodCountLabel: cc.Label = null;
     /** 示意棋盘/手势层；结算满瓶演出期间隐藏，结束后再淡入恢复循环。 */
@@ -52,6 +69,7 @@ export default class GameMainScene extends cc.Component {
     private happyBottleCountBadge: cc.Node = null;
     private happyBottleCountCard: cc.Node = null;
     private cloudProfileReady: boolean = false;
+    private cloudProfileBootstrapPromise: Promise<void> = null;
     private roundStartedAt: number = 0;
     private gmBubble: cc.Node = null;
     private albumArtIndex: number = 0;
@@ -84,6 +102,11 @@ export default class GameMainScene extends cc.Component {
     }
 
     public start(): void {
+        // 小游戏启动器会在 onLoad 后应用动态图集默认值；start 仍早于本项目的首个 Sprite UI。
+        if (cc.dynamicAtlasManager) {
+            cc.dynamicAtlasManager.enabled = false;
+            cc.dynamicAtlasManager.reset();
+        }
         const search = typeof window !== 'undefined'
             && window.location
             && typeof window.location.search === 'string'
@@ -95,9 +118,54 @@ export default class GameMainScene extends cc.Component {
             this.startGame();
             return;
         }
-        ensureHomeReady()
-            .then(() => this.showHome())
-            .catch((error: Error) => this.showResourceLoadFailure('首页', () => this.start()));
+        this.showLaunchLoading();
+        this.bootstrapCloudProfile().then(() => {
+            if (zyxGameModule.shouldEnterGameOnLaunch()) {
+                this.startGame(true);
+                return;
+            }
+            this.enterHome();
+        });
+    }
+
+    /** 首包内的轻量启动反馈；不加载首页贴图或音乐，避免新用户为看不到的首页资源付费。 */
+    private showLaunchLoading(): void {
+        this.replaceScreen('launchLoading');
+        uimanager.createRect(
+            this.screen,
+            'launchBackground',
+            this.screen.width,
+            this.screen.height,
+            new cc.Color(255, 247, 225),
+            255,
+        );
+        const mascot = uimanager.createRect(
+            this.screen,
+            'launchMascot',
+            82,
+            66,
+            MOOD_COLORS.honey,
+            255,
+            18,
+            0,
+            32,
+        );
+        const face = new cc.Node('launchMascotFace');
+        face.zIndex = 2;
+        mascot.addChild(face);
+        const graphics = face.addComponent(cc.Graphics);
+        graphics.strokeColor = MOOD_COLORS.cocoa;
+        graphics.lineWidth = 3;
+        graphics.arc(-16, 8, 4, Math.PI, Math.PI * 2);
+        graphics.stroke();
+        graphics.arc(16, 8, 4, Math.PI, Math.PI * 2);
+        graphics.stroke();
+        graphics.arc(0, -4, 13, Math.PI, Math.PI * 2);
+        graphics.stroke();
+        uimanager.createLabel(this.screen, '正在准备快乐消除…', 0, -50, 22, MOOD_COLORS.cocoa, 360, 36);
+        cc.tween(mascot)
+            .repeatForever(cc.tween().to(0.42, { y: 46 }, { easing: 'sineOut' }).to(0.42, { y: 32 }, { easing: 'sineIn' }))
+            .start();
     }
 
     public onDestroy(): void {
@@ -110,12 +178,23 @@ export default class GameMainScene extends cc.Component {
         this.bookTransitioning = false;
         this.node.off(cc.Node.EventType.TOUCH_END, this.handleGlobalAlbumTouchEnd, this, true);
         this.node.off(cc.Node.EventType.TOUCH_CANCEL, this.handleGlobalAlbumTouchCancel, this, true);
-        this.destroyNativeWeChatProfileButton();
+        this.wechatProfileController.destroyNativeButton();
+    }
+
+    private enterHome(onReady?: () => void): void {
+        if (!isFeatureReady('home')) uimanager.showToast('正在加载首页…');
+        prepareFeature('home')
+            .then(() => {
+                this.showHome();
+                if (onReady) onReady();
+            })
+            .catch(() => this.showResourceLoadFailure('首页', () => this.enterHome(onReady)));
     }
 
     private showHome(): void {
         uimanager.closeModal();
         this.replaceScreen('home');
+        releaseUnusedAlbumArt();
         zyxGameModule.refreshPersistentProgress();
         const width = cc.winSize.width;
         const height = cc.winSize.height;
@@ -157,9 +236,9 @@ export default class GameMainScene extends cc.Component {
         this.preloadGameResourcesSilently();
     }
 
-    /** 首页可交互后立即预热消除分包；失败不打扰用户，点击开始时会自动重试。 */
+    /** 首页可交互后预热主包内局内资源；点击开始时仍以同一 Promise 为准。 */
     private preloadGameResourcesSilently(): void {
-        ensureGameResourcesReady()
+        prepareFeature('game')
             .catch((error: Error) => cc.warn('Game resource preload failed', error));
     }
 
@@ -173,14 +252,12 @@ export default class GameMainScene extends cc.Component {
 
         const sprite = logo.addComponent(cc.Sprite);
         sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        loadSpriteFrame('home', 'images/home_title_logo_v1', (error, frame) => {
-            if (error || !frame || !cc.isValid(logo)) return;
-            sprite.spriteFrame = frame;
-            uimanager.fitSpriteFrameInside(logo, frame, 560, 190);
-            logo.opacity = 0;
-            logo.scale = 0.9;
-            cc.tween(logo).to(0.28, { opacity: 255, scale: 1 }, { easing: 'backOut' }).start();
-        });
+        const frame = getSpriteFrame('home', ASSET_PATHS.home.title);
+        sprite.spriteFrame = frame;
+        uimanager.fitSpriteFrameInside(logo, frame, 560, 190);
+        logo.opacity = 0;
+        logo.scale = 0.9;
+        cc.tween(logo).to(0.28, { opacity: 255, scale: 1 }, { easing: 'backOut' }).start();
     }
 
     /** 档案卡右侧独立资产区：只保留区域底与数量底，不再给瓶子叠圆环。 */
@@ -330,24 +407,30 @@ export default class GameMainScene extends cc.Component {
     /** 首次进入时匿名建档，失败不影响离线玩法；下次进首页会自动重试。 */
     private async bootstrapCloudProfile(): Promise<void> {
         if (this.cloudProfileReady) return;
-        try {
-            const profile = await cloudService.bootstrap(
-                this.profileNameLabel ? this.profileNameLabel.string : '解忧玩家',
-                '',
-                {
-                    level: zyxGameModule.level,
-                    experience: zyxGameModule.experience,
-                    happyBottleBalance: zyxGameModule.happyBottleCount,
-                    happyBottleProgress: zyxGameModule.happyBottleProgress,
-                    totalHappyBottles: zyxGameModule.happyBottleCount,
-                    highestSingleGameScore: zyxGameModule.bestScore,
-                },
-            );
-            this.cloudProfileReady = true;
-            this.applyCloudProfile(profile);
-        } catch (error) {
-            // 网络短暂不可用时继续使用本地缓存，不打断玩家进入游戏。
-        }
+        if (this.cloudProfileBootstrapPromise) return this.cloudProfileBootstrapPromise;
+        this.cloudProfileBootstrapPromise = (async () => {
+            try {
+                const profile = await cloudService.bootstrap(
+                    this.profileNameLabel ? this.profileNameLabel.string : '解忧玩家',
+                    '',
+                    {
+                        level: zyxGameModule.level,
+                        experience: zyxGameModule.experience,
+                        happyBottleBalance: zyxGameModule.happyBottleCount,
+                        happyBottleProgress: zyxGameModule.happyBottleProgress,
+                        totalHappyBottles: zyxGameModule.happyBottleCount,
+                        highestSingleGameScore: zyxGameModule.bestScore,
+                    },
+                );
+                this.cloudProfileReady = true;
+                this.applyCloudProfile(profile);
+            } catch (error) {
+                // 网络短暂不可用时继续使用本地缓存，不打断玩家进入游戏。
+            } finally {
+                this.cloudProfileBootstrapPromise = null;
+            }
+        })();
+        return this.cloudProfileBootstrapPromise;
     }
 
     private applyCloudProfile(profile: any): void {
@@ -356,9 +439,11 @@ export default class GameMainScene extends cc.Component {
         this.updateHappyBottleCount();
         this.updateHomeExperienceDisplay(profile.level, profile.experience, zyxGameModule.getExperienceTargetForLevel(profile.level));
         if (this.homeMoodBottle) {
-            setWishBottleProgressImmediately(this.homeMoodBottle, profile.happyBottleProgress, HAPPY_BOTTLE_TARGET);
+            setWishBottleProgressImmediately(this.homeMoodBottle, zyxGameModule.happyBottleProgress, HAPPY_BOTTLE_TARGET);
         }
-        if (this.homeMoodCountLabel) this.homeMoodCountLabel.string = `${profile.happyBottleProgress}/${HAPPY_BOTTLE_TARGET}`;
+        if (this.homeMoodCountLabel) {
+            this.homeMoodCountLabel.string = `${zyxGameModule.happyBottleProgress}/${HAPPY_BOTTLE_TARGET}`;
+        }
     }
 
     private async submitSettlementToCloud(settlement: SettlementExitRequest['settlement'], startedAt: number): Promise<void> {
@@ -376,67 +461,6 @@ export default class GameMainScene extends cc.Component {
         } catch (error) {
             // 本局本地结算已完成；云端重试留待下次联网进入时处理。
         }
-    }
-
-    private async showLeaderboard(): Promise<void> {
-        try {
-            if (!this.cloudProfileReady) await this.bootstrapCloudProfile();
-            const result = await cloudService.getLeaderboard('power');
-            this.renderLeaderboard(result);
-        } catch (error) {
-            uimanager.showToast('排行榜连接中，请稍后重试');
-        }
-    }
-
-    private renderLeaderboard(initial: LeaderboardResult, pageIndex: number = 0): void {
-        let current = initial;
-        const pageSize = 8;
-        const totalPages = Math.max(1, Math.ceil(current.entries.length / pageSize));
-        const safePageIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
-        const render = (panel: cc.Node, centerY: number): void => {
-            const tabs = uimanager.createRect(panel, 'leaderboardTabs', 410, 44, new cc.Color(245, 231, 200), 255, 14, 0, centerY + 154);
-            const paintTab = (text: string, x: number, type: 'power' | 'happiness'): void => {
-                const active = current.type === type;
-                const tab = uimanager.createButton(tabs, text, x, 0, 192, 38, active ? BUTTON_COLORS.yellow : new cc.Color(171, 150, 132), () => {
-                    cloudService.getLeaderboard(type).then((result) => {
-                        uimanager.closeModal();
-                        this.renderLeaderboard(result);
-                    }).catch(() => uimanager.showToast('榜单刷新失败'));
-                }, 18);
-                tab.opacity = active ? 255 : 185;
-            };
-            paintTab('实力榜', -101, 'power');
-            paintTab('开心榜', 101, 'happiness');
-            const valueName = current.type === 'power' ? '单局最高分' : '本周开心瓶';
-            current.entries.slice(safePageIndex * pageSize, (safePageIndex + 1) * pageSize)
-                .forEach((entry, index) => this.createLeaderboardRow(panel, entry, valueName, centerY + 100 - index * 38));
-            uimanager.createLabel(panel, `第 ${safePageIndex + 1}/${totalPages} 页 · 前 ${current.entries.length} 名`, 0, centerY - 142, 14, MOOD_COLORS.cocoaSoft, 260, 24);
-            const selfText = current.self.isRanked
-                ? `我的排名：第 ${current.self.rank} 名 · ${valueName} ${current.self.value}`
-                : `暂未上榜 · ${valueName} ${current.self.value}${current.self.distanceToRank200 > 0 ? ` · 距前200还差 ${current.self.distanceToRank200}` : ''}`;
-            uimanager.createLabel(panel, selfText, 0, centerY - 170, 16, MOOD_COLORS.cocoa, 430, 28);
-        };
-        const actions: any[] = [];
-        if (safePageIndex > 0) actions.push({ text: '上一页', color: BUTTON_COLORS.yellow, onClick: () => this.renderLeaderboard(current, safePageIndex - 1) });
-        if (safePageIndex < totalPages - 1) actions.push({ text: '下一页', color: BUTTON_COLORS.yellow, onClick: () => this.renderLeaderboard(current, safePageIndex + 1) });
-        actions.push({ text: '关闭', color: BUTTON_COLORS.green, onClick: () => undefined });
-        uimanager.showModal('本周排行榜', `${current.weekId} · 周一 00:00 结算`, actions, render, 350);
-    }
-
-    private createLeaderboardRow(parent: cc.Node, entry: LeaderboardEntry, valueName: string, y: number): void {
-        const colors: { [key: string]: cc.Color } = {
-            gold: new cc.Color(250, 215, 119),
-            silver: new cc.Color(213, 220, 228),
-            bronze: new cc.Color(229, 179, 131),
-            normal: new cc.Color(255, 248, 228),
-        };
-        const row = uimanager.createRect(parent, `leaderboard_${entry.rank}`, 430, 34, colors[entry.rewardTier] || colors.normal, 255, 10, 0, y);
-        const rank = entry.rank <= 3 ? ['金杯', '银杯', '铜杯'][entry.rank - 1] : String(entry.rank);
-        uimanager.createLabel(row, rank, -180, 0, entry.rank <= 3 ? 20 : 15, MOOD_COLORS.cocoa, 44, 28);
-        uimanager.createCircle(row, 'leaderAvatar', 11, new cc.Color(130, 185, 168), -138, 0);
-        uimanager.createLabel(row, entry.nickname, -42, 0, 16, MOOD_COLORS.cocoa, 140, 28).horizontalAlign = cc.Label.HorizontalAlign.LEFT;
-        uimanager.createLabel(row, `${valueName} ${entry.value}`, 112, 0, 14, MOOD_COLORS.cocoaSoft, 130, 28);
-        uimanager.createLabel(row, entry.rewardTier === 'normal' ? '▣' : '♜', 184, 0, 18, MOOD_COLORS.cocoa, 30, 28);
     }
 
     /** 首页功能入口：右侧统一工具架，入口距屏幕边缘保留安全留白。 */
@@ -468,7 +492,7 @@ export default class GameMainScene extends cc.Component {
             '解忧秘境',
             topEntryY,
             new cc.Color(229, 149, 108),
-            'images/realm_entry_portal_v3',
+            ASSET_PATHS.home.realmEntry,
             () => this.showWorryFreeRealm(),
         );
         this.createHomeFeatureIcon(
@@ -477,8 +501,8 @@ export default class GameMainScene extends cc.Component {
             '排行榜',
             bottomEntryY,
             new cc.Color(105, 164, 190),
-            'images/rank_entry_trophy_v2',
-            () => this.showLeaderboard(),
+            ASSET_PATHS.home.rankEntry,
+            () => showLeaderboardPanel(() => this.bootstrapCloudProfile()),
         );
     }
 
@@ -644,7 +668,6 @@ export default class GameMainScene extends cc.Component {
                 settingsPanel.showGm(
                     (progressAdded) => this.refreshGmInventoryDisplays(progressAdded || 0),
                     () => this.pushGmProfileToCloud(),
-                    () => this.resetAccountFromGm(),
                 );
             }
             event.stopPropagation();
@@ -711,7 +734,8 @@ export default class GameMainScene extends cc.Component {
                     },
                     onSlotProgress: (shown) => {
                         if (this.homeMoodCountLabel) {
-                            this.homeMoodCountLabel.string = `${Math.min(shown, HAPPY_BOTTLE_TARGET)}/${HAPPY_BOTTLE_TARGET}`;
+                            const remainder = Math.max(0, Math.floor(shown)) % HAPPY_BOTTLE_TARGET;
+                            this.homeMoodCountLabel.string = `${remainder}/${HAPPY_BOTTLE_TARGET}`;
                         }
                     },
                     onPresentationComplete: () => {
@@ -843,12 +867,9 @@ export default class GameMainScene extends cc.Component {
         parent.addChild(icon);
         const sprite = icon.addComponent(cc.Sprite);
         sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        loadSpriteFrame('home', resourcePath, (error, frame) => {
-            if (error || !frame || !cc.isValid(icon)) return;
-            sprite.spriteFrame = frame;
-            icon.width = iconSize;
-            icon.height = iconSize;
-        });
+        sprite.spriteFrame = getSpriteFrame('home', resourcePath);
+        icon.width = iconSize;
+        icon.height = iconSize;
     }
 
     private drawBookFeatureGlyph(parent: cc.Node, x: number, y: number): void {
@@ -1228,7 +1249,7 @@ export default class GameMainScene extends cc.Component {
 
     /**
      * 首页示意：表情飞入瓶口并轻晃瓶盖。
-     * 纯视觉，不调用进度写入，不改「X/666」；真实数据只在对局结算 / GM / 云端同步更新。
+     * 纯视觉，不调用进度写入，不改瓶子数值；真实数据只在对局结算 / GM / 云端同步更新。
      */
     private playHomeMoodFlight(
         stage: cc.Node,
@@ -1412,7 +1433,7 @@ export default class GameMainScene extends cc.Component {
             }
         }
         this.profileAuthorizationButton.active = !hasCachedProfile;
-        this.configureWeChatProfileAccess(panelX + 70, panelY + 20, 64, 32, hasCachedProfile);
+        this.wechatProfileController.requestAuthorization(panelX + 70, panelY + 20, 64, 32, hasCachedProfile);
         return panel;
     }
 
@@ -1460,132 +1481,15 @@ export default class GameMainScene extends cc.Component {
     }
 
     private requestWeChatProfile(): void {
-        const wxApi = this.getWeChatApi();
-        if (!wxApi) {
+        if (!getWxApi()) {
             uimanager.showToast('微信小游戏中点击「授权」即可同步头像昵称');
             return;
         }
-        if (this.nativeWeChatProfileButton) {
+        if (this.wechatProfileController.hasNativeButton()) {
             uimanager.showToast('请点击右侧「授权」同步微信资料');
             return;
         }
-        this.configureWeChatProfileAccess(-2, 613, 72, 34, false);
-    }
-
-    /**
-     * 官方推荐流程：先检查 scope.userInfo；已授权直接读取，未授权再创建原生按钮。
-     * 原生按钮必须承接真实用户点击，所以不能只用 Cocos 的触摸回调替代。
-     */
-    private configureWeChatProfileAccess(
-        centerX: number,
-        centerY: number,
-        width: number,
-        height: number,
-        hasCachedProfile: boolean,
-    ): void {
-        const wxApi = this.getWeChatApi();
-        if (!wxApi) return;
-        if (this.profileAuthorizationButton) this.profileAuthorizationButton.active = !hasCachedProfile;
-
-        const createAuthorizationButton = (): void => {
-            if (!this.profileAuthorizationButton || !cc.isValid(this.profileAuthorizationButton)) return;
-            this.profileAuthorizationButton.active = true;
-            this.createNativeWeChatProfileButton(centerX, centerY, width, height);
-        };
-        if (typeof wxApi.getSetting !== 'function') {
-            createAuthorizationButton();
-            return;
-        }
-        wxApi.getSetting({
-            success: (result: any) => {
-                const authorized = !!(result && result.authSetting && result.authSetting['scope.userInfo']);
-                if (!authorized || typeof wxApi.getUserInfo !== 'function') {
-                    createAuthorizationButton();
-                    return;
-                }
-                wxApi.getUserInfo({
-                    success: (response: any) => this.handleWeChatProfileResponse(response),
-                    fail: createAuthorizationButton,
-                });
-            },
-            fail: createAuthorizationButton,
-        });
-    }
-
-    private createNativeWeChatProfileButton(
-        centerX: number,
-        centerY: number,
-        width: number,
-        height: number,
-    ): void {
-        const wxApi = this.getWeChatApi();
-        if (!wxApi || typeof wxApi.createUserInfoButton !== 'function' || this.nativeWeChatProfileButton) return;
-        const system = typeof wxApi.getSystemInfoSync === 'function'
-            ? wxApi.getSystemInfoSync()
-            : { windowWidth: cc.winSize.width, windowHeight: cc.winSize.height };
-        const scaleX = system.windowWidth / cc.winSize.width;
-        const scaleY = system.windowHeight / cc.winSize.height;
-        const nativeButton = wxApi.createUserInfoButton({
-            type: 'text',
-            text: '授权',
-            lang: 'zh_CN',
-            withCredentials: false,
-            style: {
-                left: (centerX - width / 2 + cc.winSize.width / 2) * scaleX,
-                top: (cc.winSize.height / 2 - centerY - height / 2) * scaleY,
-                width: width * scaleX,
-                height: height * scaleY,
-                lineHeight: height * scaleY,
-                backgroundColor: '#69B581',
-                color: '#FFFFFF',
-                textAlign: 'center',
-                fontSize: Math.max(12, 15 * scaleY),
-                borderRadius: 10 * Math.min(scaleX, scaleY),
-                borderWidth: 1,
-                borderColor: '#477E5A',
-            },
-        });
-        this.nativeWeChatProfileButton = nativeButton;
-        nativeButton.onTap((response: any) => {
-            uimanager.tapFeedback();
-            if (response && response.userInfo) {
-                this.handleWeChatProfileResponse(response);
-                return;
-            }
-            uimanager.showToast('未授权微信资料，继续使用默认头像');
-        });
-    }
-
-    private handleWeChatProfileResponse(response: any): void {
-        const info = response && response.userInfo ? response.userInfo : response;
-        if (!info || (!info.nickName && !info.avatarUrl)) {
-            uimanager.showToast('没有获取到微信资料，请稍后再试');
-            return;
-        }
-        this.applyWeChatProfile(info.nickName || '顺心朋友', info.avatarUrl || '');
-        cc.sys.localStorage.setItem('zyx_wechat_profile', JSON.stringify({
-            nickName: info.nickName || '顺心朋友',
-            avatarUrl: info.avatarUrl || '',
-        }));
-        if (this.profileAuthorizationButton && cc.isValid(this.profileAuthorizationButton)) {
-            this.profileAuthorizationButton.active = false;
-        }
-        this.destroyNativeWeChatProfileButton();
-        uimanager.showToast('微信资料已同步');
-    }
-
-    private destroyNativeWeChatProfileButton(): void {
-        if (!this.nativeWeChatProfileButton) return;
-        if (typeof this.nativeWeChatProfileButton.destroy === 'function') {
-            this.nativeWeChatProfileButton.destroy();
-        }
-        this.nativeWeChatProfileButton = null;
-    }
-
-    private getWeChatApi(): any {
-        if (typeof wx !== 'undefined') return wx;
-        if (typeof window !== 'undefined' && (window as any).wx) return (window as any).wx;
-        return null;
+        this.wechatProfileController.requestAuthorization(-2, 613, 72, 34, false);
     }
 
     private applyWeChatProfile(nickName: string, avatarUrl: string): void {
@@ -1593,8 +1497,8 @@ export default class GameMainScene extends cc.Component {
         cloudService.bootstrap(nickName, avatarUrl).then((profile) => this.applyCloudProfile(profile)).catch(() => undefined);
         if (!avatarUrl || !this.profileAvatarContent || !cc.isValid(this.profileAvatarContent)) return;
         const content = this.profileAvatarContent;
-        cc.assetManager.loadRemote(avatarUrl, { ext: '.png' }, (error: Error, texture: cc.Texture2D) => {
-            if (error || !texture || !cc.isValid(content)) return;
+        loadRemoteTexture(avatarUrl).then((texture) => {
+            if (!cc.isValid(content)) return;
             content.removeAllChildren();
             const spriteNode = new cc.Node('wechatAvatar');
             spriteNode.width = 68;
@@ -1605,7 +1509,7 @@ export default class GameMainScene extends cc.Component {
             sprite.spriteFrame = new cc.SpriteFrame(texture);
             spriteNode.width = 68;
             spriteNode.height = 64;
-        });
+        }).catch(() => undefined);
     }
 
     private createHomeRotatingTip(centerY: number): void {
@@ -1614,7 +1518,7 @@ export default class GameMainScene extends cc.Component {
             '左右拖动心情块，让它落进合适的位置',
             '填满一整行，就能把烦恼轻轻消掉',
             '带表情的心情块消除后，会飞进开心瓶',
-            '装满 666 个表情，就能得到一枚开心瓶',
+            `装满 ${HAPPY_BOTTLE_TARGET} 个表情，就能得到一枚开心瓶`,
         ];
         let index = 0;
         const label = uimanager.createLabel(pill, tips[index], 0, 0, 23, new cc.Color(45, 42, 39), 568, 40);
@@ -1728,41 +1632,10 @@ export default class GameMainScene extends cc.Component {
 
         const sprite = node.addComponent(cc.Sprite);
         sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        loadSpriteFrame('home', 'images/start_guide_hand_v3', (error, frame) => {
-            if (error || !frame || !cc.isValid(node)) {
-                cc.warn('Start guide hand failed to load', error);
-                this.drawCuteGuideHandFallback(node);
-                return;
-            }
-            sprite.spriteFrame = frame;
-            uimanager.fitSpriteFrameInside(node, frame, 128, 128);
-        });
+        const frame = getSpriteFrame('home', ASSET_PATHS.home.guideHand);
+        sprite.spriteFrame = frame;
+        uimanager.fitSpriteFrameInside(node, frame, 128, 128);
         return node;
-    }
-
-    /** 素材未就绪时的程序化可爱小手，避免指引空白。 */
-    private drawCuteGuideHandFallback(node: cc.Node): void {
-        const g = node.addComponent(cc.Graphics);
-        g.fillColor = new cc.Color(90, 64, 52, 40);
-        g.ellipse(6, -34, 28, 10);
-        g.fill();
-        g.fillColor = new cc.Color(246, 215, 184);
-        g.strokeColor = new cc.Color(120, 82, 58);
-        g.lineWidth = 4;
-        g.roundRect(-18, -28, 44, 36, 16);
-        g.fill();
-        g.stroke();
-        g.roundRect(-6, 4, 16, 42, 8);
-        g.fill();
-        g.stroke();
-        g.fillColor = new cc.Color(255, 248, 230);
-        g.strokeColor = new cc.Color(120, 82, 58);
-        g.roundRect(-22, -40, 52, 18, 9);
-        g.fill();
-        g.stroke();
-        g.fillColor = new cc.Color(126, 190, 157);
-        g.roundRect(-18, -36, 44, 6, 3);
-        g.fill();
     }
 
     private playStartGuideTapRipple(x: number, y: number): void {
@@ -1799,9 +1672,10 @@ export default class GameMainScene extends cc.Component {
             this.startGame();
             return;
         }
-        this.showHome();
-        this.playSettlementRewardReturn(request, () => {
-            this.submitSettlementToCloud(request.settlement, submittedRoundStartedAt);
+        this.enterHome(() => {
+            this.playSettlementRewardReturn(request, () => {
+                this.submitSettlementToCloud(request.settlement, submittedRoundStartedAt);
+            });
         });
     }
 
@@ -1918,7 +1792,8 @@ export default class GameMainScene extends cc.Component {
                 },
                 onSlotProgress: (slot) => {
                     if (this.homeMoodCountLabel) {
-                        this.homeMoodCountLabel.string = `${Math.min(slot, HAPPY_BOTTLE_TARGET)}/${HAPPY_BOTTLE_TARGET}`;
+                        const remainder = Math.max(0, Math.floor(slot)) % HAPPY_BOTTLE_TARGET;
+                        this.homeMoodCountLabel.string = `${remainder}/${HAPPY_BOTTLE_TARGET}`;
                     }
                     if (slot > 0 && slot < HAPPY_BOTTLE_TARGET) playBottleBurp(this.homeMoodBottle);
                 },
@@ -2068,9 +1943,9 @@ export default class GameMainScene extends cc.Component {
         if (this.realmAssetsLoading) return;
         this.stopAlbumArrowHold();
         this.realmAssetsLoading = true;
-        if (!isBundleReady('realm')) uimanager.showToast('正在加载解忧秘境…');
+        if (!isFeatureReady('realm')) uimanager.showToast('正在加载解忧秘境…');
         Promise.all([
-            ensureRealmReady(),
+            prepareFeature('realm'),
             syncRealmCloudState().catch((error: Error) => cc.warn('Realm cloud sync failed', error)),
         ]).then(() => {
             this.realmAssetsLoading = false;
@@ -2083,10 +1958,11 @@ export default class GameMainScene extends cc.Component {
 
     private renderWorryFreeRealm(): void {
         this.replaceScreen('worryFreeRealm');
+        releaseUnusedAlbumArt();
         createMoodCanvasBackground(this.screen, this.screen.width, this.screen.height);
         renderAlbumShelf({
             screen: this.screen,
-            onBack: () => this.showHome(),
+            onBack: () => this.enterHome(),
             onOpenAlbum: (albumId) => this.playRealmTransition(albumId),
             drawMiniBottle: (parent, x, y) => this.drawMiniBottle(parent, x, y),
         });
@@ -2098,14 +1974,25 @@ export default class GameMainScene extends cc.Component {
         this.currentAlbumId = albumId;
         this.albumArtIndex = 0;
         this.albumAssetsLoading = true;
-        if (!isBundleReady('album-art')) uimanager.showToast('正在加载画册内容…');
-        ensureAlbumArtReady().then(() => {
+        uimanager.showToast('正在打开画册…');
+        const pagePaths = this.getAlbumPagePaths(albumId, 0);
+        prepareAlbumArt(pagePaths).then(() => {
             this.albumAssetsLoading = false;
-            this.playAlbumBookTransition(() => this.showArtAlbum(0));
+            this.playAlbumBookTransition(() => this.renderArtAlbum(0, pagePaths));
         }).catch((error: Error) => {
             this.albumAssetsLoading = false;
             this.showResourceLoadFailure('画册', () => this.playRealmTransition(albumId));
         });
+    }
+
+    /** 一页只保留当前画作和左右邻居，既不留空白，也不把整册图片解码进内存。 */
+    private getAlbumPagePaths(albumId: string, artIndex: number): string[] {
+        const album = ART_ALBUMS.find((candidate) => candidate.id === albumId);
+        if (!album) return [];
+        const normalizedIndex = Math.max(0, Math.min(album.arts.length - 1, artIndex));
+        return [normalizedIndex - 1, normalizedIndex, normalizedIndex + 1]
+            .filter((index) => index >= 0 && index < album.arts.length)
+            .map((index) => album.arts[index].imagePath);
     }
 
     /** 从画册详情返回列表，复用完全相同的书页层。 */
@@ -2129,6 +2016,20 @@ export default class GameMainScene extends cc.Component {
     }
 
     private showArtAlbum(artIndex: number = this.albumArtIndex): void {
+        if (this.albumAssetsLoading) return;
+        const pagePaths = this.getAlbumPagePaths(this.currentAlbumId, artIndex);
+        if (pagePaths.length === 0) return;
+        this.albumAssetsLoading = true;
+        prepareAlbumArt(pagePaths).then(() => {
+            this.albumAssetsLoading = false;
+            this.renderArtAlbum(artIndex, pagePaths);
+        }).catch(() => {
+            this.albumAssetsLoading = false;
+            this.showResourceLoadFailure('画册', () => this.showArtAlbum(artIndex));
+        });
+    }
+
+    private renderArtAlbum(artIndex: number, pagePaths: string[]): void {
         this.albumArtIndex = Math.max(0, artIndex);
         this.replaceScreen('artAlbum');
         renderAlbumView({
@@ -2142,6 +2043,7 @@ export default class GameMainScene extends cc.Component {
             onArrowNavigatorReady: (navigate) => this.albumArrowNavigate = navigate,
             drawMiniBottle: (parent, x, y) => this.drawMiniBottle(parent, x, y),
         });
+        releaseUnusedAlbumArt(pagePaths);
     }
 
     private startAlbumArrowHold(direction: number): void {
@@ -2174,6 +2076,7 @@ export default class GameMainScene extends cc.Component {
     }
 
     private stepAlbumArt(direction: number): boolean {
+        if (this.albumAssetsLoading) return false;
         const album = ART_ALBUMS.find((candidate) => candidate.id === this.currentAlbumId);
         if (!album) return false;
         const nextIndex = this.albumArtIndex + direction;
@@ -2209,11 +2112,12 @@ export default class GameMainScene extends cc.Component {
         }
     }
 
-    private startGame(): void {
+    private startGame(profileBootstrapHandled: boolean = false): void {
         if (this.gameAssetsLoading) return;
         this.gameAssetsLoading = true;
-        if (!isBundleReady('game-assets')) uimanager.showToast('正在加载消除资源…');
-        ensureGameResourcesReady()
+        if (!isFeatureReady('game')) uimanager.showToast('正在加载消除资源…');
+        prepareFeature('game')
+            .then(() => profileBootstrapHandled ? undefined : this.bootstrapCloudProfile())
             .then(() => {
                 this.gameAssetsLoading = false;
                 this.roundStartedAt = Date.now();
@@ -2256,7 +2160,7 @@ export default class GameMainScene extends cc.Component {
             this.stopAlbumArrowHold();
             this.albumArrowNavigate = null;
         }
-        this.destroyNativeWeChatProfileButton();
+        this.wechatProfileController.destroyNativeButton();
         if (this.screen && this.screen.isValid) {
             this.stopScreenTweens(this.screen);
             this.screen.destroy();
@@ -2282,6 +2186,7 @@ export default class GameMainScene extends cc.Component {
         this.screen.height = cc.winSize.height;
         this.screen.setAnchorPoint(0.5, 0.5);
         this.node.addChild(this.screen);
+        if (name === 'launchLoading') return;
         const music: MusicName = name === 'game'
             ? 'game'
             : (name === 'worryFreeRealm' || name === 'artAlbum' ? 'puzzle' : 'main');

@@ -1,4 +1,4 @@
-declare const wx: any;
+import { vibrateShortLight } from './PlatformAdapter';
 
 export type GameSettingsSnapshot = {
     soundEnabled: boolean;
@@ -77,15 +77,7 @@ export default class GameSettings {
     public vibrateLight(): void {
         this.ensureLoaded();
         if (!this.state.vibrationEnabled) return;
-        const wxApi = typeof wx !== 'undefined'
-            ? wx
-            : (typeof window !== 'undefined' ? (window as any).wx : null);
-        if (!wxApi || typeof wxApi.vibrateShort !== 'function') return;
-        try {
-            wxApi.vibrateShort({ type: 'light' });
-        } catch (error) {
-            // Web 预览及旧版基础库不支持时静默降级。
-        }
+        vibrateShortLight();
     }
 
     private ensureLoaded(): void {

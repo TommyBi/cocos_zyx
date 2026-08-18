@@ -1,4 +1,4 @@
-import { uimanager } from '../manager/Uimanager';
+import { uimanager } from '../manager/UIManager';
 import { MOOD_COLORS } from './MoodArt';
 
 export type BookTransitionOptions = {

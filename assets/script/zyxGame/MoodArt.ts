@@ -1,4 +1,4 @@
-import { loadSpriteFrame } from '../manager/AssetLoader';
+import { ASSET_PATHS, getSpriteFrame } from '../manager/AssetLoader';
 
 export type MoodVisual = {
     name: string;
@@ -835,16 +835,10 @@ export function createMoodCanvasBackground(parent: cc.Node, width: number, heigh
     root.addChild(illustration);
     const sprite = illustration.addComponent(cc.Sprite);
     sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-    loadSpriteFrame('home', 'images/home_studio_bg_v3', (error, frame) => {
-        if (error || !frame || !cc.isValid(illustration)) {
-            cc.warn('Home studio background failed to load', error);
-            return;
-        }
-        sprite.spriteFrame = frame;
-        illustration.width = width;
-        illustration.height = height;
-        cc.tween(illustration).to(0.2, { opacity: 255 }, { easing: 'sineOut' }).start();
-    });
+    sprite.spriteFrame = getSpriteFrame('home', ASSET_PATHS.home.background);
+    illustration.width = width;
+    illustration.height = height;
+    cc.tween(illustration).to(0.2, { opacity: 255 }, { easing: 'sineOut' }).start();
     return root;
 }
 
@@ -869,16 +863,10 @@ export function createGameRoomBackground(parent: cc.Node, width: number, height:
     root.addChild(illustration);
     const sprite = illustration.addComponent(cc.Sprite);
     sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-    loadSpriteFrame('game-assets', 'images/formal/game_room_bg_v3', (error, frame) => {
-        if (error || !frame || !cc.isValid(illustration)) {
-            cc.warn('Game room background failed to load', error);
-            return;
-        }
-        sprite.spriteFrame = frame;
-        illustration.width = width;
-        illustration.height = height;
-        cc.tween(illustration).to(0.2, { opacity: 255 }, { easing: 'sineOut' }).start();
-    });
+    sprite.spriteFrame = getSpriteFrame('game', ASSET_PATHS.game.background);
+    illustration.width = width;
+    illustration.height = height;
+    cc.tween(illustration).to(0.2, { opacity: 255 }, { easing: 'sineOut' }).start();
 
     return root;
 }

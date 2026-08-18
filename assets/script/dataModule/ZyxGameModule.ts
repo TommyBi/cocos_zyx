@@ -2,7 +2,8 @@ export const BOARD_ROWS = 10;
 export const BOARD_COLS = 8;
 export const CELL_SIZE = 76;
 /** 收集满一瓶所需表情数；满瓶后计入开心瓶数量。 */
-export const HAPPY_BOTTLE_TARGET = 666;
+export const HAPPY_BOTTLE_TARGET = 66;
+const TUTORIAL_CHALLENGE_COUNT_KEY = 'zyx_tutorial_challenge_count';
 
 export type BoardPiece = {
     id: number;
@@ -71,6 +72,12 @@ export type MoveHint = {
     offset: number;
 };
 
+export type TutorialMove = MoveHint & {
+    pieceSize: number;
+    targetRow: number;
+    targetCol: number;
+};
+
 export type AutoPurifyResult = {
     color: number;
     removedPieceIds: number[];
@@ -124,6 +131,10 @@ export default class ZyxGameModule {
     private roundSettled: boolean = false;
     private seedOverride: number = 0;
     private randomState: number = 1;
+    private tutorialMoves: TutorialMove[] = [];
+    private loggedInGameCount: number = 0;
+    private sessionStartedRounds: number = 0;
+    private hasGameCountBaseline: boolean = false;
 
     public resetRound(): void {
         this.score = 0;
@@ -139,22 +150,48 @@ export default class ZyxGameModule {
         this.roundSeed = this.seedOverride || this.createRandomSeed();
         this.randomState = this.roundSeed;
         this.generationDebugLog = [];
-        this.challengeCount = this.readNumber('zyx_challenge_count', 0) + 1;
-        cc.sys.localStorage.setItem('zyx_challenge_count', String(this.challengeCount));
+        this.sessionStartedRounds++;
+        const persistedChallengeCount = Math.max(0, Math.floor(this.readNumber(TUTORIAL_CHALLENGE_COUNT_KEY, 0)));
+        this.challengeCount = Math.max(
+            persistedChallengeCount + 1,
+            this.loggedInGameCount + this.sessionStartedRounds,
+        );
+        cc.sys.localStorage.setItem(TUTORIAL_CHALLENGE_COUNT_KEY, String(this.challengeCount));
         this.syncPersistentProgress();
         cc.log(`[棋盘调试] 本局随机种子 ${this.roundSeed}`);
 
-        this.pieces = [
-            // 开局保留一个真实可消除机会：把倒数第二行的 2 格块左移，它会落下并填满底行。
-            this.createPiece(9, 0, 3, 8, 8),
-            this.createPiece(9, 5, 3, 6, 0),
-            this.createPiece(8, 0, 2, 2, 2, 0),
-            this.createPiece(8, 2, 1, 9, 0),
-            this.createPiece(8, 4, 2, 1, 1),
-            this.createPiece(7, 0, 1, 3, 3, 0),
-            this.createPiece(7, 4, 2, 7, 0),
-        ];
-        this.nextPieces = this.generateNextRow();
+        if (this.isTutorialRound()) {
+            this.pieces = this.createTutorialBoard();
+            this.nextPieces = this.createTutorialNextRow();
+        } else {
+            this.tutorialMoves = [];
+            this.pieces = [
+                // 开局保留一个真实可消除机会：把倒数第二行的 2 格块左移，它会落下并填满底行。
+                this.createPiece(9, 0, 3, 8, 8),
+                this.createPiece(9, 5, 3, 6, 0),
+                this.createPiece(8, 0, 2, 2, 2, 0),
+                this.createPiece(8, 2, 1, 9, 0),
+                this.createPiece(8, 4, 2, 1, 1),
+                this.createPiece(7, 0, 1, 3, 3, 0),
+                this.createPiece(7, 4, 2, 7, 0),
+            ];
+            this.nextPieces = this.generateNextRow();
+        }
+    }
+
+    /** 登录返回的已完成局数与本次会话开局数共同决定是否进入前两局教学。 */
+    public isTutorialRound(): boolean {
+        return this.challengeCount > 0 && this.challengeCount <= 2;
+    }
+
+    /** 首次启动分流：云端没有完成局数的新用户直接进入消除；无法联网时也优先保证可玩。 */
+    public shouldEnterGameOnLaunch(): boolean {
+        return !this.hasGameCountBaseline || this.loggedInGameCount === 0;
+    }
+
+    public getTutorialMove(step: number): TutorialMove {
+        const move = this.tutorialMoves[step];
+        return move ? { ...move } : null;
     }
 
     /** 调试复现：传入正整数后，后续每局都使用同一随机序列；传 0 恢复随机。 */
@@ -237,7 +274,7 @@ export default class ZyxGameModule {
         this.saveToolInventory();
     }
 
-    /** 棋盘最高色块进入顶部预留区时，提示本局唯一一次广告救场。 */
+    /** 棋盘最高色块进入顶部预留区时，进入濒死救场状态。 */
     public hasEnteredRescueZone(emptyRows: number = 2): boolean {
         if (this.pieces.length === 0) return false;
         const topmostRow = this.pieces.reduce(
@@ -245,6 +282,13 @@ export default class ZyxGameModule {
             BOARD_ROWS,
         );
         return topmostRow <= Math.max(0, emptyRows);
+    }
+
+    /** 当前棋盘实际占用的高度层数量；同一行有多个色块仍只计为一排。 */
+    public getOccupiedRowCount(): number {
+        const occupiedRows: { [row: number]: boolean } = {};
+        this.pieces.forEach((piece) => occupiedRows[piece.row] = true);
+        return Object.keys(occupiedRows).length;
     }
 
     /** 自动移除出现块数最多的颜色；并列时优先清除占格更多的颜色。 */
@@ -276,7 +320,7 @@ export default class ZyxGameModule {
         return { color, removedPieceIds };
     }
 
-    /** 紧急广告救场：一次性清空当前棋盘，并返回需要播放退场动画的色块。 */
+    /** 紧急分享救场：一次性清空当前棋盘，并返回需要播放退场动画的色块。 */
     public removeAllPieces(): number[] {
         const removedPieceIds = this.pieces.map((piece) => piece.id);
         this.pieces = [];
@@ -469,12 +513,25 @@ export default class ZyxGameModule {
         happyBottleBalance: number;
         happyBottleProgress: number;
         highestSingleGameScore: number;
+        gameCount?: number;
     }): void {
         this.level = Math.max(1, profile.level || 1);
         this.experience = Math.max(0, profile.experience || 0);
-        this.happyBottleCount = Math.max(0, profile.happyBottleBalance || 0);
-        this.happyBottleProgress = Math.max(0, Math.min(HAPPY_BOTTLE_TARGET - 1, profile.happyBottleProgress || 0));
+        const rawBottleProgress = Math.max(0, Math.floor(profile.happyBottleProgress || 0));
+        const completedFromLegacyProgress = Math.floor(rawBottleProgress / HAPPY_BOTTLE_TARGET);
+        this.happyBottleCount = Math.max(0, profile.happyBottleBalance || 0) + completedFromLegacyProgress;
+        this.happyBottleProgress = rawBottleProgress % HAPPY_BOTTLE_TARGET;
         this.bestScore = Math.max(this.bestScore, profile.highestSingleGameScore || 0);
+        if (!this.hasGameCountBaseline) {
+            this.loggedInGameCount = Math.max(0, Math.floor(profile.gameCount || 0));
+            this.hasGameCountBaseline = true;
+            const persistedChallengeCount = Math.max(0, Math.floor(this.readNumber(TUTORIAL_CHALLENGE_COUNT_KEY, 0)));
+            this.challengeCount = Math.max(
+                this.challengeCount,
+                persistedChallengeCount,
+                this.loggedInGameCount + this.sessionStartedRounds,
+            );
+        }
         this.savePersistentProgress();
         cc.sys.localStorage.setItem('zyx_best_score', String(this.bestScore));
     }
@@ -515,7 +572,7 @@ export default class ZyxGameModule {
     }
 
     /**
-     * GM：给当前正在收集的瓶子加表情进度；跨过 666 时自动折算为开心瓶数量。
+     * GM：给当前正在收集的瓶子加表情进度；达到目标时自动折算为开心瓶数量。
      */
     public grantDebugHappyBottleProgress(amount: number): { added: number; completedBottles: number; progress: number } {
         const added = Math.max(0, Math.floor(amount));
@@ -541,6 +598,11 @@ export default class ZyxGameModule {
         this.hammerCount = 0;
         this.colorPurifierCount = 0;
         this.bestScore = 0;
+        this.challengeCount = 0;
+        this.loggedInGameCount = 0;
+        this.sessionStartedRounds = 0;
+        this.hasGameCountBaseline = false;
+        cc.sys.localStorage.setItem(TUTORIAL_CHALLENGE_COUNT_KEY, '0');
         this.savePersistentProgress();
         this.saveToolInventory();
         cc.sys.localStorage.setItem('zyx_best_score', '0');
@@ -667,6 +729,44 @@ export default class ZyxGameModule {
             + ` movable=${debug.movablePieces} attempts=${debug.attempts}`,
         );
         return best.pieces;
+    }
+
+    /**
+     * 教学局面完全沿用正式重力：3 格、2 格、1 格依次补满下面三行。
+     * 每个预设块都与下一层真实重叠支撑，教学过程不需要冻结重力，也不会出现悬空块。
+     */
+    private createTutorialBoard(): BoardPiece[] {
+        const threeCell = this.createPiece(6, 1, 3, 3, 3, 1);
+        const oneCell = this.createPiece(6, 4, 1, 1, 1);
+        const twoCell = this.createPiece(6, 5, 2, 5, 5);
+
+        this.tutorialMoves = [
+            { id: threeCell.id, offset: -1, pieceSize: 3, targetRow: 7, targetCol: 0 },
+            { id: twoCell.id, offset: 1, pieceSize: 2, targetRow: 8, targetCol: 6 },
+            { id: oneCell.id, offset: -1, pieceSize: 1, targetRow: 9, targetCol: 3 },
+        ];
+
+        return [
+            threeCell,
+            oneCell,
+            twoCell,
+            this.createPiece(7, 3, 2, 7, 7, 1),
+            this.createPiece(7, 5, 3, 9, 9, 1),
+            this.createPiece(8, 0, 3, 4, 0),
+            this.createPiece(8, 3, 3, 6, 6, 1),
+            this.createPiece(9, 0, 3, 10, 10, 1),
+            this.createPiece(9, 4, 2, 8, 0),
+            this.createPiece(9, 6, 2, 2, 2),
+        ];
+    }
+
+    /** 三步结束后补入的第一排也固定，避免刚脱离教学就遇到难读的随机局面。 */
+    private createTutorialNextRow(): NextPiece[] {
+        return [
+            { col: 0, size: 2, color: 2, stampMood: 2, stampCell: 0, collectibleType: 0, collectibleCell: 0 },
+            { col: 3, size: 1, color: 4, stampMood: 0, stampCell: 0, collectibleType: 0, collectibleCell: 0 },
+            { col: 5, size: 2, color: 6, stampMood: 6, stampCell: 1, collectibleType: 0, collectibleCell: 0 },
+        ];
     }
 
     /** 4→5→6 格使用概率坡度过渡，避免第 9/17 排突然阶跃。 */
@@ -827,10 +927,17 @@ export default class ZyxGameModule {
         this.experience = Math.max(0, this.readNumber('zyx_experience', 0));
         // 兼容旧日进度键；读入后写入永久进度键，不再按自然日清空。
         const legacyValue = this.readNumber('zyx_daily_moods', this.readNumber('zyx_daily_wish', 0));
-        this.happyBottleProgress = Math.max(0, Math.min(
-            HAPPY_BOTTLE_TARGET - 1,
-            this.readNumber('zyx_current_happy_bottle_progress', legacyValue),
-        ));
+        const storedProgress = Math.max(
+            0,
+            Math.floor(this.readNumber('zyx_current_happy_bottle_progress', legacyValue)),
+        );
+        const completedFromLegacyProgress = Math.floor(storedProgress / HAPPY_BOTTLE_TARGET);
+        this.happyBottleProgress = storedProgress % HAPPY_BOTTLE_TARGET;
+        if (completedFromLegacyProgress > 0) {
+            this.happyBottleCount += completedFromLegacyProgress;
+            cc.sys.localStorage.setItem('zyx_current_happy_bottle_progress', String(this.happyBottleProgress));
+            cc.sys.localStorage.setItem('zyx_happy_bottle_count', String(this.happyBottleCount));
+        }
     }
 
     private savePersistentProgress(): void {

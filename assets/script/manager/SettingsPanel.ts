@@ -1,5 +1,5 @@
 import { HAPPY_BOTTLE_TARGET, zyxGameModule } from '../dataModule/ZyxGameModule';
-import { BUTTON_COLORS, ModalAction, uimanager } from './Uimanager';
+import { BUTTON_COLORS, ModalAction, uimanager } from './UIManager';
 import { gameSettings } from './GameSettings';
 import { audioManager } from './AudioManager';
 
@@ -43,110 +43,46 @@ export default class SettingsPanel {
     public showGm(
         onInventoryChanged?: (progressAdded?: number) => void,
         onSyncCloud?: () => void | Promise<void>,
-        onResetAccount?: () => void | Promise<void>,
     ): void {
-        const grant = { amount: 10 };
         const render = (panel: cc.Node, centerY: number): void => {
-            const inventory = uimanager.createRect(panel, 'gmInventorySummary', 438, 74, new cc.Color(232, 241, 221), 255, 13, 0, centerY + 178);
-            const inventoryLabel = uimanager.createLabel(inventory, '', 0, 0, 14, COCOA, 412, 64);
+            const inventory = uimanager.createRect(panel, 'gmInventorySummary', 438, 84, new cc.Color(232, 241, 221), 255, 18, 0, centerY + 92);
+            const inventoryLabel = uimanager.createLabel(inventory, '', 0, 0, 18, COCOA, 410, 68);
             inventoryLabel.enableWrapText = true;
             const updateInventory = (): void => {
-                const lastRow = zyxGameModule.generationDebugLog.length > 0
-                    ? zyxGameModule.generationDebugLog[zyxGameModule.generationDebugLog.length - 1]
-                    : null;
-                const boardDebug = lastRow
-                    ? `种子 ${zyxGameModule.roundSeed}  ·  下一排 ${lastRow.targetCells} 格  ·  可移动 ${lastRow.movablePieces} 块`
-                    : `种子 ${zyxGameModule.roundSeed || '未开局'}`;
-                inventoryLabel.string = `收集中 ${zyxGameModule.happyBottleProgress}/${HAPPY_BOTTLE_TARGET}  ·  开心瓶 ${zyxGameModule.happyBottleCount}`
-                    + `\n解压锤 ${zyxGameModule.hammerCount}  ·  魔法棒 ${zyxGameModule.colorPurifierCount}`
-                    + `\n${boardDebug}`;
+                inventoryLabel.string = `收集 ${zyxGameModule.happyBottleProgress}/${HAPPY_BOTTLE_TARGET}   ·   开心瓶 ${zyxGameModule.happyBottleCount}`
+                    + `\n解压锤 ${zyxGameModule.hammerCount}   ·   魔法棒 ${zyxGameModule.colorPurifierCount}`;
             };
             updateInventory();
 
-            const amountCard = uimanager.createRect(panel, 'gmAmountCard', 438, 86, CREAM, 255, 15, 0, centerY + 108);
-            const amountLabel = uimanager.createLabel(amountCard, '', 0, 16, 20, COCOA, 150, 34);
-            let progressBtnLabel: cc.Label = null;
-            let bottleBtnLabel: cc.Label = null;
-            let hammerBtnLabel: cc.Label = null;
-            let wandBtnLabel: cc.Label = null;
-            const updateAmount = (): void => {
-                amountLabel.string = `发放数量 ${grant.amount}`;
-                if (progressBtnLabel) progressBtnLabel.string = `收集进度 +${grant.amount}`;
-                if (bottleBtnLabel) bottleBtnLabel.string = `开心瓶 +${grant.amount}`;
-                if (hammerBtnLabel) hammerBtnLabel.string = `解压锤 +${grant.amount}`;
-                if (wandBtnLabel) wandBtnLabel.string = `魔法棒 +${grant.amount}`;
-            };
-            const setAmount = (value: number): void => {
-                grant.amount = Math.max(1, Math.min(999, Math.floor(value)));
-                updateAmount();
-            };
-            this.createFlatButton(amountCard, '数量减十', '−10', -168, 16, 70, 34, new cc.Color(187, 153, 126), () => setAmount(grant.amount - 10), 15);
-            this.createFlatButton(amountCard, '数量减一', '−1', -92, 16, 56, 34, new cc.Color(187, 153, 126), () => setAmount(grant.amount - 1), 15);
-            this.createFlatButton(amountCard, '数量加一', '+1', 92, 16, 56, 34, SAGE, () => setAmount(grant.amount + 1), 15);
-            this.createFlatButton(amountCard, '数量加十', '+10', 168, 16, 70, 34, SAGE, () => setAmount(grant.amount + 10), 15);
-            // 快捷自定义：点一下直接设成常用数量。
-            const presets = [1, 5, 10, 50, 100, 666];
-            presets.forEach((value, index) => {
-                const x = -175 + index * 70;
-                this.createFlatButton(amountCard, `preset_${value}`, String(value), x, -22, 62, 28, new cc.Color(168, 128, 92), () => setAmount(value), 14);
-            });
-
-            const afterGrant = (progressAdded?: number, toast?: string): void => {
+            const afterGrant = (progressAdded: number, toast: string, syncCloud: boolean): void => {
                 gameSettings.vibrateLight();
                 updateInventory();
                 if (onInventoryChanged) onInventoryChanged(progressAdded);
-                if (toast) uimanager.showToast(toast);
-                if (onSyncCloud) Promise.resolve(onSyncCloud()).catch(() => undefined);
+                uimanager.showToast(toast);
+                if (syncCloud && onSyncCloud) Promise.resolve(onSyncCloud()).catch(() => undefined);
             };
 
-            const readButtonLabel = (button: cc.Node): cc.Label => {
-                const labelNode = button.getChildByName('label');
-                return labelNode ? labelNode.getComponent(cc.Label) : null;
-            };
-            progressBtnLabel = readButtonLabel(this.createFlatButton(panel, 'grantBottleProgress', `收集进度 +${grant.amount}`, 0, centerY + 8, 438, 50, new cc.Color(236, 177, 68), () => {
-                const result = zyxGameModule.grantDebugHappyBottleProgress(grant.amount);
+            this.createFlatButton(panel, 'grantBottleProgress', '表情  +10', -111, centerY - 6, 206, 58, new cc.Color(236, 177, 68), () => {
+                const result = zyxGameModule.grantDebugHappyBottleProgress(10);
                 const toast = result.completedBottles > 0
                     ? `收集进度 +${result.added}，装满开心瓶 ×${result.completedBottles}`
                     : `收集进度 +${result.added} → ${result.progress}/${HAPPY_BOTTLE_TARGET}`;
-                afterGrant(result.added, toast);
-            }, 20));
-            bottleBtnLabel = readButtonLabel(this.createFlatButton(panel, 'grantHappyBottle', `开心瓶 +${grant.amount}`, 0, centerY - 54, 438, 50, new cc.Color(244, 196, 98), () => {
-                zyxGameModule.grantDebugInventory(grant.amount, 0, 0);
-                afterGrant(0, `开心瓶 +${grant.amount}`);
-            }, 20));
-            hammerBtnLabel = readButtonLabel(this.createFlatButton(panel, 'grantHammer', `解压锤 +${grant.amount}`, -111, centerY - 118, 206, 50, new cc.Color(124, 181, 145), () => {
-                zyxGameModule.grantDebugInventory(0, grant.amount, 0);
-                afterGrant(0, `解压锤 +${grant.amount}`);
-            }, 19));
-            wandBtnLabel = readButtonLabel(this.createFlatButton(panel, 'grantMagicWand', `魔法棒 +${grant.amount}`, 111, centerY - 118, 206, 50, new cc.Color(105, 164, 186), () => {
-                zyxGameModule.grantDebugInventory(0, 0, grant.amount);
-                afterGrant(0, `魔法棒 +${grant.amount}`);
-            }, 19));
-            updateAmount();
-            this.createFlatButton(panel, 'resetAccount', '重置账号', 0, centerY - 182, 438, 50, new cc.Color(196, 112, 98), () => {
-                uimanager.showModal('重置账号', '将清空等级、开心瓶、道具与画册解锁，并同步到服务器。此操作不可撤销。', [
-                    {
-                        text: '取消',
-                        color: BUTTON_COLORS.yellow,
-                        onClick: () => undefined,
-                    },
-                    {
-                        text: '确认重置',
-                        color: BUTTON_COLORS.red,
-                        onClick: () => {
-                            if (onResetAccount) Promise.resolve(onResetAccount()).then(() => updateInventory()).catch(() => undefined);
-                        },
-                    },
-                ]);
+                afterGrant(result.added, toast, true);
             }, 20);
+            this.createFlatButton(panel, 'grantHappyBottle', '开心瓶  +1', 111, centerY - 6, 206, 58, new cc.Color(244, 196, 98), () => {
+                zyxGameModule.grantDebugInventory(1, 0, 0);
+                afterGrant(0, '开心瓶 +1', true);
+            }, 20);
+            this.createFlatButton(panel, 'grantHammer', '解压锤  +1', -111, centerY - 76, 206, 58, new cc.Color(124, 181, 145), () => {
+                zyxGameModule.grantDebugInventory(0, 1, 0);
+                afterGrant(0, '解压锤 +1', false);
+            }, 19);
+            this.createFlatButton(panel, 'grantMagicWand', '魔法棒  +1', 111, centerY - 76, 206, 58, new cc.Color(105, 164, 186), () => {
+                zyxGameModule.grantDebugInventory(0, 0, 1);
+                afterGrant(0, '魔法棒 +1', false);
+            }, 19);
         };
-        uimanager.showModal('GM 发放', '发放会同步到服务器；道具仅本地', [
-            {
-                text: '关闭',
-                color: BUTTON_COLORS.green,
-                onClick: () => undefined,
-            },
-        ], render, 460);
+        uimanager.showModal('GM 补给', '点击按钮，资源会直接加入背包', [], render, 280, false, true);
     }
 
     private createSoundRow(parent: cc.Node, y: number): void {

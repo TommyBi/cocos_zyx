@@ -1,5 +1,6 @@
+import { getWxApi } from './PlatformAdapter';
+
 const API_BASE = 'https://api.tcjstory.cn/v1/cocos-zyx';
-declare const wx: any;
 
 export type CloudProfile = {
     playerId: string;
@@ -12,6 +13,7 @@ export type CloudProfile = {
     happyBottleTarget: number;
     totalHappyBottles: number;
     highestSingleGameScore: number;
+    gameCount: number;
 };
 
 export type LeaderboardEntry = {
@@ -114,7 +116,8 @@ export default class CloudService {
         const headers: { [key: string]: string } = { 'Content-Type': 'application/json' };
         if (authenticated && this.token) headers.Authorization = `Bearer ${this.token}`;
         const url = `${API_BASE}${path}`;
-        if (typeof wx !== 'undefined' && wx && typeof wx.request === 'function') {
+        const wxApi = getWxApi();
+        if (wxApi && typeof wxApi.request === 'function') {
             return this.requestWithWeChat(url, method, headers, body);
         }
         return this.requestWithFetch(url, method, headers, body);

@@ -1,5 +1,5 @@
 import { gameSettings } from './GameSettings';
-import { BundleName, loadAudioClip } from './AssetLoader';
+import { ASSET_PATHS, BundleName, getAudioClip } from './AssetLoader';
 
 export type MusicName = 'main' | 'game' | 'puzzle';
 export type SoundName = 'break' | 'changePic' | 'move' | 'hammer' | 'magicWand';
@@ -7,20 +7,19 @@ export type SoundName = 'break' | 'changePic' | 'move' | 'hammer' | 'magicWand';
 type AudioResource = { bundle: BundleName; path: string };
 
 const MUSIC_RESOURCES: { [key in MusicName]: AudioResource } = {
-    main: { bundle: 'home', path: 'sound/music_main' },
-    game: { bundle: 'game-assets', path: 'sound/music_game' },
-    puzzle: { bundle: 'realm', path: 'sound/music_puzzle' },
+    main: { bundle: 'home', path: ASSET_PATHS.home.music },
+    game: { bundle: 'game', path: ASSET_PATHS.game.music },
+    puzzle: { bundle: 'realm', path: ASSET_PATHS.realm.music },
 };
 
 const SOUND_RESOURCES: { [key in SoundName]: AudioResource } = {
-    break: { bundle: 'game-assets', path: 'sound/sound_break' },
-    changePic: { bundle: 'realm', path: 'sound/sound_change_pic' },
-    move: { bundle: 'game-assets', path: 'sound/sound_move' },
-    hammer: { bundle: 'game-assets', path: 'sound/sound_tool1' },
-    magicWand: { bundle: 'game-assets', path: 'sound/sound_tool2' },
+    break: { bundle: 'game', path: ASSET_PATHS.game.breakSound },
+    changePic: { bundle: 'realm', path: ASSET_PATHS.realm.changePictureSound },
+    move: { bundle: 'game', path: ASSET_PATHS.game.moveSound },
+    hammer: { bundle: 'game', path: ASSET_PATHS.game.hammerSound },
+    magicWand: { bundle: 'game', path: ASSET_PATHS.game.magicWandSound },
 };
 
-type ClipCallback = (clip: cc.AudioClip | null) => void;
 const LOOP_BACKGROUND_MUSIC = true;
 
 /** 只负责播放策略；具体音频归属和加载缓存由 AssetLoader 统一管理。 */
@@ -34,6 +33,7 @@ export default class AudioManager {
 
     private currentMusic: MusicName = null;
     private musicRequestId: number = 0;
+    private musicAudioId: number = -1;
 
     /** 切换并循环播放逻辑场景对应的背景音乐。重复请求同一首时不会重头播放。 */
     public playMusic(name: MusicName): void {
@@ -43,21 +43,39 @@ export default class AudioManager {
         }
         this.currentMusic = name;
         const requestId = ++this.musicRequestId;
-        this.loadClip(MUSIC_RESOURCES[name], (clip) => {
-            if (!clip || requestId !== this.musicRequestId || this.currentMusic !== name) return;
-            cc.audioEngine.stopMusic();
-            this.applySettings();
-            cc.audioEngine.playMusic(clip, LOOP_BACKGROUND_MUSIC);
+        const clip = this.getClip(MUSIC_RESOURCES[name]);
+        if (requestId !== this.musicRequestId || this.currentMusic !== name) return;
+        cc.audioEngine.stopMusic();
+        this.startMusicLoop(name, clip, requestId);
+    }
+
+    /** 部分 Web/小游戏容器会忽略底层 loop 标志，结束回调负责无缝补播。 */
+    private startMusicLoop(name: MusicName, clip: cc.AudioClip, requestId: number): void {
+        if (requestId !== this.musicRequestId || this.currentMusic !== name) return;
+        this.applySettings();
+        const audioId = cc.audioEngine.playMusic(clip, LOOP_BACKGROUND_MUSIC);
+        this.musicAudioId = audioId;
+
+        const engine: any = cc.audioEngine;
+        if (typeof engine.setLoop === 'function') engine.setLoop(audioId, true);
+        if (typeof engine.setFinishCallback !== 'function') return;
+        engine.setFinishCallback(audioId, () => {
+            if (
+                requestId !== this.musicRequestId
+                || this.currentMusic !== name
+                || this.musicAudioId !== audioId
+            ) return;
+            if (typeof engine.isPlaying === 'function' && engine.isPlaying(audioId)) return;
+            this.startMusicLoop(name, clip, requestId);
         });
     }
 
     /** 音效只在设置允许时播放；加载期间关闭声音也不会补播。 */
     public playSound(name: SoundName): void {
         if (!gameSettings.soundEnabled || gameSettings.soundVolume <= 0) return;
-        this.loadClip(SOUND_RESOURCES[name], (clip) => {
-            if (!clip || !gameSettings.soundEnabled || gameSettings.soundVolume <= 0) return;
-            cc.audioEngine.playEffect(clip, false);
-        });
+        const clip = this.getClip(SOUND_RESOURCES[name]);
+        if (!gameSettings.soundEnabled || gameSettings.soundVolume <= 0) return;
+        cc.audioEngine.playEffect(clip, false);
     }
 
     /** 设置面板调用此方法，让当前音乐和仍在播放的效果音立即响应开关/音量。 */
@@ -71,15 +89,8 @@ export default class AudioManager {
         }
     }
 
-    private loadClip(resource: AudioResource, onComplete: ClipCallback): void {
-        loadAudioClip(resource.bundle, resource.path, (error, clip) => {
-            if (error || !clip) {
-                cc.warn(`Audio failed to load: ${resource.bundle}/${resource.path}`, error);
-                onComplete(null);
-                return;
-            }
-            onComplete(clip);
-        });
+    private getClip(resource: AudioResource): cc.AudioClip {
+        return getAudioClip(resource.bundle, resource.path);
     }
 }
 

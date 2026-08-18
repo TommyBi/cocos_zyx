@@ -7,9 +7,10 @@ import {
     EliminateResult,
     GravityMove,
     RoundSettlement,
+    TutorialMove,
     zyxGameModule,
 } from '../dataModule/ZyxGameModule';
-import { BUTTON_COLORS, uimanager } from '../manager/Uimanager';
+import { BUTTON_COLORS, uimanager } from '../manager/UIManager';
 import { settingsPanel } from '../manager/SettingsPanel';
 import { gameSettings } from '../manager/GameSettings';
 import { audioManager } from '../manager/AudioManager';
@@ -19,8 +20,16 @@ import {
     getRewardOfferIcon,
     requestShareReward,
 } from '../manager/ShareReward';
-import { loadSkeletonData, loadSpriteFrame } from '../manager/AssetLoader';
+import { ASSET_PATHS, getSkeletonData, getSpriteFrame } from '../manager/AssetLoader';
 import ZyxGridCom from './ZyxGridCom';
+import {
+    createHammerGlyph,
+    createPauseGlyph,
+    createPurifierGlyph,
+    createShareGlyph,
+    createVideoGlyph,
+    decorateActionButton,
+} from './GlyphFactory';
 import {
     createGameRoomBackground,
     createExperienceToken,
@@ -34,8 +43,7 @@ import {
     playBottleBurp,
     presentWishBottleAbsoluteProgress,
 } from './MoodArt';
-
-declare const wx: any;
+import { getWxApi } from '../manager/PlatformAdapter';
 
 const { ccclass } = cc._decorator;
 const NEXT_PREVIEW_HEIGHT = 42;
@@ -46,6 +54,7 @@ const BOARD_CENTER_Y = 140;
 const NEXT_ROW_CENTER_Y = -330;
 const TOOL_DOCK_CENTER_Y = -505;
 const BOTTOM_TIP_Y = -618;
+const ROUND_RESCUE_COOLDOWN_MS = 60 * 1000;
 const HUD_VALUE_COLOR = new cc.Color(112, 78, 65);
 const HUD_LABEL_COLOR = new cc.Color(132, 96, 80);
 
@@ -86,7 +95,7 @@ export default class ZyxGame extends cc.Component {
     private toolDragging: boolean = false;
     private toolTouchStart: cc.Vec2 = null;
     private rewardedAdLoading: boolean = false;
-    private roundRescueOffered: boolean = false;
+    private lastRoundRescueOfferedAt: number = 0;
     private roundRescuePrompt: cc.Node = null;
     private roundRescueCountdownState: { progress: number } = null;
     private roundRescueInteractive: boolean = false;
@@ -98,6 +107,19 @@ export default class ZyxGame extends cc.Component {
     private idleSeconds: number = 0;
     private tipIndex: number = 0;
     private tipSeconds: number = 0;
+    private tutorialStep: number = -1;
+    private tutorialGuideRoot: cc.Node = null;
+    private tutorialNpc: cc.Node = null;
+    private tutorialBubbleGroup: cc.Node = null;
+    private tutorialBubble: cc.Node = null;
+    private tutorialSpeechLabel: cc.Label = null;
+    private tutorialHand: cc.Node = null;
+    private tutorialSourceMarker: cc.Node = null;
+    private tutorialTargetMarker: cc.Node = null;
+    private tutorialDimMask: cc.Node = null;
+    private tutorialFocusPieceId: number = 0;
+    private tutorialTypingState: { value: number } = null;
+    private tutorialRestoreCallback: () => void = null;
 
     public initialize(onSettlementExit: (request: SettlementExitRequest) => void): void {
         this.onSettlementExit = onSettlementExit;
@@ -107,18 +129,24 @@ export default class ZyxGame extends cc.Component {
         uimanager.init(this.node.parent);
 
         zyxGameModule.resetRound();
-        this.roundRescueOffered = false;
+        this.tutorialStep = zyxGameModule.isTutorialRound() ? 0 : -1;
         this.reviveUsed = false;
         this.displayedRoundMoods = 0;
         this.loadEffectAssets();
         this.buildUI();
         this.renderAll();
         this.locked = false;
+        if (this.isTutorialGuidedStep()) this.showTutorialStep();
+    }
+
+    public onDestroy(): void {
+        this.clearTutorialGuide();
     }
 
     public update(dt: number): void {
         if (!this.node || !this.node.isValid) return;
         this.updateRotatingTip(dt);
+        if (this.isTutorialGuidedStep()) return;
         if (this.locked || this.hammerMode || this.purifierMode || this.hintHand) return;
         this.idleSeconds += dt;
         if (this.idleSeconds >= 8) {
@@ -146,6 +174,7 @@ export default class ZyxGame extends cc.Component {
     }
 
     private buildUI(): void {
+        this.clearTutorialGuide();
         this.stopBoardDangerGlow();
         this.node.removeAllChildren();
         this.buildBackground();
@@ -169,7 +198,7 @@ export default class ZyxGame extends cc.Component {
             : centeredHudLeft;
         const leftCardX = hudLeft + scoreCardWidth / 2;
         const bottleCardX = hudLeft + scoreCardWidth + hudGap + bottleCardWidth / 2;
-        const pauseX = -this.node.width / 2 + safeArea.left + 12 + pauseWidth / 2;
+        const pauseX = this.node.width / 2 - safeArea.right - 12 - pauseWidth / 2;
         uimanager.createRect(this.node, 'scoreCompareShadow', scoreCardWidth + 6, 100, new cc.Color(78, 53, 46), 34, 22, leftCardX, topY - 5);
         const scoreCard = uimanager.createRect(
             this.node,
@@ -224,11 +253,11 @@ export default class ZyxGame extends cc.Component {
         );
         pauseButton.name = 'pauseButton';
         pauseButton.zIndex = 180;
-        this.createPauseGlyph(pauseButton, 0, 1, 0.82);
+        createPauseGlyph(pauseButton, 0, 1, 0.82);
 
         const tipWidth = Math.min(566, this.node.width - safeArea.left - safeArea.right - pauseWidth - 50);
-        const tipLeft = pauseX + pauseWidth / 2 + 14;
-        const tipX = tipLeft + tipWidth / 2;
+        const tipRight = pauseX - pauseWidth / 2 - 14;
+        const tipX = tipRight - tipWidth / 2;
         const tipPill = uimanager.createRect(this.node, 'tipPill', tipWidth, 48, new cc.Color(255, 249, 232), 218, 22, tipX, bottomTipY);
         this.moodStageLabel = uimanager.createLabel(tipPill, '拖动心情块左右移动，填满一行就能消除', 0, 0, 18, HUD_VALUE_COLOR, tipWidth - 36, 34);
         this.makeHintLabelBold(this.moodStageLabel, HUD_VALUE_COLOR, 0.7);
@@ -236,6 +265,7 @@ export default class ZyxGame extends cc.Component {
         this.createBoard();
         this.createNextRowPreview();
         this.createToolBar();
+        if (this.tutorialStep >= 0) this.createTutorialNpcGuide();
     }
 
     private buildBackground(): void {
@@ -290,6 +320,487 @@ export default class ZyxGame extends cc.Component {
         frame.zIndex = 100;
         this.node.addChild(frame);
         this.drawBoardFrame(frame, boardWidth, boardHeight);
+    }
+
+    /** 教学 NPC 放在棋盘上半部留白区，靠近操作区但不遮挡下方色块。 */
+    private createTutorialNpcGuide(): void {
+        const root = new cc.Node('tutorialGuide');
+        root.width = BOARD_COLS * CELL_SIZE;
+        root.height = BOARD_ROWS * CELL_SIZE;
+        root.setAnchorPoint(0.5, 0.5);
+        root.zIndex = 190;
+        this.node.addChild(root);
+        this.tutorialGuideRoot = root;
+
+        const guideY = BOARD_CENTER_Y + BOARD_ROWS * CELL_SIZE / 2 - 174;
+        const npc = new cc.Node('happyBlockGuide');
+        npc.width = 70;
+        npc.height = 70;
+        npc.setPosition(-252, guideY);
+        npc.zIndex = 30;
+        root.addChild(npc);
+        drawMoodBlockMaterial(npc, getMoodColor(1));
+        (npc as any).tutorialBaseY = guideY;
+        this.drawHappyTutorialFace(npc);
+        this.tutorialNpc = npc;
+        this.startTutorialNpcIdle();
+
+        const bubbleGroup = new cc.Node('tutorialBubbleGroup');
+        bubbleGroup.width = root.width;
+        bubbleGroup.height = root.height;
+        bubbleGroup.zIndex = 20;
+        root.addChild(bubbleGroup);
+        this.tutorialBubbleGroup = bubbleGroup;
+
+        uimanager.createRect(bubbleGroup, 'tutorialBubbleShadow', 438, 98, new cc.Color(72, 48, 43), 54, 24, 43, guideY - 5);
+        const bubble = uimanager.createRect(
+            bubbleGroup,
+            'tutorialBubble',
+            432,
+            92,
+            new cc.Color(255, 249, 232),
+            252,
+            22,
+            40,
+            guideY,
+        );
+        bubble.zIndex = 20;
+        const bubbleGraphics = bubble.getComponent(cc.Graphics);
+        bubbleGraphics.strokeColor = new cc.Color(239, 151, 105, 188);
+        bubbleGraphics.lineWidth = 2.5;
+        bubbleGraphics.roundRect(-214, -44, 428, 88, 21);
+        bubbleGraphics.stroke();
+        this.tutorialBubble = bubble;
+
+        const tail = new cc.Node('tutorialBubbleTail');
+        tail.setPosition(-180, guideY - 7);
+        tail.zIndex = 21;
+        bubbleGroup.addChild(tail);
+        const tailGraphics = tail.addComponent(cc.Graphics);
+        tailGraphics.fillColor = new cc.Color(255, 249, 232);
+        tailGraphics.strokeColor = new cc.Color(239, 151, 105, 188);
+        tailGraphics.lineWidth = 2.5;
+        tailGraphics.moveTo(0, 15);
+        tailGraphics.lineTo(-27, -1);
+        tailGraphics.lineTo(0, -14);
+        tailGraphics.close();
+        tailGraphics.fill();
+        tailGraphics.stroke();
+
+        this.tutorialSpeechLabel = uimanager.createLabel(
+            bubble,
+            '',
+            0,
+            -1,
+            20,
+            HUD_VALUE_COLOR,
+            382,
+            70,
+        );
+        this.makeHintLabelBold(this.tutorialSpeechLabel, new cc.Color(255, 249, 232), 0.55);
+    }
+
+    /** 弯眼、张嘴和腮红让 NPC 明确传达“开心”，避免之前近似困倦的表情。 */
+    private drawHappyTutorialFace(parent: cc.Node): void {
+        const face = new cc.Node('happyGuideFace');
+        face.width = 52;
+        face.height = 46;
+        face.setPosition(0, -1);
+        face.zIndex = 8;
+        parent.addChild(face);
+        const graphics = face.addComponent(cc.Graphics);
+        graphics.strokeColor = new cc.Color(92, 63, 55);
+        graphics.lineWidth = 3.2;
+        graphics.lineCap = cc.Graphics.LineCap.ROUND;
+        graphics.moveTo(-16, 7);
+        graphics.bezierCurveTo(-13, 13, -8, 13, -5, 7);
+        graphics.moveTo(5, 7);
+        graphics.bezierCurveTo(8, 13, 13, 13, 16, 7);
+        graphics.stroke();
+
+        graphics.fillColor = new cc.Color(105, 68, 60);
+        graphics.moveTo(-12, -3);
+        graphics.bezierCurveTo(-7, -1, 7, -1, 12, -3);
+        graphics.bezierCurveTo(10, -15, -10, -15, -12, -3);
+        graphics.close();
+        graphics.fill();
+        graphics.fillColor = new cc.Color(242, 135, 125);
+        graphics.ellipse(0, -11, 6.5, 2.8);
+        graphics.fill();
+        graphics.fillColor = new cc.Color(242, 151, 124, 172);
+        graphics.ellipse(-19, -4, 5, 2.5);
+        graphics.ellipse(19, -4, 5, 2.5);
+        graphics.fill();
+    }
+
+    private startTutorialNpcIdle(): void {
+        const npc = this.tutorialNpc;
+        if (!npc || !cc.isValid(npc)) return;
+        const baseY = Number((npc as any).tutorialBaseY) || npc.y;
+        cc.Tween.stopAllByTarget(npc);
+        npc.y = baseY;
+        npc.scaleX = 1;
+        npc.scaleY = 1;
+        cc.tween(npc)
+            .repeatForever(
+                cc.tween()
+                    .to(0.86, { y: baseY + 3, scale: 1.025 }, { easing: 'sineInOut' })
+                    .to(0.86, { y: baseY, scale: 1 }, { easing: 'sineInOut' }),
+            )
+            .start();
+    }
+
+    /** 每次真实消除都让 NPC 做一次双段庆祝跳。 */
+    private playTutorialNpcBounce(): void {
+        const npc = this.tutorialNpc;
+        if (!npc || !cc.isValid(npc)) return;
+        const baseY = Number((npc as any).tutorialBaseY) || npc.y;
+        cc.Tween.stopAllByTarget(npc);
+        npc.y = baseY;
+        npc.scaleX = 1;
+        npc.scaleY = 1;
+        cc.tween(npc)
+            .to(0.11, { y: baseY + 28, scaleX: 0.92, scaleY: 1.12 }, { easing: 'quadOut' })
+            .to(0.13, { y: baseY - 2, scaleX: 1.1, scaleY: 0.9 }, { easing: 'quadIn' })
+            .to(0.09, { y: baseY + 12, scaleX: 0.96, scaleY: 1.06 }, { easing: 'quadOut' })
+            .to(0.12, { y: baseY, scaleX: 1, scaleY: 1 }, { easing: 'backOut' })
+            .call(() => this.startTutorialNpcIdle())
+            .start();
+    }
+
+    /** 第三步完成后，用一次完整庆祝过渡把控制权交还给玩家。 */
+    private playTutorialCompletionTransition(): void {
+        const group = this.tutorialBubbleGroup;
+        const bubble = this.tutorialBubble;
+        const npc = this.tutorialNpc;
+        if (!group || !bubble || !npc || !cc.isValid(group) || !cc.isValid(npc)) {
+            this.finishTutorialTransition();
+            return;
+        }
+
+        if (this.tutorialTypingState) cc.Tween.stopAllByTarget(this.tutorialTypingState);
+        this.tutorialTypingState = null;
+        if (this.tutorialSpeechLabel) this.tutorialSpeechLabel.string = '';
+        cc.Tween.stopAllByTarget(group);
+        cc.Tween.stopAllByTarget(npc);
+        group.opacity = 255;
+        group.scale = 1;
+        npc.opacity = 255;
+
+        cc.tween(npc)
+            .to(0.44, { y: 0, scale: 1.08 }, { easing: 'backOut' })
+            .start();
+        cc.tween(group)
+            .to(0.44, { x: -bubble.x, y: -bubble.y, scale: 1.1 }, { easing: 'backOut' })
+            .call(() => {
+                this.setTutorialSpeech('接下来开始你的快乐时间吧！');
+                this.scheduleOnce(() => this.playTutorialFarewell(), 1.35);
+            })
+            .start();
+    }
+
+    /** NPC 连跳两次，气泡同步呼吸，遮罩在庆祝动作中渐隐。 */
+    private playTutorialFarewell(): void {
+        const group = this.tutorialBubbleGroup;
+        const npc = this.tutorialNpc;
+        const mask = this.tutorialDimMask;
+
+        if (mask && cc.isValid(mask)) {
+            cc.Tween.stopAllByTarget(mask);
+            cc.tween(mask)
+                .to(0.76, { opacity: 0 }, { easing: 'sineOut' })
+                .call(() => {
+                    if (cc.isValid(mask)) mask.destroy();
+                    if (this.tutorialDimMask === mask) this.tutorialDimMask = null;
+                })
+                .start();
+        }
+
+        if (group && cc.isValid(group)) {
+            cc.Tween.stopAllByTarget(group);
+            cc.tween(group)
+                .to(0.12, { scale: 1.15 }, { easing: 'quadOut' })
+                .to(0.14, { scale: 1.1 }, { easing: 'quadIn' })
+                .to(0.12, { scale: 1.15 }, { easing: 'quadOut' })
+                .to(0.14, { scale: 1.1 }, { easing: 'quadIn' })
+                .to(0.22, { opacity: 0, scale: 0.92 }, { easing: 'quadIn' })
+                .start();
+        }
+
+        if (!npc || !cc.isValid(npc)) {
+            this.scheduleOnce(() => this.finishTutorialTransition(), 0.76);
+            return;
+        }
+        cc.Tween.stopAllByTarget(npc);
+        const baseY = npc.y;
+        cc.tween(npc)
+            .to(0.12, { y: baseY + 30, scaleX: 0.92, scaleY: 1.12 }, { easing: 'quadOut' })
+            .to(0.14, { y: baseY, scaleX: 1.08, scaleY: 0.92 }, { easing: 'quadIn' })
+            .to(0.12, { y: baseY + 24, scaleX: 0.94, scaleY: 1.1 }, { easing: 'quadOut' })
+            .to(0.14, { y: baseY, scaleX: 1.06, scaleY: 0.94 }, { easing: 'quadIn' })
+            .to(0.22, { opacity: 0, scale: 0.82 }, { easing: 'quadIn' })
+            .call(() => this.finishTutorialTransition())
+            .start();
+    }
+
+    private finishTutorialTransition(): void {
+        this.tutorialStep = -1;
+        this.clearTutorialGuide();
+        if (this.moodStageLabel) {
+            this.moodStageLabel.string = '快乐时间开始啦：留意下一排，继续填满整行';
+            this.moodStageLabel.node.opacity = 255;
+        }
+        this.updateHud();
+        this.appendTutorialOpeningRows();
+    }
+
+    /** 三排数据同步入场，避免教学结束后棋盘只剩孤零零的一排。 */
+    private appendTutorialOpeningRows(): void {
+        for (let index = 0; index < 3; index++) {
+            if (!zyxGameModule.appendNextRow()) {
+                this.handleChallengeFailed('整理台暂时放满了');
+                return;
+            }
+        }
+        this.animateAppendedRow(() => {
+            this.resolveStableBoard(1, () => {
+                if (zyxGameModule.isGameOver()) {
+                    this.handleChallengeFailed('整理台暂时放满了');
+                    return;
+                }
+                this.locked = false;
+                this.idleSeconds = 0;
+            });
+        });
+    }
+
+    private isTutorialGuidedStep(): boolean {
+        return this.tutorialStep >= 0
+            && this.tutorialStep < 3
+            && !!zyxGameModule.getTutorialMove(this.tutorialStep);
+    }
+
+    private getTutorialSpeech(): string {
+        const messages = [
+            '第 1 步：把 3 格块向左拖，补满第二排。',
+            '第 2 步：把 2 格块向右拖，补满下一排。',
+            '第 3 步：把 1 格块向左拖，补满最后一排。',
+        ];
+        return messages[this.tutorialStep] || '';
+    }
+
+    private showTutorialStep(): void {
+        if (!this.isTutorialGuidedStep()) return;
+        if (this.tutorialRestoreCallback) {
+            this.unschedule(this.tutorialRestoreCallback);
+            this.tutorialRestoreCallback = null;
+        }
+        this.clearTutorialMoveGuide();
+        this.setTutorialSpeech(this.getTutorialSpeech());
+        this.showTutorialMoveGuide(zyxGameModule.getTutorialMove(this.tutorialStep));
+        this.updateHud();
+    }
+
+    /** 用高亮空位 + 循环小手表达横向拖动；不替玩家移动真实色块。 */
+    private showTutorialMoveGuide(move: TutorialMove): void {
+        if (!move || !this.boardRoot || !this.pieceLayer) return;
+        const piece = zyxGameModule.getPiece(move.id);
+        const pieceNode = this.pieceLayer.getChildByName(`piece_${move.id}`);
+        if (!piece || !pieceNode) return;
+
+        const dimMask = new cc.Node('tutorialDimMask');
+        dimMask.width = BOARD_COLS * CELL_SIZE;
+        dimMask.height = BOARD_ROWS * CELL_SIZE;
+        dimMask.zIndex = 50;
+        this.pieceLayer.addChild(dimMask);
+        const dimGraphics = dimMask.addComponent(cc.Graphics);
+        dimGraphics.fillColor = new cc.Color(25, 20, 18, 148);
+        dimGraphics.rect(-dimMask.width / 2, -dimMask.height / 2, dimMask.width, dimMask.height);
+        dimGraphics.fill();
+        this.tutorialDimMask = dimMask;
+        this.tutorialFocusPieceId = move.id;
+        pieceNode.zIndex = 90;
+
+        const target = this.getPiecePosition(move.targetRow, move.targetCol, move.pieceSize);
+        const targetMarker = new cc.Node('tutorialTargetMarker');
+        targetMarker.width = move.pieceSize * CELL_SIZE - 12;
+        targetMarker.height = CELL_SIZE - 12;
+        targetMarker.setPosition(target);
+        targetMarker.zIndex = 70;
+        this.pieceLayer.addChild(targetMarker);
+        const targetGraphics = targetMarker.addComponent(cc.Graphics);
+        targetGraphics.fillColor = new cc.Color(255, 221, 104, 72);
+        targetGraphics.strokeColor = new cc.Color(239, 151, 105, 238);
+        targetGraphics.lineWidth = 4;
+        targetGraphics.roundRect(
+            -targetMarker.width / 2,
+            -targetMarker.height / 2,
+            targetMarker.width,
+            targetMarker.height,
+            14,
+        );
+        targetGraphics.fill();
+        targetGraphics.stroke();
+        cc.tween(targetMarker)
+            .repeatForever(
+                cc.tween()
+                    .to(0.48, { opacity: 150, scale: 0.96 }, { easing: 'sineInOut' })
+                    .to(0.48, { opacity: 255, scale: 1.03 }, { easing: 'sineInOut' }),
+            )
+            .start();
+        this.tutorialTargetMarker = targetMarker;
+
+        const origin = this.getPiecePosition(piece.row, piece.col, piece.size);
+        const sourceMarker = new cc.Node('tutorialSourceMarker');
+        sourceMarker.width = pieceNode.width + 16;
+        sourceMarker.height = pieceNode.height + 16;
+        sourceMarker.setPosition(0, 0);
+        sourceMarker.zIndex = -1;
+        pieceNode.addChild(sourceMarker);
+        const sourceGraphics = sourceMarker.addComponent(cc.Graphics);
+        sourceGraphics.strokeColor = new cc.Color(255, 203, 104, 92);
+        sourceGraphics.lineWidth = 12;
+        sourceGraphics.roundRect(
+            -sourceMarker.width / 2,
+            -sourceMarker.height / 2,
+            sourceMarker.width,
+            sourceMarker.height,
+            20,
+        );
+        sourceGraphics.stroke();
+        sourceGraphics.strokeColor = new cc.Color(255, 244, 196, 210);
+        sourceGraphics.lineWidth = 3;
+        sourceGraphics.roundRect(
+            -sourceMarker.width / 2 + 3,
+            -sourceMarker.height / 2 + 3,
+            sourceMarker.width - 6,
+            sourceMarker.height - 6,
+            17,
+        );
+        sourceGraphics.stroke();
+        sourceMarker.opacity = 190;
+        cc.tween(sourceMarker)
+            .repeatForever(
+                cc.tween()
+                    .to(0.5, { opacity: 118, scale: 1.045 }, { easing: 'sineInOut' })
+                    .to(0.5, { opacity: 210, scale: 1 }, { easing: 'sineInOut' }),
+            )
+            .start();
+        this.tutorialSourceMarker = sourceMarker;
+
+        const hand = this.createHintHand(this.pieceLayer, origin.x, origin.y + 44);
+        hand.name = 'tutorialDragHand';
+        this.tutorialHand = hand;
+        const targetX = origin.x + move.offset * CELL_SIZE;
+        cc.tween(hand)
+            .repeatForever(
+                cc.tween()
+                    .to(0.16, { y: origin.y + 24, scale: 0.9, opacity: 255 }, { easing: 'quadOut' })
+                    .to(0.64, { x: targetX, y: origin.y + 24 }, { easing: 'cubicInOut' })
+                    .to(0.13, { y: origin.y + 42, scale: 1 }, { easing: 'backOut' })
+                    .delay(0.34)
+                    .to(0.3, { x: origin.x, opacity: 0 }, { easing: 'quadIn' })
+                    .call(() => {
+                        if (!cc.isValid(hand)) return;
+                        hand.setPosition(origin.x, origin.y + 44);
+                        hand.opacity = 255;
+                    })
+                    .delay(0.22),
+            )
+            .start();
+    }
+
+    private setTutorialSpeech(message: string): void {
+        if (!this.tutorialSpeechLabel) return;
+        if (this.tutorialTypingState) cc.Tween.stopAllByTarget(this.tutorialTypingState);
+        const state = { value: 0 };
+        this.tutorialTypingState = state;
+        this.tutorialSpeechLabel.string = '';
+        cc.tween(state)
+            .to(Math.max(0.45, Math.min(1.5, message.length * 0.055)), { value: message.length }, {
+                easing: 'linear',
+                onUpdate: () => {
+                    if (!this.tutorialSpeechLabel || this.tutorialTypingState !== state) return;
+                    this.tutorialSpeechLabel.string = message.slice(0, Math.floor(state.value));
+                },
+            })
+            .call(() => {
+                if (this.tutorialSpeechLabel && this.tutorialTypingState === state) {
+                    this.tutorialSpeechLabel.string = message;
+                }
+            })
+            .start();
+    }
+
+    private showTutorialCorrection(message: string, resetBoard: boolean): void {
+        if (!this.isTutorialGuidedStep()) return;
+        if (this.tutorialRestoreCallback) this.unschedule(this.tutorialRestoreCallback);
+        this.clearTutorialMoveGuide();
+        if (resetBoard) this.renderBoard();
+        this.setTutorialSpeech(message);
+        this.showTutorialMoveGuide(zyxGameModule.getTutorialMove(this.tutorialStep));
+        if (this.tutorialBubble && cc.isValid(this.tutorialBubble)) {
+            const bubble = this.tutorialBubble;
+            const originY = bubble.y;
+            cc.Tween.stopAllByTarget(bubble);
+            bubble.scale = 1;
+            cc.tween(bubble)
+                .to(0.11, { y: originY + 6, scale: 1.025 }, { easing: 'quadOut' })
+                .to(0.16, { y: originY, scale: 1 }, { easing: 'backOut' })
+                .start();
+        }
+        this.tutorialRestoreCallback = () => {
+            this.tutorialRestoreCallback = null;
+            this.showTutorialStep();
+        };
+        this.scheduleOnce(this.tutorialRestoreCallback, 1.65);
+    }
+
+    private cancelTutorialRestore(): void {
+        if (!this.tutorialRestoreCallback) return;
+        this.unschedule(this.tutorialRestoreCallback);
+        this.tutorialRestoreCallback = null;
+    }
+
+    private cancelTutorialHand(): void {
+        if (this.tutorialHand && cc.isValid(this.tutorialHand)) {
+            cc.Tween.stopAllByTarget(this.tutorialHand);
+            this.tutorialHand.destroy();
+        }
+        this.tutorialHand = null;
+    }
+
+    private clearTutorialMoveGuide(preserveDimMask: boolean = false): void {
+        this.cancelTutorialHand();
+        if (this.tutorialFocusPieceId > 0 && this.pieceLayer && cc.isValid(this.pieceLayer)) {
+            const focus = this.pieceLayer.getChildByName(`piece_${this.tutorialFocusPieceId}`);
+            if (focus) focus.zIndex = 10;
+        }
+        const guideNodes = [this.tutorialSourceMarker, this.tutorialTargetMarker];
+        if (!preserveDimMask) guideNodes.push(this.tutorialDimMask);
+        guideNodes.forEach((node) => {
+            if (!node || !cc.isValid(node)) return;
+            cc.Tween.stopAllByTarget(node);
+            node.destroy();
+        });
+        this.tutorialSourceMarker = null;
+        this.tutorialTargetMarker = null;
+        if (!preserveDimMask) this.tutorialDimMask = null;
+        this.tutorialFocusPieceId = 0;
+    }
+
+    private clearTutorialGuide(): void {
+        if (this.tutorialRestoreCallback) this.unschedule(this.tutorialRestoreCallback);
+        this.tutorialRestoreCallback = null;
+        this.clearTutorialMoveGuide();
+        if (this.tutorialTypingState) cc.Tween.stopAllByTarget(this.tutorialTypingState);
+        this.tutorialTypingState = null;
+        if (this.tutorialGuideRoot && cc.isValid(this.tutorialGuideRoot)) this.tutorialGuideRoot.destroy();
+        this.tutorialGuideRoot = null;
+        this.tutorialNpc = null;
+        this.tutorialBubbleGroup = null;
+        this.tutorialBubble = null;
+        this.tutorialSpeechLabel = null;
     }
 
     private drawBoardSurface(node: cc.Node, width: number, height: number): void {
@@ -420,7 +931,7 @@ export default class ZyxGame extends cc.Component {
         uimanager.drawButtonSurface(this.hammerButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, BUTTON_COLORS.yellow, 23);
         this.hammerButton.addComponent(cc.Button);
         this.hammerButton.name = 'hammerToolButton';
-        this.hammerIcon = this.createHammerGlyph(this.hammerButton, 0, -1, 0.84);
+        this.hammerIcon = createHammerGlyph(this.hammerButton, 0, -1, 0.84);
         this.hammerCountLabel = this.createToolCountBadge(this.hammerButton, 'hammerCountBadge');
 
         this.purifierButton = uimanager.createRect(
@@ -436,7 +947,7 @@ export default class ZyxGame extends cc.Component {
         );
         uimanager.drawButtonSurface(this.purifierButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, BUTTON_COLORS.green, 23);
         this.purifierButton.addComponent(cc.Button);
-        this.purifierIcon = this.createPurifierGlyph(this.purifierButton, 0, -1, 0.84);
+        this.purifierIcon = createPurifierGlyph(this.purifierButton, 0, -1, 0.84);
         this.purifierCountLabel = this.createToolCountBadge(this.purifierButton, 'purifierCountBadge');
 
         this.bindToolGestures();
@@ -466,6 +977,10 @@ export default class ZyxGame extends cc.Component {
     private bindToolGestures(): void {
         this.hammerButton.on(cc.Node.EventType.TOUCH_START, (event: cc.Event.EventTouch) => {
             if (this.locked) return;
+            if (this.isTutorialGuidedStep()) {
+                this.showTutorialCorrection('先完成当前拖拽，工具稍后就能使用。', false);
+                return;
+            }
             this.markInteraction();
             this.toolDragging = false;
             this.toolTouchStart = event.touch.getLocation();
@@ -515,6 +1030,10 @@ export default class ZyxGame extends cc.Component {
     private bindPurifierGesture(): void {
         this.purifierButton.on(cc.Node.EventType.TOUCH_START, () => {
             if (this.locked) return;
+            if (this.isTutorialGuidedStep()) {
+                this.showTutorialCorrection('先完成当前拖拽，工具稍后就能使用。', false);
+                return;
+            }
             this.markInteraction();
             cc.tween(this.purifierButton).stop();
             cc.tween(this.purifierButton).to(0.07, { scale: 0.96 }).start();
@@ -522,7 +1041,7 @@ export default class ZyxGame extends cc.Component {
         this.purifierButton.on(cc.Node.EventType.TOUCH_END, () => {
             cc.tween(this.purifierButton).stop();
             cc.tween(this.purifierButton).to(0.1, { scale: 1 }).start();
-            if (!this.locked) this.showPurifierInfoModal();
+            if (!this.locked && !this.isTutorialGuidedStep()) this.showPurifierInfoModal();
         }, this);
         this.purifierButton.on(cc.Node.EventType.TOUCH_CANCEL, () => {
             cc.tween(this.purifierButton).stop();
@@ -532,7 +1051,7 @@ export default class ZyxGame extends cc.Component {
 
     private showToolDragFollower(worldPoint: cc.Vec2): void {
         if (!this.toolDragFollower || !cc.isValid(this.toolDragFollower)) {
-            this.toolDragFollower = this.createHammerGlyph(this.node, 0, 0, 0.72);
+            this.toolDragFollower = createHammerGlyph(this.node, 0, 0, 0.72);
             this.toolDragFollower.name = 'toolDragFollower';
             this.toolDragFollower.zIndex = 1200;
         }
@@ -647,277 +1166,7 @@ export default class ZyxGame extends cc.Component {
     }
 
     private loadEffectAssets(): void {
-        loadSkeletonData('game-assets', 'spine/get_1', (error, data) => {
-            if (error || !data) {
-                cc.warn('Spine clear effect failed to load', error);
-                return;
-            }
-            this.clearSpineData = data;
-        });
-    }
-
-    private createHammerGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
-        const node = new cc.Node('hammerGlyph');
-        node.width = 82;
-        node.height = 82;
-        node.setAnchorPoint(0.5, 0.5);
-        node.setPosition(x, y);
-        node.scale = scale;
-        node.angle = 0;
-        node.zIndex = 55;
-        parent.addChild(node);
-
-        const shadow = new cc.Node('hammerShadow');
-        shadow.zIndex = 0;
-        shadow.setPosition(0, -31);
-        node.addChild(shadow);
-        const shadowG = shadow.addComponent(cc.Graphics);
-        shadowG.fillColor = new cc.Color(73, 48, 43, 42);
-        shadowG.ellipse(0, 0, 25, 6);
-        shadowG.fill();
-
-        const art = new cc.Node('hammerArt');
-        art.width = 66;
-        art.height = 84;
-        art.setPosition(0, 3);
-        art.zIndex = 2;
-        node.addChild(art);
-        const sprite = art.addComponent(cc.Sprite);
-        sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        loadSpriteFrame('game-assets', 'images/formal/relief_hammer_v2', (error, frame) => {
-            if (error || !frame || !cc.isValid(art)) return;
-            sprite.spriteFrame = frame;
-            uimanager.fitSpriteFrameInside(art, frame, 66, 84);
-            // 锤子与魔法棒统一为“手柄朝左下、作用端朝右上”的视觉方向。
-            art.scaleX = -Math.abs(art.scaleX || 1);
-        });
-        return node;
-    }
-
-    private createPurifierGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
-        const node = new cc.Node('magicWandGlyph');
-        node.width = 82;
-        node.height = 82;
-        node.setAnchorPoint(0.5, 0.5);
-        node.setPosition(x, y);
-        node.scale = scale;
-        node.zIndex = 55;
-        parent.addChild(node);
-
-        const shadow = new cc.Node('magicWandShadow');
-        shadow.zIndex = 0;
-        shadow.setPosition(0, -31);
-        node.addChild(shadow);
-        const shadowGraphics = shadow.addComponent(cc.Graphics);
-        shadowGraphics.fillColor = new cc.Color(73, 48, 43, 42);
-        shadowGraphics.ellipse(0, 0, 24, 6);
-        shadowGraphics.fill();
-
-        const art = new cc.Node('magicWandArt');
-        art.width = 68;
-        art.height = 86;
-        art.setPosition(0, 3);
-        art.zIndex = 2;
-        node.addChild(art);
-        const sprite = art.addComponent(cc.Sprite);
-        sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        loadSpriteFrame('game-assets', 'images/formal/magic_wand_v1', (error, frame) => {
-            if (error || !frame || !cc.isValid(art)) return;
-            sprite.spriteFrame = frame;
-            uimanager.fitSpriteFrameInside(art, frame, 68, 86);
-        });
-        return node;
-    }
-
-    private createPauseGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
-        const node = new cc.Node('pauseGlyph');
-        node.setPosition(x, y);
-        node.scale = scale;
-        node.zIndex = 60;
-        parent.addChild(node);
-        const graphics = node.addComponent(cc.Graphics);
-        graphics.fillColor = new cc.Color(112, 61, 55, 92);
-        graphics.roundRect(-17, -20, 13, 42, 6);
-        graphics.roundRect(5, -20, 13, 42, 6);
-        graphics.fill();
-        graphics.fillColor = new cc.Color(255, 239, 193);
-        graphics.strokeColor = new cc.Color(132, 73, 62);
-        graphics.lineWidth = 2;
-        graphics.roundRect(-18, -17, 12, 38, 6);
-        graphics.roundRect(6, -17, 12, 38, 6);
-        graphics.fill();
-        graphics.stroke();
-        return node;
-    }
-
-    private decorateActionButton(button: cc.Node, icon: 'video' | 'share' | 'back' | 'restart'): void {
-        const label = button.getChildByName('label');
-        const iconX = -Math.min(92, button.width * 0.34);
-        if (label) {
-            label.x = button.width <= 260 ? 22 : 30;
-            label.width = Math.max(96, button.width - 110);
-        }
-        const glyphScale = button.width <= 260 ? 0.7 : 0.78;
-        if (icon === 'video') this.createVideoGlyph(button, iconX, 2, glyphScale);
-        else if (icon === 'share') this.createShareGlyph(button, iconX, 2, glyphScale);
-        else if (icon === 'back') this.createBackGlyph(button, iconX, 1, glyphScale);
-        else this.createRestartGlyph(button, iconX, 1, glyphScale);
-    }
-
-    /** 保留：激励视频恢复后，decorateActionButton('video') 仍可直接使用。 */
-    private createVideoGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
-        const node = new cc.Node('videoGlyph');
-        node.setPosition(x, y);
-        node.scale = scale;
-        node.zIndex = 60;
-        parent.addChild(node);
-        const graphics = node.addComponent(cc.Graphics);
-        graphics.fillColor = new cc.Color(85, 56, 49, 54);
-        graphics.roundRect(-31, -23, 62, 49, 15);
-        graphics.fill();
-        graphics.fillColor = new cc.Color(255, 247, 220);
-        graphics.strokeColor = new cc.Color(119, 78, 66);
-        graphics.lineWidth = 2.4;
-        graphics.roundRect(-32, -20, 64, 48, 15);
-        graphics.fill();
-        graphics.stroke();
-        graphics.fillColor = new cc.Color(248, 194, 72);
-        graphics.roundRect(-24, -13, 38, 32, 10);
-        graphics.fill();
-        graphics.fillColor = new cc.Color(255, 250, 224);
-        graphics.moveTo(-10, -6);
-        graphics.lineTo(7, 3);
-        graphics.lineTo(-10, 12);
-        graphics.close();
-        graphics.fill();
-        graphics.fillColor = new cc.Color(226, 104, 95);
-        graphics.circle(23, 10, 4);
-        graphics.fill();
-        graphics.fillColor = new cc.Color(105, 181, 129);
-        graphics.circle(23, -4, 4);
-        graphics.fill();
-        return node;
-    }
-
-    /** 分享获取入口图标：暖色纸飞机，替代当前视频图标展示。 */
-    private createShareGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
-        const node = new cc.Node('shareGlyph');
-        node.setPosition(x, y);
-        node.scale = scale;
-        node.zIndex = 60;
-        parent.addChild(node);
-        const graphics = node.addComponent(cc.Graphics);
-        graphics.fillColor = new cc.Color(85, 56, 49, 48);
-        graphics.roundRect(-31, -23, 62, 49, 15);
-        graphics.fill();
-        graphics.fillColor = new cc.Color(255, 247, 220);
-        graphics.strokeColor = new cc.Color(119, 78, 66);
-        graphics.lineWidth = 2.4;
-        graphics.roundRect(-32, -20, 64, 48, 15);
-        graphics.fill();
-        graphics.stroke();
-
-        // 纸飞机主体
-        graphics.fillColor = new cc.Color(105, 181, 129);
-        graphics.moveTo(-22, -2);
-        graphics.lineTo(22, 12);
-        graphics.lineTo(4, -2);
-        graphics.close();
-        graphics.fill();
-        graphics.fillColor = new cc.Color(244, 181, 60);
-        graphics.moveTo(-22, -2);
-        graphics.lineTo(22, 12);
-        graphics.lineTo(8, -14);
-        graphics.close();
-        graphics.fill();
-        graphics.strokeColor = new cc.Color(90, 64, 56);
-        graphics.lineWidth = 2;
-        graphics.moveTo(-22, -2);
-        graphics.lineTo(4, -2);
-        graphics.lineTo(22, 12);
-        graphics.moveTo(4, -2);
-        graphics.lineTo(8, -14);
-        graphics.stroke();
-
-        // 右侧小点，暗示“发出去”
-        graphics.fillColor = new cc.Color(226, 104, 95);
-        graphics.circle(24, -8, 3.5);
-        graphics.fill();
-        graphics.fillColor = new cc.Color(248, 194, 72);
-        graphics.circle(24, 4, 3.5);
-        graphics.fill();
-        return node;
-    }
-
-    /** 返回动作使用单义的左箭头，不再用容易被理解成“回首页”的房屋。 */
-    private createBackGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
-        const node = new cc.Node('backGlyph');
-        node.setPosition(x, y);
-        node.scale = scale;
-        node.zIndex = 60;
-        parent.addChild(node);
-        const graphics = node.addComponent(cc.Graphics);
-        this.drawActionGlyphPlate(graphics);
-        graphics.strokeColor = new cc.Color(119, 78, 66);
-        graphics.lineWidth = 7;
-        graphics.lineCap = cc.Graphics.LineCap.ROUND;
-        graphics.moveTo(14, 0);
-        graphics.lineTo(-13, 0);
-        graphics.moveTo(-3, 10);
-        graphics.lineTo(-14, 0);
-        graphics.lineTo(-3, -10);
-        graphics.stroke();
-        graphics.strokeColor = new cc.Color(239, 133, 104);
-        graphics.lineWidth = 4;
-        graphics.moveTo(14, 0);
-        graphics.lineTo(-13, 0);
-        graphics.moveTo(-3, 10);
-        graphics.lineTo(-14, 0);
-        graphics.lineTo(-3, -10);
-        graphics.stroke();
-        return node;
-    }
-
-    /** 两段首尾相接的循环箭头明确表达“重新开始”，避免弧线看成笑脸。 */
-    private createRestartGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
-        const node = new cc.Node('restartGlyph');
-        node.setPosition(x, y);
-        node.scale = scale;
-        node.zIndex = 60;
-        parent.addChild(node);
-        const graphics = node.addComponent(cc.Graphics);
-        this.drawActionGlyphPlate(graphics);
-        graphics.strokeColor = new cc.Color(105, 181, 129);
-        graphics.fillColor = new cc.Color(105, 181, 129);
-        graphics.lineWidth = 4.6;
-        graphics.lineCap = cc.Graphics.LineCap.ROUND;
-        graphics.moveTo(-14, 4);
-        graphics.bezierCurveTo(-8, 15, 8, 15, 14, 4);
-        graphics.moveTo(14, -4);
-        graphics.bezierCurveTo(8, -15, -8, -15, -14, -4);
-        graphics.stroke();
-        graphics.moveTo(14, 4);
-        graphics.lineTo(5, 6);
-        graphics.lineTo(11, -4);
-        graphics.close();
-        graphics.moveTo(-14, -4);
-        graphics.lineTo(-5, -6);
-        graphics.lineTo(-11, 4);
-        graphics.close();
-        graphics.fill();
-        return node;
-    }
-
-    private drawActionGlyphPlate(graphics: cc.Graphics): void {
-        graphics.fillColor = new cc.Color(83, 54, 47, 48);
-        graphics.roundRect(-21, -20, 44, 35, 9);
-        graphics.fill();
-        graphics.fillColor = new cc.Color(255, 244, 214);
-        graphics.strokeColor = new cc.Color(119, 78, 66);
-        graphics.lineWidth = 2.5;
-        graphics.roundRect(-22, -18, 44, 36, 9);
-        graphics.fill();
-        graphics.stroke();
+        this.clearSpineData = getSkeletonData('game', ASSET_PATHS.game.rewardSpine);
     }
 
     private renderAll(): void {
@@ -1099,7 +1348,7 @@ export default class ZyxGame extends cc.Component {
                         node.scale = fadeState.scale;
                         if (color) this.drawPiece(node, color, fadeState.alpha);
                     },
-                })
+                } as any)
                 .call(() => {
                     delete this.pieceColors[id];
                     node.destroy();
@@ -1304,7 +1553,7 @@ export default class ZyxGame extends cc.Component {
         }
 
         cc.tween(pieceNode).stop();
-        const strike = this.createHammerGlyph(this.pieceLayer, pieceNode.x + 42, pieceNode.y + 62, 0.88);
+        const strike = createHammerGlyph(this.pieceLayer, pieceNode.x + 42, pieceNode.y + 62, 0.88);
         strike.name = `hammerStrike_${id}`;
         strike.angle = 68;
         strike.zIndex = 45;
@@ -1505,7 +1754,7 @@ export default class ZyxGame extends cc.Component {
         const color = getMoodColor(3);
         drawMoodBlockMaterial(block, color);
 
-        const hammer = this.createHammerGlyph(stage, -72, 31, 0.72);
+        const hammer = createHammerGlyph(stage, -72, 31, 0.72);
         hammer.angle = 54;
         const play = (): void => {
             if (!cc.isValid(stage) || !cc.isValid(hammer) || !cc.isValid(block)) return;
@@ -1559,7 +1808,7 @@ export default class ZyxGame extends cc.Component {
             drawMoodBlockMaterial(block, index === 1 ? otherColor : matchingColor);
             return block;
         });
-        const wand = this.createPurifierGlyph(stage, -126, 35, 0.68);
+        const wand = createPurifierGlyph(stage, -126, 35, 0.68);
         wand.angle = 8;
 
         const play = (): void => {
@@ -1708,6 +1957,7 @@ export default class ZyxGame extends cc.Component {
             : '';
         uimanager.showToast(`捋顺 ${result.clearedRows} 行${rewardText}`);
         audioManager.playSound('break');
+        this.playTutorialNpcBounce();
         this.playRowClearEffects(result.clearedRowIndexes);
         this.playMoodCollect(result.removedPieceIds);
         this.animateRowShatter(result.removedPieceIds);
@@ -1805,20 +2055,39 @@ export default class ZyxGame extends cc.Component {
 
         this.animateAppendedRow(() => {
             this.resolveStableBoard(1, () => {
-                if (zyxGameModule.isGameOver()) {
-                    this.handleChallengeFailed('整理台暂时放满了');
-                    return;
-                }
-                if (this.tryShowRoundRescue()) return;
-                this.locked = false;
-                this.idleSeconds = 0;
+                this.ensureMinimumOccupiedRows(2, () => {
+                    if (zyxGameModule.isGameOver()) {
+                        this.handleChallengeFailed('整理台暂时放满了');
+                        return;
+                    }
+                    if (this.tryShowRoundRescue()) return;
+                    this.locked = false;
+                    this.idleSeconds = 0;
+                });
             });
         });
     }
 
+    /** 连消可能把刚升起的一排再次清掉；持续补排并完整结算，直到场上至少保留两排。 */
+    private ensureMinimumOccupiedRows(minimumRows: number, onReady: () => void): void {
+        if (zyxGameModule.getOccupiedRowCount() >= minimumRows) {
+            onReady();
+            return;
+        }
+        if (!zyxGameModule.appendNextRow()) {
+            this.handleChallengeFailed('整理台暂时放满了');
+            return;
+        }
+        this.animateAppendedRow(() => {
+            this.resolveStableBoard(1, () => this.ensureMinimumOccupiedRows(minimumRows, onReady));
+        });
+    }
+
     private tryShowRoundRescue(): boolean {
-        if (this.roundRescueOffered || !zyxGameModule.hasEnteredRescueZone(2)) return false;
-        this.roundRescueOffered = true;
+        if (!zyxGameModule.hasEnteredRescueZone(2)) return false;
+        const now = Date.now();
+        if (now - this.lastRoundRescueOfferedAt < ROUND_RESCUE_COOLDOWN_MS) return false;
+        this.lastRoundRescueOfferedAt = now;
         this.markInteraction();
         this.showRoundRescuePrompt();
         this.locked = false;
@@ -1897,7 +2166,7 @@ export default class ZyxGame extends cc.Component {
 
         const bubbleLabel = uimanager.createLabel(
             bubble,
-            '观看广告，清除全部色块',
+            '分享给好友，清除全部色块',
             0,
             1,
             20,
@@ -2120,12 +2389,12 @@ export default class ZyxGame extends cc.Component {
         if (this.rewardedAdLoading) return;
         this.rewardedAdLoading = true;
         this.locked = true;
-        this.showRewardedVideo((rewarded) => {
+        this.showRewardOffer((rewarded) => {
             this.rewardedAdLoading = false;
             if (!rewarded) {
                 this.locked = false;
                 this.idleSeconds = 0;
-                uimanager.showToast('完整看完视频才能清除全部色块');
+                uimanager.showToast(getRewardOfferFailToast('rescue'));
                 return;
             }
             this.applyRoundRescue();
@@ -2139,7 +2408,7 @@ export default class ZyxGame extends cc.Component {
         this.playEmergencyClearEffect(removedPieceIds, () => {
             this.resolveStableBoard(1, () => {
                 this.updateHud();
-                uimanager.showToast('整理台已全部清空，自动补入一排');
+                uimanager.showToast('整理台已全部清空，自动补足两排');
                 this.appendNextRowAndResolve();
             });
         });
@@ -2163,6 +2432,9 @@ export default class ZyxGame extends cc.Component {
         uimanager.drawButtonSurface(this.purifierButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, purifierColor, 23);
         if (this.purifierIcon) this.purifierIcon.angle = this.purifierMode ? -8 : 0;
         if (this.purifierCountLabel) this.purifierCountLabel.string = String(zyxGameModule.colorPurifierCount);
+        const toolOpacity = this.isTutorialGuidedStep() ? 118 : 255;
+        if (this.hammerButton) this.hammerButton.opacity = toolOpacity;
+        if (this.purifierButton) this.purifierButton.opacity = toolOpacity;
     }
 
     private setLabelTone(label: cc.Label, color: cc.Color, outlineWidth: number): void {
@@ -2219,6 +2491,27 @@ export default class ZyxGame extends cc.Component {
             if (this.purifierMode) uimanager.showToast('魔法棒已就绪，请点一下目标颜色');
             return;
         }
+        if (this.isTutorialGuidedStep()) {
+            const expected = zyxGameModule.getTutorialMove(this.tutorialStep);
+            if (!expected || expected.id !== id) {
+                const size = expected ? expected.pieceSize : 1;
+                this.showTutorialCorrection(`这块先休息一下吧～请拖动亮亮的 ${size} 格块，跟着小手走！`, true);
+                return;
+            }
+            if (expected.offset !== offset) {
+                this.showTutorialCorrection('方向差一点点～跟着小手把亮亮的色块拖过去吧！', true);
+                return;
+            }
+            this.cancelTutorialRestore();
+            this.clearTutorialMoveGuide(this.tutorialStep === 2);
+            if (!zyxGameModule.movePiece(id, offset)) {
+                this.showTutorialCorrection('差一点点就到啦～把亮亮的色块完整放进空位吧！', true);
+                return;
+            }
+            audioManager.playSound('move');
+            this.resolveTutorialTurn();
+            return;
+        }
         if (!zyxGameModule.movePiece(id, offset)) {
             this.renderBoard();
             return;
@@ -2229,6 +2522,12 @@ export default class ZyxGame extends cc.Component {
 
     private tapPiece(id: number): void {
         if (this.locked) return;
+        if (this.isTutorialGuidedStep()) {
+            const expected = zyxGameModule.getTutorialMove(this.tutorialStep);
+            const size = expected ? expected.pieceSize : 1;
+            this.showTutorialCorrection(`轻轻按住亮亮的 ${size} 格块，再跟着小手拖一小步哦～`, true);
+            return;
+        }
         if (this.purifierMode) {
             this.useColorPurifierTool(id);
             return;
@@ -2303,7 +2602,7 @@ export default class ZyxGame extends cc.Component {
                         this.locked = false;
                         this.requestRewardedHammer();
                     },
-                    icon: (button) => this.decorateActionButton(button, getRewardOfferIcon()),
+                    icon: (button) => decorateActionButton(button, getRewardOfferIcon()),
                 },
                 { text: '先不用', color: BUTTON_COLORS.red, onClick: () => { this.locked = false; } },
             ];
@@ -2375,7 +2674,7 @@ export default class ZyxGame extends cc.Component {
                         this.locked = false;
                         this.requestRewardedColorPurifier();
                     },
-                    icon: (button) => this.decorateActionButton(button, getRewardOfferIcon()),
+                    icon: (button) => decorateActionButton(button, getRewardOfferIcon()),
                 },
                 { text: '先不用', color: BUTTON_COLORS.red, onClick: () => { this.locked = false; } },
             ];
@@ -2432,12 +2731,7 @@ export default class ZyxGame extends cc.Component {
 
     /** 保留完整激励视频链路，待用户量达标后把 USE_SHARE_INSTEAD_OF_VIDEO 改为 false 即可恢复。 */
     private showRewardedVideo(onResult: (rewarded: boolean) => void): void {
-        let wxApi: any = null;
-        try {
-            if (typeof wx !== 'undefined') wxApi = wx;
-        } catch (error) {
-            wxApi = null;
-        }
+        const wxApi = getWxApi();
         const runtime = typeof window !== 'undefined' ? window as any : null;
         const adUnitId = runtime && runtime.__ZYX_REWARDED_AD_UNIT_ID__
             ? String(runtime.__ZYX_REWARDED_AD_UNIT_ID__)
@@ -2529,10 +2823,11 @@ export default class ZyxGame extends cc.Component {
     private markInteraction(): void {
         this.idleSeconds = 0;
         this.cancelEliminationHint();
+        if (this.isTutorialGuidedStep()) this.cancelTutorialHand();
     }
 
     private playEliminationHint(): void {
-        if (this.locked || this.hammerMode || this.purifierMode || !this.pieceLayer) return;
+        if (this.locked || this.hammerMode || this.purifierMode || this.isTutorialGuidedStep() || !this.pieceLayer) return;
         const hint = zyxGameModule.findEliminationHint();
         if (!hint) return;
         const piece = zyxGameModule.getPiece(hint.id);
@@ -2646,7 +2941,7 @@ export default class ZyxGame extends cc.Component {
     }
 
     private updateRotatingTip(dt: number): void {
-        if (!this.moodStageLabel || this.hammerMode || this.purifierMode) return;
+        if (!this.moodStageLabel || this.hammerMode || this.purifierMode || this.isTutorialGuidedStep()) return;
         this.tipSeconds += dt;
         const beginner = zyxGameModule.challengeCount <= 10;
         const interval = beginner ? 10 : 30;
@@ -2694,6 +2989,30 @@ export default class ZyxGame extends cc.Component {
         }
     }
 
+    /** 教学前三步只结算重力与消除，不补随机新行；第三步完成后再接回正式回合。 */
+    private resolveTutorialTurn(): void {
+        this.locked = true;
+        this.updateHud();
+        const clearedRowsBefore = zyxGameModule.roundClearedRows;
+        this.resolveStableBoard(1, () => {
+            if (zyxGameModule.roundClearedRows <= clearedRowsBefore) {
+                cc.error(`[新手教学] 第 ${this.tutorialStep + 1} 步没有产生消除`);
+                this.locked = false;
+                this.showTutorialCorrection('差一点点就成功啦～让亮亮的色块完整住进空位吧！', true);
+                return;
+            }
+            this.tutorialStep++;
+            this.idleSeconds = 0;
+            if (this.isTutorialGuidedStep()) {
+                this.locked = false;
+                this.showTutorialStep();
+                return;
+            }
+
+            this.playTutorialCompletionTransition();
+        });
+    }
+
     private handleChallengeFailed(reason: string): void {
         this.dismissRoundRescuePrompt(false);
         this.cancelEliminationHint();
@@ -2718,7 +3037,7 @@ export default class ZyxGame extends cc.Component {
                     text: '复活',
                     color: BUTTON_COLORS.yellow,
                     onClick: () => this.requestRevive(reason),
-                    icon: (button) => this.decorateActionButton(button, getRewardOfferIcon()),
+                    icon: (button) => decorateActionButton(button, getRewardOfferIcon()),
                 },
                 {
                     text: '不需要',
@@ -2738,8 +3057,8 @@ export default class ZyxGame extends cc.Component {
                     0,
                     centerY,
                 );
-                if (USE_SHARE_INSTEAD_OF_VIDEO) this.createShareGlyph(badge, -128, 0, 0.92);
-                else this.createVideoGlyph(badge, -128, 0, 0.92);
+                if (USE_SHARE_INSTEAD_OF_VIDEO) createShareGlyph(badge, -128, 0, 0.92);
+                else createVideoGlyph(badge, -128, 0, 0.92);
                 const label = uimanager.createLabel(
                     badge,
                     '闪电清理上半区\n保留下半区继续挑战',
@@ -2782,7 +3101,6 @@ export default class ZyxGame extends cc.Component {
                 return;
             }
             this.reviveUsed = true;
-            this.roundRescueOffered = false;
             this.performRevive();
         });
     }
@@ -2800,7 +3118,7 @@ export default class ZyxGame extends cc.Component {
         });
     }
 
-    /** 两种广告救场共用同一条演出时间线：闪电、云团与碎裂同时发生。 */
+    /** 两种紧急救场共用同一条演出时间线：闪电、云团与碎裂同时发生。 */
     private playEmergencyClearEffect(pieceIds: number[], onComplete: () => void): void {
         this.playEmergencyLightning();
         this.playEmergencyClouds();
@@ -3033,6 +3351,7 @@ export default class ZyxGame extends cc.Component {
                 onClick: () => {
                     this.locked = false;
                     this.idleSeconds = 0;
+                    if (this.isTutorialGuidedStep()) this.showTutorialStep();
                 },
             },
             {
@@ -3062,13 +3381,13 @@ export default class ZyxGame extends cc.Component {
                 text: '返回',
                 color: BUTTON_COLORS.yellow,
                 onClick: () => this.leaveSettlement(false, settlement),
-                icon: (button) => this.decorateActionButton(button, 'back'),
+                icon: (button) => decorateActionButton(button, 'back'),
             },
             {
                 text: '再来一次',
                 color: BUTTON_COLORS.green,
                 onClick: () => this.leaveSettlement(true, settlement),
-                icon: (button) => this.decorateActionButton(button, 'restart'),
+                icon: (button) => decorateActionButton(button, 'restart'),
             },
         ], (panel, centerY) => {
             const scoreCaption = uimanager.createLabel(panel, '本局得分', 0, centerY + 104, 18, HUD_LABEL_COLOR, 240, 28);
@@ -3122,7 +3441,7 @@ export default class ZyxGame extends cc.Component {
         this.dismissRoundRescuePrompt(false);
         this.stopBoardDangerGlow();
         zyxGameModule.resetRound();
-        this.roundRescueOffered = false;
+        this.tutorialStep = zyxGameModule.isTutorialRound() ? 0 : -1;
         this.reviveUsed = false;
         this.displayedRoundMoods = 0;
         if (this.roundMoodLabel) this.roundMoodLabel.string = '0';
@@ -3135,6 +3454,7 @@ export default class ZyxGame extends cc.Component {
         this.buildUI();
         this.renderAll();
         this.locked = false;
+        if (this.isTutorialGuidedStep()) this.showTutorialStep();
     }
 
     private restartFromPause(): void {

@@ -11,34 +11,27 @@ const initSqlJs = require('sql.js');
 const app = express();
 const port = Number(process.env.PORT || 8080);
 const dbPath = path.resolve(process.env.DB_PATH || path.join(__dirname, '..', 'data', 'game.sqlite'));
-const bottleTarget = 666;
+// 与客户端 assets/script/dataModule/ZyxGameModule.ts 的 HAPPY_BOTTLE_TARGET 保持一致。
+const bottleTarget = 66;
 const maxLeaderboardEntries = 200;
 const chinaOffsetMs = 8 * 60 * 60 * 1000;
 let db;
 
-const cdnRoot = path.resolve(process.env.CDN_PATH || path.join(__dirname, '..', 'cdn'));
+function getPuzzleUnlockCost(pieceId) {
+  if (pieceId === 'album:album_season') return 1;
+  if (pieceId === 'album:album_city') return 10;
+  if (pieceId.startsWith('album:')) return 30;
+  const firstAlbumArt = /^art:album_season_art_(\d+)$/.exec(pieceId);
+  if (firstAlbumArt) return Number(firstAlbumArt[1]) + 1;
+  if (/^art:album_city_art_\d+$/.test(pieceId)) return 20;
+  if (pieceId.startsWith('art:')) return 30;
+  return 0;
+}
 
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-fs.mkdirSync(cdnRoot, { recursive: true });
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
 app.use(express.json({ limit: '32kb' }));
-
-// 微信小游戏远程资源：构建产物 remote/ 同步到此目录后按原路径提供。
-app.use('/v1/cocos-zyx/cdn', express.static(cdnRoot, {
-  maxAge: '7d',
-  fallthrough: true,
-  setHeaders(res, filePath) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-    const fileName = path.basename(filePath);
-    if (fileName === 'config.json' || fileName === 'res.zip') {
-      res.setHeader('Cache-Control', 'no-cache');
-    } else if (/\.[a-f0-9]{5,}\.[^.]+$/i.test(fileName)) {
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    }
-  },
-}));
 
 function ok(res, data) {
   res.json({ code: 0, data });
@@ -70,9 +63,44 @@ function newGuestId() {
   return `guest_${crypto.randomBytes(18).toString('hex')}`;
 }
 
-function persist() {
+const PERSIST_DEBOUNCE_MS = 500;
+let persistTimer = null;
+let persistPending = false;
+
+function persistNow() {
   fs.writeFileSync(dbPath, Buffer.from(db.export()));
+  persistPending = false;
 }
+
+/**
+ * 防抖落盘：sql.js 每次导出都是整库拷贝，500ms 内的连续写只落盘一次，
+ * 避免一次结算多条 UPDATE 引发多次全量写盘阻塞请求。进程退出前强制 flush。
+ */
+function persist() {
+  persistPending = true;
+  if (persistTimer) return;
+  persistTimer = setTimeout(() => {
+    persistTimer = null;
+    if (persistPending) persistNow();
+  }, PERSIST_DEBOUNCE_MS);
+  if (persistTimer.unref) persistTimer.unref();
+}
+
+function flushPersist() {
+  if (persistTimer) {
+    clearTimeout(persistTimer);
+    persistTimer = null;
+  }
+  if (persistPending) persistNow();
+}
+
+process.on('exit', flushPersist);
+['SIGINT', 'SIGTERM'].forEach((signal) => {
+  process.on(signal, () => {
+    flushPersist();
+    process.exit(0);
+  });
+});
 
 function run(sql, params = []) {
   db.run(sql, params);
@@ -124,6 +152,7 @@ function getWeekRange(timestamp = now()) {
 }
 
 function safeProfile(user) {
+  const gameCountRow = get('SELECT COUNT(*) AS count FROM round_settlements WHERE player_id = ?', [user.player_id]);
   return {
     playerId: user.player_id,
     nickname: user.nickname,
@@ -136,6 +165,7 @@ function safeProfile(user) {
     happyBottleTarget: bottleTarget,
     totalHappyBottles: user.total_happy_bottles,
     highestSingleGameScore: user.highest_single_game_score,
+    gameCount: Number(gameCountRow && gameCountRow.count) || 0,
   };
 }
 
@@ -306,6 +336,14 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_week_power ON weekly_stats(week_id, weekly_high_score DESC, weekly_high_score_at ASC);
     CREATE INDEX IF NOT EXISTS idx_week_happiness ON weekly_stats(week_id, weekly_happy_bottles DESC, weekly_happy_bottles_at ASC);
   `);
+  // 666 旧规则下可能留下大于当前目标的进度；幂等折算为完整瓶与 0..65 的余量。
+  db.run(`
+    UPDATE players
+    SET happy_bottle_balance = happy_bottle_balance + CAST(happy_bottle_progress / ${bottleTarget} AS INTEGER),
+        total_happy_bottles = total_happy_bottles + CAST(happy_bottle_progress / ${bottleTarget} AS INTEGER),
+        happy_bottle_progress = happy_bottle_progress % ${bottleTarget}
+    WHERE happy_bottle_progress >= ${bottleTarget}
+  `);
   persist();
 }
 
@@ -362,7 +400,7 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
     const endedAt = Number(req.body.endedAt);
     const duration = endedAt - startedAt;
     const score = clampInt(req.body.score, 0, 1000000);
-    const moodCount = clampInt(req.body.moodCount, 0, 666);
+    const moodCount = clampInt(req.body.moodCount, 0, bottleTarget * 10);
     if (!Number.isFinite(duration) || duration < 5000 || duration > 4 * 60 * 60 * 1000) return fail(res, '对局时长异常');
     if (endedAt > now() + 2 * 60 * 1000 || startedAt < now() - 6 * 60 * 60 * 1000) return fail(res, '对局时间异常');
 
@@ -428,8 +466,10 @@ app.post('/v1/cocos-zyx/puzzles/pieces/unlock', (req, res) => {
     const user = authenticate(req, res);
     if (!user) return;
     const pieceId = stringValue(req.body.puzzlePieceId, 96);
-    const cost = clampInt(req.body.cost, 0, 1000);
+    const requestedCost = clampInt(req.body.cost, 0, 1000);
+    const cost = getPuzzleUnlockCost(pieceId);
     if (!pieceId || cost <= 0) return fail(res, '拼图参数异常');
+    if (requestedCost !== cost) return fail(res, '解锁消耗已更新，请重试', 409);
     const unlocked = get('SELECT piece_id FROM puzzle_unlocks WHERE player_id = ? AND piece_id = ?', [user.player_id, pieceId]);
     if (unlocked) return ok(res, { unlocked: true, duplicate: true, profile: safeProfile(user) });
     if (user.happy_bottle_balance < cost) return fail(res, '开心瓶不足', 409);
@@ -492,6 +532,7 @@ app.post('/v1/cocos-zyx/debug/reset', (req, res) => {
       [updatedAt, user.player_id],
     );
     run('DELETE FROM weekly_stats WHERE player_id = ?', [user.player_id]);
+    run('DELETE FROM round_settlements WHERE player_id = ?', [user.player_id]);
     run('DELETE FROM puzzle_unlocks WHERE player_id = ?', [user.player_id]);
     run('DELETE FROM reward_mail WHERE player_id = ?', [user.player_id]);
     ok(res, { profile: safeProfile(get('SELECT * FROM players WHERE player_id = ?', [user.player_id])) });

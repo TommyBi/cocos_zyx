@@ -1,386 +1,273 @@
 /**
- * 统一资源加载：每个功能域只访问自己所属的 Asset Bundle；
- * - home：首页分包（含首页音乐）
- * - game-assets：消除玩法分包（含局内美术、Spine、音乐和音效）
- * - realm：解忧秘境分包（含拼图音乐和切画音效）
- * - album-art：画册高清美术分包，进入具体画册前加载
+ * 唯一资源入口。
+ *
+ * Bundle 与微信包一一对应：
+ * - game：主包内的消除玩法资源，新用户启动时直接准备。
+ * - home：首页分包，老用户进入首页时准备。
+ * - realm：秘境核心分包，只含封面、特效和秘境音频。
+ * - realm_art_1 / realm_art_2：各册画作大图分包，打开对应画册时才按需下载。
+ *
+ * Feature 是业务加载单元，Bundle 是物理包；两者不再强制一一对应。
+ *
+ * 界面只能在 prepareFeature 完成后渲染，并通过 get* 同步取得资源。
+ * 这样资源错误会在界面创建前失败，不会留下只有节点、没有贴图的半成品 UI。
  */
 
-declare const wx: any;
+export type BundleName = 'game' | 'home' | 'realm' | 'realm_art_1' | 'realm_art_2';
+export type FeatureName = 'game' | 'home' | 'realm';
 
-export type BundleName = 'home' | 'game-assets' | 'realm' | 'album-art';
+type AssetSpec = {
+    path: string;
+    type: any;
+};
 
-type LoadCallback<T> = (error: Error | null, asset: T | null) => void;
+export const ASSET_PATHS = {
+    game: {
+        background: 'images/formal/game_room_bg_v3',
+        hammer: 'images/formal/relief_hammer_v2',
+        magicWand: 'images/formal/magic_wand_v1',
+        rewardSpine: 'spine/get_1',
+        music: 'sound/music_game',
+        breakSound: 'sound/sound_break',
+        moveSound: 'sound/sound_move',
+        hammerSound: 'sound/sound_tool1',
+        magicWandSound: 'sound/sound_tool2',
+    },
+    home: {
+        background: 'images/home_studio_bg_v3',
+        title: 'images/home_title_logo_v1',
+        realmEntry: 'images/realm_entry_portal_v3',
+        rankEntry: 'images/rank_entry_trophy_v2',
+        guideHand: 'images/start_guide_hand_v3',
+        music: 'sound/music_main',
+    },
+    realm: {
+        firstCover: 'albums/covers/title/title_1',
+        secondCover: 'albums/covers/title/title_2',
+        lock: 'albums/covers/icon_lock',
+        blurEffect: 'albums/effects/album-blur',
+        music: 'sound/music_puzzle',
+        changePictureSound: 'sound/sound_change_pic',
+    },
+};
 
-const bundleCache: { [name: string]: cc.AssetManager.Bundle } = {};
-const bundleWaiters: { [name: string]: Array<(error: Error | null, bundle: cc.AssetManager.Bundle | null) => void> } = {};
-const spriteFrameCache: { [key: string]: cc.SpriteFrame } = {};
-const spriteFrameWaiters: { [key: string]: Array<LoadCallback<cc.SpriteFrame>> } = {};
-const effectAssetCache: { [key: string]: cc.EffectAsset } = {};
-const effectAssetWaiters: { [key: string]: Array<LoadCallback<cc.EffectAsset>> } = {};
-const audioClipCache: { [key: string]: cc.AudioClip } = {};
-const audioClipWaiters: { [key: string]: Array<LoadCallback<cc.AudioClip>> } = {};
-let gameResourcesReadyPromise: Promise<void> = null;
-let albumArtDownloadPatchInstalled: boolean = false;
-let albumArtLocalImageParserInstalled: boolean = false;
-const albumArtPinnedDownloadPaths: string[] = [];
+const bundlePromises: { [name: string]: Promise<cc.AssetManager.Bundle> } = {};
+const featurePromises: { [name: string]: Promise<void> } = {};
+const readyFeatures: { [name: string]: boolean } = {};
+const loadedAlbumArtPaths: { [path: string]: boolean } = {};
 
 /**
- * 部分微信开发者工具/真机基础库会把 USER_DATA_PATH 图片再次代理成 __usr__ 请求，
- * 对 unzip 目录返回 500。画册图片先从文件系统读成 ArrayBuffer，再创建内存 URL，
- * 避开这层本地 HTTP 代理；其他 Bundle 的图片仍走 Cocos 默认路径。
+ * 画作大图按主题拆成独立微信分包，按资源路径前缀路由；
+ * 封面/锁图标/特效/音频等秘境核心资源仍在 realm 分包。新增主题时在此登记。
  */
-function installAlbumArtLocalImageParser(wxApi: any): void {
-    if (albumArtLocalImageParserInstalled || !wxApi || !wxApi.getFileSystemManager) return;
-    if (!wxApi.env || !wxApi.env.USER_DATA_PATH || !cc.assetManager || !cc.assetManager.parser) return;
+const ALBUM_ART_BUNDLE_PREFIXES: Array<{ prefix: string; bundle: BundleName }> = [
+    { prefix: 'albums/art/theme_1/', bundle: 'realm_art_1' },
+    { prefix: 'albums/art/theme_2/', bundle: 'realm_art_2' },
+];
 
-    const fileSystem = wxApi.getFileSystemManager();
-    const albumCachePrefix = `${wxApi.env.USER_DATA_PATH}/gamecaches/album-art/`;
-    const loadImage = (
-        source: string,
-        onComplete: (error: Error | null, image: HTMLImageElement | null) => void,
-        revokeSource?: () => void,
-    ): void => {
-        const image = new Image();
-        image.onload = () => {
-            image.onload = null;
-            image.onerror = null;
-            if (revokeSource) revokeSource();
-            onComplete(null, image);
-        };
-        image.onerror = () => {
-            image.onload = null;
-            image.onerror = null;
-            if (revokeSource) revokeSource();
-            onComplete(new Error(`Load image (${source}) failed`), null);
-        };
-        image.src = source;
-    };
-
-    const parseImage = (file: any, _options: any, onComplete: (error: Error | null, image: HTMLImageElement | null) => void): void => {
-        const source = typeof file === 'string' ? file : '';
-        if (!source.startsWith(albumCachePrefix)) {
-            loadImage(source, onComplete);
-            return;
-        }
-
-        fileSystem.readFile({
-            filePath: source,
-            success: (result: any) => {
-                const buffer = result && result.data;
-                if (!buffer) {
-                    onComplete(new Error(`Read album image (${source}) returned no data`), null);
-                    return;
-                }
-                if (typeof wxApi.createBufferURL === 'function') {
-                    const bufferUrl = wxApi.createBufferURL(buffer);
-                    loadImage(bufferUrl, onComplete, () => {
-                        if (typeof wxApi.revokeBufferURL === 'function') wxApi.revokeBufferURL(bufferUrl);
-                    });
-                    return;
-                }
-                if (typeof wxApi.arrayBufferToBase64 === 'function') {
-                    const mime = /\.png$/i.test(source) ? 'image/png' : 'image/jpeg';
-                    loadImage(`data:${mime};base64,${wxApi.arrayBufferToBase64(buffer)}`, onComplete);
-                    return;
-                }
-                onComplete(new Error('Current WeChat base library cannot decode cached album images'), null);
-            },
-            fail: (error: any) => {
-                const message = error && (error.errMsg || error.message);
-                onComplete(new Error(message || `Read album image (${source}) failed`), null);
-            },
-        });
-    };
-
-    cc.assetManager.parser.register({
-        '.jpg': parseImage,
-        '.jpeg': parseImage,
-        '.png': parseImage,
-    });
-    albumArtLocalImageParserInstalled = true;
-}
-
-/**
- * Cocos 2.4 微信适配器默认先下载到 http://tmp，再异步读取；部分真机/开发者工具中
- * 临时文件在 downloadFile.success 内就已失效。画册文件改为从 CDN 请求后直接写入
- * Cocos 缓存目录，再交回引擎解析和解压。
- */
-function installAlbumArtPersistentDownload(): void {
-    if (albumArtDownloadPatchInstalled) return;
-    const wxApi = typeof wx !== 'undefined'
-        ? wx
-        : (typeof window !== 'undefined' ? (window as any).wx : null);
-    if (!wxApi || typeof wxApi.downloadFile !== 'function' || typeof wxApi.request !== 'function'
-        || !wxApi.env || !wxApi.env.USER_DATA_PATH) return;
-    installAlbumArtLocalImageParser(wxApi);
-    if (!wxApi.getFileSystemManager || (wxApi.downloadFile as any).__albumArtPersistentDownload) {
-        albumArtDownloadPatchInstalled = true;
-        return;
+export function resolveAlbumArtBundle(path: string): BundleName {
+    for (const rule of ALBUM_ART_BUNDLE_PREFIXES) {
+        if (path.indexOf(rule.prefix) === 0) return rule.bundle;
     }
-
-    const fileSystem = wxApi.getFileSystemManager();
-    // Cocos 启动时已创建并验证 gamecaches 可写；部分微信环境禁止另建顶层目录。
-    const downloadRoot = `${wxApi.env.USER_DATA_PATH}/gamecaches`;
-
-    const originalDownloadFile = wxApi.downloadFile.bind(wxApi);
-    const wrappedDownloadFile = (options: any): any => {
-        const url = options && typeof options.url === 'string' ? options.url : '';
-        const match = url.match(/\/remote\/album-art\/(config\.[a-f0-9]+\.json|res\.[a-f0-9]+\.zip)(?:\?|$)/i);
-        if (!match) return originalDownloadFile(options);
-
-        const targetPath = `${downloadRoot}/album-art-download-${match[1]}`;
-        try {
-            fileSystem.unlinkSync(targetPath);
-        } catch (error) {
-            // 首次下载没有旧文件，直接继续。
-        }
-        const originalSuccess = options.success;
-        const originalFail = options.fail;
-        let progressCallback: (progress: any) => void = null;
-        const isZip = /\.zip$/i.test(match[1]);
-        const requestTask = wxApi.request({
-            url,
-            header: options.header,
-            timeout: 60000,
-            dataType: isZip ? undefined : 'text',
-            responseType: isZip ? 'arraybuffer' : 'text',
-            success: (result: any) => {
-                if (result.statusCode !== 200) {
-                    if (originalFail) originalFail({ errMsg: `HTTP ${result.statusCode}` });
-                    return;
-                }
-                try {
-                    if (isZip) fileSystem.writeFileSync(targetPath, result.data);
-                    else fileSystem.writeFileSync(targetPath, String(result.data), 'utf8');
-                } catch (error) {
-                    const message = error && ((error as any).errMsg || (error as any).message);
-                    if (originalFail) originalFail({ errMsg: message || 'album-art CDN persistence failed' });
-                    return;
-                }
-                if (albumArtPinnedDownloadPaths.indexOf(targetPath) < 0) {
-                    albumArtPinnedDownloadPaths.push(targetPath);
-                }
-                const stableResult = Object.assign({}, result, {
-                    filePath: targetPath,
-                    tempFilePath: targetPath,
-                });
-                cc.log(`[album-art] CDN download ready: ${url} -> ${targetPath}`);
-                if (progressCallback) {
-                    const bytes = isZip && result.data ? result.data.byteLength : String(result.data).length;
-                    progressCallback({ progress: 100, totalBytesWritten: bytes, totalBytesExpectedToWrite: bytes });
-                }
-                if (originalSuccess) originalSuccess(stableResult);
-            },
-            fail: (error: any) => {
-                try {
-                    fileSystem.unlinkSync(targetPath);
-                } catch (unlinkError) {
-                    // 下载失败时目标通常不存在。
-                }
-                if (originalFail) originalFail(error);
-            },
-        });
-        return {
-            abort: () => requestTask.abort && requestTask.abort(),
-            onProgressUpdate: (callback: (progress: any) => void) => {
-                progressCallback = callback;
-            },
-        };
-    };
-    (wrappedDownloadFile as any).__albumArtPersistentDownload = true;
-    wxApi.downloadFile = wrappedDownloadFile;
-    albumArtDownloadPatchInstalled = true;
+    return 'realm';
 }
 
-function clearAlbumArtPinnedDownloads(delayMs: number = 0): void {
-    const wxApi = typeof wx !== 'undefined'
-        ? wx
-        : (typeof window !== 'undefined' ? (window as any).wx : null);
-    if (!wxApi || !wxApi.getFileSystemManager) return;
-    const fileSystem = wxApi.getFileSystemManager();
-    const targets = albumArtPinnedDownloadPaths.splice(0);
-    const removeTargets = (): void => {
-        targets.forEach((targetPath) => {
-            try {
-                fileSystem.unlinkSync(targetPath);
-            } catch (error) {
-                // 已被引擎移动或清理时无需处理。
-            }
-        });
-    };
-    if (delayMs > 0) setTimeout(removeTargets, delayMs);
-    else removeTargets();
-}
+function loadBundle(name: BundleName): Promise<cc.AssetManager.Bundle> {
+    const existing = (cc.assetManager as any).getBundle
+        ? (cc.assetManager as any).getBundle(name) as cc.AssetManager.Bundle
+        : null;
+    if (existing) return Promise.resolve(existing);
+    if (bundlePromises[name]) return bundlePromises[name];
 
-export function loadBundle(name: BundleName): Promise<cc.AssetManager.Bundle> {
-    return new Promise((resolve, reject) => {
-        if (bundleCache[name]) {
-            resolve(bundleCache[name]);
-            return;
-        }
-        if (!bundleWaiters[name]) bundleWaiters[name] = [];
-        bundleWaiters[name].push((error, bundle) => {
-            if (error || !bundle) reject(error || new Error(`Bundle ${name} load failed`));
-            else resolve(bundle);
-        });
-        if (bundleWaiters[name].length > 1) return;
-
-        if (name === 'album-art') installAlbumArtPersistentDownload();
-
+    bundlePromises[name] = new Promise<cc.AssetManager.Bundle>((resolve, reject) => {
         cc.assetManager.loadBundle(name, (error: Error, bundle: cc.AssetManager.Bundle) => {
-            const waiters = bundleWaiters[name] || [];
-            delete bundleWaiters[name];
             if (error || !bundle) {
-                waiters.forEach((waiter) => waiter(error || new Error(`Bundle ${name} load failed`), null));
+                delete bundlePromises[name];
+                reject(new Error(`[资源] Bundle ${name} 加载失败：${error ? error.message : 'unknown error'}`));
                 return;
             }
-            bundleCache[name] = bundle;
-            waiters.forEach((waiter) => waiter(null, bundle));
+            resolve(bundle);
+        });
+    });
+    return bundlePromises[name];
+}
+
+function waitForNativeTexture<T extends cc.Asset>(
+    bundleName: BundleName,
+    path: string,
+    type: any,
+    asset: T,
+): Promise<T> {
+    if (type !== cc.SpriteFrame) return Promise.resolve(asset);
+    const frame = asset as any as cc.SpriteFrame;
+    if (frame.textureLoaded()) return Promise.resolve(asset);
+    const texture = frame.getTexture();
+    if (!texture) return Promise.reject(new Error(`[资源] ${bundleName}/${path} 缺少纹理引用`));
+
+    return new Promise<T>((resolve, reject) => {
+        const onLoaded = () => resolve(asset);
+        frame.once('load', onLoaded);
+        cc.assetManager.postLoadNative(texture, (error: Error) => {
+            if (!error) return;
+            frame.off('load', onLoaded);
+            reject(new Error(`[资源] ${bundleName}/${path} 原生纹理加载失败：${error.message}`));
         });
     });
 }
 
-export function isBundleReady(name: BundleName): boolean {
-    return Boolean(bundleCache[name]);
-}
-
-export function loadSpriteFrame(
-    bundleName: BundleName,
-    path: string,
-    onComplete: LoadCallback<cc.SpriteFrame>,
-): void {
-    const cacheKey = `${bundleName}:${path}`;
-    const cached = spriteFrameCache[cacheKey];
-    if (cached && cc.isValid(cached)) {
-        onComplete(null, cached);
-        return;
-    }
-    if (!spriteFrameWaiters[cacheKey]) spriteFrameWaiters[cacheKey] = [];
-    spriteFrameWaiters[cacheKey].push(onComplete);
-    if (spriteFrameWaiters[cacheKey].length > 1) return;
-
-    const finish = (error: Error | null, frame: cc.SpriteFrame | null): void => {
-        const waiters = spriteFrameWaiters[cacheKey] || [];
-        delete spriteFrameWaiters[cacheKey];
-        if (!error && frame) spriteFrameCache[cacheKey] = frame;
-        waiters.forEach((waiter) => waiter(error, frame));
-    };
-    loadBundle(bundleName)
-        .then((bundle) => {
-            bundle.load(path, cc.SpriteFrame, (error: Error, frame: cc.SpriteFrame) => {
-                finish(error || null, frame || null);
-            });
-        })
-        .catch((error: Error) => finish(error, null));
-}
-
-export function loadEffectAsset(
-    bundleName: BundleName,
-    path: string,
-    onComplete: LoadCallback<cc.EffectAsset>,
-): void {
-    const cacheKey = `${bundleName}:${path}`;
-    const cached = effectAssetCache[cacheKey];
-    if (cached && cc.isValid(cached)) {
-        onComplete(null, cached);
-        return;
-    }
-    if (!effectAssetWaiters[cacheKey]) effectAssetWaiters[cacheKey] = [];
-    effectAssetWaiters[cacheKey].push(onComplete);
-    if (effectAssetWaiters[cacheKey].length > 1) return;
-
-    const finish = (error: Error | null, effect: cc.EffectAsset | null): void => {
-        const waiters = effectAssetWaiters[cacheKey] || [];
-        delete effectAssetWaiters[cacheKey];
-        if (!error && effect) effectAssetCache[cacheKey] = effect;
-        waiters.forEach((waiter) => waiter(error, effect));
-    };
-    loadBundle(bundleName)
-        .then((bundle) => {
-            bundle.load(path, cc.EffectAsset, (error: Error, effect: cc.EffectAsset) => {
-                finish(error || null, effect || null);
-            });
-        })
-        .catch((error: Error) => finish(error, null));
-}
-
-export function loadSkeletonData(
-    bundleName: BundleName,
-    path: string,
-    onComplete: LoadCallback<sp.SkeletonData>,
-): void {
-    loadBundle(bundleName)
-        .then((bundle) => {
-            bundle.load(path, sp.SkeletonData, (error: Error, data: sp.SkeletonData) => {
-                onComplete(error || null, data || null);
-            });
-        })
-        .catch((error: Error) => onComplete(error, null));
-}
-
-export function loadAudioClip(
-    bundleName: BundleName,
-    path: string,
-    onComplete: LoadCallback<cc.AudioClip>,
-): void {
-    const cacheKey = `${bundleName}:${path}`;
-    const cached = audioClipCache[cacheKey];
-    if (cached && cc.isValid(cached)) {
-        onComplete(null, cached);
-        return;
-    }
-    if (!audioClipWaiters[cacheKey]) audioClipWaiters[cacheKey] = [];
-    audioClipWaiters[cacheKey].push(onComplete);
-    if (audioClipWaiters[cacheKey].length > 1) return;
-
-    const finish = (error: Error | null, clip: cc.AudioClip | null): void => {
-        const waiters = audioClipWaiters[cacheKey] || [];
-        delete audioClipWaiters[cacheKey];
-        if (!error && clip) audioClipCache[cacheKey] = clip;
-        waiters.forEach((waiter) => waiter(error, clip));
-    };
-    loadBundle(bundleName)
-        .then((bundle) => {
-            bundle.load(path, cc.AudioClip, (error: Error, clip: cc.AudioClip) => {
-                finish(error || null, clip || null);
-            });
-        })
-        .catch((error: Error) => finish(error, null));
-}
-
-/** 入口只预拉当前功能域，其他微信分包不会阻塞首页启动。 */
-export async function ensureHomeReady(): Promise<void> {
-    await loadBundle('home');
-}
-
-export function ensureGameResourcesReady(): Promise<void> {
-    if (gameResourcesReadyPromise) return gameResourcesReadyPromise;
-    gameResourcesReadyPromise = loadBundle('game-assets')
-        .then((bundle) => new Promise<void>((resolve, reject) => {
-            bundle.preloadDir('', (error: Error) => {
-                if (error) reject(error);
-                else resolve();
+function loadAsset<T extends cc.Asset>(bundleName: BundleName, path: string, type: any): Promise<T> {
+    return loadBundle(bundleName)
+        .then((bundle) => new Promise<T>((resolve, reject) => {
+            const cached = bundle.get(path, type) as T;
+            if (cached) {
+                resolve(cached);
+                return;
+            }
+            bundle.load(path, type, (error: Error, asset: T) => {
+                if (error || !asset) {
+                    reject(new Error(`[资源] ${bundleName}/${path} 加载失败：${error ? error.message : 'asset is empty'}`));
+                    return;
+                }
+                resolve(asset);
             });
         }))
+        .then((asset) => waitForNativeTexture(bundleName, path, type, asset));
+}
+
+function loadSpecs(bundleName: BundleName, specs: AssetSpec[]): Promise<void> {
+    return Promise.all(specs.map((spec) => loadAsset(bundleName, spec.path, spec.type)))
+        .then(() => undefined);
+}
+
+function featureSpecs(feature: FeatureName): AssetSpec[] {
+    if (feature === 'game') {
+        return [
+            { path: ASSET_PATHS.game.background, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.game.hammer, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.game.magicWand, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.game.rewardSpine, type: sp.SkeletonData },
+            { path: ASSET_PATHS.game.music, type: cc.AudioClip },
+            { path: ASSET_PATHS.game.breakSound, type: cc.AudioClip },
+            { path: ASSET_PATHS.game.moveSound, type: cc.AudioClip },
+            { path: ASSET_PATHS.game.hammerSound, type: cc.AudioClip },
+            { path: ASSET_PATHS.game.magicWandSound, type: cc.AudioClip },
+        ];
+    }
+    if (feature === 'home') {
+        return [
+            { path: ASSET_PATHS.home.background, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.home.title, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.home.realmEntry, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.home.rankEntry, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.home.guideHand, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.home.music, type: cc.AudioClip },
+        ];
+    }
+    return [
+        { path: ASSET_PATHS.realm.firstCover, type: cc.SpriteFrame },
+        { path: ASSET_PATHS.realm.secondCover, type: cc.SpriteFrame },
+        { path: ASSET_PATHS.realm.lock, type: cc.SpriteFrame },
+        { path: ASSET_PATHS.realm.blurEffect, type: cc.EffectAsset },
+        { path: ASSET_PATHS.realm.music, type: cc.AudioClip },
+        { path: ASSET_PATHS.realm.changePictureSound, type: cc.AudioClip },
+    ];
+}
+
+export function prepareFeature(feature: FeatureName): Promise<void> {
+    if (readyFeatures[feature]) return Promise.resolve();
+    if (featurePromises[feature]) return featurePromises[feature];
+
+    featurePromises[feature] = loadSpecs(feature, featureSpecs(feature))
+        .then(() => {
+            readyFeatures[feature] = true;
+        })
         .catch((error: Error) => {
-            gameResourcesReadyPromise = null;
+            delete featurePromises[feature];
             throw error;
         });
-    return gameResourcesReadyPromise;
+    return featurePromises[feature];
 }
 
-export async function ensureRealmReady(): Promise<void> {
-    await loadBundle('realm');
+export function isFeatureReady(feature: FeatureName): boolean {
+    return readyFeatures[feature] === true;
 }
 
-export async function ensureAlbumArtReady(): Promise<void> {
-    try {
-        await loadBundle('album-art');
-        // Cocos 的配置文件缓存复制是延迟队列，留足时间后再移除下载中转文件。
-        clearAlbumArtPinnedDownloads(3000);
-    } catch (error) {
-        clearAlbumArtPinnedDownloads();
-        throw error;
-    }
+/**
+ * 当前画面只解析当前页与左右相邻页；画作按主题分包分组加载，
+ * 首次打开某册时才会触发对应微信分包下载。
+ */
+export function prepareAlbumArt(imagePaths: string[]): Promise<void> {
+    const uniquePaths = imagePaths.filter((path, index) => path && imagePaths.indexOf(path) === index);
+    const pathsByBundle: { [bundle: string]: string[] } = {};
+    uniquePaths.forEach((path) => {
+        const bundle = resolveAlbumArtBundle(path);
+        if (!pathsByBundle[bundle]) pathsByBundle[bundle] = [];
+        pathsByBundle[bundle].push(path);
+    });
+    return Promise.all(
+        Object.keys(pathsByBundle).map((bundle) => loadSpecs(
+            bundle as BundleName,
+            pathsByBundle[bundle].map((path) => ({ path, type: cc.SpriteFrame })),
+        )),
+    ).then(() => {
+        uniquePaths.forEach((path) => {
+            loadedAlbumArtPaths[path] = true;
+        });
+    });
+}
+
+/** 销毁旧画页后释放不再显示的大图，避免连续翻页把所有画作常驻内存。 */
+export function releaseUnusedAlbumArt(keepPaths: string[] = []): void {
+    const keep = new Set(keepPaths);
+    Object.keys(loadedAlbumArtPaths).forEach((path) => {
+        if (keep.has(path)) return;
+        const bundle = (cc.assetManager as any).getBundle
+            ? (cc.assetManager as any).getBundle(resolveAlbumArtBundle(path)) as cc.AssetManager.Bundle
+            : null;
+        if (bundle) bundle.release(path, cc.SpriteFrame);
+        delete loadedAlbumArtPaths[path];
+    });
+}
+
+function getLoadedAsset<T extends cc.Asset>(bundleName: BundleName, path: string, type: any): T {
+    const bundle = (cc.assetManager as any).getBundle
+        ? (cc.assetManager as any).getBundle(bundleName) as cc.AssetManager.Bundle
+        : null;
+    const asset = bundle ? bundle.get(path, type) as T : null;
+    if (!asset) throw new Error(`[资源] ${bundleName}/${path} 尚未准备，禁止在渲染阶段异步补图`);
+    return asset;
+}
+
+export function getSpriteFrame(bundleName: BundleName, path: string): cc.SpriteFrame {
+    return getLoadedAsset<cc.SpriteFrame>(bundleName, path, cc.SpriteFrame);
+}
+
+/** 秘境域贴图统一入口：画作大图自动路由到对应主题分包，其余资源取 realm 分包。 */
+export function getRealmSpriteFrame(path: string): cc.SpriteFrame {
+    return getLoadedAsset<cc.SpriteFrame>(resolveAlbumArtBundle(path), path, cc.SpriteFrame);
+}
+
+export function getEffectAsset(bundleName: BundleName, path: string): cc.EffectAsset {
+    return getLoadedAsset<cc.EffectAsset>(bundleName, path, cc.EffectAsset);
+}
+
+export function getSkeletonData(bundleName: BundleName, path: string): sp.SkeletonData {
+    return getLoadedAsset<sp.SkeletonData>(bundleName, path, sp.SkeletonData);
+}
+
+export function getAudioClip(bundleName: BundleName, path: string): cc.AudioClip {
+    return getLoadedAsset<cc.AudioClip>(bundleName, path, cc.AudioClip);
+}
+
+/** 微信头像是用户数据，不属于任何游戏 Bundle，但仍统一从这里进入资源系统。 */
+export function loadRemoteTexture(url: string): Promise<cc.Texture2D> {
+    return new Promise<cc.Texture2D>((resolve, reject) => {
+        cc.assetManager.loadRemote(url, { ext: '.png' }, (error: Error, texture: cc.Texture2D) => {
+            if (error || !texture) {
+                reject(new Error(`[资源] 远程头像加载失败：${error ? error.message : url}`));
+                return;
+            }
+            resolve(texture);
+        });
+    });
 }
