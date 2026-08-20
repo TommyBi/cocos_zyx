@@ -10,7 +10,7 @@ const initSqlJs = require('sql.js');
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
-const dbPath = path.resolve(process.env.DB_PATH || path.join(__dirname, '..', 'data', 'game.sqlite'));
+let dbPath = path.resolve(process.env.DB_PATH || path.join(__dirname, '..', 'data', 'game.sqlite'));
 // 与客户端 assets/script/dataModule/ZyxGameModule.ts 的 HAPPY_BOTTLE_TARGET 保持一致。
 const bottleTarget = 66;
 const maxLeaderboardEntries = 200;
@@ -105,6 +105,22 @@ process.on('exit', flushPersist);
 function run(sql, params = []) {
   db.run(sql, params);
   persist();
+}
+
+/**
+ * 多步写入的事务包裹：任一步失败整体回滚，避免“对局已记录但奖励未入账”这类半完成状态。
+ * sql.js 的写操作是同步的，防抖 persist 只会在事务结束后落盘，不会导出中间态。
+ */
+function withTransaction(fn) {
+  db.run('BEGIN IMMEDIATE');
+  try {
+    const result = fn();
+    db.run('COMMIT');
+    return result;
+  } catch (error) {
+    try { db.run('ROLLBACK'); } catch (rollbackError) { /* 连接已断开时忽略 */ }
+    throw error;
+  }
 }
 
 function get(sql, params = []) {
@@ -418,20 +434,23 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
       exp: experience.experience,
     };
 
-    run('INSERT INTO round_settlements (round_id, player_id, score, mood_count, created_at) VALUES (?, ?, ?, ?, ?)',
-      [roundId, user.player_id, score, moodCount, settledAt]);
-    run(`UPDATE players SET happy_bottle_balance = ?, happy_bottle_progress = ?, total_happy_bottles = ?,
-         highest_single_game_score = ?, level = ?, experience = ?, updated_at = ? WHERE player_id = ?`,
-      [updated.balance, updated.progress, updated.total, highestScore, updated.level, updated.exp, settledAt, user.player_id]);
     const week = getWeekRange(settledAt);
-    run(`INSERT INTO weekly_stats (week_id, player_id, weekly_high_score, weekly_high_score_at, weekly_happy_bottles, weekly_happy_bottles_at)
-         VALUES (?, ?, ?, ?, ?, ?)
-         ON CONFLICT(week_id, player_id) DO UPDATE SET
-           weekly_high_score = MAX(weekly_high_score, excluded.weekly_high_score),
-           weekly_high_score_at = CASE WHEN excluded.weekly_high_score > weekly_high_score THEN excluded.weekly_high_score_at ELSE weekly_high_score_at END,
-           weekly_happy_bottles = weekly_happy_bottles + excluded.weekly_happy_bottles,
-           weekly_happy_bottles_at = CASE WHEN excluded.weekly_happy_bottles > 0 THEN excluded.weekly_happy_bottles_at ELSE weekly_happy_bottles_at END`,
-      [week.weekId, user.player_id, score, settledAt, completedHappyBottles, settledAt]);
+    // 结算记录、玩家进度、周榜更新必须同生同死；中途异常整体回滚，客户端重试由 roundId 幂等。
+    withTransaction(() => {
+      run('INSERT INTO round_settlements (round_id, player_id, score, mood_count, created_at) VALUES (?, ?, ?, ?, ?)',
+        [roundId, user.player_id, score, moodCount, settledAt]);
+      run(`UPDATE players SET happy_bottle_balance = ?, happy_bottle_progress = ?, total_happy_bottles = ?,
+           highest_single_game_score = ?, level = ?, experience = ?, updated_at = ? WHERE player_id = ?`,
+        [updated.balance, updated.progress, updated.total, highestScore, updated.level, updated.exp, settledAt, user.player_id]);
+      run(`INSERT INTO weekly_stats (week_id, player_id, weekly_high_score, weekly_high_score_at, weekly_happy_bottles, weekly_happy_bottles_at)
+           VALUES (?, ?, ?, ?, ?, ?)
+           ON CONFLICT(week_id, player_id) DO UPDATE SET
+             weekly_high_score = MAX(weekly_high_score, excluded.weekly_high_score),
+             weekly_high_score_at = CASE WHEN excluded.weekly_high_score > weekly_high_score THEN excluded.weekly_high_score_at ELSE weekly_high_score_at END,
+             weekly_happy_bottles = weekly_happy_bottles + excluded.weekly_happy_bottles,
+             weekly_happy_bottles_at = CASE WHEN excluded.weekly_happy_bottles > 0 THEN excluded.weekly_happy_bottles_at ELSE weekly_happy_bottles_at END`,
+        [week.weekId, user.player_id, score, settledAt, completedHappyBottles, settledAt]);
+    });
     const fresh = get('SELECT * FROM players WHERE player_id = ?', [user.player_id]);
     ok(res, {
       accepted: true,
@@ -473,8 +492,11 @@ app.post('/v1/cocos-zyx/puzzles/pieces/unlock', (req, res) => {
     const unlocked = get('SELECT piece_id FROM puzzle_unlocks WHERE player_id = ? AND piece_id = ?', [user.player_id, pieceId]);
     if (unlocked) return ok(res, { unlocked: true, duplicate: true, profile: safeProfile(user) });
     if (user.happy_bottle_balance < cost) return fail(res, '开心瓶不足', 409);
-    run('INSERT INTO puzzle_unlocks (player_id, piece_id, cost, unlocked_at) VALUES (?, ?, ?, ?)', [user.player_id, pieceId, cost, now()]);
-    run('UPDATE players SET happy_bottle_balance = happy_bottle_balance - ?, updated_at = ? WHERE player_id = ?', [cost, now(), user.player_id]);
+    // 扣瓶与解锁记录同一事务，避免扣了开心瓶却没留下解锁项。
+    withTransaction(() => {
+      run('INSERT INTO puzzle_unlocks (player_id, piece_id, cost, unlocked_at) VALUES (?, ?, ?, ?)', [user.player_id, pieceId, cost, now()]);
+      run('UPDATE players SET happy_bottle_balance = happy_bottle_balance - ?, updated_at = ? WHERE player_id = ?', [cost, now(), user.player_id]);
+    });
     ok(res, { unlocked: true, profile: safeProfile(get('SELECT * FROM players WHERE player_id = ?', [user.player_id])) });
   } catch (error) {
     fail(res, error.message || '解锁拼图失败', 500);
@@ -541,11 +563,22 @@ app.post('/v1/cocos-zyx/debug/reset', (req, res) => {
   }
 });
 
-initSqlJs().then((SQL) => {
+/** 初始化数据库（可选覆盖路径，供测试使用临时库）并返回可挂载的 app。 */
+async function start(overrideDbPath) {
+  if (overrideDbPath) dbPath = path.resolve(overrideDbPath);
+  const SQL = await initSqlJs();
   db = fs.existsSync(dbPath) ? new SQL.Database(fs.readFileSync(dbPath)) : new SQL.Database();
   initSchema();
-  app.listen(port, () => console.log(`cocos-zyx cloud listening on ${port}`));
-}).catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+  return app;
+}
+
+if (require.main === module) {
+  start().then(() => {
+    app.listen(port, () => console.log(`cocos-zyx cloud listening on ${port}`));
+  }).catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
+
+module.exports = { app, start };

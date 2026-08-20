@@ -2,6 +2,8 @@
   "name": "left-right-clear",
   "private": true,
   "scripts": {
+    "test": "npm run test:module && npm --prefix server test",
+    "test:module": "node --test scripts/tests/*.test.js",
     "validate:assets": "node scripts/validate-assets.js",
     "build:web": "node scripts/clean-build.js web-mobile && npm run validate:assets && env -u ELECTRON_RUN_AS_NODE /Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/MacOS/CocosCreator --path . --build \"platform=web-mobile;debug=true;md5Cache=false\" --nologin --force",
     "serve:web": "python3 -m http.server 7457 --directory build/web-mobile",

@@ -408,6 +408,9 @@ export default class GameMainScene extends cc.Component {
     private async bootstrapCloudProfile(): Promise<void> {
         if (this.cloudProfileReady) return;
         if (this.cloudProfileBootstrapPromise) return this.cloudProfileBootstrapPromise;
+        // 任何云同步之前先把本地持久化进度读进模块，避免“本地有旧进度、云端未建档”时
+        // 用模块内默认零值创建云档案，再被 applyCloudProfile 回写覆盖本地存档。
+        zyxGameModule.refreshPersistentProgress();
         this.cloudProfileBootstrapPromise = (async () => {
             try {
                 const profile = await cloudService.bootstrap(

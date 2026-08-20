@@ -200,8 +200,11 @@ export default class ZyxGameModule {
         this.seedOverride = normalized || 0;
     }
 
+    /** 在任何本地进度消费方（首页展示、云 bootstrap 建档）之前调用，确保模块字段与持久化存档一致。 */
     public refreshPersistentProgress(): void {
         this.syncPersistentProgress();
+        // 冷启动时 bestScore 仍是模块默认值，这里用存储值兜底；max 避免覆盖局内尚未落盘的更高分。
+        this.bestScore = Math.max(this.bestScore, this.readNumber('zyx_best_score', 0));
     }
 
     public getPiece(id: number): BoardPiece {
@@ -995,7 +998,10 @@ export default class ZyxGameModule {
     }
 
     private readNumber(key: string, fallback: number): number {
-        const value = Number(cc.sys.localStorage.getItem(key));
+        const raw = cc.sys.localStorage.getItem(key);
+        // 键不存在时 getItem 返回 null/''，Number(null) 为 0 会让 fallback 失效，必须显式判空。
+        if (raw === null || raw === undefined || raw === '') return fallback;
+        const value = Number(raw);
         return Number.isFinite(value) ? value : fallback;
     }
 }

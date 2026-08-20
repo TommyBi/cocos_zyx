@@ -118,7 +118,7 @@ export default class CloudService {
         const url = `${API_BASE}${path}`;
         const wxApi = getWxApi();
         if (wxApi && typeof wxApi.request === 'function') {
-            return this.requestWithWeChat(url, method, headers, body);
+            return this.requestWithWeChat(wxApi, url, method, headers, body);
         }
         return this.requestWithFetch(url, method, headers, body);
     }
@@ -135,9 +135,10 @@ export default class CloudService {
         return payload.data;
     }
 
-    private requestWithWeChat(url: string, method: string, headers: { [key: string]: string }, body: any): Promise<any> {
+    private requestWithWeChat(wxApi: any, url: string, method: string, headers: { [key: string]: string }, body: any): Promise<any> {
         return new Promise((resolve, reject) => {
-            wx.request({
+            // 统一走 PlatformAdapter 取到的句柄，兼容只注入 window.wx 的预览容器。
+            wxApi.request({
                 url,
                 method,
                 header: headers,
