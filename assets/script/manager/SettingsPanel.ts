@@ -1,4 +1,3 @@
-import { HAPPY_BOTTLE_TARGET, zyxGameModule } from '../dataModule/ZyxGameModule';
 import { BUTTON_COLORS, ModalAction, uimanager } from './UIManager';
 import { gameSettings } from './GameSettings';
 import { audioManager } from './AudioManager';
@@ -37,52 +36,6 @@ export default class SettingsPanel {
             },
         ];
         uimanager.showModal('设   置', '', actions, render, 260);
-    }
-
-    /** GM 只由全局悬浮气泡打开；发放后由场景回调同步云端与 HUD。 */
-    public showGm(
-        onInventoryChanged?: (progressAdded?: number) => void,
-        onSyncCloud?: () => void | Promise<void>,
-    ): void {
-        const render = (panel: cc.Node, centerY: number): void => {
-            const inventory = uimanager.createRect(panel, 'gmInventorySummary', 438, 84, new cc.Color(232, 241, 221), 255, 18, 0, centerY + 92);
-            const inventoryLabel = uimanager.createLabel(inventory, '', 0, 0, 18, COCOA, 410, 68);
-            inventoryLabel.enableWrapText = true;
-            const updateInventory = (): void => {
-                inventoryLabel.string = `收集 ${zyxGameModule.happyBottleProgress}/${HAPPY_BOTTLE_TARGET}   ·   开心瓶 ${zyxGameModule.happyBottleCount}`
-                    + `\n解压锤 ${zyxGameModule.hammerCount}   ·   魔法棒 ${zyxGameModule.colorPurifierCount}`;
-            };
-            updateInventory();
-
-            const afterGrant = (progressAdded: number, toast: string, syncCloud: boolean): void => {
-                gameSettings.vibrateLight();
-                updateInventory();
-                if (onInventoryChanged) onInventoryChanged(progressAdded);
-                uimanager.showToast(toast);
-                if (syncCloud && onSyncCloud) Promise.resolve(onSyncCloud()).catch(() => undefined);
-            };
-
-            this.createFlatButton(panel, 'grantBottleProgress', '表情  +10', -111, centerY - 6, 206, 58, new cc.Color(236, 177, 68), () => {
-                const result = zyxGameModule.grantDebugHappyBottleProgress(10);
-                const toast = result.completedBottles > 0
-                    ? `收集进度 +${result.added}，装满开心瓶 ×${result.completedBottles}`
-                    : `收集进度 +${result.added} → ${result.progress}/${HAPPY_BOTTLE_TARGET}`;
-                afterGrant(result.added, toast, true);
-            }, 20);
-            this.createFlatButton(panel, 'grantHappyBottle', '开心瓶  +1', 111, centerY - 6, 206, 58, new cc.Color(244, 196, 98), () => {
-                zyxGameModule.grantDebugInventory(1, 0, 0);
-                afterGrant(0, '开心瓶 +1', true);
-            }, 20);
-            this.createFlatButton(panel, 'grantHammer', '解压锤  +1', -111, centerY - 76, 206, 58, new cc.Color(124, 181, 145), () => {
-                zyxGameModule.grantDebugInventory(0, 1, 0);
-                afterGrant(0, '解压锤 +1', false);
-            }, 19);
-            this.createFlatButton(panel, 'grantMagicWand', '魔法棒  +1', 111, centerY - 76, 206, 58, new cc.Color(105, 164, 186), () => {
-                zyxGameModule.grantDebugInventory(0, 0, 1);
-                afterGrant(0, '魔法棒 +1', false);
-            }, 19);
-        };
-        uimanager.showModal('GM 补给', '点击按钮，资源会直接加入背包', [], render, 280, false, true);
     }
 
     private createSoundRow(parent: cc.Node, y: number): void {
@@ -239,34 +192,6 @@ export default class SettingsPanel {
         });
     }
 
-    private createFlatButton(
-        parent: cc.Node,
-        name: string,
-        text: string,
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        color: cc.Color,
-        onClick: () => void,
-        fontSize: number,
-    ): cc.Node {
-        const button = uimanager.createRect(parent, name, width, height, color, 255, Math.min(17, height / 2), x, y);
-        button.addComponent(cc.Button);
-        // 一个节点只保留一层 Graphics，避免 Cocos 2.4 的后绘制组件吞掉底色。
-        uimanager.drawButtonSurface(button, width, height, color, Math.min(17, height / 2));
-        const label = uimanager.createLabel(button, text, 0, 1, fontSize, cc.Color.WHITE, width - 20, height - 8);
-        const outline = label.node.addComponent(cc.LabelOutline);
-        outline.color = new cc.Color(Math.round(color.r * 0.48), Math.round(color.g * 0.48), Math.round(color.b * 0.48));
-        outline.width = 1;
-        button.on(cc.Node.EventType.TOUCH_START, () => cc.tween(button).to(0.06, { scale: 0.96 }).start());
-        button.on(cc.Node.EventType.TOUCH_END, () => {
-            cc.tween(button).to(0.1, { scale: 1 }).start();
-            onClick();
-        });
-        button.on(cc.Node.EventType.TOUCH_CANCEL, () => cc.tween(button).to(0.1, { scale: 1 }).start());
-        return button;
-    }
 }
 
 export const settingsPanel = SettingsPanel.instance;

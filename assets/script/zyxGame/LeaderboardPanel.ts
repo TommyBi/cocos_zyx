@@ -35,8 +35,8 @@ function renderLeaderboard(initial: LeaderboardResult, pageIndex: number = 0): v
             tab.opacity = active ? 255 : 185;
         };
         paintTab('实力榜', -101, 'power');
-        paintTab('开心榜', 101, 'happiness');
-        const valueName = current.type === 'power' ? '单局最高分' : '本周开心瓶';
+paintTab('开心豆榜', 101, 'happiness');
+const valueName = current.type === 'power' ? '单局最高分' : '本周开心豆';
         current.entries.slice(safePageIndex * pageSize, (safePageIndex + 1) * pageSize)
             .forEach((entry, index) => createLeaderboardRow(panel, entry, valueName, centerY + 100 - index * 38));
         uimanager.createLabel(panel, `第 ${safePageIndex + 1}/${totalPages} 页 · 前 ${current.entries.length} 名`, 0, centerY - 142, 14, MOOD_COLORS.cocoaSoft, 260, 24);

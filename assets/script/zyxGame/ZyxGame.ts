@@ -3,7 +3,6 @@ import {
     BOARD_ROWS,
     BoardPiece,
     CELL_SIZE,
-    HAPPY_BOTTLE_TARGET,
     EliminateResult,
     GravityMove,
     RoundSettlement,
@@ -33,15 +32,13 @@ import {
 import {
     createGameRoomBackground,
     createExperienceToken,
+    createMoodBean,
+    createMoodBeanCluster,
     createMoodStamp,
-    createMoodToken,
-    createWishBottle,
     drawMoodBlockMaterial,
     getMoodColor,
     getMoodName,
     MOOD_COLORS,
-    playBottleBurp,
-    presentWishBottleAbsoluteProgress,
 } from './MoodArt';
 import { getWxApi } from '../manager/PlatformAdapter';
 
@@ -81,7 +78,7 @@ export default class ZyxGame extends cc.Component {
     private purifierButton: cc.Node = null;
     private purifierIcon: cc.Node = null;
     private purifierCountLabel: cc.Label = null;
-    private moodBottle: cc.Node = null;
+    private moodBeanHudIcon: cc.Node = null;
     private toolDragFollower: cc.Node = null;
     private toolSelectionPrompt: cc.Node = null;
     private toolWiggleNodes: cc.Node[] = [];
@@ -155,22 +152,9 @@ export default class ZyxGame extends cc.Component {
         }
     }
 
-    /** 供场景根部 GM 气泡在发放道具后同步当前 HUD；可选同步收集瓶进度。 */
-    public refreshInventoryHud(progressAdded: number = 0): void {
+    /** 供场景根部 GM 气泡在发放道具后同步当前 HUD。 */
+    public refreshInventoryHud(): void {
         this.updateHud();
-        if (!this.moodBottle || !cc.isValid(this.moodBottle)) return;
-        const absolute = zyxGameModule.happyBottleProgress + this.displayedRoundMoods;
-        if (progressAdded > 0) {
-            const prevAbs = Number((this.moodBottle as any).absoluteProgress);
-            const fromAbs = Number.isFinite(prevAbs) ? prevAbs : Math.max(0, absolute - progressAdded);
-            presentWishBottleAbsoluteProgress(this.moodBottle, fromAbs + progressAdded, HAPPY_BOTTLE_TARGET, {
-                flyTargetLocal: cc.v2(this.moodBottle.x + 40, this.moodBottle.y + 320),
-            });
-            return;
-        }
-        presentWishBottleAbsoluteProgress(this.moodBottle, absolute, HAPPY_BOTTLE_TARGET, {
-            flyTargetLocal: cc.v2(this.moodBottle.x + 40, this.moodBottle.y + 320),
-        });
     }
 
     private buildUI(): void {
@@ -187,9 +171,9 @@ export default class ZyxGame extends cc.Component {
         const hasWeChatCapsule = safeArea.menuLeft < this.node.width / 2 - 12;
         const hudGap = hasWeChatCapsule ? 10 : 22;
         const scoreCardWidth = hasWeChatCapsule ? 270 : 288;
-        const bottleCardWidth = hasWeChatCapsule ? 190 : 230;
+        const beanCardWidth = hasWeChatCapsule ? 190 : 230;
         const pauseWidth = 64;
-        const hudWidth = scoreCardWidth + bottleCardWidth + hudGap;
+        const hudWidth = scoreCardWidth + beanCardWidth + hudGap;
         const centeredHudLeft = -hudWidth / 2;
         const capsuleHudLeft = safeArea.menuLeft - 8 - hudWidth;
         const safeLeft = -this.node.width / 2 + safeArea.left + 12;
@@ -197,7 +181,7 @@ export default class ZyxGame extends cc.Component {
             ? Math.max(safeLeft, Math.min(centeredHudLeft, capsuleHudLeft))
             : centeredHudLeft;
         const leftCardX = hudLeft + scoreCardWidth / 2;
-        const bottleCardX = hudLeft + scoreCardWidth + hudGap + bottleCardWidth / 2;
+        const beanCardX = hudLeft + scoreCardWidth + hudGap + beanCardWidth / 2;
         const pauseX = this.node.width / 2 - safeArea.right - 12 - pauseWidth / 2;
         uimanager.createRect(this.node, 'scoreCompareShadow', scoreCardWidth + 6, 100, new cc.Color(78, 53, 46), 34, 22, leftCardX, topY - 5);
         const scoreCard = uimanager.createRect(
@@ -223,21 +207,15 @@ export default class ZyxGame extends cc.Component {
         this.recordTagOnLeft = false;
         this.recordTagLabel = uimanager.createLabel(scoreCard, '最高记录', scoreColumnX, -37, 12, HUD_LABEL_COLOR, 124, 18);
 
-        uimanager.createRect(this.node, 'bottleCardShadow', bottleCardWidth + 6, 100, new cc.Color(78, 53, 46), 30, 20, bottleCardX, topY - 5);
-        uimanager.createRect(this.node, 'bottleCard', bottleCardWidth, 94, new cc.Color(239, 232, 187), 246, 19, bottleCardX, topY);
-        const bottleX = bottleCardX - bottleCardWidth * 0.32;
-        this.moodBottle = createWishBottle(
-            this.node,
-            bottleX,
-            topY + 2,
-            zyxGameModule.happyBottleProgress + this.displayedRoundMoods,
-            HAPPY_BOTTLE_TARGET,
-            hasWeChatCapsule ? 0.31 : 0.35,
-        );
-        const bottleTextX = bottleCardX + bottleCardWidth * 0.16;
-        const bottleTextWidth = hasWeChatCapsule ? 88 : 112;
-        uimanager.createLabel(this.node, '本局收集', bottleTextX, topY + 27, 14, HUD_LABEL_COLOR, bottleTextWidth, 22);
-        this.roundMoodLabel = uimanager.createLabel(this.node, '0', bottleTextX, topY - 7, 30, HUD_VALUE_COLOR, bottleTextWidth, 36);
+        uimanager.createRect(this.node, 'beanCardShadow', beanCardWidth + 6, 100, new cc.Color(78, 53, 46), 30, 20, beanCardX, topY - 5);
+        uimanager.createRect(this.node, 'beanCard', beanCardWidth, 94, new cc.Color(239, 232, 187), 246, 19, beanCardX, topY);
+        const beanIconX = beanCardX - beanCardWidth * 0.32;
+        // 局内收集位：开心豆图标 + 本局数量；一块一豆，到达一颗只 +1。
+        this.moodBeanHudIcon = createMoodBeanCluster(this.node, beanIconX, topY + 2, hasWeChatCapsule ? 46 : 52);
+        const beanTextX = beanCardX + beanCardWidth * 0.16;
+        const beanTextWidth = hasWeChatCapsule ? 88 : 112;
+        uimanager.createLabel(this.node, '本局开心豆', beanTextX, topY + 27, 14, HUD_LABEL_COLOR, beanTextWidth, 22);
+        this.roundMoodLabel = uimanager.createLabel(this.node, '0', beanTextX, topY - 7, 30, HUD_VALUE_COLOR, beanTextWidth, 36);
         this.makeHintLabelBold(this.roundMoodLabel, HUD_VALUE_COLOR, 1.05);
 
         const pauseButton = uimanager.createButton(
@@ -1952,8 +1930,8 @@ export default class ZyxGame extends cc.Component {
 
     private animateElimination(result: EliminateResult, onComplete: () => void): void {
         this.updateHud();
-        const rewardText = result.collectedMoodTypes.length > 0
-            ? ` · 表情 +${result.collectedMoodTypes.length}`
+            const rewardText = result.collectedMoodTypes.length > 0
+            ? ` · 开心豆 +${result.collectedMoodTypes.length}`
             : '';
         uimanager.showToast(`捋顺 ${result.clearedRows} 行${rewardText}`);
         audioManager.playSound('break');
@@ -1975,9 +1953,10 @@ export default class ZyxGame extends cc.Component {
             const moodIndex = Number((stamp as any).moodIndex) || 1;
             const worldStart = pieceNode.convertToWorldSpaceAR(stamp.getPosition());
             const start = this.node.convertToNodeSpaceAR(worldStart);
-            const token = createMoodToken(this.node, moodIndex, start.x, start.y, 35, 0);
+            // 一块一豆：飞行豆继承来源色块的 moodIndex、颜色和表情。
+            const token = createMoodBean(this.node, moodIndex, start.x, start.y, 40, 0);
             token.zIndex = 900;
-            const target = this.moodBottle ? this.moodBottle.getPosition() : new cc.Vec2(30, 560);
+            const target = this.moodBeanHudIcon ? this.moodBeanHudIcon.getPosition() : new cc.Vec2(30, 560);
             const control = new cc.Vec2(
                 start.x + (target.x - start.x) * 0.42 + (rewardIndex % 2 === 0 ? -55 : 55),
                 Math.max(start.y, target.y) + 150,
@@ -2007,26 +1986,20 @@ export default class ZyxGame extends cc.Component {
                     },
                 })
                 .call(() => {
+                    // 到达一颗只 +1，最终值必须与实际收集数一致。
                     this.displayedRoundMoods++;
                     this.updateHudNumber(this.roundMoodLabel, this.displayedRoundMoods);
-                    playBottleBurp(this.moodBottle);
-                    this.addMoodInsideBottle();
+                    if (this.moodBeanHudIcon && cc.isValid(this.moodBeanHudIcon)) {
+                        cc.Tween.stopAllByTarget(this.moodBeanHudIcon);
+                        cc.tween(this.moodBeanHudIcon)
+                            .to(0.07, { scale: 1.18 }, { easing: 'backOut' })
+                            .to(0.12, { scale: 1 }, { easing: 'sineOut' })
+                            .start();
+                    }
                     if (cc.isValid(token)) token.destroy();
                 })
                 .start();
         }
-    }
-
-    private addMoodInsideBottle(): void {
-        if (!this.moodBottle || !cc.isValid(this.moodBottle)) return;
-        const absolute = zyxGameModule.happyBottleProgress + this.displayedRoundMoods;
-        presentWishBottleAbsoluteProgress(this.moodBottle, absolute, HAPPY_BOTTLE_TARGET, {
-            flyTargetLocal: cc.v2(this.moodBottle.x + 40, this.moodBottle.y + 320),
-            onSlotProgress: (slot) => {
-                // 局内右侧文案仍是本局收集数；瓶身进度用绝对量驱动满瓶上飞。
-                if (slot >= HAPPY_BOTTLE_TARGET) playBottleBurp(this.moodBottle);
-            },
-        });
     }
 
     private resolveStableBoard(chain: number, onStable: () => void): void {
@@ -2950,7 +2923,7 @@ export default class ZyxGame extends cc.Component {
 
         const playTips = [
             '左右拖动心情块，填满一行就能消除',
-            '带表情的色块消除后，会飞进顶部瓶子',
+            '带表情的心情块消除后，会变成开心豆飞进收集位',
             '解压锤能敲掉一个挡路的心情块',
             '魔法棒能让场上全部同色色块一起消失',
             '八秒没操作时，小手会提示一次可消除移动',
@@ -3408,9 +3381,25 @@ export default class ZyxGame extends cc.Component {
                 -106,
                 centerY - 56,
             );
-            createMoodToken(moodChip, 1, -57, 0, 36);
-            const moodValue = uimanager.createLabel(moodChip, `×${settlement.roundMoodCount}`, 24, 0, 23, HUD_VALUE_COLOR, 112, 34);
+            createMoodBean(moodChip, 1, -57, 0, 40);
+            const moodValue = uimanager.createLabel(moodChip, `×${settlement.roundEarnedMoodBeans}`, 24, 0, 23, HUD_VALUE_COLOR, 112, 34);
             this.makeHintLabelBold(moodValue, new cc.Color(255, 249, 232), 0.6);
+            const moodCaption = uimanager.createLabel(panel, '开心豆', -106, centerY - 97, 15, HUD_LABEL_COLOR, 194, 24);
+            this.makeHintLabelBold(moodCaption, new cc.Color(255, 249, 232), 0.45);
+            if (settlement.roundBonusMoodBeans > 0) {
+                // 额外奖励必须单列展示，不能伪装成局内单颗豆的倍率。
+                const bonus = uimanager.createLabel(
+                    panel,
+                    `含结算额外奖励 +${settlement.roundBonusMoodBeans}`,
+                    -106,
+                    centerY - 121,
+                    13,
+                    HUD_LABEL_COLOR,
+                    220,
+                    22,
+                );
+                this.makeHintLabelBold(bonus, new cc.Color(255, 249, 232), 0.4);
+            }
 
             const experienceChip = uimanager.createRect(
                 panel,
@@ -3457,8 +3446,12 @@ export default class ZyxGame extends cc.Component {
         if (this.isTutorialGuidedStep()) this.showTutorialStep();
     }
 
+    /**
+     * R3：暂停菜单「重新开始」直接放弃本局——不结算、不发豆、不加经验、
+     * 不更新最高分、不生成 roundId、不进入待提交结算队列，只清空棋盘开始新一局。
+     * 「结束本局」与正常失败仍走完整结算；结算面板「再来一次」也先结算上一局。
+     */
     private restartFromPause(): void {
-        zyxGameModule.finishRound();
         this.restartGame();
     }
 
@@ -3467,7 +3460,7 @@ export default class ZyxGame extends cc.Component {
     }
 
     private getSettlementMessage(settlement: RoundSettlement): string {
-        const moods = settlement.roundMoodCount;
+        const moods = settlement.roundCollectedMoodBeans;
         const praise = moods > 0
             ? '你把纷乱一点点整理好了，真的很棒。'
             : '愿意再试一次，本身就已经很了不起。';

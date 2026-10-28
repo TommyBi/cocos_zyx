@@ -1,13 +1,26 @@
 import { BUTTON_COLORS, uimanager } from '../manager/UIManager';
 import { cloudService } from '../manager/CloudService';
-import { ASSET_PATHS, getEffectAsset, getRealmSpriteFrame } from '../manager/AssetLoader';
+import { isPermanentSettlementError } from '../manager/SettlementSync';
+import { ASSET_PATHS, getRealmSpriteFrame } from '../manager/AssetLoader';
 import { zyxGameModule } from '../dataModule/ZyxGameModule';
-import { MOOD_COLORS } from './MoodArt';
+import {
+    ALBUM_OPEN_LEVELS,
+    ART_CELL_PIXELS,
+    ART_FRAME_HEIGHT,
+    ART_FRAME_WIDTH,
+    ART_GRID_COLS,
+    ART_GRID_ROWS,
+    ART_IMAGE_HEIGHT,
+    ART_IMAGE_WIDTH,
+    ART_TOTAL_CELLS,
+    MAX_VISUAL_FLY_BEANS,
+} from '../dataModule/MoodBeanConfig';
+import { getMoodColor, MOOD_COLORS } from './MoodArt';
 import { audioManager } from '../manager/AudioManager';
 
-/** 用户提供的单幅画作实际尺寸。 */
-export const ALBUM_ART_WIDTH = 750;
-export const ALBUM_ART_HEIGHT = 1000;
+/** 官方画作运行尺寸（650×780），单格 5×5 设计像素。 */
+export const ALBUM_ART_WIDTH = ART_IMAGE_WIDTH;
+export const ALBUM_ART_HEIGHT = ART_IMAGE_HEIGHT;
 export const ALBUM_COVER_WIDTH = 280;
 export const ALBUM_COVER_HEIGHT = 350;
 
@@ -16,22 +29,15 @@ const SHELF_FIRST_CARD_Y = -228;
 const SHELF_CARD_STEP_Y = 392;
 const CAROUSEL_SIDE_SCALE = 0.76;
 const CAROUSEL_SIDE_OPACITY = 152;
-const LOCKED_ART_BLUR_RADIUS = 72;
-
-const PENDING_REALM_UNLOCKS_KEY = 'zyx_pending_realm_unlocks';
-
-type PendingRealmUnlock = {
-    id: string;
-    cost: number;
-};
-
-let pendingRealmSync: Promise<void> = null;
+/** 拼画渲染内部坐标固定为 650×780 设计像素，再整体缩放适配屏幕。 */
+const BOARD_PIXEL_WIDTH = ART_GRID_COLS * ART_CELL_PIXELS;
+const BOARD_PIXEL_HEIGHT = ART_GRID_ROWS * ART_CELL_PIXELS;
 
 export type AlbumArtDef = {
     id: string;
     title: string;
-    cost: number;
     imagePath: string;
+    previewPath: string;
 };
 
 export type AlbumDef = {
@@ -40,7 +46,8 @@ export type AlbumDef = {
     theme: string;
     description: string;
     coverPath: string;
-    unlockCost: number;
+    framePath: string;
+    openLevel: number;
     accent: cc.Color;
     arts: AlbumArtDef[];
 };
@@ -51,6 +58,7 @@ type AlbumSeed = {
     theme: string;
     description: string;
     coverPath: string;
+    framePath: string;
     artFolder: string;
     artCount: number;
     accent: cc.Color;
@@ -63,6 +71,7 @@ const ALBUM_SEEDS: AlbumSeed[] = [
         theme: '四季里的温柔片刻',
         description: '从春花到冬雪，收藏每一次相遇',
         coverPath: ASSET_PATHS.realm.firstCover,
+        framePath: ASSET_PATHS.realm.frameSeason,
         artFolder: 'albums/art/theme_1',
         artCount: 48,
         accent: new cc.Color(189, 112, 74),
@@ -73,6 +82,7 @@ const ALBUM_SEEDS: AlbumSeed[] = [
         theme: '城市与旧时光',
         description: '沿着城墙与街巷，慢慢看见北京',
         coverPath: ASSET_PATHS.realm.secondCover,
+        framePath: ASSET_PATHS.realm.frameCity,
         artFolder: 'albums/art/theme_2',
         artCount: 12,
         accent: new cc.Color(70, 103, 116),
@@ -80,19 +90,20 @@ const ALBUM_SEEDS: AlbumSeed[] = [
 ];
 
 function buildAlbums(): AlbumDef[] {
-    return ALBUM_SEEDS.map((seed, albumIndex) => ({
+    return ALBUM_SEEDS.map((seed) => ({
         id: seed.id,
         title: seed.title,
         theme: seed.theme,
         description: seed.description,
         coverPath: seed.coverPath,
-        unlockCost: albumIndex === 0 ? 1 : (albumIndex === 1 ? 10 : 30),
+        framePath: seed.framePath,
+        openLevel: ALBUM_OPEN_LEVELS[seed.id] || 1,
         accent: seed.accent,
         arts: Array.from({ length: seed.artCount }, (_, index) => ({
             id: `${seed.id}_art_${index}`,
             title: `${seed.title} · ${String(index + 1).padStart(2, '0')}`,
-            cost: albumIndex === 0 ? index + 1 : (albumIndex === 1 ? 20 : 30),
             imagePath: `${seed.artFolder}/pic_${index + 1}`,
+            previewPath: `${seed.artFolder}/preview_${index + 1}`,
         })),
     }));
 }
@@ -103,83 +114,39 @@ export function getAlbumById(albumId: string): AlbumDef | null {
     return ART_ALBUMS.find((album) => album.id === albumId) || null;
 }
 
-export function isAlbumUnlocked(album: AlbumDef): boolean {
-    return zyxGameModule.isAlbumUnlocked(album.id);
+/** 画册按玩家等级开放，不再消耗开心豆开册。 */
+export function isAlbumOpened(album: AlbumDef): boolean {
+    return zyxGameModule.level >= album.openLevel;
 }
 
-export function isArtUnlocked(artId: string): boolean {
-    return zyxGameModule.getUnlockedAlbumArts()[artId] === true;
+export function isArtCompleted(artId: string): boolean {
+    return zyxGameModule.getOfficialArtFilledCells(artId) >= ART_TOTAL_CELLS;
 }
 
-export function countUnlockedArts(album: AlbumDef): number {
-    const unlocked = zyxGameModule.getUnlockedAlbumArts();
+export function countCompletedArts(album: AlbumDef): number {
     let count = 0;
     for (const art of album.arts) {
-        if (!unlocked[art.id]) break;
+        if (!isArtCompleted(art.id)) break;
         count += 1;
     }
     return count;
 }
 
-function readPendingRealmUnlocks(): PendingRealmUnlock[] {
-    const raw = cc.sys.localStorage.getItem(PENDING_REALM_UNLOCKS_KEY);
-    if (!raw) return [];
-    try {
-        const value = JSON.parse(raw);
-        if (!Array.isArray(value)) return [];
-        return value.filter((item) => item && typeof item.id === 'string' && Number(item.cost) > 0);
-    } catch (error) {
-        return [];
+/** 册内画作按顺序制作：第一幅未完成的画作索引；全部完成时返回最后一幅。 */
+export function getCurrentArtIndex(album: AlbumDef): number {
+    for (let index = 0; index < album.arts.length; index++) {
+        if (!isArtCompleted(album.arts[index].id)) return index;
     }
+    return album.arts.length - 1;
 }
 
-function writePendingRealmUnlocks(items: PendingRealmUnlock[]): void {
-    cc.sys.localStorage.setItem(PENDING_REALM_UNLOCKS_KEY, JSON.stringify(items));
-}
-
-function queueRealmUnlock(id: string, cost: number): void {
-    const pending = readPendingRealmUnlocks();
-    if (!pending.some((item) => item.id === id)) pending.push({ id, cost });
-    writePendingRealmUnlocks(pending);
-    flushPendingRealmUnlocks().catch(() => undefined);
-}
-
-function flushPendingRealmUnlocks(): Promise<void> {
-    if (pendingRealmSync) return pendingRealmSync;
-    pendingRealmSync = (async () => {
-        const pending = readPendingRealmUnlocks();
-        for (const item of pending) {
-            try {
-                const profile = await cloudService.unlockPuzzlePiece(item.id, item.cost);
-                zyxGameModule.applyCloudProfile(profile);
-                writePendingRealmUnlocks(readPendingRealmUnlocks().filter((candidate) => candidate.id !== item.id));
-            } catch (error) {
-                // 离线时保留本地解锁和待同步项，下次进入秘境继续重试。
-                return;
-            }
-        }
-    })().then(() => {
-        pendingRealmSync = null;
-    }, () => {
-        pendingRealmSync = null;
-    });
-    return pendingRealmSync;
-}
-
-/** 进入秘境时拉齐服务端解锁项，并补交离线期间的开心瓶消费。 */
+/** 进入秘境时拉齐服务端余额与全部画作进度；离线时静默使用本地缓存，不阻断浏览。 */
 export async function syncRealmCloudState(): Promise<void> {
-    await flushPendingRealmUnlocks();
     try {
-        const pieces = await cloudService.getPuzzleUnlocks();
-        pieces.forEach((pieceId) => {
-            if (pieceId.indexOf('album:') === 0) {
-                zyxGameModule.unlockAlbum(pieceId.slice('album:'.length), 0);
-            } else if (pieceId.indexOf('art:') === 0) {
-                zyxGameModule.unlockAlbumArt(pieceId.slice('art:'.length), 0);
-            }
-        });
+        const state = await cloudService.getRealmState();
+        zyxGameModule.applyRealmState(state);
     } catch (error) {
-        // 云端不可用不阻断本地画册。
+        cc.warn('[时空秘境] 云端状态暂不可用，使用本地缓存进度', error);
     }
 }
 
@@ -187,11 +154,11 @@ type AlbumShelfOptions = {
     screen: cc.Node;
     onBack: () => void;
     onOpenAlbum: (albumId: string) => void;
-    drawMiniBottle: (parent: cc.Node, x: number, y: number) => void;
+    drawBeanIcon: (parent: cc.Node, x: number, y: number) => void;
 };
 
 export function renderAlbumShelf(options: AlbumShelfOptions): void {
-    const { screen, onBack, onOpenAlbum, drawMiniBottle } = options;
+    const { screen, onBack, onOpenAlbum, drawBeanIcon } = options;
     const width = screen.width;
     const height = screen.height;
     const safeArea = uimanager.getSafeAreaMetrics();
@@ -199,10 +166,10 @@ export function renderAlbumShelf(options: AlbumShelfOptions): void {
     drawShelfBackdrop(screen);
 
     const headerY = height / 2 - safeTop - 58;
-    const title = uimanager.createLabel(screen, '解忧秘境', 0, headerY + 8, 42, MOOD_COLORS.cocoa, 330, 56);
+    const title = uimanager.createLabel(screen, '时空秘境', 0, headerY + 8, 42, MOOD_COLORS.cocoa, 330, 56);
     title.node.zIndex = 220;
     const subtitleY = Math.max(-height / 2 + 50, -height / 2 + safeArea.bottom + 34);
-    const subtitle = uimanager.createLabel(screen, '把美好的时光，一册一册收好', 0, subtitleY, 23, MOOD_COLORS.cocoaSoft, 460, 38);
+    const subtitle = uimanager.createLabel(screen, '用开心豆，一豆豆拼出官方画作', 0, subtitleY, 23, MOOD_COLORS.cocoaSoft, 460, 38);
     subtitle.node.zIndex = 220;
 
     const back = uimanager.createButton(
@@ -218,10 +185,10 @@ export function renderAlbumShelf(options: AlbumShelfOptions): void {
     );
     back.zIndex = 240;
 
-    const bottleHud = uimanager.createRect(
+    const beanHud = uimanager.createRect(
         screen,
-        'realmBottleCount',
-        144,
+        'realmBeanCount',
+        158,
         50,
         new cc.Color(255, 248, 226),
         248,
@@ -229,9 +196,9 @@ export function renderAlbumShelf(options: AlbumShelfOptions): void {
         0,
         headerY - 48,
     );
-    bottleHud.zIndex = 230;
-    drawMiniBottle(bottleHud, -48, 0);
-    uimanager.createLabel(bottleHud, `× ${zyxGameModule.happyBottleCount}`, 19, 1, 19, MOOD_COLORS.cocoa, 78, 30);
+    beanHud.zIndex = 230;
+    drawBeanIcon(beanHud, -52, 0);
+    uimanager.createLabel(beanHud, `× ${zyxGameModule.moodBeanBalance}`, 24, 1, 19, MOOD_COLORS.cocoa, 96, 30);
 
     const viewportTop = headerY - 82;
     const footerReserve = 82;
@@ -263,7 +230,7 @@ export function renderAlbumShelf(options: AlbumShelfOptions): void {
 
     drawGalleryPath(content);
     ART_ALBUMS.forEach((album, index) => {
-        createAlbumCoverCard(content, album, index, onOpenAlbum, drawMiniBottle);
+        createAlbumCoverCard(content, album, index, onOpenAlbum);
     });
 
     if (ART_ALBUMS.length < 3) {
@@ -332,11 +299,10 @@ function createAlbumCoverCard(
     album: AlbumDef,
     index: number,
     onOpenAlbum: (albumId: string) => void,
-    drawMiniBottle: (parent: cc.Node, x: number, y: number) => void,
 ): void {
     const x = index % 2 === 0 ? -SHELF_CARD_X : SHELF_CARD_X;
     const y = SHELF_FIRST_CARD_Y - index * SHELF_CARD_STEP_Y;
-    const unlocked = isAlbumUnlocked(album);
+    const opened = isAlbumOpened(album);
 
     const shadow = uimanager.createRect(
         content,
@@ -366,8 +332,8 @@ function createAlbumCoverCard(
     mountResourceSprite(card, 'albumCover', album.coverPath, ALBUM_COVER_WIDTH, ALBUM_COVER_HEIGHT, 0, 0, 2);
     drawCoverBorder(card, album.accent);
 
-    if (unlocked) {
-        const progress = countUnlockedArts(album);
+    if (opened) {
+        const completed = countCompletedArts(album);
         const progressPill = uimanager.createRect(
             card,
             'albumProgress',
@@ -380,7 +346,7 @@ function createAlbumCoverCard(
             -137,
         );
         progressPill.zIndex = 30;
-        uimanager.createLabel(progressPill, `已解锁  ${progress} / ${album.arts.length}`, 0, 1, 18, new cc.Color(48, 111, 74), 204, 30);
+        uimanager.createLabel(progressPill, `已定型  ${completed} / ${album.arts.length}`, 0, 1, 18, new cc.Color(48, 111, 74), 204, 30);
         card.addComponent(cc.Button);
         bindPressAnimation(card, () => onOpenAlbum(album.id));
         return;
@@ -397,7 +363,7 @@ function createAlbumCoverCard(
     );
     maskNode.zIndex = 20;
     maskNode.opacity = 132;
-    const lockNode = mountResourceSprite(
+    mountResourceSprite(
         card,
         'albumLock',
         ASSET_PATHS.realm.lock,
@@ -409,10 +375,9 @@ function createAlbumCoverCard(
         undefined,
     );
 
-    const enough = zyxGameModule.happyBottleCount >= album.unlockCost;
     const action = uimanager.createRect(
         card,
-        'albumUnlockAction',
+        'albumLockedHint',
         224,
         52,
         new cc.Color(255, 249, 232),
@@ -422,25 +387,10 @@ function createAlbumCoverCard(
         -137,
     );
     action.zIndex = 40;
-    uimanager.drawButtonSurface(action, 224, 52, new cc.Color(255, 241, 204), 18);
-    drawMiniBottle(action, -82, 0);
-    const actionColor = enough ? new cc.Color(44, 143, 82) : new cc.Color(216, 82, 73);
-    uimanager.createLabel(action, `开心瓶 × ${album.unlockCost}  解锁`, 18, 1, 17, actionColor, 178, 30);
-    let unlocking = false;
+    uimanager.createLabel(action, `Lv.${album.openLevel} 开放`, 0, 1, 18, new cc.Color(112, 78, 65), 178, 30);
     card.addComponent(cc.Button);
     bindPressAnimation(card, () => {
-        if (unlocking) return;
-        if (!zyxGameModule.unlockAlbum(album.id, album.unlockCost)) {
-            shakeLock(lockNode);
-            const missing = Math.max(0, album.unlockCost - zyxGameModule.happyBottleCount);
-            uimanager.showToast(`开心瓶不足，还差 ${missing} 个`);
-            return;
-        }
-        unlocking = true;
-        queueRealmUnlock(`album:${album.id}`, album.unlockCost);
-        const button = card.getComponent(cc.Button);
-        if (button) button.interactable = false;
-        revealAlbumCover(card, lockNode, maskNode, action, () => onOpenAlbum(album.id));
+        uimanager.showToast(`达到 Lv.${album.openLevel} 后开放这本画册`);
     });
 }
 
@@ -470,43 +420,6 @@ function bindPressAnimation(node: cc.Node, onTap: () => void): void {
     }, node);
 }
 
-function shakeLock(lockNode: cc.Node): void {
-    if (!lockNode || !cc.isValid(lockNode)) return;
-    cc.Tween.stopAllByTarget(lockNode);
-    cc.tween(lockNode)
-        .to(0.07, { angle: -9 })
-        .to(0.07, { angle: 9 })
-        .to(0.07, { angle: -7 })
-        .to(0.07, { angle: 7 })
-        .to(0.08, { angle: 0 }, { easing: 'backOut' })
-        .start();
-}
-
-function revealAlbumCover(
-    card: cc.Node,
-    lockNode: cc.Node,
-    maskNode: cc.Node,
-    action: cc.Node,
-    onDone: () => void,
-): void {
-    shakeLock(lockNode);
-    cc.tween(lockNode)
-        .delay(0.34)
-        .to(0.22, { scale: 0.18, opacity: 0 }, { easing: 'backIn' })
-        .start();
-    cc.tween(maskNode)
-        .delay(0.22)
-        .to(0.65, { opacity: 0 }, { easing: 'sineOut' })
-        .start();
-    cc.tween(action).to(0.24, { opacity: 0, y: -147 }).start();
-    cc.tween(card)
-        .delay(0.56)
-        .to(0.15, { scale: 1.045 }, { easing: 'sineOut' })
-        .to(0.18, { scale: 1 }, { easing: 'backOut' })
-        .call(onDone)
-        .start();
-}
-
 export type AlbumViewOptions = {
     screen: cc.Node;
     albumId: string;
@@ -516,28 +429,43 @@ export type AlbumViewOptions = {
     onArrowPressStart: (direction: number) => void;
     onArrowPressEnd: (direction: number) => boolean;
     onArrowNavigatorReady: (navigate: (direction: number) => void) => void;
-    drawMiniBottle: (parent: cc.Node, x: number, y: number) => void;
+    drawBeanIcon: (parent: cc.Node, x: number, y: number) => void;
+    /** “去收集”：播放画册闭合效果并直接进入消除玩法。 */
+    onGoCollect: () => void;
+};
+
+/** 单幅画作的拼画状态视图；interaction 只挂在当前画作上。 */
+type ArtBoardView = {
+    art: AlbumArtDef;
+    filledCells: number;
+    coverRoot: cc.Node;
+    /** 完整未填行区域遮罩：共享平铺棋盘格 + RECT Mask，揭开进度只改 Mask 尺寸。 */
+    coverFullMask: cc.Node;
+    /** 当前行剩余未填格区域遮罩。 */
+    coverRowMask: cc.Node;
+    previewNode: cc.Node;
+    hdNode: cc.Node;
+    gridNode: cc.Node;
 };
 
 /** 三联画展台：当前画作居中，两侧露出缩小的前后画作，支持横向滑动。 */
 export function renderAlbumView(options: AlbumViewOptions): void {
     const album = getAlbumById(options.albumId);
-    if (!album || !isAlbumUnlocked(album)) {
-        uimanager.showToast('请先在秘境中解锁这本画册');
+    if (!album || !isAlbumOpened(album)) {
+        uimanager.showToast('这本画册还没有开放');
         options.onBackToShelf();
         return;
     }
 
-    const { screen, onBackToShelf, onShowArt, drawMiniBottle } = options;
+    const { screen, onBackToShelf, onShowArt, drawBeanIcon } = options;
     const width = screen.width;
     const height = screen.height;
     const safeArea = uimanager.getSafeAreaMetrics();
     const safeTop = Math.max(24, safeArea.top);
     const artIndex = Math.max(0, Math.min(album.arts.length - 1, options.artIndex));
     const art = album.arts[artIndex];
-    const unlockedCount = countUnlockedArts(album);
-    const currentUnlocked = artIndex < unlockedCount;
-    const canUnlockCurrent = !currentUnlocked && artIndex === unlockedCount;
+    const currentIndex = getCurrentArtIndex(album);
+    const completedCount = countCompletedArts(album);
     createAlbumBackdrop(screen, album.accent);
 
     const topBarHeight = 118 + safeTop;
@@ -555,23 +483,23 @@ export function renderAlbumView(options: AlbumViewOptions): void {
     );
     topBar.zIndex = 200;
     uimanager.createLabel(topBar, album.title, 0, topBarControlY + 13, 26, MOOD_COLORS.cocoa, 310, 34);
-    uimanager.createLabel(topBar, `已解锁 ${unlockedCount} / ${album.arts.length}`, 0, topBarControlY - 19, 15, album.accent, 260, 24);
-    const bottleHud = uimanager.createRect(
+    uimanager.createLabel(topBar, `已定型 ${completedCount} / ${album.arts.length}`, 0, topBarControlY - 19, 15, album.accent, 260, 24);
+    const beanHud = uimanager.createRect(
         topBar,
-        'albumBottleHud',
-        126,
+        'albumBeanHud',
+        150,
         42,
         new cc.Color(255, 251, 238),
         255,
         16,
-        width / 2 - safeArea.right - 76,
+        width / 2 - safeArea.right - 86,
         topBarControlY,
     );
-    drawMiniBottle(bottleHud, -40, 0);
-    uimanager.createLabel(bottleHud, `× ${zyxGameModule.happyBottleCount}`, 20, 0, 16, MOOD_COLORS.cocoa, 70, 26);
+    drawBeanIcon(beanHud, -48, 0);
+    const beanBalanceLabel = uimanager.createLabel(beanHud, `× ${zyxGameModule.moodBeanBalance}`, 24, 0, 16, MOOD_COLORS.cocoa, 90, 26);
 
     const progressTrack = uimanager.createRect(topBar, 'albumProgressTrack', 230, 6, new cc.Color(208, 194, 169), 170, 3, 0, topBarControlY - 39);
-    const progressWidth = Math.max(8, 230 * unlockedCount / Math.max(1, album.arts.length));
+    const progressWidth = Math.max(8, 230 * completedCount / Math.max(1, album.arts.length));
     const progressFill = uimanager.createRect(progressTrack, 'albumProgressFill', progressWidth, 6, album.accent, 255, 3, -115 + progressWidth / 2, 0);
     progressFill.zIndex = 2;
 
@@ -579,12 +507,17 @@ export function renderAlbumView(options: AlbumViewOptions): void {
     const actionY = footerHintY + 66;
     const pageY = actionY + 70;
     const contentTop = height / 2 - topBarHeight - 24;
-    const artTitleY = contentTop - 16;
-    const artTopLimit = artTitleY - 28;
+const artTitleY = contentTop - 16;
+// 画作上沿下移，给标题与铭牌留出不重叠的间距。
+const artTopLimit = artTitleY - 56;
     const artBottomLimit = pageY + 34;
     const availableArtHeight = Math.max(400, artTopLimit - artBottomLimit);
-    const displayW = Math.min(width * 0.92, availableArtHeight * ALBUM_ART_WIDTH / ALBUM_ART_HEIGHT);
-    const displayH = displayW * ALBUM_ART_HEIGHT / ALBUM_ART_WIDTH;
+    const frameScale = Math.min(
+        (width * 0.94) / ART_FRAME_WIDTH,
+        availableArtHeight / ART_FRAME_HEIGHT,
+    );
+    const displayW = ART_IMAGE_WIDTH * frameScale;
+    const displayH = ART_IMAGE_HEIGHT * frameScale;
     const stageY = (artTopLimit + artBottomLimit) / 2;
     const sideOffset = displayW * 0.76;
     const artTitle = uimanager.createLabel(screen, art.title, 0, artTitleY, 18, new cc.Color(235, 224, 204), 430, 28);
@@ -598,38 +531,59 @@ export function renderAlbumView(options: AlbumViewOptions): void {
     track.zIndex = 40;
     screen.addChild(track);
 
-    let currentItem: cc.Node = null;
+    let currentBoard: ArtBoardView = null;
     [-1, 0, 1].forEach((offset) => {
         const index = artIndex + offset;
         if (index < 0 || index >= album.arts.length) return;
-        const item = createGalleryArtItem(
+        const board = createGalleryArtItem(
             track,
+            album,
             album.arts[index],
-            displayW,
-            displayH,
+            index,
+            frameScale,
             offset,
             sideOffset,
-            index < unlockedCount,
+            index <= currentIndex,
         );
-        if (offset === 0) currentItem = item;
+        if (offset === 0) currentBoard = board;
     });
 
+    // 画作铭牌：贴在画作正上方，显示“序号 / 总数 · 本幅完成百分比”。
     const indexPill = uimanager.createRect(
         screen,
         'artIndexPill',
-        126,
+        206,
         38,
         new cc.Color(255, 248, 228),
         244,
         16,
         0,
-        pageY,
+        artTitleY - 36,
     );
     indexPill.zIndex = 110;
-    uimanager.createLabel(indexPill, `${String(artIndex + 1).padStart(2, '0')} / ${String(album.arts.length).padStart(2, '0')}`, 0, 0, 15, MOOD_COLORS.cocoa, 110, 24);
+    const indexPillLabel = uimanager.createLabel(
+        indexPill,
+        formatIndexProgress(artIndex, album.arts.length, zyxGameModule.getOfficialArtFilledCells(art.id)),
+        0,
+        0,
+        15,
+        MOOD_COLORS.cocoa,
+        192,
+        24,
+    );
 
-    const navigate = bindCarouselGestures(screen, track, artIndex, album.arts.length, displayH, sideOffset, onShowArt);
-    options.onArrowNavigatorReady(navigate);
+    // 飞豆与定型动画期间锁定翻页：手势、箭头、长按统一走 canNavigate/guardedNavigate。
+    let launchAnimating = false;
+    const canNavigate = (): boolean => !launchAnimating;
+    const navigate = bindCarouselGestures(screen, track, artIndex, album.arts.length, displayH, sideOffset, onShowArt, canNavigate);
+    const guardedNavigate = (delta: number): void => {
+        if (!canNavigate()) {
+            uimanager.showToast('开心豆正在落位…');
+            return;
+        }
+        navigate(delta);
+    };
+    options.onArrowNavigatorReady(guardedNavigate);
     const arrowInset = 38;
     createCarouselArrow(
         screen,
@@ -638,7 +592,7 @@ export function renderAlbumView(options: AlbumViewOptions): void {
         -1,
         artIndex === 0,
         album.accent,
-        navigate,
+        guardedNavigate,
         options,
     );
     createCarouselArrow(
@@ -648,61 +602,39 @@ export function renderAlbumView(options: AlbumViewOptions): void {
         1,
         artIndex === album.arts.length - 1,
         album.accent,
-        navigate,
+        guardedNavigate,
         options,
     );
 
-    if (canUnlockCurrent) {
-        const enough = zyxGameModule.happyBottleCount >= art.cost;
-        const action = uimanager.createRect(
+    // 底部主交互区：进度、余额与投入按钮。
+    const filledCells = currentBoard ? currentBoard.filledCells : 0;
+    const isCurrentArt = artIndex === currentIndex;
+    const completed = filledCells >= ART_TOTAL_CELLS;
+    if (completed) {
+        const completedPill = uimanager.createRect(
             screen,
-            'unlockArtAction',
-            286,
-            58,
-            new cc.Color(255, 248, 228),
-            255,
-            20,
+            'completedArtStatus',
+            196,
+            44,
+            new cc.Color(album.accent.r, album.accent.g, album.accent.b),
+            216,
+            18,
             0,
             actionY,
         );
-        action.zIndex = 130;
-        uimanager.drawButtonSurface(action, 286, 58, new cc.Color(255, 235, 188), 20);
-        drawMiniBottle(action, -106, 0);
-        const labelColor = enough ? new cc.Color(44, 143, 82) : new cc.Color(216, 82, 73);
-        uimanager.createLabel(action, `开心瓶 × ${art.cost}  解锁`, 18, 0, 18, labelColor, 234, 30);
-        action.addComponent(cc.Button);
-        let revealing = false;
-        action.on(cc.Node.EventType.TOUCH_END, () => {
-            if (revealing) return;
-            if (countUnlockedArts(album) !== artIndex) {
-                shakeGalleryArtLock(currentItem);
-                uimanager.showToast('请按顺序点亮画作');
-                onShowArt(artIndex);
-                return;
-            }
-            if (!zyxGameModule.unlockAlbumArt(art.id, art.cost)) {
-                shakeGalleryArtLock(currentItem);
-                uimanager.showToast(`开心瓶不足，还差 ${art.cost - zyxGameModule.happyBottleCount} 个`);
-                return;
-            }
-            revealing = true;
-            queueRealmUnlock(`art:${art.id}`, art.cost);
-            const button = action.getComponent(cc.Button);
-            if (button) button.interactable = false;
-            if (currentItem) {
-                animateLockedArtReveal(currentItem, () => {
-                    uimanager.showToast('画作已点亮');
-                    onShowArt(artIndex);
-                });
-            } else {
-                onShowArt(artIndex);
-            }
-        }, action);
-    } else if (!currentUnlocked) {
-        const nextNumber = Math.min(album.arts.length, unlockedCount + 1);
+        completedPill.zIndex = 130;
+        uimanager.createLabel(completedPill, '画作已定型', 0, 0, 17, new cc.Color(255, 247, 226), 170, 28);
+    } else if (isCurrentArt && currentBoard) {
+createContributePanel(screen, album, currentBoard, actionY, beanBalanceLabel, indexPillLabel, artIndex, album.arts.length, {
+artIndex,
+onShowArt,
+onGoCollect: options.onGoCollect,
+onAnimatingChange: (flag) => { launchAnimating = flag; },
+});
+    } else {
         const sequenceHint = uimanager.createLabel(
             screen,
-            `请先点亮第 ${String(nextNumber).padStart(2, '0')} 幅`,
+            `请先完成第 ${String(currentIndex + 1).padStart(2, '0')} 幅`,
             0,
             actionY,
             16,
@@ -711,33 +643,8 @@ export function renderAlbumView(options: AlbumViewOptions): void {
             28,
         );
         sequenceHint.node.zIndex = 130;
-    } else {
-        const unlockedPill = uimanager.createRect(
-            screen,
-            'unlockedArtStatus',
-            116,
-            36,
-            new cc.Color(album.accent.r, album.accent.g, album.accent.b),
-            178,
-            16,
-            0,
-            actionY,
-        );
-        unlockedPill.zIndex = 130;
-        uimanager.createLabel(unlockedPill, '已点亮', 0, 0, 16, new cc.Color(255, 247, 226), 100, 26);
     }
 
-    const navigationHint = uimanager.createLabel(
-        screen,
-        '点击箭头切换 · 长按连续翻看',
-        0,
-        footerHintY,
-        15,
-        new cc.Color(205, 193, 172),
-        380,
-        26,
-    );
-    navigationHint.node.zIndex = 130;
     const back = uimanager.createButton(
         screen,
         '‹ 画册',
@@ -750,6 +657,567 @@ export function renderAlbumView(options: AlbumViewOptions): void {
         18,
     );
     back.zIndex = 220;
+}
+
+type ContributePanelContext = {
+artIndex: number;
+onShowArt: (artIndex: number) => void;
+onGoCollect: () => void;
+/** 飞豆/定型动画开始与结束：动画期间必须锁定翻页输入。 */
+onAnimatingChange?: (animating: boolean) => void;
+};
+
+/** 投入面板：加厚按钮 + 上方豆篮（显示待飞开心豆数量）；发射完成后按钮变为「去收集」。第一版要求在线。 */
+function createContributePanel(
+    screen: cc.Node,
+    album: AlbumDef,
+    board: ArtBoardView,
+    actionY: number,
+    beanBalanceLabel: cc.Label,
+    progressLabel: cc.Label,
+    artIndex: number,
+    artCount: number,
+    context: ContributePanelContext,
+): void {
+    const panel = new cc.Node('contributePanel');
+    panel.width = 560;
+    panel.height = 96;
+    panel.setPosition(0, actionY - 4);
+    panel.zIndex = 130;
+    screen.addChild(panel);
+
+    // 豆篮：按钮上方的小盒子，豆子在飞行时从篮内随机位置飞出；篮身盖住豆子起点。
+    const basketY = actionY - 4 + 88;
+    const basket = new cc.Node('beanBasket');
+    basket.width = 150;
+    basket.height = 62;
+    basket.setPosition(0, basketY);
+    basket.zIndex = 450;
+    screen.addChild(basket);
+    const basketG = basket.addComponent(cc.Graphics);
+    // 篮身（梯形木桶）。
+    basketG.fillColor = new cc.Color(122, 84, 52);
+    basketG.moveTo(-72, 18);
+    basketG.lineTo(72, 18);
+    basketG.lineTo(56, -28);
+    basketG.lineTo(-56, -28);
+    basketG.close();
+    basketG.fill();
+    // 篮身侧面高光。
+    basketG.fillColor = new cc.Color(146, 106, 68);
+    basketG.moveTo(-72, 18);
+    basketG.lineTo(-30, 18);
+    basketG.lineTo(-22, -28);
+    basketG.lineTo(-56, -28);
+    basketG.close();
+    basketG.fill();
+    // 篮口内腔（深色，豆子起点藏在这里）。
+    basketG.fillColor = new cc.Color(62, 42, 30);
+    basketG.ellipse(0, 16, 68, 12);
+    basketG.fill();
+    // 篮内露出的豆子。
+    [-34, -12, 12, 34].forEach((bx, i) => {
+        const peek = createFlyingBeanGlyph(basket, 1 + i * 2, bx, 18 + (i % 2) * 3, 20);
+        peek.zIndex = 2;
+    });
+    // 篮口前缘（盖住豆根）。
+    basketG.fillColor = new cc.Color(158, 116, 76);
+    basketG.roundRect(-76, 8, 152, 12, 6);
+    basketG.fill();
+    const basketCount = uimanager.createLabel(basket, `× ${zyxGameModule.moodBeanBalance}`, 0, -12, 19, new cc.Color(255, 240, 212), 120, 28);
+    basketCount.node.zIndex = 5;
+    const basketCountOutline = basketCount.node.addComponent(cc.LabelOutline);
+    basketCountOutline.color = new cc.Color(74, 50, 32);
+    basketCountOutline.width = 1.6;
+
+    let animating = false;
+    // R4：存在未确认拼画操作时按钮进入「重试放置」，重试必须复用原 actionId 与载荷。
+    let buttonMode: 'place' | 'collect' | 'retry' = zyxGameModule.getPendingRealmAction()
+        ? 'retry'
+        : (zyxGameModule.moodBeanBalance > 0 ? 'place' : 'collect');
+
+    const button = uimanager.createRect(panel, 'placeBeansButton', 356, 66, BUTTON_COLORS.yellow, 255, 24, 0, 10);
+    button.zIndex = 132;
+    button.addComponent(cc.Button);
+    const buttonLabel = uimanager.createLabel(button, '', 0, 2, 23, cc.Color.WHITE, 336, 52);
+    const outline = buttonLabel.node.addComponent(cc.LabelOutline);
+    outline.width = 1.4;
+    const paintButton = (): void => {
+        const color = buttonMode === 'collect' ? BUTTON_COLORS.green : BUTTON_COLORS.yellow;
+        uimanager.drawButtonSurface(button, 356, 66, color, 24);
+        buttonLabel.string = buttonMode === 'collect' ? '去收集' : (buttonMode === 'retry' ? '重试放置' : '放置开心豆');
+        outline.color = new cc.Color(
+            Math.round(color.r * 0.48),
+            Math.round(color.g * 0.48),
+            Math.round(color.b * 0.48),
+        );
+    };
+    paintButton();
+    button.on(cc.Node.EventType.TOUCH_START, () => {
+        cc.tween(button).stop();
+        cc.tween(button).to(0.07, { scale: 0.95 }).start();
+    }, panel);
+    button.on(cc.Node.EventType.TOUCH_CANCEL, () => {
+        cc.tween(button).stop();
+        cc.tween(button).to(0.1, { scale: 1 }).start();
+    }, panel);
+    button.on(cc.Node.EventType.TOUCH_END, () => {
+        cc.tween(button).stop();
+        cc.tween(button).to(0.1, { scale: 1 }).start();
+        if (animating) return;
+        if (buttonMode === 'collect') {
+            context.onGoCollect();
+            return;
+        }
+        placeBeans();
+    }, panel);
+
+    /**
+     * R4：提交拼画前先把 actionId/artId/requestedBeans 持久化；
+     * 模糊失败（超时/丢响应/5xx）保留操作身份等待重试，禁止生成第二个 actionId；
+     * 确定成功或确定拒绝（4xx）后才清除 pending action。
+     */
+    const setAnimating = (flag: boolean): void => {
+        animating = flag;
+        if (context.onAnimatingChange) context.onAnimatingChange(flag);
+    };
+
+    const launchContribute = (actionId: string, artId: string, amount: number): void => {
+        setAnimating(true);
+        // 放置过程中隐藏按钮，避免连点。
+        const btn = button.getComponent(cc.Button);
+        if (btn) btn.interactable = false;
+        cc.tween(button).stop();
+        cc.tween(button).to(0.2, { opacity: 0 }, { easing: 'sineOut' }).start();
+        const restoreButton = (): void => {
+            if (!cc.isValid(button)) return;
+            if (btn) btn.interactable = true;
+            cc.tween(button).stop();
+            button.scale = 1;
+            cc.tween(button).to(0.24, { opacity: 255 }, { easing: 'sineOut' }).start();
+        };
+        cloudService.contributeRealmArt(actionId, artId, amount)
+            .then((result) => {
+                // 确定成功（含服务端返回的幂等重放结果）：清除 pending action 并应用权威结果。
+                zyxGameModule.clearPendingRealmAction();
+                if (!cc.isValid(screen)) return;
+                zyxGameModule.applyRealmState({ moodBeanBalance: result.moodBeanBalance, albums: [] });
+                zyxGameModule.setOfficialArtFilledCells(result.artId, result.filledCells);
+                if (beanBalanceLabel && cc.isValid(beanBalanceLabel.node)) {
+                    beanBalanceLabel.string = `× ${result.moodBeanBalance}`;
+                }
+                if (result.artId !== board.art.id) {
+                    // 恢复的是其它画作的未确认操作：同步缓存即可，不在当前画作播动画。
+                    setAnimating(false);
+                    uimanager.showToast('上次放置已同步');
+                    buttonMode = zyxGameModule.moodBeanBalance > 0 ? 'place' : 'collect';
+                    paintButton();
+                    restoreButton();
+                    return;
+                }
+                const filledBefore = board.filledCells;
+                runBeanLaunch(screen, album, board, filledBefore, result.filledCells, {
+                    basketNode: basket,
+                    countLabel: basketCount,
+                    startValue: result.moodBeanBalance + Math.max(0, result.filledCells - filledBefore),
+                    endValue: result.moodBeanBalance,
+                }, () => {
+                    if (progressLabel && cc.isValid(progressLabel.node)) {
+                        progressLabel.string = formatIndexProgress(artIndex, artCount, board.filledCells);
+                    }
+                    if (result.completed) {
+                        // 画作从马赛克变清晰后停留在当前幅：原地重建为「已定型」状态，
+                        // 是否翻到下一幅由用户手动切换，不再自动跳页；定型演出期间保持翻页锁定。
+                        playIroningFinish(album, board, () => {
+                            if (context.artIndex + 1 >= album.arts.length) uimanager.showToast('恭喜完成画册');
+                            context.onShowArt(context.artIndex);
+                        });
+                        return;
+                    }
+                    setAnimating(false);
+                    buttonMode = zyxGameModule.moodBeanBalance > 0 ? 'place' : 'collect';
+                    paintButton();
+                    restoreButton();
+                });
+            })
+            .catch((error: Error) => {
+                if (!cc.isValid(screen)) return;
+                setAnimating(false);
+                if (isPermanentSettlementError(error)) {
+                    // 服务端明确拒绝且未执行扣减：清除 pending action，恢复正常放置。
+                    zyxGameModule.clearPendingRealmAction();
+                    buttonMode = zyxGameModule.moodBeanBalance > 0 ? 'place' : 'collect';
+                    paintButton();
+                    restoreButton();
+                    uimanager.showToast(error && error.message ? error.message : '放置失败，请稍后重试');
+                    return;
+                }
+                // 模糊失败：保留原 actionId，按钮进入「重试放置」。
+                buttonMode = 'retry';
+                paintButton();
+                restoreButton();
+                uimanager.showToast('网络异常，点击重试放置');
+            });
+    };
+
+    const placeBeans = (): void => {
+        // 存在未确认操作时先完成它，禁止发起新投入。
+        const pending = zyxGameModule.getPendingRealmAction();
+        if (pending) {
+            launchContribute(pending.actionId, pending.artId, pending.requestedBeans);
+            return;
+        }
+        const remaining = ART_TOTAL_CELLS - board.filledCells;
+        // 一次放置当前全部可放置的开心豆：不设批次上限，消耗掉手里所有豆（服务端上限为一整幅画作豆位数）。
+        const amount = Math.min(zyxGameModule.moodBeanBalance, remaining);
+        if (amount <= 0) {
+            buttonMode = 'collect';
+            paintButton();
+            return;
+        }
+        const actionId = `contrib_${board.art.id}_${Date.now()}_${Math.floor(Math.random() * 1000000000)}`;
+        // 先持久化操作身份，再禁用按钮提交。
+        zyxGameModule.setPendingRealmAction({
+            actionId,
+            artId: board.art.id,
+            requestedBeans: amount,
+            createdAt: Date.now(),
+        });
+        launchContribute(actionId, board.art.id, amount);
+    };
+
+    // 重新进入秘境时先自动重试未确认操作，成功后再允许发起新投入。
+    if (buttonMode === 'retry') {
+        const pending = zyxGameModule.getPendingRealmAction();
+        if (pending) launchContribute(pending.actionId, pending.artId, pending.requestedBeans);
+    }
+}
+
+function formatCellCount(value: number): string {
+    return Math.max(0, Math.floor(value)).toLocaleString('en-US');
+}
+
+/** 画作铭牌文案：序号 / 总数 · 本幅完成百分比。 */
+function formatIndexProgress(artIndex: number, artCount: number, filledCells: number): string {
+    const percent = Math.floor(Math.min(ART_TOTAL_CELLS, filledCells) * 1000 / ART_TOTAL_CELLS) / 10;
+    return `${String(artIndex + 1).padStart(2, '0')} / ${String(artCount).padStart(2, '0')} · ${percent}%`;
+}
+
+const BEAN_FLIGHT_DURATION = 0.5;
+const LAUNCH_STEP_SECONDS = 0.1;
+const LAUNCH_ALL_AT_ONCE_THRESHOLD = 50;
+const LAUNCH_SPRAY_SECONDS = 5;
+const FLY_BEAN_SIZE = 30;
+
+/** 密集飞行豆：单节点简化拼豆（色块 + 孔位），供大批量发射使用。 */
+function drawFlyingBeanGlyph(g: cc.Graphics, moodIndex: number, size: number): void {
+    const color = getMoodColor(moodIndex);
+    const radius = size / 2;
+    g.clear();
+    g.fillColor = new cc.Color(
+        Math.round(color.r * 0.66),
+        Math.round(color.g * 0.66),
+        Math.round(color.b * 0.66),
+    );
+    g.circle(0, -1.2, radius);
+    g.fill();
+    g.fillColor = color;
+    g.circle(0, 0.8, radius * 0.94);
+    g.fill();
+    g.fillColor = new cc.Color(255, 246, 224, 140);
+    g.ellipse(-radius * 0.3, radius * 0.4, radius * 0.28, radius * 0.16);
+    g.fill();
+    g.fillColor = new cc.Color(73, 48, 43, 235);
+    g.ellipse(0, radius * 0.36, radius * 0.16, radius * 0.1);
+    g.fill();
+}
+
+function createFlyingBeanGlyph(parent: cc.Node, moodIndex: number, x: number, y: number, size: number): cc.Node {
+    const node = new cc.Node(`flyBean_${moodIndex}`);
+    node.setPosition(x, y);
+    node.zIndex = 410;
+    parent.addChild(node);
+    drawFlyingBeanGlyph(node.addComponent(cc.Graphics), moodIndex, size);
+    return node;
+}
+
+/** 飞行豆节点池：复用节点避免每次批量创建和销毁；页面销毁后池内节点自动失效并被过滤。 */
+const flyBeanPool: cc.Node[] = [];
+
+function obtainFlyingBean(parent: cc.Node, moodIndex: number, x: number, y: number, size: number): cc.Node {
+    let node: cc.Node = null;
+    while (flyBeanPool.length > 0) {
+        const candidate = flyBeanPool.pop();
+        if (candidate && cc.isValid(candidate)) {
+            node = candidate;
+            break;
+        }
+    }
+    if (!node) {
+        node = new cc.Node('flyBean');
+        node.zIndex = 410;
+        node.addComponent(cc.Graphics);
+    }
+    parent.addChild(node);
+    node.setPosition(x, y);
+    node.scale = 1;
+    node.angle = 0;
+    node.opacity = 255;
+    node.active = true;
+    drawFlyingBeanGlyph(node.getComponent(cc.Graphics), moodIndex, size);
+    return node;
+}
+
+function releaseFlyingBean(node: cc.Node): void {
+    if (!node || !cc.isValid(node)) return;
+    cc.Tween.stopAllByTarget(node);
+    node.removeFromParent(false);
+    node.active = false;
+    flyBeanPool.push(node);
+}
+
+type BeanLaunchBasket = {
+    basketNode: cc.Node;
+    countLabel: cc.Label;
+    startValue: number;
+    endValue: number;
+};
+
+/**
+ * 放置拼豆动画：豆子从按钮上方的豆篮中密集飞出，落位即揭开对应遮罩。
+ * 少于 50 颗时一次性全部飞上去；50 颗以上按 100ms 步进“喷枪式”发射，5 秒发射完（每步数量 = 总量/50）。
+ * 每颗豆子以 500ms、cubicInOut 缓动从常规大小飞到自己次序对应的位置，落位时缩小到 5×5 豆位大小；
+ * 落位瞬间才消退该豆位遮罩；篮上数量随发射递减，最终停留在服务端结算值。
+ */
+function runBeanLaunch(
+    screen: cc.Node,
+    album: AlbumDef,
+    board: ArtBoardView,
+    filledBefore: number,
+    filledAfter: number,
+    basket: BeanLaunchBasket,
+    onDone: () => void,
+): void {
+    const amount = Math.max(0, filledAfter - filledBefore);
+    if (amount <= 0 || !board.coverRoot || !cc.isValid(board.coverRoot)) {
+        board.filledCells = filledAfter;
+        if (board.coverRoot && cc.isValid(board.coverRoot)) updateCoverMasks(board);
+        onDone();
+        return;
+    }
+
+    const layer = new cc.Node('beanLaunchLayer');
+    layer.width = screen.width;
+    layer.height = screen.height;
+    layer.zIndex = 400;
+    screen.addChild(layer);
+    const stage = board.previewNode.parent;
+    const stageScale = Math.abs(stage.scale) || 1;
+    const landScale = (ART_CELL_PIXELS * stageScale) / FLY_BEAN_SIZE;
+
+    // 豆篮数量：从起飞前的待飞数量递减到服务端结算后的最终值。
+    const countState = { remaining: amount };
+    const countSpan = amount < LAUNCH_ALL_AT_ONCE_THRESHOLD
+        ? BEAN_FLIGHT_DURATION + 0.2
+        : LAUNCH_SPRAY_SECONDS + BEAN_FLIGHT_DURATION;
+    if (basket.countLabel && cc.isValid(basket.countLabel.node)) {
+        basket.countLabel.string = `× ${basket.startValue}`;
+        cc.tween(countState)
+            .to(countSpan, { remaining: 0 }, {
+                easing: 'linear',
+                onUpdate: () => {
+                    if (!cc.isValid(basket.countLabel.node)) return;
+                    basket.countLabel.string = `× ${basket.endValue + Math.ceil(countState.remaining)}`;
+                },
+            })
+            .start();
+    }
+
+    // 豆子落位才揭开遮罩：Mask 窗口随落位即时收缩，代价只是修改两个节点的尺寸属性。
+    const revealAtLanding = (rank: number): void => {
+        board.filledCells = Math.max(board.filledCells, rank + 1);
+        if (cc.isValid(board.coverRoot)) updateCoverMasks(board);
+    };
+
+    // 发射起点：篮口内腔里的随机坐标（篮身层级更高，起点被遮住）。
+    const basketCenterY = basket.basketNode && cc.isValid(basket.basketNode) ? basket.basketNode.y : -screen.height / 2 + 150;
+    const randomSpawn = (): { x: number; y: number } => ({
+        x: (Math.random() * 2 - 1) * 52,
+        y: basketCenterY + 12 + (Math.random() * 2 - 1) * 5,
+    });
+
+    const spawnBean = (rank: number, delay: number): void => {
+        // 行优先填充：豆位序号与 rank 一致。
+        const cell = Math.max(0, Math.min(ART_TOTAL_CELLS - 1, rank));
+        const target = cellToScreenPosition(screen, stage, cell);
+        const origin = randomSpawn();
+        const bean = obtainFlyingBean(layer, 1 + (rank % 10), origin.x, origin.y, FLY_BEAN_SIZE);
+        bean.opacity = 0;
+        const state = { t: 0 };
+        cc.tween(bean).delay(delay).to(0.05, { opacity: 255 }).start();
+        cc.tween(state)
+            .delay(delay)
+            .to(BEAN_FLIGHT_DURATION, { t: 1 }, {
+                easing: 'cubicInOut',
+                onUpdate: () => {
+                    if (!cc.isValid(bean)) return;
+                    const inverse = 1 - state.t;
+                    const controlX = (origin.x + target.x) / 2;
+                    const controlY = Math.max(origin.y, target.y) + 120;
+                    bean.x = inverse * inverse * origin.x + 2 * inverse * state.t * controlX + state.t * state.t * target.x;
+                    bean.y = inverse * inverse * origin.y + 2 * inverse * state.t * controlY + state.t * state.t * target.y;
+                    // 从常规大小缩小到 5×5 豆位。
+                    bean.scale = 1 - state.t * (1 - landScale);
+                },
+            })
+            .call(() => {
+                if (cc.isValid(bean)) releaseFlyingBean(bean);
+                // 页面已销毁时不再触达遮罩与进度，进度以服务端为准。
+                if (!cc.isValid(screen)) return;
+                revealAtLanding(rank);
+            })
+            .start();
+    };
+
+    if (amount < LAUNCH_ALL_AT_ONCE_THRESHOLD) {
+        // 少量豆子：一次性全部飞上去。
+        for (let index = 0; index < amount; index++) spawnBean(filledBefore + index, index * 0.01);
+    } else {
+        // 喷枪节奏：100ms 步进，5 秒发射完。在屏视觉豆不超过 MAX_VISUAL_FLY_BEANS（120），
+        // 超大批量按等距抽样发射，未生成视觉豆的豆位由时序前沿兜底揭开（服务端实际投入数不减少）。
+        const spawnCount = Math.min(amount, MAX_VISUAL_FLY_BEANS);
+        const steps = Math.ceil(LAUNCH_SPRAY_SECONDS / LAUNCH_STEP_SECONDS);
+        const perStep = Math.ceil(spawnCount / steps);
+        for (let step = 0; step < steps; step++) {
+            const firstVisual = step * perStep;
+            for (let index = 0; index < perStep && firstVisual + index < spawnCount; index++) {
+                const visualIndex = firstVisual + index;
+                const rank = filledBefore + Math.floor(visualIndex * amount / spawnCount);
+                spawnBean(Math.min(filledAfter - 1, rank), step * LAUNCH_STEP_SECONDS + index * 0.008);
+            }
+        }
+        if (spawnCount < amount) {
+            // 前沿兜底：从首批豆子落位时刻起，5 秒内匀速揭开全部新豆位。
+            const frontier = { filled: filledBefore };
+            cc.tween(frontier)
+                .delay(BEAN_FLIGHT_DURATION)
+                .to(LAUNCH_SPRAY_SECONDS, { filled: filledAfter }, {
+                    easing: 'linear',
+                    onUpdate: () => {
+                        if (!cc.isValid(screen)) return;
+                        const next = Math.min(filledAfter, Math.floor(frontier.filled));
+                        if (next <= board.filledCells) return;
+                        board.filledCells = next;
+                        if (cc.isValid(board.coverRoot)) updateCoverMasks(board);
+                    },
+                })
+                .start();
+        }
+    }
+
+    const totalSeconds = amount < LAUNCH_ALL_AT_ONCE_THRESHOLD
+        ? BEAN_FLIGHT_DURATION + 0.3
+        : LAUNCH_SPRAY_SECONDS + BEAN_FLIGHT_DURATION + 0.2;
+    setTimeout(() => {
+        // 页面已销毁时直接退出：不触达已销毁节点，也不允许旧页面回调重新打开画册。
+        if (!cc.isValid(screen)) return;
+        // 动画结束以服务端 filledCells 强制校正。
+        board.filledCells = filledAfter;
+        if (cc.isValid(board.coverRoot)) updateCoverMasks(board);
+        if (basket.countLabel && cc.isValid(basket.countLabel.node)) {
+            basket.countLabel.string = `× ${basket.endValue}`;
+        }
+        if (cc.isValid(layer)) layer.destroy();
+        onDone();
+    }, totalSeconds * 1000);
+}
+
+/** 豆位序号（row * cols + col）转换为屏幕坐标。 */
+function cellToScreenPosition(screen: cc.Node, stage: cc.Node, cell: number): cc.Vec2 {
+    const col = cell % ART_GRID_COLS;
+    const row = Math.floor(cell / ART_GRID_COLS);
+    const local = cc.v2(
+        -BOARD_PIXEL_WIDTH / 2 + col * ART_CELL_PIXELS + ART_CELL_PIXELS / 2,
+        BOARD_PIXEL_HEIGHT / 2 - row * ART_CELL_PIXELS - ART_CELL_PIXELS / 2,
+    );
+    return screen.convertToNodeSpaceAR(stage.convertToWorldSpaceAR(local));
+}
+
+/** 熨烫定型演出：压合 → 热气柔光 → 格线与拼豆层融合 → 高清原画淡入。 */
+function playIroningFinish(album: AlbumDef, board: ArtBoardView, onDone: () => void): void {
+    const stage = board.previewNode.parent;
+    if (!stage || !cc.isValid(stage)) {
+        onDone();
+        return;
+    }
+    audioManager.playSound('changePic');
+    const glow = new cc.Node('ironingGlow');
+    glow.width = BOARD_PIXEL_WIDTH;
+    glow.height = BOARD_PIXEL_HEIGHT;
+    glow.zIndex = 60;
+    glow.opacity = 0;
+    stage.addChild(glow);
+    const g = glow.addComponent(cc.Graphics);
+    g.fillColor = new cc.Color(255, 244, 214, 150);
+    g.roundRect(-BOARD_PIXEL_WIDTH / 2, -BOARD_PIXEL_HEIGHT / 2, BOARD_PIXEL_WIDTH, BOARD_PIXEL_HEIGHT, 12);
+    g.fill();
+
+    cc.tween(stage)
+        .to(0.12, { scaleY: stage.scaleY * 0.985, scaleX: stage.scaleX * 1.005 }, { easing: 'sineIn' })
+        .to(0.18, { scaleY: stage.scaleY, scaleX: stage.scaleX }, { easing: 'backOut' })
+        .start();
+    cc.tween(glow)
+        .to(0.22, { opacity: 220 }, { easing: 'sineOut' })
+        .delay(0.32)
+        .to(0.5, { opacity: 0 }, { easing: 'sineIn' })
+        .call(() => {
+            if (cc.isValid(glow)) glow.destroy();
+        })
+        .start();
+
+    // 格线与拼豆遮罩由中心向外融合，随后高清原画淡入。
+    const layers = [board.coverRoot, board.gridNode, board.previewNode];
+    layers.forEach((layer) => {
+        if (!layer || !cc.isValid(layer)) return;
+        cc.tween(layer).delay(0.42).to(0.55, { opacity: 0 }, { easing: 'sineInOut' }).start();
+    });
+    if (board.hdNode && cc.isValid(board.hdNode)) {
+        if (!board.hdNode.getComponent(cc.Sprite)) {
+            const hdSprite = board.hdNode.addComponent(cc.Sprite);
+            hdSprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            hdSprite.spriteFrame = getRealmSpriteFrame(board.art.imagePath);
+            board.hdNode.width = BOARD_PIXEL_WIDTH;
+            board.hdNode.height = BOARD_PIXEL_HEIGHT;
+        }
+        board.hdNode.opacity = 0;
+        cc.tween(board.hdNode)
+            .delay(0.72)
+            .to(0.6, { opacity: 255 }, { easing: 'sineOut' })
+            .start();
+    }
+    const plate = new cc.Node('ironingDonePlate');
+    plate.width = 240;
+    plate.height = 52;
+    plate.zIndex = 80;
+    plate.opacity = 0;
+    stage.addChild(plate);
+    const plateG = plate.addComponent(cc.Graphics);
+    plateG.fillColor = new cc.Color(88, 61, 55, 220);
+    plateG.roundRect(-120, -26, 240, 52, 26);
+    plateG.fill();
+    uimanager.createLabel(plate, '画作已定型', 0, 0, 21, new cc.Color(255, 246, 224), 200, 32);
+    cc.tween(plate)
+        .delay(1.05)
+        .to(0.3, { opacity: 255 }, { easing: 'sineOut' })
+        .delay(1.2)
+        .to(0.3, { opacity: 0 })
+        .call(() => {
+            if (cc.isValid(plate)) plate.destroy();
+            // 页面已离开时不再触发后续跳页。
+            if (!cc.isValid(stage)) return;
+            onDone();
+        })
+        .start();
 }
 
 function createCarouselArrow(
@@ -818,18 +1286,23 @@ function createCarouselArrow(
     }, arrow);
 }
 
+/**
+ * 单幅画作节点：主题画框 + 卡纸 + 像素预览 + 未填豆位遮罩 + 格线 + 高清原画。
+ * 拼豆状态只用少量 Graphics 节点批量绘制，绝不创建 20,280 个节点。
+ */
 function createGalleryArtItem(
     track: cc.Node,
+    album: AlbumDef,
     art: AlbumArtDef,
-    displayW: number,
-    displayH: number,
+    artIndex: number,
+    frameScale: number,
     offset: number,
     sideOffset: number,
-    unlocked: boolean,
-): cc.Node {
+    previousCompleted: boolean,
+): ArtBoardView {
     const item = new cc.Node(`galleryArt_${art.id}`);
-    item.width = displayW + 16;
-    item.height = displayH + 16;
+    item.width = ART_FRAME_WIDTH * frameScale;
+    item.height = ART_FRAME_HEIGHT * frameScale;
     item.setPosition(offset * sideOffset, 0);
     item.scale = offset === 0 ? 1 : CAROUSEL_SIDE_SCALE;
     item.opacity = offset === 0 ? 255 : CAROUSEL_SIDE_OPACITY;
@@ -837,94 +1310,265 @@ function createGalleryArtItem(
     (item as any).galleryOffset = offset;
     track.addChild(item);
 
-    const shadow = uimanager.createRect(item, 'artShadow', displayW + 12, displayH + 12, new cc.Color(7, 12, 14), 42, 12, 4, -6);
-    shadow.zIndex = 1;
-    const paper = uimanager.createRect(item, 'artPaper', displayW + 14, displayH + 14, new cc.Color(255, 248, 230), 255, 9);
-    paper.zIndex = 2;
-    mountResourceSprite(
-        item,
-        'artSprite',
-        art.imagePath,
-        displayW,
-        displayH,
+    // 画框与画作分离：同一画册复用一套主题画框纹理。
+    const frame = new cc.Node('artFrame');
+    frame.width = ART_FRAME_WIDTH;
+    frame.height = ART_FRAME_HEIGHT;
+    frame.zIndex = 6;
+    frame.scale = frameScale;
+    item.addChild(frame);
+    const frameSprite = frame.addComponent(cc.Sprite);
+    frameSprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+    frameSprite.spriteFrame = getRealmSpriteFrame(album.framePath);
+    frame.width = ART_FRAME_WIDTH;
+    frame.height = ART_FRAME_HEIGHT;
+
+    const stage = new cc.Node('artBoardStage');
+    stage.width = BOARD_PIXEL_WIDTH;
+    stage.height = BOARD_PIXEL_HEIGHT;
+    stage.scale = frameScale;
+    stage.zIndex = 4;
+    item.addChild(stage);
+
+    // 底板/卡纸。
+    const backing = new cc.Node('artBacking');
+    backing.width = BOARD_PIXEL_WIDTH;
+    backing.height = BOARD_PIXEL_HEIGHT;
+    backing.zIndex = 0;
+    stage.addChild(backing);
+    const backingG = backing.addComponent(cc.Graphics);
+    backingG.fillColor = mixWithCream(album.accent, 0.82);
+    backingG.roundRect(-BOARD_PIXEL_WIDTH / 2, -BOARD_PIXEL_HEIGHT / 2, BOARD_PIXEL_WIDTH, BOARD_PIXEL_HEIGHT, 8);
+    backingG.fill();
+
+    // 像素预览层：130×156 邻近采样，放大到 650×780。
+    const previewNode = new cc.Node('artPreview');
+    previewNode.width = BOARD_PIXEL_WIDTH;
+    previewNode.height = BOARD_PIXEL_HEIGHT;
+    previewNode.zIndex = 1;
+    stage.addChild(previewNode);
+    const previewSprite = previewNode.addComponent(cc.Sprite);
+    previewSprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+    previewSprite.spriteFrame = getRealmSpriteFrame(art.previewPath);
+    previewNode.width = BOARD_PIXEL_WIDTH;
+    previewNode.height = BOARD_PIXEL_HEIGHT;
+
+    // 未填豆位遮罩：全部画板共享一张平铺棋盘纹理，用两个 RECT Mask 窗口决定露出区域，
+    // 揭开进度只改 Mask 尺寸与位置，不再逐格绘制 20,280 个矩形（内存与 CPU 均为 O(1)）。
+    const coverRoot = new cc.Node('artUnfilledCover');
+    coverRoot.width = BOARD_PIXEL_WIDTH;
+    coverRoot.height = BOARD_PIXEL_HEIGHT;
+    coverRoot.zIndex = 2;
+    stage.addChild(coverRoot);
+    const tileFrame = getCoverTileFrame(album);
+    const coverFullMask = createCoverMask(coverRoot, 'coverFullRows', tileFrame);
+    const coverRowMask = createCoverMask(coverRoot, 'coverActiveRow', tileFrame);
+
+    // 统一格线层：单张 Graphics 一次绘制。
+    const gridNode = new cc.Node('artGridLines');
+    gridNode.width = BOARD_PIXEL_WIDTH;
+    gridNode.height = BOARD_PIXEL_HEIGHT;
+    gridNode.zIndex = 3;
+    gridNode.opacity = 90;
+    stage.addChild(gridNode);
+    drawGridLines(gridNode);
+
+    // 高清原画层：完成前隐藏。
+    const hdNode = new cc.Node('artHdImage');
+    hdNode.width = BOARD_PIXEL_WIDTH;
+    hdNode.height = BOARD_PIXEL_HEIGHT;
+    hdNode.zIndex = 5;
+    hdNode.opacity = 0;
+    stage.addChild(hdNode);
+
+    const filledCells = Math.min(ART_TOTAL_CELLS, zyxGameModule.getOfficialArtFilledCells(art.id));
+    const completed = filledCells >= ART_TOTAL_CELLS;
+    const locked = !previousCompleted && !completed;
+    const board: ArtBoardView = {
+        art,
+        filledCells,
+        coverRoot,
+        coverFullMask,
+        coverRowMask,
+        previewNode,
+        hdNode,
+        gridNode,
+    };
+    updateCoverMasks(board);
+
+    if (completed) {
+        coverRoot.opacity = 0;
+        gridNode.opacity = 0;
+        previewNode.opacity = 0;
+        // 高清原图必须已随页预载；万一缺失用像素预览兜底，绝不让整页渲染中断卡死书页层。
+        let hdFrame: cc.SpriteFrame = null;
+        try {
+            hdFrame = getRealmSpriteFrame(art.imagePath);
+        } catch (error) {
+            cc.warn(`[时空秘境] ${art.id} 高清原图未准备，暂用像素预览兜底`, error);
+        }
+        const hdSprite = hdNode.addComponent(cc.Sprite);
+        hdSprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+        hdSprite.spriteFrame = hdFrame || getRealmSpriteFrame(art.previewPath);
+        hdNode.width = BOARD_PIXEL_WIDTH;
+        hdNode.height = BOARD_PIXEL_HEIGHT;
+        hdNode.opacity = 255;
+    }
+
+    if (locked) {
+        const veil = uimanager.createRect(stage, 'lockedArtVeil', BOARD_PIXEL_WIDTH, BOARD_PIXEL_HEIGHT, new cc.Color(30, 26, 24), 118, 6);
+        veil.zIndex = 7;
+        const hint = uimanager.createLabel(stage, '先完成前一幅', 0, 0, 22, new cc.Color(238, 228, 210), 300, 34);
+        hint.node.zIndex = 8;
+    }
+    return board;
+}
+
+function mixWithCream(color: cc.Color, ratio: number): cc.Color {
+    const t = Math.max(0, Math.min(1, ratio));
+    return new cc.Color(
+        Math.round(color.r * (1 - t) + 255 * t * 0.98),
+        Math.round(color.g * (1 - t) + 244 * t),
+        Math.round(color.b * (1 - t) + 222 * t),
+    );
+}
+
+/** 未填豆位棋盘配色：生成平铺纹理时按册取色。 */
+type CoverPalette = { cellA: cc.Color; cellB: cc.Color; hole: cc.Color };
+
+function buildCoverPalette(accent: cc.Color): CoverPalette {
+    const cellA = mixWithCream(accent, 0.76);
+    const cellB = mixWithCream(accent, 0.68);
+    const hole = new cc.Color(
+        Math.round(cellB.r * 0.72),
+        Math.round(cellB.g * 0.72),
+        Math.round(cellB.b * 0.72),
+        150,
+    );
+    return { cellA, cellB, hole };
+}
+
+/** 棋盘格纹理缓存：每册只生成一次 50×50 平铺纹理，该册全部画板共享。 */
+const coverTileFrames: { [albumId: string]: cc.SpriteFrame } = {};
+
+/**
+ * 生成一册的未填豆位平铺纹理：10×10 豆位（50×50 像素）棋盘 + 每格 1 像素孔位凹槽。
+ * 用 initWithData 直接上传像素数据，不依赖离屏 canvas，Web 与微信小游戏通用。
+ */
+function getCoverTileFrame(album: AlbumDef): cc.SpriteFrame {
+    const cached = coverTileFrames[album.id];
+    if (cached && cc.isValid(cached)) return cached;
+    const palette = buildCoverPalette(album.accent);
+    const tileCells = 10;
+    const size = tileCells * ART_CELL_PIXELS;
+    const data = new Uint8Array(size * size * 4);
+    for (let py = 0; py < size; py++) {
+        for (let px = 0; px < size; px++) {
+            const cellCol = (px / ART_CELL_PIXELS) | 0;
+            const cellRow = (py / ART_CELL_PIXELS) | 0;
+            const localX = px % ART_CELL_PIXELS;
+            const localY = py % ART_CELL_PIXELS;
+            const isHole = localX === 2 && localY === 2;
+            const color = isHole ? palette.hole : ((cellRow + cellCol) % 2 === 0 ? palette.cellA : palette.cellB);
+            const offset = (py * size + px) * 4;
+            data[offset] = color.r;
+            data[offset + 1] = color.g;
+            data[offset + 2] = color.b;
+            data[offset + 3] = isHole ? 150 : 255;
+        }
+    }
+    const texture = new cc.Texture2D();
+    texture.initWithData(data, cc.Texture2D.PixelFormat.RGBA8888, size, size);
+    texture.setFilters(cc.Texture2D.Filter.NEAREST, cc.Texture2D.Filter.NEAREST);
+    const frame = new cc.SpriteFrame();
+    frame.setTexture(texture);
+    coverTileFrames[album.id] = frame;
+    return frame;
+}
+
+/** 单个遮罩窗口：RECT Mask + 整幅平铺棋盘子节点；Mask 节点尺寸与位置决定露出哪一块。 */
+function createCoverMask(parent: cc.Node, name: string, tileFrame: cc.SpriteFrame): cc.Node {
+    const maskNode = new cc.Node(name);
+    parent.addChild(maskNode);
+    const mask = maskNode.addComponent(cc.Mask);
+    mask.type = cc.Mask.Type.RECT;
+    const tile = new cc.Node(`${name}_tiles`);
+    tile.width = BOARD_PIXEL_WIDTH;
+    tile.height = BOARD_PIXEL_HEIGHT;
+    maskNode.addChild(tile);
+    const sprite = tile.addComponent(cc.Sprite);
+    sprite.type = cc.Sprite.Type.TILED;
+    sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+    sprite.spriteFrame = tileFrame;
+    maskNode.active = false;
+    return maskNode;
+}
+
+/** 调整 Mask 窗口：平铺图案保持与画板坐标对齐，不随窗口移动。 */
+function layoutCoverMask(maskNode: cc.Node, visible: boolean, x: number, y: number, width: number, height: number): void {
+    if (!maskNode || !cc.isValid(maskNode)) return;
+    maskNode.active = visible;
+    if (!visible) return;
+    maskNode.setPosition(x, y);
+    maskNode.width = width;
+    maskNode.height = height;
+    const tile = maskNode.children[0];
+    if (tile) tile.setPosition(-x, -y);
+}
+
+/**
+ * 揭开进度 = 调整两个 Mask 窗口的尺寸与位置，不重绘任何图形。
+ * 行优先填充下未填区域是 L 形：当前行剩余格 + 下方完整未填行。
+ */
+function updateCoverMasks(board: ArtBoardView): void {
+    const filled = Math.max(0, Math.min(ART_TOTAL_CELLS, board.filledCells));
+    const fullRows = Math.floor(filled / ART_GRID_COLS);
+    const partialCols = filled % ART_GRID_COLS;
+    const halfW = BOARD_PIXEL_WIDTH / 2;
+    const halfH = BOARD_PIXEL_HEIGHT / 2;
+
+    // 下方完整未填行区域：rows [fullRows + (partialCols > 0 ? 1 : 0), ART_GRID_ROWS)。
+    const firstFullRow = fullRows + (partialCols > 0 ? 1 : 0);
+    const fullHeight = (ART_GRID_ROWS - firstFullRow) * ART_CELL_PIXELS;
+    layoutCoverMask(
+        board.coverFullMask,
+        fullHeight > 0,
         0,
-        0,
-        4,
-        unlocked ? undefined : (sprite) => applyLockedArtBlur(item, sprite),
+        halfH - firstFullRow * ART_CELL_PIXELS - fullHeight / 2,
+        BOARD_PIXEL_WIDTH,
+        fullHeight,
     );
 
-    if (!unlocked) {
-        const veil = new cc.Node('lockedArtVeil');
-        veil.width = displayW;
-        veil.height = displayH;
-        veil.zIndex = 20;
-        item.addChild(veil);
-        const mist = uimanager.createRect(veil, 'lockedArtMist', displayW, displayH, new cc.Color(229, 223, 214), 124, 5);
-        mist.zIndex = 1;
-        if (offset === 0) {
-            (item as any).lockedArtLock = mountResourceSprite(
-                veil,
-                'lockedArtIcon',
-                ASSET_PATHS.realm.lock,
-                210,
-                263,
-                0,
-                24,
-                2,
-                undefined,
-            );
-        }
-        (item as any).lockedVeil = veil;
+    // 当前行剩余未填格区域：row fullRows，cols [partialCols, ART_GRID_COLS)。
+    const rowWidth = (ART_GRID_COLS - partialCols) * ART_CELL_PIXELS;
+    layoutCoverMask(
+        board.coverRowMask,
+        partialCols > 0 && fullRows < ART_GRID_ROWS,
+        -halfW + partialCols * ART_CELL_PIXELS + rowWidth / 2,
+        halfH - fullRows * ART_CELL_PIXELS - ART_CELL_PIXELS / 2,
+        rowWidth,
+        ART_CELL_PIXELS,
+    );
+}
+
+/** 统一格线层：1 像素间隙让底板透出网格，单次 stroke 完成。 */
+function drawGridLines(node: cc.Node): void {
+    const g = node.addComponent(cc.Graphics);
+    const halfW = BOARD_PIXEL_WIDTH / 2;
+    const halfH = BOARD_PIXEL_HEIGHT / 2;
+    g.strokeColor = new cc.Color(88, 61, 55, 34);
+    g.lineWidth = 1;
+    for (let col = 0; col <= ART_GRID_COLS; col++) {
+        const x = -halfW + col * ART_CELL_PIXELS;
+        g.moveTo(x, -halfH);
+        g.lineTo(x, halfH);
     }
-    return item;
-}
-
-function shakeGalleryArtLock(item: cc.Node): void {
-    if (!item || !cc.isValid(item)) return;
-    shakeLock((item as any).lockedArtLock);
-}
-
-function applyLockedArtBlur(item: cc.Node, sprite: cc.Sprite): void {
-    (item as any).blurRadius = LOCKED_ART_BLUR_RADIUS;
-    const effectAsset = getEffectAsset('realm', ASSET_PATHS.realm.blurEffect);
-    const material = cc.Material.create(effectAsset);
-    if (!material) return;
-    const params = new cc.Vec4(1 / ALBUM_ART_WIDTH, 1 / ALBUM_ART_HEIGHT, Number((item as any).blurRadius) || 0, 0);
-    material.setProperty('blurParams', params);
-    const appliedMaterial = sprite.setMaterial(0, material);
-    (item as any).blurMaterial = appliedMaterial;
-    (item as any).blurParams = params;
-}
-
-function updateLockedArtBlur(item: cc.Node, radius: number): void {
-    (item as any).blurRadius = radius;
-    const material: cc.Material = (item as any).blurMaterial;
-    const params: cc.Vec4 = (item as any).blurParams;
-    if (!material || !params) return;
-    params.z = radius;
-    material.setProperty('blurParams', params);
-}
-
-function animateLockedArtReveal(item: cc.Node, onDone: () => void): void {
-    const state = { radius: Number((item as any).blurRadius) || LOCKED_ART_BLUR_RADIUS };
-    const previousState = (item as any).blurTweenState;
-    if (previousState) cc.Tween.stopAllByTarget(previousState);
-    (item as any).blurTweenState = state;
-    const veil: cc.Node = (item as any).lockedVeil;
-    if (veil && cc.isValid(veil)) {
-        cc.tween(veil).delay(0.12).to(0.88, { opacity: 0 }, { easing: 'sineOut' }).start();
+    for (let row = 0; row <= ART_GRID_ROWS; row++) {
+        const y = -halfH + row * ART_CELL_PIXELS;
+        g.moveTo(-halfW, y);
+        g.lineTo(halfW, y);
     }
-    cc.tween(state)
-        .to(1.05, { radius: 0 }, {
-            easing: 'sineInOut',
-            onUpdate: () => {
-                if (cc.isValid(item)) updateLockedArtBlur(item, state.radius);
-            },
-        })
-        .call(() => {
-            if (cc.isValid(item)) onDone();
-        })
-        .start();
+    g.stroke();
 }
 
 function bindCarouselGestures(
@@ -935,6 +1579,7 @@ function bindCarouselGestures(
     displayH: number,
     sideOffset: number,
     onShowArt: (index: number) => void,
+    canNavigate?: () => boolean,
 ): (delta: number) => void {
     const gesture = new cc.Node('carouselGestureLayer');
     gesture.width = screen.width;
@@ -982,6 +1627,11 @@ function bindCarouselGestures(
     };
     const navigate = (delta: number) => {
         if (navigating) return;
+        // 动画期间禁止翻页：拖出的轨道先弹回原位。
+        if (canNavigate && !canNavigate()) {
+            resetTrack();
+            return;
+        }
         const nextIndex = artIndex + delta;
         if (nextIndex < 0 || nextIndex >= total) {
             resetTrack();
@@ -995,6 +1645,7 @@ function bindCarouselGestures(
 
     gesture.on(cc.Node.EventType.TOUCH_START, (event: cc.Event.EventTouch) => {
         if (navigating) return;
+        if (canNavigate && !canNavigate()) return;
         startX = event.getLocationX();
         dragX = 0;
         cc.Tween.stopAllByTarget(track);
@@ -1002,6 +1653,7 @@ function bindCarouselGestures(
     }, gesture);
     gesture.on(cc.Node.EventType.TOUCH_MOVE, (event: cc.Event.EventTouch) => {
         if (navigating) return;
+        if (canNavigate && !canNavigate()) return;
         dragX = event.getLocationX() - startX;
         track.x = Math.max(-sideOffset * 0.46, Math.min(sideOffset * 0.46, dragX * 0.88));
         applyPoses(track.x);

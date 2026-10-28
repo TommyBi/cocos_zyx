@@ -21,7 +21,7 @@ let pending: SharePending | null = null;
 let onShowHooked: boolean = false;
 let systemShareRegistered: boolean = false;
 
-const SHARE_TITLE = '烦恼排排消｜整理心情，装进开心瓶';
+const SHARE_TITLE = '烦恼排排消｜整理心情，收集开心豆';
 
 function finishPending(rewarded: boolean, toastMessage: string = ''): void {
     if (!pending || pending.completed) return;

@@ -1,9 +1,77 @@
+import {
+    DATA_GENERATION,
+    DATA_GENERATION_KEY,
+    DEAD_ROUND_SETTLEMENTS_KEY,
+    MOOD_BEAN_BALANCE_KEY,
+    OFFICIAL_ART_PROGRESS_CACHE_KEY,
+    PENDING_REALM_ACTION_KEY,
+    PENDING_ROUND_SETTLEMENTS_KEY,
+    PENDING_ROUND_SETTLEMENTS_LIMIT,
+} from './MoodBeanConfig';
+
 export const BOARD_ROWS = 10;
 export const BOARD_COLS = 8;
 export const CELL_SIZE = 76;
-/** 收集满一瓶所需表情数；满瓶后计入开心瓶数量。 */
-export const HAPPY_BOTTLE_TARGET = 66;
 const TUTORIAL_CHALLENGE_COUNT_KEY = 'zyx_tutorial_challenge_count';
+
+/**
+ * 新数据代际清空时必须移除的已知键。
+ * Web 环境可枚举 localStorage 时会全量删除 zyx_* 键；微信与测试环境退化为显式清单。
+ * 旧开心瓶、旧画册与旧日进度键只出现在这里用于删除，不会被读取或折算。
+ */
+const KNOWN_STORAGE_KEYS = [
+    DATA_GENERATION_KEY,
+    MOOD_BEAN_BALANCE_KEY,
+    OFFICIAL_ART_PROGRESS_CACHE_KEY,
+    PENDING_ROUND_SETTLEMENTS_KEY,
+    DEAD_ROUND_SETTLEMENTS_KEY,
+    PENDING_REALM_ACTION_KEY,
+    TUTORIAL_CHALLENGE_COUNT_KEY,
+    'zyx_level',
+    'zyx_experience',
+    'zyx_best_score',
+    'zyx_hammer_inventory',
+    'zyx_magic_wand_inventory',
+    'zyx_cloud_token',
+    'zyx_cloud_device_id',
+    'zyx_wechat_profile',
+    'zyx_game_settings_v1',
+    'zyx_gm_bubble_pos_v1',
+    // 旧经济键：只删除，不读取。
+    'zyx_happy_bottle_count',
+    'zyx_current_happy_bottle_progress',
+    'zyx_unlocked_albums',
+    'zyx_unlocked_album_arts',
+    'zyx_pending_realm_unlocks',
+    'zyx_daily_moods',
+    'zyx_daily_wish',
+];
+
+/**
+ * 一次性数据代际清空：标记不是 mood_bean_v1 时删除全部 zyx_* 本地数据。
+ * 不迁移、不折算任何旧值；写入标记后正常重启不会再次清空新档。
+ * 返回 true 表示本次启动执行了清空。
+ */
+export function ensureDataGeneration(): boolean {
+    const storage = cc.sys.localStorage;
+    if (storage.getItem(DATA_GENERATION_KEY) === DATA_GENERATION) return false;
+    // 本地开发的 API 覆盖地址不属于玩家数据，整代清空时保留。
+    const apiBaseOverride = storage.getItem('zyx_api_base_override');
+    const enumerable = storage as any;
+    if (typeof enumerable.length === 'number' && typeof enumerable.key === 'function') {
+        const keys: string[] = [];
+        for (let index = 0; index < enumerable.length; index++) {
+            const key = enumerable.key(index);
+            if (key && key.indexOf('zyx_') === 0) keys.push(key);
+        }
+        keys.forEach((key) => storage.removeItem(key));
+    } else {
+        KNOWN_STORAGE_KEYS.forEach((key) => storage.removeItem(key));
+    }
+    storage.setItem(DATA_GENERATION_KEY, DATA_GENERATION);
+    if (apiBaseOverride) storage.setItem('zyx_api_base_override', apiBaseOverride);
+    return true;
+}
 
 export type BoardPiece = {
     id: number;
@@ -52,19 +120,46 @@ export type EliminateResult = ResolveResult & {
 
 export type RoundSettlement = {
     roundScore: number;
-    roundMoodCount: number;
-    collectedMoods: number;
+    /** 本局实际消除并收集的带表情心情块数（一块一豆）。 */
+    roundCollectedMoodBeans: number;
+    /** 经服务端验证的结算额外奖励；未触发时为 0，结算中单列展示。 */
+    roundBonusMoodBeans: number;
+    /** 本局最终入账的开心豆总数。 */
+    roundEarnedMoodBeans: number;
     gainedExperience: number;
-    completedHappyBottles: number;
     levelUps: number;
-    wishProgressBefore: number;
-    wishProgressAfter: number;
+    moodBeanBalanceBefore: number;
+    moodBeanBalanceAfter: number;
     levelBefore: number;
     experienceBefore: number;
     experienceTargetBefore: number;
     levelAfter: number;
     experienceAfter: number;
     experienceTargetAfter: number;
+};
+
+/** 离线结算待提交队列的单条记录；云端按 roundId 幂等。 */
+export type PendingRoundSettlement = {
+    roundId: string;
+    startedAt: number;
+    endedAt: number;
+    score: number;
+    collectedMoodBeanCount: number;
+};
+
+/** 永久失败的结算记录：移出活动队列后保留原因与时间，供排查且不堵塞后续记录。 */
+export type DeadRoundSettlement = {
+    record: PendingRoundSettlement;
+    reason: string;
+    deadAt: number;
+};
+
+/** 未确认的拼画操作：模糊失败（超时/丢响应）重试时必须复用同一 actionId 与载荷。 */
+export type PendingRealmAction = {
+    actionId: string;
+    artId: string;
+    requestedBeans: number;
+    createdAt: number;
 };
 
 export type MoveHint = {
@@ -115,16 +210,19 @@ export default class ZyxGameModule {
     public colorPurifierCount: number = 0;
     public turn: number = 0;
     public roundClearedRows: number = 0;
-    public roundCollectedMoods: number = 0;
-    /** 当前正在收集的开心瓶进度；满瓶后计入开心瓶数量。 */
-    public happyBottleProgress: number = 0;
-    /** 已装满的开心瓶数量（解忧秘境等处会使用）。 */
-    public happyBottleCount: number = 0;
+    /** 本局实际消除并收集的带表情心情块数；结算时 1:1 入账为开心豆。 */
+    public roundCollectedMoodBeans: number = 0;
+    /** 开心豆长期余额；服务端是最终权威，本地仅作缓存与离线展示。 */
+    public moodBeanBalance: number = 0;
+    /** 官方拼画进度的本地缓存：artId → 已填豆位数。 */
+    public officialArtProgress: { [artId: string]: number } = {};
     public level: number = 1;
     public experience: number = 0;
     public challengeCount: number = 0;
     public startingBestScore: number = 0;
     public roundSeed: number = 0;
+    /** 本局开始时间（resetRound 时刷新）；暂停重开放弃本局后，新局从重开时刻重新计时。 */
+    public roundStartedAt: number = 0;
     public generationDebugLog: RowGenerationDebug[] = [];
 
     private nextId: number = 1;
@@ -140,11 +238,12 @@ export default class ZyxGameModule {
         this.score = 0;
         this.turn = 0;
         this.roundClearedRows = 0;
-        this.roundCollectedMoods = 0;
+        this.roundCollectedMoodBeans = 0;
         this.nextId = 1;
         this.hammerCount = Math.max(0, this.readNumber('zyx_hammer_inventory', 0));
         this.colorPurifierCount = Math.max(0, this.readNumber('zyx_magic_wand_inventory', 0));
         this.roundSettled = false;
+        this.roundStartedAt = Date.now();
         this.bestScore = this.readNumber('zyx_best_score', 0);
         this.startingBestScore = this.bestScore;
         this.roundSeed = this.seedOverride || this.createRandomSeed();
@@ -417,11 +516,13 @@ export default class ZyxGameModule {
         const gainedScore = fullRows.length * 10 * chain;
         this.score += gainedScore;
         this.roundClearedRows += fullRows.length;
-        this.roundCollectedMoods += collectedMoodTypes.length;
-        if (this.score > this.bestScore) {
-            this.bestScore = this.score;
-            cc.sys.localStorage.setItem('zyx_best_score', String(this.bestScore));
-        }
+        this.roundCollectedMoodBeans += collectedMoodTypes.length;
+// 局内消除时只在内存刷新 HUD“可能达到的新纪录”展示，绝不落盘；
+// bestScore / zyx_best_score 只能在正式 finishRound() 结算时持久化。
+// 暂停重开会走 resetRound()，从 zyx_best_score 重新读取本局开始前的值。
+if (this.score > this.bestScore) {
+this.bestScore = this.score;
+}
         return {
             clearedRows: fullRows.length,
             gainedScore,
@@ -454,76 +555,83 @@ export default class ZyxGameModule {
     }
 
     public finishRound(): RoundSettlement {
+        // 展示口径：服务端确认基准 + 剩余 pending 推算值。结算动画的 before/after 也按展示口径给出。
+        const displayBalanceBefore = this.getDisplayMoodBeanBalance();
+        const displayLevelBefore = this.getDisplayLevelAndExperience();
         if (this.roundSettled) {
-            const target = this.getExperienceTarget();
             return {
                 roundScore: this.score,
-                roundMoodCount: this.roundCollectedMoods,
-                collectedMoods: 0,
+                roundCollectedMoodBeans: 0,
+                roundBonusMoodBeans: 0,
+                roundEarnedMoodBeans: 0,
                 gainedExperience: 0,
-                completedHappyBottles: 0,
                 levelUps: 0,
-                wishProgressBefore: this.happyBottleProgress,
-                wishProgressAfter: this.happyBottleProgress,
-                levelBefore: this.level,
-                experienceBefore: this.experience,
-                experienceTargetBefore: target,
-                levelAfter: this.level,
-                experienceAfter: this.experience,
-                experienceTargetAfter: target,
+                moodBeanBalanceBefore: displayBalanceBefore,
+                moodBeanBalanceAfter: displayBalanceBefore,
+                levelBefore: displayLevelBefore.level,
+                experienceBefore: displayLevelBefore.experience,
+                experienceTargetBefore: displayLevelBefore.target,
+                levelAfter: displayLevelBefore.level,
+                experienceAfter: displayLevelBefore.experience,
+                experienceTargetAfter: displayLevelBefore.target,
             };
         }
         this.roundSettled = true;
         if (this.score > this.bestScore) this.bestScore = this.score;
         cc.sys.localStorage.setItem('zyx_best_score', String(this.bestScore));
 
-        this.syncPersistentProgress();
-        const wishProgressBefore = this.happyBottleProgress;
-        const levelBefore = this.level;
-        const experienceBefore = this.experience;
-        const experienceTargetBefore = this.getExperienceTarget();
-        // 表情与经验同源；进度跨日累积，装满后计入开心瓶数量。
-        const gainedExperience = this.roundCollectedMoods;
-        const totalMoodProgress = this.happyBottleProgress + this.roundCollectedMoods;
-        const completedHappyBottles = Math.floor(totalMoodProgress / HAPPY_BOTTLE_TARGET);
-        const collectedMoods = this.roundCollectedMoods;
-        this.happyBottleProgress = totalMoodProgress % HAPPY_BOTTLE_TARGET;
-        this.happyBottleCount += completedHappyBottles;
-        const levelUps = this.addExperience(gainedExperience);
-        this.savePersistentProgress();
+        // 一块一豆：本局每个带表情心情块恰好入账 1 颗开心豆；经验独立但第一版同源。
+        const roundCollectedMoodBeans = this.roundCollectedMoodBeans;
+        const roundBonusMoodBeans = 0;
+        const roundEarnedMoodBeans = roundCollectedMoodBeans + roundBonusMoodBeans;
+        const gainedExperience = roundCollectedMoodBeans;
+        // R2：本局奖励不直接写入服务端确认基准，也不在此落盘；
+        // 记录进入 pending 队列后由 getDisplayMoodBeanBalance / getDisplayLevelAndExperience 推算展示，
+        // 只有服务端回执（applyCloudProfile / applyRealmState）才能把奖励写入基准。
+        let levelAfter = displayLevelBefore.level;
+        let experienceAfter = displayLevelBefore.experience + gainedExperience;
+        let experienceTargetAfter = displayLevelBefore.target;
+        while (experienceAfter >= experienceTargetAfter) {
+            experienceAfter -= experienceTargetAfter;
+            levelAfter++;
+            experienceTargetAfter = this.getExperienceTargetForLevel(levelAfter);
+        }
         return {
             roundScore: this.score,
-            roundMoodCount: this.roundCollectedMoods,
-            collectedMoods,
+            roundCollectedMoodBeans,
+            roundBonusMoodBeans,
+            roundEarnedMoodBeans,
             gainedExperience,
-            completedHappyBottles,
-            levelUps,
-            wishProgressBefore,
-            wishProgressAfter: this.happyBottleProgress,
-            levelBefore,
-            experienceBefore,
-            experienceTargetBefore,
-            levelAfter: this.level,
-            experienceAfter: this.experience,
-            experienceTargetAfter: this.getExperienceTarget(),
+            levelUps: levelAfter - displayLevelBefore.level,
+            moodBeanBalanceBefore: displayBalanceBefore,
+            moodBeanBalanceAfter: displayBalanceBefore + roundEarnedMoodBeans,
+            levelBefore: displayLevelBefore.level,
+            experienceBefore: displayLevelBefore.experience,
+            experienceTargetBefore: displayLevelBefore.target,
+            levelAfter,
+            experienceAfter,
+            experienceTargetAfter,
         };
     }
 
-    /** 云端结算返回后覆盖本地展示缓存；服务端数据是最终权威来源。 */
+    /**
+     * 云端结算返回后覆盖本地展示缓存；服务端数据是最终权威来源。
+     *
+     * R2 修复：moodBeanBalance / level / experience 只保存服务端确认基准，
+     * UI 层通过 getDisplayMoodBeanBalance / getDisplayLevelAndExperience 获取叠加 pending 推算值后的展示值，
+     * 避免队列中仍有未确认奖励时界面退回服务端旧值。
+     */
     public applyCloudProfile(profile: {
         level: number;
         experience: number;
-        happyBottleBalance: number;
-        happyBottleProgress: number;
+        moodBeanBalance: number;
+        totalMoodBeans?: number;
         highestSingleGameScore: number;
         gameCount?: number;
     }): void {
         this.level = Math.max(1, profile.level || 1);
         this.experience = Math.max(0, profile.experience || 0);
-        const rawBottleProgress = Math.max(0, Math.floor(profile.happyBottleProgress || 0));
-        const completedFromLegacyProgress = Math.floor(rawBottleProgress / HAPPY_BOTTLE_TARGET);
-        this.happyBottleCount = Math.max(0, profile.happyBottleBalance || 0) + completedFromLegacyProgress;
-        this.happyBottleProgress = rawBottleProgress % HAPPY_BOTTLE_TARGET;
+        this.moodBeanBalance = Math.max(0, Math.floor(profile.moodBeanBalance || 0));
         this.bestScore = Math.max(this.bestScore, profile.highestSingleGameScore || 0);
         if (!this.hasGameCountBaseline) {
             this.loggedInGameCount = Math.max(0, Math.floor(profile.gameCount || 0));
@@ -539,6 +647,47 @@ export default class ZyxGameModule {
         cc.sys.localStorage.setItem('zyx_best_score', String(this.bestScore));
     }
 
+    /**
+     * 计算剩余 pending 记录的推算奖励：开心豆数 + 经验值。
+     *
+     * 一块一豆：每条 pending 记录的 collectedMoodBeanCount 既对应开心豆也对应经验。
+     * dead-letter 记录不得计入预览。
+     */
+    public getPendingSettlementPreview(): { moodBeans: number; experience: number } {
+        const pending = this.getPendingRoundSettlements();
+        let moodBeans = 0;
+        let experience = 0;
+        for (const record of pending) {
+            const beans = Math.max(0, Math.floor(Number(record.collectedMoodBeanCount) || 0));
+            moodBeans += beans;
+            experience += beans;
+        }
+        return { moodBeans, experience };
+    }
+
+    /**
+     * 返回叠加 pending 推算值后的展示用开心豆余额。
+     * 用于 UI 显示：服务端确认值 + 剩余有效 pending 记录推算值。
+     */
+    public getDisplayMoodBeanBalance(): number {
+        const preview = this.getPendingSettlementPreview();
+        return Math.max(0, Math.floor(this.moodBeanBalance) + preview.moodBeans);
+    }
+
+    /**
+     * 返回叠加 pending 推算值后的展示用等级与经验。
+     */
+    public getDisplayLevelAndExperience(): { level: number; experience: number; target: number } {
+        const preview = this.getPendingSettlementPreview();
+        let level = this.level;
+        let experience = this.experience + preview.experience;
+        while (experience >= this.getExperienceTargetForLevel(level)) {
+            experience -= this.getExperienceTargetForLevel(level);
+            level++;
+        }
+        return { level, experience, target: this.getExperienceTargetForLevel(level) };
+    }
+
     public getExperienceTarget(): number {
         return this.getExperienceTargetForLevel(this.level);
     }
@@ -547,57 +696,30 @@ export default class ZyxGameModule {
         return Math.max(15, Math.ceil(15 * Math.pow(1.32, Math.max(1, level) - 1)));
     }
 
-    /** 使用开心瓶；数量不足时不改变状态。 */
-    public spendHappyBottles(amount: number): boolean {
-        const cost = Math.max(0, Math.floor(amount));
-        if (this.happyBottleCount < cost) return false;
-        this.happyBottleCount -= cost;
-        this.savePersistentProgress();
-        return true;
-    }
-
     /**
      * 本地 GM 面板的库存发放入口。
      * 先从持久化存档读取，再整体写回，确保首页未开局时不会把已有道具库存覆盖为 0。
      */
-    public grantDebugInventory(happyBottles: number, hammers: number, magicWands: number): void {
-        const bottleReward = Math.max(0, Math.floor(happyBottles));
+    public grantDebugInventory(moodBeans: number, hammers: number, magicWands: number): void {
+        const beanReward = Math.max(0, Math.floor(moodBeans));
         const hammerReward = Math.max(0, Math.floor(hammers));
         const wandReward = Math.max(0, Math.floor(magicWands));
         this.syncPersistentProgress();
         this.hammerCount = Math.max(0, this.readNumber('zyx_hammer_inventory', this.hammerCount));
         this.colorPurifierCount = Math.max(0, this.readNumber('zyx_magic_wand_inventory', this.colorPurifierCount));
-        this.happyBottleCount += bottleReward;
+        this.moodBeanBalance += beanReward;
         this.hammerCount += hammerReward;
         this.colorPurifierCount += wandReward;
         this.savePersistentProgress();
         this.saveToolInventory();
     }
 
-    /**
-     * GM：给当前正在收集的瓶子加表情进度；达到目标时自动折算为开心瓶数量。
-     */
-    public grantDebugHappyBottleProgress(amount: number): { added: number; completedBottles: number; progress: number } {
-        const added = Math.max(0, Math.floor(amount));
-        this.syncPersistentProgress();
-        const total = this.happyBottleProgress + added;
-        const completedBottles = Math.floor(total / HAPPY_BOTTLE_TARGET);
-        this.happyBottleProgress = total % HAPPY_BOTTLE_TARGET;
-        this.happyBottleCount += completedBottles;
-        this.savePersistentProgress();
-        return {
-            added,
-            completedBottles,
-            progress: this.happyBottleProgress,
-        };
-    }
-
     /** GM：重置本地进度与道具；云端需另行调用 reset。 */
     public resetLocalAccount(): void {
         this.level = 1;
         this.experience = 0;
-        this.happyBottleCount = 0;
-        this.happyBottleProgress = 0;
+        this.moodBeanBalance = 0;
+        this.officialArtProgress = {};
         this.hammerCount = 0;
         this.colorPurifierCount = 0;
         this.bestScore = 0;
@@ -609,63 +731,139 @@ export default class ZyxGameModule {
         this.savePersistentProgress();
         this.saveToolInventory();
         cc.sys.localStorage.setItem('zyx_best_score', '0');
-        cc.sys.localStorage.setItem('zyx_unlocked_albums', '{}');
-        cc.sys.localStorage.setItem('zyx_unlocked_album_arts', '{}');
-        cc.sys.localStorage.setItem('zyx_pending_realm_unlocks', '[]');
-        cc.sys.localStorage.removeItem('zyx_daily_moods');
-        cc.sys.localStorage.removeItem('zyx_daily_wish');
+        cc.sys.localStorage.setItem(OFFICIAL_ART_PROGRESS_CACHE_KEY, '{}');
+        cc.sys.localStorage.setItem(PENDING_ROUND_SETTLEMENTS_KEY, '[]');
+        cc.sys.localStorage.removeItem(DEAD_ROUND_SETTLEMENTS_KEY);
+        cc.sys.localStorage.removeItem(PENDING_REALM_ACTION_KEY);
     }
 
-    public getUnlockedAlbumArts(): { [key: string]: boolean } {
-        const raw = cc.sys.localStorage.getItem('zyx_unlocked_album_arts');
-        if (!raw) return {};
+    // ---------- 离线结算待提交队列 ----------
+
+    public getPendingRoundSettlements(): PendingRoundSettlement[] {
+        const raw = cc.sys.localStorage.getItem(PENDING_ROUND_SETTLEMENTS_KEY);
+        if (!raw) return [];
         try {
             const value = JSON.parse(raw);
-            return value && typeof value === 'object' ? value : {};
+            if (!Array.isArray(value)) return [];
+            return value.filter((item) => item && typeof item.roundId === 'string' && item.roundId.length > 0);
         } catch (error) {
-            return {};
+            return [];
         }
     }
 
-    /** 已用开心瓶打开的画册；与册内单幅画作的点亮进度分开保存。 */
-    public getUnlockedAlbums(): { [key: string]: boolean } {
-        const raw = cc.sys.localStorage.getItem('zyx_unlocked_albums');
-        if (!raw) return {};
+    /** 本地结算后立即入队；同一 roundId 不重复入队，队列封顶并记录异常但不静默覆盖。 */
+    public enqueuePendingRoundSettlement(record: PendingRoundSettlement): void {
+        const queue = this.getPendingRoundSettlements();
+        if (queue.some((item) => item.roundId === record.roundId)) return;
+        if (queue.length >= PENDING_ROUND_SETTLEMENTS_LIMIT) {
+            cc.warn(`[开心豆] 待提交结算队列已达上限，最新一局 ${record.roundId} 暂不覆盖旧记录`);
+            return;
+        }
+        queue.push(record);
+        cc.sys.localStorage.setItem(PENDING_ROUND_SETTLEMENTS_KEY, JSON.stringify(queue));
+    }
+
+    /** 开始新一局前的前置检查：队列已满时必须提示玩家先联网同步，不允许“本地入账但无记录”。 */
+    public canAcceptPendingRoundSettlement(): boolean {
+        return this.getPendingRoundSettlements().length < PENDING_ROUND_SETTLEMENTS_LIMIT;
+    }
+
+    /** 永久错误隔离：从活动队列移入 dead-letter，保留原因与时间；后续记录继续补传。 */
+    public movePendingRoundSettlementToDeadLetter(roundId: string, reason: string): void {
+        const queue = this.getPendingRoundSettlements();
+        const target = queue.find((item) => item.roundId === roundId);
+        if (!target) return;
+        this.removePendingRoundSettlement(roundId);
+        const dead = this.getDeadRoundSettlements();
+        dead.push({
+            record: target,
+            reason: String(reason || '未知错误').slice(0, 120),
+            deadAt: Date.now(),
+        });
+        // dead-letter 只保留最近 20 条，避免无限膨胀。
+        while (dead.length > 20) dead.shift();
+        cc.sys.localStorage.setItem(DEAD_ROUND_SETTLEMENTS_KEY, JSON.stringify(dead));
+    }
+
+    public getDeadRoundSettlements(): DeadRoundSettlement[] {
+        const raw = cc.sys.localStorage.getItem(DEAD_ROUND_SETTLEMENTS_KEY);
+        if (!raw) return [];
         try {
             const value = JSON.parse(raw);
-            return value && typeof value === 'object' ? value : {};
+            if (!Array.isArray(value)) return [];
+            return value.filter((item) => item && item.record && typeof item.record.roundId === 'string');
         } catch (error) {
-            return {};
+            return [];
         }
     }
 
-    public isAlbumUnlocked(albumId: string): boolean {
-        const unlockedAlbums = this.getUnlockedAlbums();
-        if (unlockedAlbums[albumId]) return true;
+    // ---------- 拼画未确认操作（R4） ----------
 
-        // 兼容旧版：玩家只要已经点亮过本册任意画作，就视为已经拥有该画册。
-        const unlockedArts = this.getUnlockedAlbumArts();
-        const artPrefix = `${albumId}_art_`;
-        return Object.keys(unlockedArts).some((artId) => unlockedArts[artId] && artId.indexOf(artPrefix) === 0);
+    public getPendingRealmAction(): PendingRealmAction {
+        const raw = cc.sys.localStorage.getItem(PENDING_REALM_ACTION_KEY);
+        if (!raw) return null;
+        try {
+            const value = JSON.parse(raw);
+            if (!value || typeof value.actionId !== 'string' || value.actionId.length === 0) return null;
+            if (typeof value.artId !== 'string' || value.artId.length === 0) return null;
+            const requestedBeans = Math.floor(Number(value.requestedBeans));
+            if (!Number.isFinite(requestedBeans) || requestedBeans <= 0) return null;
+            return {
+                actionId: value.actionId,
+                artId: value.artId,
+                requestedBeans,
+                createdAt: Number(value.createdAt) || 0,
+            };
+        } catch (error) {
+            return null;
+        }
     }
 
-    /** 使用开心瓶打开整本画册；重复调用不会重复扣除。 */
-    public unlockAlbum(albumId: string, cost: number): boolean {
-        if (this.isAlbumUnlocked(albumId)) return true;
-        if (!this.spendHappyBottles(cost)) return false;
-        const unlockedAlbums = this.getUnlockedAlbums();
-        unlockedAlbums[albumId] = true;
-        cc.sys.localStorage.setItem('zyx_unlocked_albums', JSON.stringify(unlockedAlbums));
-        return true;
+    /** 提交拼画前先持久化操作身份；收到确定成功结果后才能清除。 */
+    public setPendingRealmAction(action: PendingRealmAction): void {
+        cc.sys.localStorage.setItem(PENDING_REALM_ACTION_KEY, JSON.stringify(action));
     }
 
-    public unlockAlbumArt(artId: string, cost: number): boolean {
-        const unlocked = this.getUnlockedAlbumArts();
-        if (unlocked[artId]) return true;
-        if (!this.spendHappyBottles(cost)) return false;
-        unlocked[artId] = true;
-        cc.sys.localStorage.setItem('zyx_unlocked_album_arts', JSON.stringify(unlocked));
-        return true;
+    public clearPendingRealmAction(): void {
+        cc.sys.localStorage.removeItem(PENDING_REALM_ACTION_KEY);
+    }
+
+    /** 云端结算成功后只删除对应 roundId。 */
+    public removePendingRoundSettlement(roundId: string): void {
+        const queue = this.getPendingRoundSettlements().filter((item) => item.roundId !== roundId);
+        cc.sys.localStorage.setItem(PENDING_ROUND_SETTLEMENTS_KEY, JSON.stringify(queue));
+    }
+
+    // ---------- 官方拼画进度缓存 ----------
+
+    public getOfficialArtFilledCells(artId: string): number {
+        const value = this.officialArtProgress[artId];
+        return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+    }
+
+    /** 服务端返回进度后更新本地缓存并落盘。 */
+    public setOfficialArtFilledCells(artId: string, filledCells: number): void {
+        this.officialArtProgress[artId] = Math.max(0, Math.floor(filledCells));
+        cc.sys.localStorage.setItem(OFFICIAL_ART_PROGRESS_CACHE_KEY, JSON.stringify(this.officialArtProgress));
+    }
+
+    /** 进入秘境时用服务端 /realm/state 拉齐余额与全部画作进度。 */
+    public applyRealmState(state: {
+        moodBeanBalance: number;
+        albums: Array<{ arts: Array<{ artId: string; filledCells: number }> }>;
+    }): void {
+        if (state && Number.isFinite(state.moodBeanBalance)) {
+            this.moodBeanBalance = Math.max(0, Math.floor(state.moodBeanBalance));
+            this.savePersistentProgress();
+        }
+        if (state && Array.isArray(state.albums)) {
+            state.albums.forEach((album) => {
+                (album.arts || []).forEach((art) => {
+                    this.officialArtProgress[art.artId] = Math.max(0, Math.floor(art.filledCells || 0));
+                });
+            });
+            cc.sys.localStorage.setItem(OFFICIAL_ART_PROGRESS_CACHE_KEY, JSON.stringify(this.officialArtProgress));
+        }
     }
 
     public isGameOver(): boolean {
@@ -925,27 +1123,22 @@ export default class ZyxGameModule {
     }
 
     private syncPersistentProgress(): void {
-        this.happyBottleCount = Math.max(0, this.readNumber('zyx_happy_bottle_count', 0));
+        this.moodBeanBalance = Math.max(0, Math.floor(this.readNumber(MOOD_BEAN_BALANCE_KEY, 0)));
         this.level = Math.max(1, this.readNumber('zyx_level', 1));
         this.experience = Math.max(0, this.readNumber('zyx_experience', 0));
-        // 兼容旧日进度键；读入后写入永久进度键，不再按自然日清空。
-        const legacyValue = this.readNumber('zyx_daily_moods', this.readNumber('zyx_daily_wish', 0));
-        const storedProgress = Math.max(
-            0,
-            Math.floor(this.readNumber('zyx_current_happy_bottle_progress', legacyValue)),
-        );
-        const completedFromLegacyProgress = Math.floor(storedProgress / HAPPY_BOTTLE_TARGET);
-        this.happyBottleProgress = storedProgress % HAPPY_BOTTLE_TARGET;
-        if (completedFromLegacyProgress > 0) {
-            this.happyBottleCount += completedFromLegacyProgress;
-            cc.sys.localStorage.setItem('zyx_current_happy_bottle_progress', String(this.happyBottleProgress));
-            cc.sys.localStorage.setItem('zyx_happy_bottle_count', String(this.happyBottleCount));
+        const rawProgress = cc.sys.localStorage.getItem(OFFICIAL_ART_PROGRESS_CACHE_KEY);
+        if (rawProgress) {
+            try {
+                const value = JSON.parse(rawProgress);
+                this.officialArtProgress = value && typeof value === 'object' ? value : {};
+            } catch (error) {
+                this.officialArtProgress = {};
+            }
         }
     }
 
     private savePersistentProgress(): void {
-        cc.sys.localStorage.setItem('zyx_current_happy_bottle_progress', String(this.happyBottleProgress));
-        cc.sys.localStorage.setItem('zyx_happy_bottle_count', String(this.happyBottleCount));
+        cc.sys.localStorage.setItem(MOOD_BEAN_BALANCE_KEY, String(this.moodBeanBalance));
         cc.sys.localStorage.setItem('zyx_level', String(this.level));
         cc.sys.localStorage.setItem('zyx_experience', String(this.experience));
     }
@@ -955,16 +1148,6 @@ export default class ZyxGameModule {
         cc.sys.localStorage.setItem('zyx_magic_wand_inventory', String(this.colorPurifierCount));
     }
 
-    private addExperience(value: number): number {
-        let levelUps = 0;
-        this.experience += value;
-        while (this.experience >= this.getExperienceTarget()) {
-            this.experience -= this.getExperienceTarget();
-            this.level++;
-            levelUps++;
-        }
-        return levelUps;
-    }
 
     private wouldCreateFullRow(piece: BoardPiece, offset: number): boolean {
         const simulated = this.pieces.map((item) => ({ ...item }));
@@ -1005,5 +1188,8 @@ export default class ZyxGameModule {
         return Number.isFinite(value) ? value : fallback;
     }
 }
+
+// 模块加载时执行一次性数据代际清空；标记已是 mood_bean_v1 时不做任何事情。
+ensureDataGeneration();
 
 export const zyxGameModule = new ZyxGameModule();

@@ -46,6 +46,8 @@ export const ASSET_PATHS = {
         secondCover: 'albums/covers/title/title_2',
         lock: 'albums/covers/icon_lock',
         blurEffect: 'albums/effects/album-blur',
+        frameSeason: 'albums/frames/frame_season',
+        frameCity: 'albums/frames/frame_city',
         music: 'sound/music_puzzle',
         changePictureSound: 'sound/sound_change_pic',
     },
@@ -168,6 +170,8 @@ function featureSpecs(feature: FeatureName): AssetSpec[] {
         { path: ASSET_PATHS.realm.secondCover, type: cc.SpriteFrame },
         { path: ASSET_PATHS.realm.lock, type: cc.SpriteFrame },
         { path: ASSET_PATHS.realm.blurEffect, type: cc.EffectAsset },
+        { path: ASSET_PATHS.realm.frameSeason, type: cc.SpriteFrame },
+        { path: ASSET_PATHS.realm.frameCity, type: cc.SpriteFrame },
         { path: ASSET_PATHS.realm.music, type: cc.AudioClip },
         { path: ASSET_PATHS.realm.changePictureSound, type: cc.AudioClip },
     ];

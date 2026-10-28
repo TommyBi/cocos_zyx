@@ -7,7 +7,12 @@
     "validate:assets": "node scripts/validate-assets.js",
     "build:web": "node scripts/clean-build.js web-mobile && npm run validate:assets && env -u ELECTRON_RUN_AS_NODE /Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/MacOS/CocosCreator --path . --build \"platform=web-mobile;debug=true;md5Cache=false\" --nologin --force",
     "serve:web": "python3 -m http.server 7457 --directory build/web-mobile",
-    "build:wechat": "node scripts/clean-build.js wechatgame && npm run validate:assets && env -u ELECTRON_RUN_AS_NODE /Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/MacOS/CocosCreator --path . --build \"platform=wechatgame;debug=false;md5Cache=true;appid=wxdc39c78bfd045896\" --nologin --force && node scripts/prepare-wechat-build.js",
+    "build:wechat": "node scripts/clean-build.js wechatgame && npm run validate:assets && node scripts/build-wechat.js",
+    "check:wechat-gm": "node scripts/check-wechat-gm.js",
+    "upload:wechat": "node scripts/upload-wechat.js",
     "open:wechat": "/Applications/wechatwebdevtools.app/Contents/MacOS/cli open --project \"$PWD/build/wechatgame\" --lang zh"
+  },
+  "devDependencies": {
+    "miniprogram-ci": "^2.1.31"
   }
 }

@@ -76,9 +76,10 @@ export default class WeChatProfileController {
             : { windowWidth: cc.winSize.width, windowHeight: cc.winSize.height };
         const scaleX = system.windowWidth / cc.winSize.width;
         const scaleY = system.windowHeight / cc.winSize.height;
+        // 全透明样式：按钮铺满整个信息栏但不可见，点信息栏任意位置都直接进入微信授权流程。
         const nativeButton = wxApi.createUserInfoButton({
             type: 'text',
-            text: '授权',
+            text: '',
             lang: 'zh_CN',
             withCredentials: false,
             style: {
@@ -87,13 +88,13 @@ export default class WeChatProfileController {
                 width: width * scaleX,
                 height: height * scaleY,
                 lineHeight: height * scaleY,
-                backgroundColor: '#69B581',
-                color: '#FFFFFF',
+                backgroundColor: 'rgba(255, 255, 255, 0)',
+                color: 'rgba(255, 255, 255, 0)',
                 textAlign: 'center',
-                fontSize: Math.max(12, 15 * scaleY),
-                borderRadius: 10 * Math.min(scaleX, scaleY),
-                borderWidth: 1,
-                borderColor: '#477E5A',
+                fontSize: 1,
+                borderWidth: 0,
+                borderColor: 'rgba(255, 255, 255, 0)',
+                borderRadius: 0,
             },
         });
         this.nativeButton = nativeButton;

@@ -41,9 +41,16 @@ const REQUIRED_FILES = [
     'realm/albums/covers/title/title_1.png',
     'realm/albums/covers/title/title_2.png',
     'realm/albums/effects/album-blur.effect',
+    'realm/albums/frames/frame_season.png',
+    'realm/albums/frames/frame_city.png',
     'realm/sound/music_puzzle.mp3',
     'realm/sound/sound_change_pic.mp3',
 ];
+
+/** 阶段 A 官方拼画尺寸规范。 */
+const ART_SIZE = { width: 650, height: 780 };
+const PREVIEW_SIZE = { width: 130, height: 156 };
+const FRAME_SIZE = { width: 700, height: 830 };
 
 function fail(message) {
     throw new Error(`[资源规范] ${message}`);
@@ -107,6 +114,8 @@ function validateRequiredFiles() {
         const directory = path.join(bundlesRoot, bundle, 'albums', 'art', theme);
         const pictures = fs.readdirSync(directory).filter((name) => /^pic_\d+\.jpg$/.test(name));
         if (pictures.length !== count) fail(`${theme} 应有 ${count} 幅画，实际为 ${pictures.length}`);
+        const previews = fs.readdirSync(directory).filter((name) => /^preview_\d+\.png$/.test(name));
+        if (previews.length !== count) fail(`${theme} 应有 ${count} 个像素预览，实际为 ${previews.length}`);
         for (let index = 1; index <= count; index += 1) {
             const picture = path.join(directory, `pic_${index}.jpg`);
             if (!fs.existsSync(picture) || !fs.existsSync(`${picture}.meta`)) {
@@ -115,8 +124,44 @@ function validateRequiredFiles() {
             if (readJson(`${picture}.meta`).packable !== false) {
                 fail(`${theme}/pic_${index}.jpg 是画作大图，禁止进入动态 atlas`);
             }
+            const pictureSize = jpegDimensions(fs.readFileSync(picture));
+            if (!pictureSize || pictureSize.width !== ART_SIZE.width || pictureSize.height !== ART_SIZE.height) {
+                fail(`${theme}/pic_${index}.jpg 必须精确为 ${ART_SIZE.width}×${ART_SIZE.height}`
+                    + `，实际为 ${pictureSize ? `${pictureSize.width}×${pictureSize.height}` : '未知'}`);
+            }
+            const preview = path.join(directory, `preview_${index}.png`);
+            if (!fs.existsSync(preview) || !fs.existsSync(`${preview}.meta`)) {
+                fail(`${theme} 缺少 preview_${index}.png 或对应 meta`);
+            }
+            if (readJson(`${preview}.meta`).packable !== false) {
+                fail(`${theme}/preview_${index}.png 是像素预览，禁止进入动态 atlas`);
+            }
+            const previewSize = pngDimensions(fs.readFileSync(preview));
+            if (!previewSize || previewSize.width !== PREVIEW_SIZE.width || previewSize.height !== PREVIEW_SIZE.height) {
+                fail(`${theme}/preview_${index}.png 必须精确为 ${PREVIEW_SIZE.width}×${PREVIEW_SIZE.height}`
+                    + `，实际为 ${previewSize ? `${previewSize.width}×${previewSize.height}` : '未知'}`);
+            }
         }
     });
+
+    // 每册画册必须有独立主题画框；画框与原画分离，不得烘焙进每张 JPG。
+    ['realm/albums/frames/frame_season.png', 'realm/albums/frames/frame_city.png'].forEach((relativePath) => {
+        const absolute = path.join(bundlesRoot, relativePath);
+        const size = pngDimensions(fs.readFileSync(absolute));
+        if (!size || size.width !== FRAME_SIZE.width || size.height !== FRAME_SIZE.height) {
+            fail(`${relativePath} 必须精确为 ${FRAME_SIZE.width}×${FRAME_SIZE.height}`);
+        }
+    });
+
+    // 不允许把 750×1000 旧运行图混入新包。
+    walk(bundlesRoot)
+        .filter((filePath) => /\.jpe?g$/i.test(filePath))
+        .forEach((filePath) => {
+            const size = jpegDimensions(fs.readFileSync(filePath));
+            if (size && size.width === 750 && size.height === 1000) {
+                fail(`发现 750×1000 旧运行图：${relativeTo(projectRoot, filePath)}`);
+            }
+        });
 }
 
 function validateMetasAndJunk() {
