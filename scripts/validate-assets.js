@@ -8,16 +8,7 @@ const scriptsRoot = path.join(projectRoot, 'assets', 'script');
 const EXPECTED_BUNDLES = {
     game: 'none',
     home: 'subpackage',
-    realm: 'subpackage',
-    realm_art_1: 'subpackage',
-    realm_art_2: 'subpackage',
 };
-
-/** 画作大图按主题拆成独立分包：主题名 → 所属 bundle 与画作数量。 */
-const EXPECTED_ART_THEMES = [
-    { bundle: 'realm_art_1', theme: 'theme_1', count: 48 },
-    { bundle: 'realm_art_2', theme: 'theme_2', count: 12 },
-];
 
 const REQUIRED_FILES = [
     'game/images/formal/game_room_bg_v3.jpg',
@@ -33,24 +24,10 @@ const REQUIRED_FILES = [
     'game/sound/sound_tool2.mp3',
     'home/images/home_studio_bg_v3.jpg',
     'home/images/home_title_logo_v1.png',
-    'home/images/realm_entry_portal_v3.png',
     'home/images/rank_entry_trophy_v2.png',
     'home/images/start_guide_hand_v3.png',
     'home/sound/music_main.mp3',
-    'realm/albums/covers/icon_lock.png',
-    'realm/albums/covers/title/title_1.png',
-    'realm/albums/covers/title/title_2.png',
-    'realm/albums/effects/album-blur.effect',
-    'realm/albums/frames/frame_season.png',
-    'realm/albums/frames/frame_city.png',
-    'realm/sound/music_puzzle.mp3',
-    'realm/sound/sound_change_pic.mp3',
 ];
-
-/** 阶段 A 官方拼画尺寸规范。 */
-const ART_SIZE = { width: 650, height: 780 };
-const PREVIEW_SIZE = { width: 130, height: 156 };
-const FRAME_SIZE = { width: 700, height: 830 };
 
 function fail(message) {
     throw new Error(`[资源规范] ${message}`);
@@ -110,58 +87,7 @@ function validateRequiredFiles() {
         if (!fs.existsSync(`${absolute}.meta`)) fail(`缺少资源 meta：assets/bundles/${relativePath}.meta`);
     });
 
-    EXPECTED_ART_THEMES.forEach(({ bundle, theme, count }) => {
-        const directory = path.join(bundlesRoot, bundle, 'albums', 'art', theme);
-        const pictures = fs.readdirSync(directory).filter((name) => /^pic_\d+\.jpg$/.test(name));
-        if (pictures.length !== count) fail(`${theme} 应有 ${count} 幅画，实际为 ${pictures.length}`);
-        const previews = fs.readdirSync(directory).filter((name) => /^preview_\d+\.png$/.test(name));
-        if (previews.length !== count) fail(`${theme} 应有 ${count} 个像素预览，实际为 ${previews.length}`);
-        for (let index = 1; index <= count; index += 1) {
-            const picture = path.join(directory, `pic_${index}.jpg`);
-            if (!fs.existsSync(picture) || !fs.existsSync(`${picture}.meta`)) {
-                fail(`${theme} 缺少 pic_${index}.jpg 或对应 meta`);
-            }
-            if (readJson(`${picture}.meta`).packable !== false) {
-                fail(`${theme}/pic_${index}.jpg 是画作大图，禁止进入动态 atlas`);
-            }
-            const pictureSize = jpegDimensions(fs.readFileSync(picture));
-            if (!pictureSize || pictureSize.width !== ART_SIZE.width || pictureSize.height !== ART_SIZE.height) {
-                fail(`${theme}/pic_${index}.jpg 必须精确为 ${ART_SIZE.width}×${ART_SIZE.height}`
-                    + `，实际为 ${pictureSize ? `${pictureSize.width}×${pictureSize.height}` : '未知'}`);
-            }
-            const preview = path.join(directory, `preview_${index}.png`);
-            if (!fs.existsSync(preview) || !fs.existsSync(`${preview}.meta`)) {
-                fail(`${theme} 缺少 preview_${index}.png 或对应 meta`);
-            }
-            if (readJson(`${preview}.meta`).packable !== false) {
-                fail(`${theme}/preview_${index}.png 是像素预览，禁止进入动态 atlas`);
-            }
-            const previewSize = pngDimensions(fs.readFileSync(preview));
-            if (!previewSize || previewSize.width !== PREVIEW_SIZE.width || previewSize.height !== PREVIEW_SIZE.height) {
-                fail(`${theme}/preview_${index}.png 必须精确为 ${PREVIEW_SIZE.width}×${PREVIEW_SIZE.height}`
-                    + `，实际为 ${previewSize ? `${previewSize.width}×${previewSize.height}` : '未知'}`);
-            }
-        }
-    });
 
-    // 每册画册必须有独立主题画框；画框与原画分离，不得烘焙进每张 JPG。
-    ['realm/albums/frames/frame_season.png', 'realm/albums/frames/frame_city.png'].forEach((relativePath) => {
-        const absolute = path.join(bundlesRoot, relativePath);
-        const size = pngDimensions(fs.readFileSync(absolute));
-        if (!size || size.width !== FRAME_SIZE.width || size.height !== FRAME_SIZE.height) {
-            fail(`${relativePath} 必须精确为 ${FRAME_SIZE.width}×${FRAME_SIZE.height}`);
-        }
-    });
-
-    // 不允许把 750×1000 旧运行图混入新包。
-    walk(bundlesRoot)
-        .filter((filePath) => /\.jpe?g$/i.test(filePath))
-        .forEach((filePath) => {
-            const size = jpegDimensions(fs.readFileSync(filePath));
-            if (size && size.width === 750 && size.height === 1000) {
-                fail(`发现 750×1000 旧运行图：${relativeTo(projectRoot, filePath)}`);
-            }
-        });
 }
 
 function validateMetasAndJunk() {
@@ -247,7 +173,7 @@ function validateLoadingBoundary() {
             if (/cc\.(resources|assetManager)\b/.test(source)) {
                 fail(`只能由 AssetLoader 访问 Cocos 资源 API：${relativeTo(projectRoot, filePath)}`);
             }
-            if (/['"](?:game-assets|album-art|album-covers)['"]/.test(source)) {
+            if (/['"]game-assets['"]/.test(source)) {
                 fail(`仍引用旧 Bundle：${relativeTo(projectRoot, filePath)}`);
             }
         });
@@ -290,13 +216,7 @@ function validateAssetPathManifest() {
         if (!manifest.has(base)) fail(`REQUIRED_FILES 登记的 ${relativePath} 没有被 ASSET_PATHS 引用`);
     });
 
-    // 画作主题分包路由必须与 EXPECTED_ART_THEMES 一一对应。
-    EXPECTED_ART_THEMES.forEach(({ bundle, theme }) => {
-        const routePattern = new RegExp(`prefix:\\s*'albums/art/${theme}/',\\s*bundle:\\s*'${bundle}'`);
-        if (!routePattern.test(loaderSource)) {
-            fail(`AssetLoader 的画作分包路由缺少 'albums/art/${theme}/' → '${bundle}'`);
-        }
-    });
+
 }
 
 validateBundleLayout();
@@ -305,4 +225,4 @@ validateMetasAndJunk();
 validateTextureDimensions();
 validateLoadingBoundary();
 validateAssetPathManifest();
-console.log('Asset architecture OK: game(main), home/realm/realm_art_1/realm_art_2(subpackage), max texture 2048.');
+console.log('Source asset architecture OK: game and home bundles; max texture 2048.');

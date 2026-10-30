@@ -138,6 +138,25 @@ test('409 带永久业务错误码（ROUND_PAYLOAD_CONFLICT）进入 dead-letter
   assert.strictEqual(zyxGameModule.getDeadRoundSettlements().length, 1);
 });
 
+test('旧结算缺少服务端开局许可时进入 dead-letter，不堵塞后续记录', async () => {
+  zyxGameModule.enqueuePendingRoundSettlement(validRecord('round_without_start'));
+  zyxGameModule.enqueuePendingRoundSettlement(validRecord('round_valid'));
+  const submitted = [];
+  const outcome = await sync.flushPendingRoundSettlements(async (record) => {
+    if (record.roundId === 'round_without_start') {
+      const error = new Error('缺少服务端开局记录');
+      error.status = 409;
+      error.businessCode = 'ROUND_NOT_STARTED';
+      throw error;
+    }
+    submitted.push(record.roundId);
+    return {};
+  });
+  assert.strictEqual(outcome.deadLettered, 1);
+  assert.strictEqual(outcome.submitted, 1);
+  assert.deepStrictEqual(submitted, ['round_valid']);
+});
+
 test('409 无业务错误码按临时错误处理，不盲目丢弃', async () => {
   zyxGameModule.enqueuePendingRoundSettlement(validRecord('round_409_nocode'));
   const outcome = await sync.flushPendingRoundSettlements(

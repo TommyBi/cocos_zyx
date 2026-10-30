@@ -135,12 +135,7 @@ export function createMoodStamp(
     return node;
 }
 
-/**
- * 正式开心豆：短圆柱拼豆，3/4 顶视角。
- * 顶部小孔标明“拼豆”身份，完整表情绘制在正面侧壁，孔与嘴严格分离。
- * 一颗豆继承来源色块的 moodIndex、颜色和表情；光源固定左上，与心情块材质一致。
- * 38～42 设计像素下优先保住轮廓、孔和主要表情。
- */
+/** 开心豆是柔软的豆形小伙伴；颜色继承来源心情块，收集后统一露出笑脸。 */
 export function createMoodBean(
     parent: cc.Node,
     moodIndex: number,
@@ -160,89 +155,151 @@ export function createMoodBean(
     parent.addChild(node);
 
     const color = getMoodColor(moodIndex);
-    const bodyW = size * 0.72;
-    const bodyH = size * 0.62;
-    const topH = bodyW * 0.3;
-    const topY = bodyH / 2 - topH / 2;
     const dark = new cc.Color(
-        Math.round(color.r * 0.68),
-        Math.round(color.g * 0.68),
-        Math.round(color.b * 0.68),
+        Math.round(color.r * 0.72),
+        Math.round(color.g * 0.72),
+        Math.round(color.b * 0.72),
     );
     const g = node.addComponent(cc.Graphics);
+    const s = size;
 
-    // 接触柔影。
-    g.fillColor = new cc.Color(78, 52, 48, 40);
-    g.ellipse(1.5, -bodyH / 2 - 1.5, bodyW * 0.46, size * 0.055);
+    g.fillColor = new cc.Color(78, 52, 48, 38);
+    g.ellipse(s * 0.02, -s * 0.42, s * 0.33, s * 0.07);
     g.fill();
 
-    // 右下厚度：先画压暗的整体轮廓，再让主色壁面向上偏移，形成半立体侧壁。
+    // 小叶芽从身体后探出来，和游戏中的植物场景呼应。
+    g.fillColor = new cc.Color(112, 174, 122);
+    g.moveTo(-s * 0.02, s * 0.31);
+    g.quadraticCurveTo(-s * 0.20, s * 0.52, -s * 0.27, s * 0.41);
+    g.quadraticCurveTo(-s * 0.20, s * 0.29, -s * 0.02, s * 0.31);
+    g.fill();
+    g.fillColor = new cc.Color(153, 205, 139);
+    g.moveTo(0, s * 0.31);
+    g.quadraticCurveTo(s * 0.12, s * 0.55, s * 0.25, s * 0.46);
+    g.quadraticCurveTo(s * 0.24, s * 0.34, 0, s * 0.31);
+    g.fill();
+
+    // 两只小脚和挥起的手在轮廓外，身体落在最上层。
     g.fillColor = dark;
-    g.roundRect(-bodyW / 2, -bodyH / 2, bodyW, bodyH - topH / 2, bodyW * 0.14);
+    g.ellipse(-s * 0.18, -s * 0.34, s * 0.10, s * 0.07);
+    g.ellipse(s * 0.19, -s * 0.34, s * 0.10, s * 0.07);
     g.fill();
+    g.strokeColor = new cc.Color(125, 88, 68, 170);
+    g.lineWidth = Math.max(1.2, s * 0.055);
+    g.moveTo(-s * 0.33, -s * 0.04);
+    g.quadraticCurveTo(-s * 0.50, s * 0.02, -s * 0.48, s * 0.15);
+    g.moveTo(s * 0.33, -s * 0.05);
+    g.quadraticCurveTo(s * 0.49, s * 0.02, s * 0.46, s * 0.14);
+    g.stroke();
 
-    // 正面侧壁。
+    // 轻微不对称的软豆外形，保留项目原有的左上高光与暖色描边。
     g.fillColor = color;
-    g.strokeColor = new cc.Color(MOOD_COLORS.cocoa.r, MOOD_COLORS.cocoa.g, MOOD_COLORS.cocoa.b, 150);
-    g.lineWidth = Math.max(1.2, size * 0.04);
-    g.roundRect(-bodyW / 2, -bodyH / 2 + Math.max(1.5, size * 0.045), bodyW, bodyH - topH / 2 - Math.max(1.5, size * 0.045), bodyW * 0.14);
+    g.strokeColor = new cc.Color(119, 83, 67, 205);
+    g.lineWidth = Math.max(1.3, s * 0.045);
+    g.moveTo(-s * 0.23, -s * 0.35);
+    g.quadraticCurveTo(-s * 0.43, -s * 0.25, -s * 0.39, s * 0.05);
+    g.quadraticCurveTo(-s * 0.36, s * 0.36, -s * 0.10, s * 0.39);
+    g.quadraticCurveTo(s * 0.03, s * 0.41, s * 0.15, s * 0.32);
+    g.quadraticCurveTo(s * 0.39, s * 0.30, s * 0.40, s * 0.02);
+    g.quadraticCurveTo(s * 0.43, -s * 0.28, s * 0.19, -s * 0.38);
+    g.quadraticCurveTo(-s * 0.02, -s * 0.43, -s * 0.23, -s * 0.35);
+    g.close();
     g.fill();
     g.stroke();
 
-    // 顶部椭圆（比侧壁略亮，像被熨烫过的豆面）。
-    g.fillColor = new cc.Color(
-        Math.min(255, Math.round(color.r * 0.82 + 46)),
-        Math.min(255, Math.round(color.g * 0.82 + 46)),
-        Math.min(255, Math.round(color.b * 0.82 + 40)),
-    );
-    g.ellipse(0, topY, bodyW / 2, topH / 2);
+    g.fillColor = new cc.Color(255, 250, 229, 145);
+    g.ellipse(-s * 0.18, s * 0.22, s * 0.12, s * 0.07);
     g.fill();
+    g.fillColor = new cc.Color(255, 255, 255, 58);
+    g.ellipse(-s * 0.25, s * 0.08, s * 0.05, s * 0.12);
+    g.fill();
+
+    g.fillColor = MOOD_COLORS.cocoa;
+    g.circle(-s * 0.13, s * 0.035, Math.max(1.1, s * 0.027));
+    g.circle(s * 0.13, s * 0.035, Math.max(1.1, s * 0.027));
+    g.fill();
+    g.fillColor = new cc.Color(238, 132, 111, 170);
+    g.ellipse(-s * 0.25, -s * 0.07, s * 0.07, s * 0.038);
+    g.ellipse(s * 0.25, -s * 0.07, s * 0.07, s * 0.038);
+    g.fill();
+    g.strokeColor = MOOD_COLORS.cocoa;
+    g.lineWidth = Math.max(1.2, s * 0.04);
+    g.moveTo(-s * 0.12, -s * 0.11);
+    g.quadraticCurveTo(0, -s * 0.25, s * 0.13, -s * 0.10);
     g.stroke();
-
-    // 顶部小孔：拼豆的身份标记，与正面嘴型严格分开。
-    g.fillColor = new cc.Color(73, 48, 43, 235);
-    g.ellipse(0, topY, bodyW * 0.065, topH * 0.26);
-    g.fill();
-    g.fillColor = new cc.Color(255, 246, 224, 120);
-    g.ellipse(-bodyW * 0.018, topY + topH * 0.05, bodyW * 0.02, topH * 0.08);
-    g.fill();
-
-    // 左上暖色高光。
-    g.fillColor = new cc.Color(255, 246, 224, 165);
-    g.ellipse(-bodyW * 0.26, topY + topH * 0.12, bodyW * 0.13, topH * 0.2);
-    g.fill();
-    g.fillColor = new cc.Color(255, 255, 255, 60);
-    g.roundRect(-bodyW * 0.38, -bodyH * 0.18, bodyW * 0.16, bodyH * 0.42, bodyW * 0.07);
-    g.fill();
-
-    // 正面侧壁完整表情，继承来源心情的十种眼型与嘴型。
-    const face = drawMoodFace(node, moodIndex, size * 0.5, MOOD_COLORS.cocoa);
-    face.setPosition(0, -bodyH * 0.1);
     return node;
 }
 
-/** 通用余额图标：三颗不同颜色的开心豆组成的豆簇，造型与单颗豆同一体系。 */
-export function createMoodBeanCluster(
+/** 首页、局内与结算统一使用同一个开心豆主角。 */
+export function createMoodBeanMascot(
     parent: cc.Node,
     x: number,
     y: number,
     size: number = 48,
     opacity: number = 255,
 ): cc.Node {
-    const cluster = new cc.Node('moodBeanCluster');
-    cluster.width = size;
-    cluster.height = size;
-    cluster.opacity = opacity;
-    cluster.setAnchorPoint(0.5, 0.5);
-    cluster.setPosition(x, y);
-    cluster.zIndex = 80;
-    parent.addChild(cluster);
-    const beanSize = size * 0.62;
-    createMoodBean(cluster, 2, -size * 0.2, -size * 0.08, beanSize);
-    createMoodBean(cluster, 6, size * 0.2, -size * 0.12, beanSize);
-    const top = createMoodBean(cluster, 1, 0, size * 0.16, beanSize);
-    top.zIndex = 90;
-    return cluster;
+    const mascot = new cc.Node('moodBeanMascot');
+    mascot.width = size;
+    mascot.height = size;
+    mascot.opacity = opacity;
+    mascot.setAnchorPoint(0.5, 0.5);
+    mascot.setPosition(x, y);
+    mascot.zIndex = 80;
+    parent.addChild(mascot);
+    createMoodBean(mascot, 1, 0, 0, size * 0.91);
+    return mascot;
+}
+
+/** 豆叶形的绿色体力闪电，与开心豆共用柔和描边和笑脸细节。 */
+export function createStaminaBolt(parent: cc.Node, x: number, y: number, size: number = 42): cc.Node {
+    const node = new cc.Node('staminaBolt');
+    node.setContentSize(size, size);
+    node.setPosition(x, y);
+    node.zIndex = 80;
+    parent.addChild(node);
+    const g = node.addComponent(cc.Graphics);
+    const unit = size / 42;
+    const trace = (offsetX: number, offsetY: number): void => {
+        g.moveTo((-4 + offsetX) * unit, (19 + offsetY) * unit);
+        g.quadraticCurveTo((0 + offsetX) * unit, (22 + offsetY) * unit, (3 + offsetX) * unit, (19 + offsetY) * unit);
+        g.lineTo((12 + offsetX) * unit, (18 + offsetY) * unit);
+        g.quadraticCurveTo((15 + offsetX) * unit, (17 + offsetY) * unit, (13 + offsetX) * unit, (14 + offsetY) * unit);
+        g.lineTo((5 + offsetX) * unit, (3 + offsetY) * unit);
+        g.lineTo((14 + offsetX) * unit, (3 + offsetY) * unit);
+        g.quadraticCurveTo((18 + offsetX) * unit, (2 + offsetY) * unit, (15 + offsetX) * unit, (-2 + offsetY) * unit);
+        g.lineTo((-8 + offsetX) * unit, (-20 + offsetY) * unit);
+        g.quadraticCurveTo((-12 + offsetX) * unit, (-22 + offsetY) * unit, (-11 + offsetX) * unit, (-17 + offsetY) * unit);
+        g.lineTo((-5 + offsetX) * unit, (-3 + offsetY) * unit);
+        g.lineTo((-15 + offsetX) * unit, (-3 + offsetY) * unit);
+        g.quadraticCurveTo((-18 + offsetX) * unit, (-3 + offsetY) * unit, (-16 + offsetX) * unit, (1 + offsetY) * unit);
+        g.close();
+    };
+    g.fillColor = new cc.Color(75, 118, 83, 65);
+    trace(1.5, -2.5);
+    g.fill();
+    g.fillColor = new cc.Color(124, 199, 143);
+    g.strokeColor = new cc.Color(77, 136, 99);
+    g.lineWidth = Math.max(1.4, size * 0.055);
+    trace(0, 0);
+    g.fill();
+    g.stroke();
+    g.fillColor = new cc.Color(249, 255, 232, 174);
+    g.ellipse(-5 * unit, 12 * unit, 4 * unit, 2.5 * unit);
+    g.fill();
+    g.fillColor = MOOD_COLORS.cocoa;
+    g.circle(-2 * unit, 7 * unit, 1.6 * unit);
+    g.circle(5 * unit, 7 * unit, 1.6 * unit);
+    g.fill();
+    g.fillColor = new cc.Color(232, 156, 131, 175);
+    g.ellipse(-6 * unit, 3 * unit, 2.3 * unit, 1.2 * unit);
+    g.ellipse(8 * unit, 3 * unit, 2.3 * unit, 1.2 * unit);
+    g.fill();
+    g.strokeColor = MOOD_COLORS.cocoa;
+    g.lineWidth = Math.max(1, size * 0.035);
+    g.moveTo(-1 * unit, 2 * unit);
+    g.quadraticCurveTo(2 * unit, -2 * unit, 5 * unit, 2 * unit);
+    g.stroke();
+    return node;
 }
 
 /** 结算与经验条共用的经验图标：暖金星芒配青绿色外圈，和表情代币明显区分。 */
@@ -408,6 +465,21 @@ export function drawMoodFace(parent: cc.Node, moodIndex: number, size: number, c
     return node;
 }
 
+function sizeBackgroundIllustration(node: cc.Node, frame: cc.SpriteFrame, width: number, height: number): void {
+    if (!frame) {
+        node.setContentSize(width, height);
+        return;
+    }
+    const rect = frame.getRect();
+    const sourceWidth = Math.max(1, rect.width);
+    const sourceHeight = Math.max(1, rect.height);
+    // 宽屏保留完整的竖版场景，左右由程序底色补齐；其余比例等比铺满并裁边。
+    const scale = width / height > 0.9
+        ? height / sourceHeight
+        : Math.max(width / sourceWidth, height / sourceHeight);
+    node.setContentSize(sourceWidth * scale, sourceHeight * scale);
+}
+
 /** 低对比度的斜向表情墙，循环位移但不争夺交互层注意力。 */
 export function createMoodCanvasBackground(parent: cc.Node, width: number, height: number): cc.Node {
     const root = new cc.Node('minimalMoodBackground');
@@ -439,8 +511,7 @@ export function createMoodCanvasBackground(parent: cc.Node, width: number, heigh
     const sprite = illustration.addComponent(cc.Sprite);
     sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
     sprite.spriteFrame = getSpriteFrame('home', ASSET_PATHS.home.background);
-    illustration.width = width;
-    illustration.height = height;
+    sizeBackgroundIllustration(illustration, sprite.spriteFrame, width, height);
     cc.tween(illustration).to(0.2, { opacity: 255 }, { easing: 'sineOut' }).start();
     return root;
 }
@@ -467,8 +538,7 @@ export function createGameRoomBackground(parent: cc.Node, width: number, height:
     const sprite = illustration.addComponent(cc.Sprite);
     sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
     sprite.spriteFrame = getSpriteFrame('game', ASSET_PATHS.game.background);
-    illustration.width = width;
-    illustration.height = height;
+    sizeBackgroundIllustration(illustration, sprite.spriteFrame, width, height);
     cc.tween(illustration).to(0.2, { opacity: 255 }, { easing: 'sineOut' }).start();
 
     return root;

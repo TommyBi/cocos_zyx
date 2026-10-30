@@ -30,10 +30,9 @@ import {
     decorateActionButton,
 } from './GlyphFactory';
 import {
-    createGameRoomBackground,
     createExperienceToken,
     createMoodBean,
-    createMoodBeanCluster,
+    createMoodBeanMascot,
     createMoodStamp,
     drawMoodBlockMaterial,
     getMoodColor,
@@ -99,6 +98,9 @@ export default class ZyxGame extends cc.Component {
     private boardDangerHalo: cc.Node = null;
     private reviveUsed: boolean = false;
     private onSettlementExit: (request: SettlementExitRequest) => void = null;
+    private onRoundFinished: (settlement: RoundSettlement, startedAt: number) => void = null;
+    private onRestartFromPause: () => Promise<boolean> = null;
+    private settlementReported: boolean = false;
     private pieceColors: { [key: number]: cc.Color } = {};
     private displayedRoundMoods: number = 0;
     private idleSeconds: number = 0;
@@ -118,12 +120,17 @@ export default class ZyxGame extends cc.Component {
     private tutorialTypingState: { value: number } = null;
     private tutorialRestoreCallback: () => void = null;
 
-    public initialize(onSettlementExit: (request: SettlementExitRequest) => void): void {
+    public initialize(
+        onSettlementExit: (request: SettlementExitRequest) => void,
+        onRoundFinished: (settlement: RoundSettlement, startedAt: number) => void,
+        onRestartFromPause: () => Promise<boolean>,
+    ): void {
         this.onSettlementExit = onSettlementExit;
-        this.node.width = cc.winSize.width;
-        this.node.height = cc.winSize.height;
+        this.onRoundFinished = onRoundFinished;
+        this.onRestartFromPause = onRestartFromPause;
+        this.settlementReported = false;
         this.node.setAnchorPoint(0.5, 0.5);
-        uimanager.init(this.node.parent);
+        uimanager.init(this.node);
 
         zyxGameModule.resetRound();
         this.tutorialStep = zyxGameModule.isTutorialRound() ? 0 : -1;
@@ -161,7 +168,6 @@ export default class ZyxGame extends cc.Component {
         this.clearTutorialGuide();
         this.stopBoardDangerGlow();
         this.node.removeAllChildren();
-        this.buildBackground();
 
         const safeArea = uimanager.getSafeAreaMetrics();
         const boardTopY = BOARD_CENTER_Y + BOARD_ROWS * CELL_SIZE / 2;
@@ -211,7 +217,7 @@ export default class ZyxGame extends cc.Component {
         uimanager.createRect(this.node, 'beanCard', beanCardWidth, 94, new cc.Color(239, 232, 187), 246, 19, beanCardX, topY);
         const beanIconX = beanCardX - beanCardWidth * 0.32;
         // 局内收集位：开心豆图标 + 本局数量；一块一豆，到达一颗只 +1。
-        this.moodBeanHudIcon = createMoodBeanCluster(this.node, beanIconX, topY + 2, hasWeChatCapsule ? 46 : 52);
+        this.moodBeanHudIcon = createMoodBeanMascot(this.node, beanIconX, topY + 2, hasWeChatCapsule ? 46 : 52);
         const beanTextX = beanCardX + beanCardWidth * 0.16;
         const beanTextWidth = hasWeChatCapsule ? 88 : 112;
         uimanager.createLabel(this.node, '本局开心豆', beanTextX, topY + 27, 14, HUD_LABEL_COLOR, beanTextWidth, 22);
@@ -244,10 +250,6 @@ export default class ZyxGame extends cc.Component {
         this.createNextRowPreview();
         this.createToolBar();
         if (this.tutorialStep >= 0) this.createTutorialNpcGuide();
-    }
-
-    private buildBackground(): void {
-        createGameRoomBackground(this.node, this.node.width, this.node.height);
     }
 
     private createBoard(): void {
@@ -3342,12 +3344,15 @@ export default class ZyxGame extends cc.Component {
     }
 
     private finishGame(_reason: string): void {
+        if (this.settlementReported) return;
         this.dismissRoundRescuePrompt(false);
         this.stopBoardDangerGlow();
         this.cancelEliminationHint();
         this.setToolSelectionMode(null);
         this.locked = true;
         const settlement = zyxGameModule.finishRound();
+        this.settlementReported = true;
+        if (this.onRoundFinished) this.onRoundFinished(settlement, zyxGameModule.roundStartedAt);
         this.updateHud();
         uimanager.showModal('本局结算', this.getSettlementMessage(settlement), [
             {
@@ -3382,9 +3387,9 @@ export default class ZyxGame extends cc.Component {
                 centerY - 56,
             );
             createMoodBean(moodChip, 1, -57, 0, 40);
-            const moodValue = uimanager.createLabel(moodChip, `×${settlement.roundEarnedMoodBeans}`, 24, 0, 23, HUD_VALUE_COLOR, 112, 34);
+            const moodValue = uimanager.createLabel(moodChip, `×${settlement.roundCollectedMoodBeans}`, 24, 0, 23, HUD_VALUE_COLOR, 112, 34);
             this.makeHintLabelBold(moodValue, new cc.Color(255, 249, 232), 0.6);
-            const moodCaption = uimanager.createLabel(panel, '开心豆', -106, centerY - 97, 15, HUD_LABEL_COLOR, 194, 24);
+            const moodCaption = uimanager.createLabel(panel, '本局收集 · 到账以云端为准', -106, centerY - 97, 13, HUD_LABEL_COLOR, 240, 24);
             this.makeHintLabelBold(moodCaption, new cc.Color(255, 249, 232), 0.45);
             if (settlement.roundBonusMoodBeans > 0) {
                 // 额外奖励必须单列展示，不能伪装成局内单颗豆的倍率。
@@ -3421,38 +3426,26 @@ export default class ZyxGame extends cc.Component {
     private leaveSettlement(restart: boolean, settlement: RoundSettlement): void {
         if (this.onSettlementExit) {
             this.onSettlementExit({ restart, settlement });
-            return;
         }
-        if (restart) this.restartGame();
-    }
-
-    private restartGame(): void {
-        this.dismissRoundRescuePrompt(false);
-        this.stopBoardDangerGlow();
-        zyxGameModule.resetRound();
-        this.tutorialStep = zyxGameModule.isTutorialRound() ? 0 : -1;
-        this.reviveUsed = false;
-        this.displayedRoundMoods = 0;
-        if (this.roundMoodLabel) this.roundMoodLabel.string = '0';
-        this.stopToolSelectionFeedback();
-        this.hammerMode = false;
-        this.purifierMode = false;
-        this.tipSeconds = 0;
-        this.tipIndex = 0;
-        this.cancelEliminationHint();
-        this.buildUI();
-        this.renderAll();
-        this.locked = false;
-        if (this.isTutorialGuidedStep()) this.showTutorialStep();
     }
 
     /**
-     * R3：暂停菜单「重新开始」直接放弃本局——不结算、不发豆、不加经验、
-     * 不更新最高分、不生成 roundId、不进入待提交结算队列，只清空棋盘开始新一局。
-     * 「结束本局」与正常失败仍走完整结算；结算面板「再来一次」也先结算上一局。
+     * 暂停重开要向服务端申请新局并消耗体力；失败时继续当前局。
      */
-    private restartFromPause(): void {
-        this.restartGame();
+    private async restartFromPause(): Promise<void> {
+        if (!this.onRestartFromPause) {
+            this.locked = false;
+            return;
+        }
+        try {
+            const started = await this.onRestartFromPause();
+            if (!started && this.node && this.node.isValid) {
+                this.locked = false;
+                if (this.isTutorialGuidedStep()) this.showTutorialStep();
+            }
+        } catch (error) {
+            if (this.node && this.node.isValid) this.locked = false;
+        }
     }
 
     private getPieceColor(index: number): cc.Color {

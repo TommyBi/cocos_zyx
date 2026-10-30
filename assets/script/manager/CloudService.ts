@@ -33,6 +33,28 @@ export type CloudProfile = {
     totalMoodBeans: number;
     highestSingleGameScore: number;
     gameCount: number;
+    stamina: StaminaState;
+};
+
+export type StaminaState = {
+    current: number;
+    max: number;
+    regenSeconds: number;
+    nextRecoveryAt: string | null;
+    serverTime: string;
+    shareAvailableToday?: boolean;
+};
+
+export type StaminaShareResult = {
+    awarded: number;
+    stamina: StaminaState;
+    duplicate?: boolean;
+};
+
+export type StartRoundResult = {
+    roundId: string;
+    stamina: StaminaState;
+    duplicate?: boolean;
 };
 
 export type LeaderboardEntry = {
@@ -45,7 +67,7 @@ export type LeaderboardEntry = {
 
 export type LeaderboardResult = {
     weekId: string;
-    type: 'power' | 'happiness';
+    type: 'power';
     entries: LeaderboardEntry[];
     self: { rank: number; isRanked: boolean; value: number; rewardTier: string; distanceToRank200: number };
 };
@@ -63,43 +85,7 @@ export type RoundSettlementResult = {
     };
 };
 
-export type RealmArtState = {
-    artId: string;
-    filledCells: number;
-    completedAt: string;
-    available: boolean;
-};
-
-export type RealmAlbumState = {
-    albumId: string;
-    openLevel: number;
-    opened: boolean;
-    totalCells: number;
-    arts: RealmArtState[];
-};
-
-export type RealmState = {
-    moodBeanBalance: number;
-    totalCells: number;
-    maxContributePerAction: number;
-    configVersion: string;
-    albums: RealmAlbumState[];
-};
-
-export type ContributeResult = {
-    duplicate?: boolean;
-    artId: string;
-    requestedBeans: number;
-    actualSpend: number;
-    alreadyCompleted: boolean;
-    filledCells: number;
-    totalCells: number;
-    completed: boolean;
-    completedAt: string;
-    moodBeanBalance: number;
-};
-
-/** 云档案、开心豆结算与官方拼画请求层：失败时保留本地离线玩法，不阻断单局游戏。 */
+/** 云档案、体力开局、结算与排行榜请求层。 */
 export default class CloudService {
     private static _instance: CloudService;
     public static get instance(): CloudService {
@@ -126,6 +112,16 @@ export default class CloudService {
         return data.profile as CloudProfile;
     }
 
+    /** roundId 由客户端在请求前生成；超时后复用同一 ID 重试，不重复消耗体力。 */
+    public async startRound(roundId: string): Promise<StartRoundResult> {
+        return await this.request('/games/start', 'POST', { roundId }, true) as StartRoundResult;
+    }
+
+    /** 每日分享补体力；claimId 用于网络超时后的幂等重试。 */
+    public async claimSharedStamina(claimId: string): Promise<StaminaShareResult> {
+        return await this.request('/stamina/share-claim', 'POST', { claimId }, true) as StaminaShareResult;
+    }
+
     /** 对局结算；roundId 幂等，重复提交返回首次结果。 */
     public async submitSettlement(
         roundId: string,
@@ -144,23 +140,8 @@ export default class CloudService {
         return data as RoundSettlementResult;
     }
 
-    public async getLeaderboard(type: 'power' | 'happiness'): Promise<LeaderboardResult> {
+    public async getLeaderboard(type: 'power'): Promise<LeaderboardResult> {
         return await this.request(`/leaderboards?type=${type}`, 'GET', null, true) as LeaderboardResult;
-    }
-
-    /** 秘境权威状态：开心豆余额、画册开放与各画作进度。 */
-    public async getRealmState(): Promise<RealmState> {
-        return await this.request('/realm/state', 'GET', null, true) as RealmState;
-    }
-
-    /** 幂等投入开心豆到官方拼画；actionId 重试返回保存过的结果。 */
-    public async contributeRealmArt(actionId: string, artId: string, requestedBeans: number): Promise<ContributeResult> {
-        const data = await this.request('/realm/arts/contribute', 'POST', {
-            actionId,
-            artId,
-            requestedBeans,
-        }, true);
-        return data as ContributeResult;
     }
 
     /**
@@ -216,6 +197,7 @@ export default class CloudService {
             if (payload && typeof payload.errorCode === 'string' && payload.errorCode.length > 0) {
                 error.businessCode = payload.errorCode;
             }
+            if (payload && payload.data && payload.data.stamina) error.stamina = payload.data.stamina;
             throw error;
         }
         return payload.data;
@@ -239,6 +221,7 @@ export default class CloudService {
                         if (payload && typeof payload.errorCode === 'string' && payload.errorCode.length > 0) {
                             error.businessCode = payload.errorCode;
                         }
+                        if (payload && payload.data && payload.data.stamina) error.stamina = payload.data.stamina;
                         reject(error);
                         return;
                     }

@@ -1,20 +1,18 @@
 import { gameSettings } from './GameSettings';
 import { ASSET_PATHS, BundleName, getAudioClip } from './AssetLoader';
 
-export type MusicName = 'main' | 'game' | 'puzzle';
-export type SoundName = 'break' | 'changePic' | 'move' | 'hammer' | 'magicWand';
+export type MusicName = 'main' | 'game';
+export type SoundName = 'break' | 'move' | 'hammer' | 'magicWand';
 
 type AudioResource = { bundle: BundleName; path: string };
 
 const MUSIC_RESOURCES: { [key in MusicName]: AudioResource } = {
     main: { bundle: 'home', path: ASSET_PATHS.home.music },
     game: { bundle: 'game', path: ASSET_PATHS.game.music },
-    puzzle: { bundle: 'realm', path: ASSET_PATHS.realm.music },
 };
 
 const SOUND_RESOURCES: { [key in SoundName]: AudioResource } = {
     break: { bundle: 'game', path: ASSET_PATHS.game.breakSound },
-    changePic: { bundle: 'realm', path: ASSET_PATHS.realm.changePictureSound },
     move: { bundle: 'game', path: ASSET_PATHS.game.moveSound },
     hammer: { bundle: 'game', path: ASSET_PATHS.game.hammerSound },
     magicWand: { bundle: 'game', path: ASSET_PATHS.game.magicWandSound },

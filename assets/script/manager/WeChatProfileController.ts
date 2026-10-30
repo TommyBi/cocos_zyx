@@ -36,6 +36,7 @@ export default class WeChatProfileController {
         width: number,
         height: number,
         hasCachedProfile: boolean,
+        stage?: cc.Node,
     ): void {
         const wxApi = getWxApi();
         if (!wxApi) return;
@@ -46,7 +47,7 @@ export default class WeChatProfileController {
             const button = this.host.getAuthorizationButton();
             if (!button) return;
             button.active = true;
-            this.createNativeButton(centerX, centerY, width, height);
+            this.createNativeButton(centerX, centerY, width, height, stage);
         };
         if (typeof wxApi.getSetting !== 'function') {
             createAuthorizationButton();
@@ -68,7 +69,7 @@ export default class WeChatProfileController {
         });
     }
 
-    private createNativeButton(centerX: number, centerY: number, width: number, height: number): void {
+    private createNativeButton(centerX: number, centerY: number, width: number, height: number, stage?: cc.Node): void {
         const wxApi = getWxApi();
         if (!wxApi || typeof wxApi.createUserInfoButton !== 'function' || this.nativeButton) return;
         const system = typeof wxApi.getSystemInfoSync === 'function'
@@ -76,6 +77,11 @@ export default class WeChatProfileController {
             : { windowWidth: cc.winSize.width, windowHeight: cc.winSize.height };
         const scaleX = system.windowWidth / cc.winSize.width;
         const scaleY = system.windowHeight / cc.winSize.height;
+        const stageScale = stage ? stage.scale : 1;
+        const canvasX = stage ? stage.x + centerX * stageScale : centerX;
+        const canvasY = stage ? stage.y + centerY * stageScale : centerY;
+        const buttonWidth = width * stageScale;
+        const buttonHeight = height * stageScale;
         // 全透明样式：按钮铺满整个信息栏但不可见，点信息栏任意位置都直接进入微信授权流程。
         const nativeButton = wxApi.createUserInfoButton({
             type: 'text',
@@ -83,11 +89,11 @@ export default class WeChatProfileController {
             lang: 'zh_CN',
             withCredentials: false,
             style: {
-                left: (centerX - width / 2 + cc.winSize.width / 2) * scaleX,
-                top: (cc.winSize.height / 2 - centerY - height / 2) * scaleY,
-                width: width * scaleX,
-                height: height * scaleY,
-                lineHeight: height * scaleY,
+                left: (canvasX - buttonWidth / 2 + cc.winSize.width / 2) * scaleX,
+                top: (cc.winSize.height / 2 - canvasY - buttonHeight / 2) * scaleY,
+                width: buttonWidth * scaleX,
+                height: buttonHeight * scaleY,
+                lineHeight: buttonHeight * scaleY,
                 backgroundColor: 'rgba(255, 255, 255, 0)',
                 color: 'rgba(255, 255, 255, 0)',
                 textAlign: 'center',

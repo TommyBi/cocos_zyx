@@ -26,7 +26,7 @@ const pad = (value) => String(value).padStart(2, '0');
 const now = new Date();
 const version = process.argv[2]
     || `1.3.0-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;
-const desc = process.argv[3] || '体验版：拼画行优先解锁、单次全投、画册页性能修复';
+const desc = process.argv[3] || '首发 MVP：左右消除与本周单局最高分排行榜';
 
 (async () => {
     const project = new ci.Project({

@@ -40,8 +40,7 @@ let flushInFlight = false;
  * 永久错误（dead-letter）：只有明确代表"本条记录本身不可重试"的业务错误才能进入。
  * - 400：按业务错误码判断；只有 INVALID_ROUND_TIME / INVALID_ROUND_DURATION / SETTLEMENT_TOO_OLD
  *   等记录本身不可修复的错误才永久，其他 400 仍按临时处理。
- * - 409：ROUND_PAYLOAD_CONFLICT / ACTION_PAYLOAD_CONFLICT 为永久（同 ID 异载荷不可能通过重试解决）。
- *   ALBUM_LOCKED / PREREQUISITE_NOT_COMPLETED 按临时处理（玩家可以升级或完成前置后再重试）。
+ * - 409：ROUND_PAYLOAD_CONFLICT / ROUND_NOT_STARTED 为永久（同 ID 异载荷或缺少服务端开局许可）。
  * - 401：凭证失效，不在这里判定；CloudService.request 会自动 bootstrap 后重试一次。
  * - 408 / 425 / 429：按临时错误处理，保留记录并停止本次 flush。
  * - 5xx、网络失败、超时：临时错误。
@@ -54,9 +53,8 @@ const PERMANENT_BUSINESS_CODES = new Set([
     'INVALID_ROUND_DURATION',
     'SETTLEMENT_TOO_OLD',
     'INVALID_BEAN_AMOUNT',
-    'ART_UNKNOWN',
     'ROUND_PAYLOAD_CONFLICT',
-    'ACTION_PAYLOAD_CONFLICT',
+    'ROUND_NOT_STARTED',
 ]);
 
 /** 401 凭证失效：不应在此处理，CloudService 层已自动 bootstrap 重试一次。 */

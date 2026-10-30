@@ -23,20 +23,8 @@ function renderLeaderboard(initial: LeaderboardResult, pageIndex: number = 0): v
     const totalPages = Math.max(1, Math.ceil(current.entries.length / pageSize));
     const safePageIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
     const render = (panel: cc.Node, centerY: number): void => {
-        const tabs = uimanager.createRect(panel, 'leaderboardTabs', 410, 44, new cc.Color(245, 231, 200), 255, 14, 0, centerY + 154);
-        const paintTab = (text: string, x: number, type: 'power' | 'happiness'): void => {
-            const active = current.type === type;
-            const tab = uimanager.createButton(tabs, text, x, 0, 192, 38, active ? BUTTON_COLORS.yellow : new cc.Color(171, 150, 132), () => {
-                cloudService.getLeaderboard(type).then((result) => {
-                    uimanager.closeModal();
-                    renderLeaderboard(result);
-                }).catch(() => uimanager.showToast('榜单刷新失败'));
-            }, 18);
-            tab.opacity = active ? 255 : 185;
-        };
-        paintTab('实力榜', -101, 'power');
-paintTab('开心豆榜', 101, 'happiness');
-const valueName = current.type === 'power' ? '单局最高分' : '本周开心豆';
+        uimanager.createLabel(panel, '单局最高分', 0, centerY + 154, 18, MOOD_COLORS.cocoa, 240, 28);
+        const valueName = '单局最高分';
         current.entries.slice(safePageIndex * pageSize, (safePageIndex + 1) * pageSize)
             .forEach((entry, index) => createLeaderboardRow(panel, entry, valueName, centerY + 100 - index * 38));
         uimanager.createLabel(panel, `第 ${safePageIndex + 1}/${totalPages} 页 · 前 ${current.entries.length} 名`, 0, centerY - 142, 14, MOOD_COLORS.cocoaSoft, 260, 24);

@@ -56,9 +56,9 @@ const subpackageNames = fs.readdirSync(subpackagesRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
-const expectedSubpackages = ['home', 'realm', 'realm_art_1', 'realm_art_2'];
+const expectedSubpackages = ['home'];
 if (JSON.stringify(subpackageNames) !== JSON.stringify(expectedSubpackages)) {
-    throw new Error(`微信分包必须且只能是 ${expectedSubpackages.join(', ')}，实际为 ${subpackageNames.join(', ')}`);
+    throw new Error(`Cocos 构建分包必须且只能是 ${expectedSubpackages.join(', ')}，实际为 ${subpackageNames.join(', ')}`);
 }
 
 const gameConfig = JSON.parse(fs.readFileSync(gameConfigPath, 'utf8'));
@@ -73,11 +73,24 @@ const settings = sandbox.window._CCSettings;
 if (!settings || !Array.isArray(settings.remoteBundles) || settings.remoteBundles.length !== 0) {
     throw new Error(`构建中不应存在远程 Bundle：${settings && settings.remoteBundles}`);
 }
-if (!Array.isArray(settings.subpackages) || settings.subpackages.slice().sort().join(',') !== 'home,realm,realm_art_1,realm_art_2') {
+if (!Array.isArray(settings.subpackages) || settings.subpackages.slice().sort().join(',') !== expectedSubpackages.join(',')) {
     throw new Error(`Cocos 分包声明错误：${settings && settings.subpackages}`);
 }
-const settingsWithoutServer = settingsSource.replace(/server\s*:\s*["'][^"']*["']/, 'server:""');
-fs.writeFileSync(settingsPath, settingsWithoutServer);
+const settingsLiteral = `window._CCSettings=${JSON.stringify(settings)};`;
+const settingsWithoutServer = settingsSource.replace(/window\._CCSettings\s*=\s*\{[\s\S]*?\};/, settingsLiteral);
+if (settingsWithoutServer === settingsSource) throw new Error('无法更新微信 settings.js 分包声明');
+fs.writeFileSync(settingsPath, settingsWithoutServer.replace(/server\s*:\s*["'][^"']*["']/, 'server:""'));
+
+const finalSandbox = { window: {} };
+vm.runInNewContext(fs.readFileSync(settingsPath, 'utf8'), finalSandbox, { filename: settingsPath, timeout: 1000 });
+const finalSettings = finalSandbox.window._CCSettings;
+if (!finalSettings || JSON.stringify(finalSettings.subpackages) !== JSON.stringify(expectedSubpackages)) {
+    throw new Error(`最终 settings.js 分包声明错误：${finalSettings && finalSettings.subpackages}`);
+}
+const finalGameConfig = JSON.parse(fs.readFileSync(gameConfigPath, 'utf8'));
+if (JSON.stringify(finalGameConfig.subpackages.map((item) => item.name)) !== JSON.stringify(expectedSubpackages)) {
+    throw new Error(`最终 game.json 分包声明错误：${finalGameConfig.subpackages}`);
+}
 
 // cc.game.run() 会重置引擎宏；必须在渲染器初始化完成后、启动场景加载前关闭图片回收。
 // 这样既不会触发 Cocos 的运行时动态 atlas，又能让异步 Bundle 的 Sprite 保留原生 PNG。

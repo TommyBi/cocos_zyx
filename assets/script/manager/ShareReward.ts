@@ -97,7 +97,7 @@ export function getRewardOfferFailToast(kind: 'tool' | 'rescue' | 'revive'): str
  * 发起一次获取奖励：当前走微信分享；开关关闭后由调用方改走激励视频。
  * Web 预览提供模拟成功/未完成，便于本地验收。
  */
-export function requestShareReward(onResult: (rewarded: boolean) => void): void {
+export function requestShareReward(onResult: (rewarded: boolean) => void, rewardName: string = '一次机会'): void {
     if (pending && !pending.completed) {
         finishPending(false);
     }
@@ -105,7 +105,7 @@ export function requestShareReward(onResult: (rewarded: boolean) => void): void 
     const wxApi = getWxApi();
     if (!wxApi || typeof wxApi.shareAppMessage !== 'function') {
         uimanager.showModal(
-            '分享获得一次机会',
+            `分享获得${rewardName}`,
             '网页预览使用模拟分享。\n微信里会直接拉起分享面板。',
             [
                 {

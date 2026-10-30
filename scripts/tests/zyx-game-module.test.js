@@ -84,13 +84,12 @@ test('数据代际不匹配时一次性清空全部旧键，不做任何折算',
   assert.ok(!store.has('zyx_level'));
   assert.strictEqual(store.get('zyx_data_generation'), 'mood_bean_v1');
 
-  // 清空后首次启动是完整新档：心情豆、画册进度均为 0。
+  // 清空后首次启动是完整新档。
   const module = new ZyxGameModuleClass();
   module.refreshPersistentProgress();
   assert.strictEqual(module.moodBeanBalance, 0);
   assert.strictEqual(module.level, 1);
   assert.strictEqual(module.experience, 0);
-  assert.deepStrictEqual(module.officialArtProgress, {});
 });
 
 test('写入 mood_bean_v1 标记后，正常重启不会再次清空新档', () => {
@@ -118,15 +117,13 @@ test('缺键时使用默认值，非法字符串回退到安全默认', () => {
   store.set('zyx_level', 'abc');
   store.set('zyx_experience', '');
   store.set('zyx_mood_bean_balance', 'NaN');
-  store.set('zyx_official_art_progress_cache', '{bad json');
   module.refreshPersistentProgress();
   assert.strictEqual(module.level, 1);
   assert.strictEqual(module.experience, 0);
   assert.strictEqual(module.moodBeanBalance, 0);
-  assert.deepStrictEqual(module.officialArtProgress, {});
 });
 
-test('一块一豆：收集 10 个带表情心情块结算得 10 心情豆和 10 经验（R2：只入展示口径，基准待服务端确认）', () => {
+test('一块一豆：本局收集 10 颗，未获服务端确认前不计入可兑换余额', () => {
   const store = installCcStub();
   const module = createModule(store);
   module.resetRound();
@@ -136,16 +133,20 @@ test('一块一豆：收集 10 个带表情心情块结算得 10 心情豆和 10
   assert.strictEqual(settlement.roundBonusMoodBeans, 0);
   assert.strictEqual(settlement.roundEarnedMoodBeans, 10);
   assert.strictEqual(settlement.gainedExperience, 10);
-  // 结算返回的 before/after 是展示口径：before=基准+已有 pending，after=再叠加本局奖励。
+  // 结算由服务端确认，本局预览不能提前增加开心豆余额。
   assert.strictEqual(settlement.moodBeanBalanceBefore, 0);
-  assert.strictEqual(settlement.moodBeanBalanceAfter, 10);
+  assert.strictEqual(settlement.moodBeanBalanceAfter, 0);
   // R2：未确认奖励不写入服务端确认基准，也不落盘。
   assert.strictEqual(module.moodBeanBalance, 0, '基准不 immediate 入账');
   assert.ok(!store.has('zyx_mood_bean_balance'), '基准不落盘');
   assert.strictEqual(module.getDisplayMoodBeanBalance(), 0, '入队前展示值不变');
-  // 记录入队后展示值叠加 pending 推算值。
+  // 记录入队后依然只显示服务端确认值。
   module.enqueuePendingRoundSettlement({ roundId: 'round_credit', startedAt: 1, endedAt: 2, score: 10, collectedMoodBeanCount: 10 });
-  assert.strictEqual(module.getDisplayMoodBeanBalance(), 10, '入队后展示值叠加 pending');
+  assert.strictEqual(module.getDisplayMoodBeanBalance(), 0, '待同步记录不预支可兑换余额');
+  assert.strictEqual(module.getDisplayLevelAndExperience().experience, 0, '待同步记录不预支经验');
+  module.applyCloudProfile({ level: 1, experience: 10, moodBeanBalance: 5, highestSingleGameScore: 10, gameCount: 1 });
+  assert.strictEqual(module.getDisplayMoodBeanBalance(), 5, '按服务端实际发放数值展示');
+  assert.strictEqual(module.getDisplayLevelAndExperience().experience, 10);
 });
 
 test('重复 finishRound() 返回零增量，不重复入账', () => {
@@ -174,31 +175,6 @@ test('待提交结算队列：入队去重，成功后只删除对应 roundId', 
   const remaining = module.getPendingRoundSettlements();
   assert.strictEqual(remaining.length, 1);
   assert.strictEqual(remaining[0].roundId, 'round_b');
-});
-
-test('官方拼画进度缓存：写入、读取与秘境状态拉齐', () => {
-  const store = installCcStub();
-  const module = createModule(store);
-  module.setOfficialArtFilledCells('album_season_art_0', 500);
-  assert.strictEqual(module.getOfficialArtFilledCells('album_season_art_0'), 500);
-  assert.strictEqual(module.getOfficialArtFilledCells('album_season_art_1'), 0);
-
-  module.applyRealmState({
-    moodBeanBalance: 320,
-    albums: [{ arts: [
-      { artId: 'album_season_art_0', filledCells: 750 },
-      { artId: 'album_season_art_1', filledCells: 12 },
-    ] }],
-  });
-  assert.strictEqual(module.moodBeanBalance, 320);
-  assert.strictEqual(module.getOfficialArtFilledCells('album_season_art_0'), 750);
-  assert.strictEqual(module.getOfficialArtFilledCells('album_season_art_1'), 12);
-
-  // 换实例后从持久化缓存恢复。
-  const reloaded = new ZyxGameModuleClass();
-  reloaded.refreshPersistentProgress();
-  assert.strictEqual(reloaded.getOfficialArtFilledCells('album_season_art_0'), 750);
-  assert.strictEqual(reloaded.moodBeanBalance, 320);
 });
 
 test('待提交结算队列上限 100：满员后拒绝入队且不静默丢弃', () => {
@@ -265,29 +241,6 @@ test('暂停重开语义：只 resetRound 不 finishRound 时余额、经验与�
   assert.strictEqual(module.getPendingRoundSettlements().length, queueBefore);
 });
 
-test('拼画 pending action：写入、读取、清除与重启恢复', () => {
-  const store = installCcStub();
-  const module = createModule(store);
-  assert.strictEqual(module.getPendingRealmAction(), null);
-  module.setPendingRealmAction({
-    actionId: 'contrib_test_1',
-    artId: 'album_season_art_0',
-    requestedBeans: 500,
-    createdAt: Date.now(),
-  });
-  // 新实例从持久化恢复，模拟客户端重启。
-  const reloaded = new ZyxGameModuleClass();
-  const pending = reloaded.getPendingRealmAction();
-  assert.ok(pending);
-  assert.strictEqual(pending.actionId, 'contrib_test_1');
-  assert.strictEqual(pending.artId, 'album_season_art_0');
-  assert.strictEqual(pending.requestedBeans, 500);
-  reloaded.clearPendingRealmAction();
-  assert.strictEqual(reloaded.getPendingRealmAction(), null);
-  const again = new ZyxGameModuleClass();
-  assert.strictEqual(again.getPendingRealmAction(), null);
-});
-
 test('refreshPersistentProgress 恢复历史最高分，但不覆盖局内更高的内存值', () => {
   const store = installCcStub();
   const module = createModule(store);
@@ -300,19 +253,19 @@ test('refreshPersistentProgress 恢复历史最高分，但不覆盖局内更高
   assert.strictEqual(module.bestScore, 1200);
 });
 
-test('R2 展示值：两局各 10 豆，第一局成功第二局 500 时展示不退回服务端旧值', () => {
+test('未确认结算不增加首页余额，服务端逐局确认后才展示入账', () => {
   const store = installCcStub();
   const module = createModule(store);
   // 离线完成两局，每局 10 豆，全部进入 pending 队列。
   module.enqueuePendingRoundSettlement({ roundId: 'round_a', startedAt: 1, endedAt: 2, score: 100, collectedMoodBeanCount: 10 });
   module.enqueuePendingRoundSettlement({ roundId: 'round_b', startedAt: 3, endedAt: 4, score: 200, collectedMoodBeanCount: 10 });
-  assert.strictEqual(module.getDisplayMoodBeanBalance(), 20, '两局未确认时展示 20');
+  assert.strictEqual(module.getDisplayMoodBeanBalance(), 0, '未确认时不预支');
 
   // 第一局成功（服务端确认余额 10）；第二局提交遇到 500，仍留在队列。
   module.removePendingRoundSettlement('round_a');
   module.applyCloudProfile({ level: 1, experience: 10, moodBeanBalance: 10, highestSingleGameScore: 100 });
   assert.strictEqual(module.moodBeanBalance, 10, '基准只保存服务端确认值');
-  assert.strictEqual(module.getDisplayMoodBeanBalance(), 20, '展示值必须仍为 20，不能退回 10');
+  assert.strictEqual(module.getDisplayMoodBeanBalance(), 10, '只展示已确认的 10');
 
   // 第二局随后成功：服务端确认 20，队列清空，展示值仍为 20，不得变 30。
   module.removePendingRoundSettlement('round_b');
@@ -320,18 +273,17 @@ test('R2 展示值：两局各 10 豆，第一局成功第二局 500 时展示�
   assert.strictEqual(module.getDisplayMoodBeanBalance(), 20, '确认后展示值不重复叠加');
 });
 
-test('R2 展示值：经验与跨等级升级同样按「基准 + pending」推算', () => {
+test('未确认结算不推高等级或经验', () => {
   const store = installCcStub();
   const module = createModule(store);
   // 基准：Lv.1，经验 5/15。
   module.applyCloudProfile({ level: 1, experience: 5, moodBeanBalance: 5, highestSingleGameScore: 0 });
-  // pending 20 豆 → 推算 20 经验。
+  // pending 20 豆，首页保持服务端确认值。
   module.enqueuePendingRoundSettlement({ roundId: 'round_exp', startedAt: 1, endedAt: 2, score: 50, collectedMoodBeanCount: 20 });
   const display = module.getDisplayLevelAndExperience();
-  // 5 + 20 = 25：跨过 Lv.1（目标 15）后 Lv.2 余 10。
-  assert.strictEqual(display.level, 2, '展示等级应跨级');
-  assert.strictEqual(display.experience, 10);
-  assert.strictEqual(display.target, module.getExperienceTargetForLevel(2));
+  assert.strictEqual(display.level, 1);
+  assert.strictEqual(display.experience, 5);
+  assert.strictEqual(display.target, module.getExperienceTargetForLevel(1));
   assert.strictEqual(module.level, 1, '基准等级不被 pending 推高');
   assert.strictEqual(module.experience, 5, '基准经验不被 pending 推高');
 
@@ -344,18 +296,18 @@ test('R2 展示值：经验与跨等级升级同样按「基准 + pending」推�
   assert.strictEqual(module.getDisplayMoodBeanBalance(), 25);
 });
 
-test('R2 展示值：dead-letter 记录不计入预览，展示值正确扣除', () => {
+test('dead-letter 和待提交记录均不改变已确认展示值', () => {
   const store = installCcStub();
   const module = createModule(store);
   module.applyCloudProfile({ level: 1, experience: 0, moodBeanBalance: 10, highestSingleGameScore: 0 });
   module.enqueuePendingRoundSettlement({ roundId: 'round_dead', startedAt: 1, endedAt: 2, score: 10, collectedMoodBeanCount: 10 });
   module.enqueuePendingRoundSettlement({ roundId: 'round_alive', startedAt: 3, endedAt: 4, score: 20, collectedMoodBeanCount: 5 });
-  assert.strictEqual(module.getDisplayMoodBeanBalance(), 25);
+  assert.strictEqual(module.getDisplayMoodBeanBalance(), 10);
 
   module.movePendingRoundSettlementToDeadLetter('round_dead', '对局时间异常');
-  assert.strictEqual(module.getDisplayMoodBeanBalance(), 15, 'dead-letter 后展示值只保留有效 pending');
+  assert.strictEqual(module.getDisplayMoodBeanBalance(), 10);
   const display = module.getDisplayLevelAndExperience();
-  assert.strictEqual(display.experience, 5, '经验预览同样扣除 dead-letter 记录');
+  assert.strictEqual(display.experience, 0);
 });
 
 test('暂停重开不保存最高分：消除过程中只更新内存，只有正式结算才写入 zyx_best_score', () => {
@@ -398,8 +350,8 @@ test('暂停重开不保存最高分：消除过程中只更新内存，只有�
   module.roundCollectedMoodBeans = 10;
   module.finishRound();
   assert.strictEqual(store.get('zyx_best_score'), '200', '正式结算后才持久化最高分');
-  // R2：正式结算的奖励进入 pending 推算展示，基准等服务端确认。
+  // 正式结算进入待提交队列，首页仍等服务端确认。
   module.enqueuePendingRoundSettlement({ roundId: 'round_best', startedAt: 1, endedAt: 2, score: 200, collectedMoodBeanCount: 10 });
   assert.strictEqual(module.moodBeanBalance, 0, '基准不 immediate 入账');
-  assert.strictEqual(module.getDisplayMoodBeanBalance(), 10, '展示值含本局 pending 奖励');
+  assert.strictEqual(module.getDisplayMoodBeanBalance(), 0, '待提交不预支奖励');
 });

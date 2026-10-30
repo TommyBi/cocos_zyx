@@ -48,9 +48,11 @@ test('生产环境 /debug/profile 与 /debug/reset 均为 404', async () => {
   }
 
   // 普通玩家 API 也无法把余额改成绝对值。
-  const state = await fetch(`${baseUrl}/v1/cocos-zyx/realm/state`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const state = await fetch(`${baseUrl}/v1/cocos-zyx/players/bootstrap`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deviceId: 'prod_guard_device', nickname: '', moodBeanBalance: 999999 }),
   });
   const statePayload = await state.json();
-  assert.strictEqual(statePayload.data.moodBeanBalance, 0);
+  assert.strictEqual(statePayload.data.profile.moodBeanBalance, 0);
 });
