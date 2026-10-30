@@ -4,23 +4,24 @@ const PRODUCTION_API_BASE = 'https://api.tcjstory.cn/v1/cocos-zyx';
 /** 本地开发覆盖：在浏览器/调试环境写入 zyx_api_base_override 后指向本地服务端；线上永远为空。 */
 const API_BASE_OVERRIDE_KEY = 'zyx_api_base_override';
 
-function getApiBase(): string {
+/** 微信包固定使用 HTTPS 正式服务；浏览器仅允许本机开发服务覆盖。 */
+export function getApiBase(): string {
+    const wxApi = getWxApi();
+    if (wxApi && typeof wxApi.request === 'function') return PRODUCTION_API_BASE;
     try {
-        const override = cc.sys.localStorage.getItem(API_BASE_OVERRIDE_KEY);
-        if (override) return override;
+        const override = cc.sys.localStorage.getItem(API_BASE_OVERRIDE_KEY) || '';
+        if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/v1\/cocos-zyx\/?$/.test(override)) {
+            return override.replace(/\/$/, '');
+        }
     } catch (error) {
         // 读取失败时使用线上地址。
     }
     return PRODUCTION_API_BASE;
 }
 
-/** 本地开发 API 覆盖是否生效；GM 云同步只允许指向本地开发服务，生产地址一律不调用 /debug/*。 */
+/** GM 云同步只允许浏览器中的本机开发服务。 */
 export function isLocalApiOverrideActive(): boolean {
-    try {
-        return !!cc.sys.localStorage.getItem(API_BASE_OVERRIDE_KEY);
-    } catch (error) {
-        return false;
-    }
+    return getApiBase() !== PRODUCTION_API_BASE;
 }
 
 export type CloudProfile = {

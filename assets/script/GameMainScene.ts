@@ -1,7 +1,6 @@
 import { BUTTON_COLORS, uimanager } from './manager/UIManager';
 import { getWxApi } from './manager/PlatformAdapter';
 import { cloudService, CloudProfile, RoundSettlementResult, StaminaState } from './manager/CloudService';
-import WeChatProfileController from './manager/WeChatProfileController';
 import { settingsPanel } from './manager/SettingsPanel';
 import { zyxGameModule } from './dataModule/ZyxGameModule';
 import ZyxGame, { SettlementExitRequest } from './zyxGame/ZyxGame';
@@ -35,6 +34,7 @@ import {
     DESIGN_WIDTH,
     ViewportRect,
     calculateStageLayout,
+    insetGameRegion,
     chooseViewportSegment,
     segmentToWorld,
     shouldFitHeight,
@@ -55,22 +55,12 @@ export default class GameMainScene extends cc.Component {
     private backdrop: cc.Node = null;
     private profileNameLabel: cc.Label = null;
     private profileAvatarContent: cc.Node = null;
-    private profileAuthHint: cc.Label = null;
-    private profileCardY: number = 0;
     private profileLevelLabel: cc.Label = null;
     private profileExperienceFill: cc.Node = null;
     private profileExperienceLabel: cc.Label = null;
     private profileExperienceTrackWidth: number = 238;
     private profileExperienceFillWidth: number = 210;
     private profileExperienceFillLeft: number = -133;
-private wechatProfileController: WeChatProfileController = new WeChatProfileController({
-getAuthorizationButton: () => (
-this.profileAuthHint && cc.isValid(this.profileAuthHint.node)
-? this.profileAuthHint.node
-: null
-),
-onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl),
-});
     private homeMoodBeanIcon: cc.Node = null;
     private homeMoodBeanBalanceLabel: cc.Label = null;
     /** 示意棋盘/手势层；结算开心豆回流期间隐藏，结束后再淡入恢复循环。 */
@@ -225,7 +215,6 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
         }
         this.wxShowHandler = null;
         this.wxNetworkHandler = null;
-        this.wechatProfileController.destroyNativeButton();
     }
 
     private configureCanvas(canvas: cc.Canvas): void {
@@ -298,10 +287,17 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
     }
 
     private applyStageLayout(screen: cc.Node): void {
-        const stage = calculateStageLayout(this.getStageRegion(), screen.name === 'game');
+        const game = screen.name === 'game';
+        const region = game
+            ? insetGameRegion(this.getStageRegion(), cc.winSize.width, cc.winSize.height, uimanager.getSafeAreaMetrics())
+            : this.getStageRegion();
+        const stage = calculateStageLayout(region, game);
         screen.setPosition(stage.x, stage.y);
         screen.setContentSize(stage.width, stage.height);
         screen.scale = stage.scale;
+        const gameComponent = game ? screen.getComponent(ZyxGame) : null;
+        if (gameComponent) gameComponent.refreshLayout();
+        uimanager.refreshModalLayout();
     }
 
     private renderBackdrop(name: string): void {
@@ -367,7 +363,7 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
             136,
             BUTTON_COLORS.green,
             () => this.startGame(),
-            40,
+            24,
         );
         this.decorateStartButton();
         this.createStartButtonGuide();
@@ -589,9 +585,8 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
             new cc.Color(226, 243, 226), new cc.Color(129, 183, 145, 175), new cc.Color(249, 255, 237),
         );
         this.staminaIcon = createStaminaBolt(staminaCard, -50, 0, 38);
-        uimanager.createLabel(staminaCard, '体力', 20, 13, 13, new cc.Color(83, 137, 97), 78, 20);
-        this.staminaLabel = uimanager.createLabel(staminaCard, '—/30', 20, -10, 23, MOOD_COLORS.cocoa, 104, 29);
-        this.makeCartoonBold(this.staminaLabel, new cc.Color(255, 249, 246), 0.9);
+        this.staminaLabel = uimanager.createLabel(staminaCard, '—/30', 20, 0, 23, MOOD_COLORS.cocoa, 104, 29);
+        this.makeLabelBold(this.staminaLabel);
         staminaCard.addComponent(cc.Button);
         staminaCard.on(cc.Node.EventType.TOUCH_END, () => this.showStaminaInfo(), this);
 
@@ -603,19 +598,17 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
         this.moodBeanCountCard = card;
         const icon = createMoodBeanMascot(card, -50, -1, 40);
         icon.zIndex = 16;
-        const name = uimanager.createLabel(card, '开心豆', 20, 13, 13, MOOD_COLORS.cocoaSoft, 90, 20);
-        this.makeCartoonBold(name, new cc.Color(255, 249, 232), 0.55);
         this.moodBeanCountLabel = uimanager.createLabel(
             card,
             String(zyxGameModule.getDisplayMoodBeanBalance()),
             20,
-            -10,
+            0,
             23,
             MOOD_COLORS.cocoa,
             104,
             29,
         );
-        this.makeCartoonBold(this.moodBeanCountLabel, new cc.Color(255, 246, 224), 0.7);
+        this.makeLabelBold(this.moodBeanCountLabel);
         this.layoutMoodBeanCountBadge();
     }
 
@@ -801,8 +794,8 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
         entry.zIndex = 150;
         uimanager.drawButtonSurface(entry, buttonWidth, buttonHeight, MOOD_COLORS.mistBlue, 24);
         const gear = this.drawSettingsGear(entry);
-        const title = uimanager.createLabel(entry, '设置', 0, -27, 18, new cc.Color(255, 250, 237), 76, 26);
-        this.makeCartoonBold(title, new cc.Color(55, 91, 107), 1.1);
+        const title = uimanager.createLabel(entry, '设置', 0, -27, 24, new cc.Color(255, 250, 237), 76, 26);
+        this.makeLabelBold(title);
         entry.addComponent(cc.Button);
         entry.on(cc.Node.EventType.TOUCH_START, () => {
             cc.Tween.stopAllByTarget(entry);
@@ -910,8 +903,8 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
         const iconBase = uimanager.createRect(entry, 'featureIconBase', 86, 86, color, 255, 20, 0, 20);
         uimanager.drawButtonSurface(iconBase, 86, 86, color, 20);
         this.loadHomeFeatureIcon(iconBase, resourcePath, 70, 0, 2);
-        const titleLabel = uimanager.createLabel(entry, title, 0, -44, 19, MOOD_COLORS.cocoa, 108, 29);
-        this.makeCartoonBold(titleLabel, new cc.Color(255, 249, 231), 1.15);
+        const titleLabel = uimanager.createLabel(entry, title, 0, -44, 24, MOOD_COLORS.cocoa, 108, 32);
+        this.makeLabelBold(titleLabel);
         entry.addComponent(cc.Button);
         entry.on(cc.Node.EventType.TOUCH_START, () => {
             cc.tween(entry).stop();
@@ -1033,22 +1026,19 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
         this.homeMoodBeanIcon = beanIcon;
 
         const demoTip = uimanager.createLabel(demoLayer, '左右挪动 · 收集开心豆', boardCenterX, 105, 17, MOOD_COLORS.cocoaSoft, 280, 28);
-        this.makeCartoonBold(demoTip, MOOD_COLORS.cocoaSoft, 0.55);
-        const beanTitle = uimanager.createLabel(stage, '我的开心豆', 0, -160, 18, MOOD_COLORS.cocoaSoft, 180, 28);
-        beanTitle.node.zIndex = 220;
-        this.makeCartoonBold(beanTitle, MOOD_COLORS.cocoaSoft, 0.55);
+        this.makeLabelBold(demoTip);
         this.homeMoodBeanBalanceLabel = uimanager.createLabel(
             stage,
             `${zyxGameModule.getDisplayMoodBeanBalance()}`,
             0,
-            -191,
+            -160,
             24,
             MOOD_COLORS.cocoa,
             160,
             32,
         );
         this.homeMoodBeanBalanceLabel.node.zIndex = 220;
-        this.makeCartoonBold(this.homeMoodBeanBalanceLabel, MOOD_COLORS.cocoa, 0.8);
+        this.makeLabelBold(this.homeMoodBeanBalanceLabel);
 
         const demoPieces = [leftPiece, rightPiece, movingPiece];
         const demoClock = new cc.Node('homeDemoClock');
@@ -1398,19 +1388,6 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
         this.profileNameLabel.node.setAnchorPoint(0, 0.5);
         this.profileNameLabel.node.setPosition(-210, 35);
 
-        this.profileAuthHint = uimanager.createLabel(panel, '点头像同步资料 ›', -130, 5, 14, MOOD_COLORS.sage, 164, 22);
-        this.profileAuthHint.node.zIndex = 30;
-
-        // 头像与昵称区域承接授权，资源胶囊保持独立点击范围。
-        const profileHit = new cc.Node('profileAuthorizationHit');
-        profileHit.width = 236;
-        profileHit.height = 136;
-        profileHit.setPosition(-215, 0);
-        profileHit.zIndex = 60;
-        profileHit.addComponent(cc.Button);
-        panel.addChild(profileHit);
-        profileHit.on(cc.Node.EventType.TOUCH_END, () => this.requestWeChatProfile(), this);
-
         // R2：首页等级与经验按展示口径渲染（服务端确认基准 + 剩余 pending 推算值）。
         const displayProgress = zyxGameModule.getDisplayLevelAndExperience();
         const target = displayProgress.target;
@@ -1441,25 +1418,20 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
             190,
             25,
         );
-        this.makeCartoonBold(this.profileExperienceLabel, new cc.Color(65, 58, 53), 0.85);
+        this.makeLabelBold(this.profileExperienceLabel);
         const levelBadge = uimanager.createRect(panel, 'levelBadge', 72, 34, MOOD_COLORS.cocoa, 255, 11, -181, trackY);
         levelBadge.zIndex = 12;
         this.profileLevelLabel = uimanager.createLabel(levelBadge, `Lv.${displayProgress.level}`, 0, 0, 17, cc.Color.WHITE, 66, 28);
 
         const stored = cc.sys.localStorage.getItem('zyx_wechat_profile');
-        let hasCachedProfile = false;
         if (stored) {
             try {
                 const profile = JSON.parse(stored);
                 this.applyWeChatProfile(profile.nickName || '顺心朋友', profile.avatarUrl || '');
-                hasCachedProfile = true;
             } catch (error) {
                 cc.warn('Invalid cached WeChat profile', error);
             }
         }
-        this.profileAuthHint.node.active = !hasCachedProfile;
-        this.profileCardY = panelY;
-        this.wechatProfileController.requestAuthorization(-215, panelY, 236, 136, hasCachedProfile, this.screen);
         return panel;
     }
 
@@ -1506,18 +1478,6 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
         g.fill();
     }
 
-    private requestWeChatProfile(): void {
-        if (!getWxApi()) {
-            uimanager.showToast('微信小游戏中点击信息栏即可同步头像昵称');
-            return;
-        }
-        if (this.wechatProfileController.hasNativeButton()) {
-            // 原生透明授权按钮已覆盖信息栏，点击由微信接管，无需重复创建。
-            return;
-        }
-        this.wechatProfileController.requestAuthorization(-215, this.profileCardY, 236, 136, false, this.screen);
-    }
-
     private applyWeChatProfile(nickName: string, avatarUrl: string): void {
         if (this.profileNameLabel) this.profileNameLabel.string = nickName;
         cloudService.bootstrap(nickName, avatarUrl).then((profile) => this.applyCloudProfile(profile)).catch(() => undefined);
@@ -1548,7 +1508,7 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
         ];
         let index = 0;
         const label = uimanager.createLabel(pill, tips[index], 0, 0, 23, new cc.Color(45, 42, 39), 568, 40);
-        this.makeCartoonBold(label, new cc.Color(45, 42, 39), 0.7);
+        this.makeLabelBold(label);
         cc.tween(label.node)
             .repeatForever(
                 cc.tween()
@@ -1598,9 +1558,9 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
         labelNode.x = 34;
         labelNode.width = 330;
         labelNode.height = 92;
-        label.fontSize = 48;
-        label.lineHeight = 60;
-        this.makeCartoonBold(label, new cc.Color(46, 99, 68), 1.8);
+        label.fontSize = 24;
+        label.lineHeight = 32;
+        this.makeLabelBold(label);
     }
 
     private createStartButtonGuide(): void {
@@ -1961,10 +1921,8 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
         cc.tween(node).to(0.08, { scale: 1.08 }).to(0.14, { scale: 1 }, { easing: 'backOut' }).start();
     }
 
-    private makeCartoonBold(label: cc.Label, color: cc.Color, width: number): void {
-        const outline = label.node.getComponent(cc.LabelOutline) || label.node.addComponent(cc.LabelOutline);
-        outline.color = color;
-        outline.width = width;
+    private makeLabelBold(label: cc.Label): void {
+        if (label) label.enableBold = true;
     }
 
     private async startGame(profileBootstrapHandled: boolean = false): Promise<boolean> {
@@ -2069,14 +2027,12 @@ onProfile: (nickName, avatarUrl) => this.applyWeChatProfile(nickName, avatarUrl)
     }
 
     private replaceScreen(name: string): void {
-        this.wechatProfileController.destroyNativeButton();
         if (this.screen && this.screen.isValid) {
             this.stopScreenTweens(this.screen);
             this.screen.destroy();
         }
         this.profileNameLabel = null;
         this.profileAvatarContent = null;
-        this.profileAuthHint = null;
         this.profileLevelLabel = null;
         this.profileExperienceFill = null;
         this.profileExperienceLabel = null;

@@ -24,7 +24,7 @@
 |---|---|
 | `assets/script/dataModule/MoodBeanConfig.ts` | 开心豆与本地待结算队列的集中配置 |
 | `assets/script/dataModule/ZyxGameModule.ts` | 棋盘、余额、本局收集、本地进度与离线结算队列 |
-| `assets/script/manager/CloudService.ts` | API 层；`PRODUCTION_API_BASE=https://api.tcjstory.cn/v1/cocos-zyx`；本地调试可用 localStorage 写 `zyx_api_base_override` 覆盖 |
+| `assets/script/manager/CloudService.ts` | API 层；`PRODUCTION_API_BASE=https://api.tcjstory.cn/v1/cocos-zyx`；仅浏览器本机调试可用 `zyx_api_base_override`；微信包固定正式 HTTPS |
 | `assets/script/zyxGame/MoodArt.ts` | 程序生成美术：`createMoodBean`/`createMoodBeanMascot`/`getMoodColor`，全部 `cc.Graphics`，无贴图 |
 | `server/src/index.js` | 云档案、体力、结算、周榜与分享奖励 API |
 | `server/src/economyConfig.js` | 服务端经济与风控参数 |
@@ -37,13 +37,15 @@
 - 暂停菜单的“重新开始”放弃本局，不发放开心豆、经验或最高分。
 - 体力由服务端校验。匿名设备标识可被重建；实物权益上线前需绑定可信身份并审计兑换。
 
+> 2026-10-30 后端已发布，当前结构迁移与验证结果以 [发布记录](release-candidate-2026-10-30.md) 为准。
+
 ## 5. 部署（tcjstory.cn，按上线标准）
 
 - 服务器：`root@8.134.218.234`，SSH 用密钥 `~/.ssh/chloeedu_tcjstory_deploy`（其它密钥都不行）。
 - 目录 `/opt/tcjstory/apps/cocos-zyx/server`，`rsync -az --delete --exclude node_modules --exclude data --exclude .env` 上传。
 - 构建启动：`docker compose up -d --build`（在服务器用 `setsid ... > /tmp/log 2>&1 &` 异步跑，SSH 直接跑会被 3 分钟超时杀掉；**pkill 的 pattern 不能匹配到自己 ssh 命令行，否则会自杀连接**）。
 - Dockerfile 里 `npm config set registry https://registry.npmmirror.com`（不加会在 npm ci 卡死）。
-- 网关：Caddyfile 已有 `handle /v1/cocos-zyx/*`（改路由后 `cd /opt/tcjstory/apps/dawn/server && docker compose restart gateway`）。
+- 网关：Caddyfile 已有 `handle /v1/cocos-zyx/*`（仅路由变化才运行 `/opt/tcjstory/bin/reload-gateway.sh`，不得直接重启共享网关）。
 - 健康检查：`https://api.tcjstory.cn/v1/cocos-zyx/health`；Dawn 回归：`https://api.tcjstory.cn/health`。
 - 生产数据卷包含玩家资产，不得因代码删减而清空；数据库结构变化应采用兼容迁移。
 - 冒烟顺序：bootstrap 拿 token → 获取体力状态 → 授权开局 → 结算 → 查询排行榜（测试账号和请求格式见服务端测试）。

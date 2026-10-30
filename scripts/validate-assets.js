@@ -6,8 +6,9 @@ const bundlesRoot = path.join(projectRoot, 'assets', 'bundles');
 const scriptsRoot = path.join(projectRoot, 'assets', 'script');
 
 const EXPECTED_BUNDLES = {
-    game: 'none',
-    home: 'subpackage',
+    game: { compressionType: 'none', remote: false },
+    home: { compressionType: 'subpackage', remote: false },
+    music: { compressionType: 'none', remote: true },
 };
 
 const REQUIRED_FILES = [
@@ -17,7 +18,6 @@ const REQUIRED_FILES = [
     'game/spine/get_1.json',
     'game/spine/get_1.atlas',
     'game/spine/get_1.png',
-    'game/sound/music_game.mp3',
     'game/sound/sound_break.mp3',
     'game/sound/sound_move.mp3',
     'game/sound/sound_tool1.mp3',
@@ -26,7 +26,8 @@ const REQUIRED_FILES = [
     'home/images/home_title_logo_v1.png',
     'home/images/rank_entry_trophy_v2.png',
     'home/images/start_guide_hand_v3.png',
-    'home/sound/music_main.mp3',
+    'music/music_main.mp3',
+    'music/music_game.mp3',
 ];
 
 function fail(message) {
@@ -73,10 +74,14 @@ function validateBundleLayout() {
     expected.forEach((name) => {
         const meta = readJson(path.join(bundlesRoot, `${name}.meta`));
         if (!meta.isBundle || meta.bundleName !== name) fail(`${name}.meta 的 Bundle 名称或开关错误`);
-        if (meta.compressionType.wechatgame !== EXPECTED_BUNDLES[name]) {
-            fail(`${name} 的微信打包类型必须为 ${EXPECTED_BUNDLES[name]}`);
+        const expected = EXPECTED_BUNDLES[name];
+        if (meta.compressionType.wechatgame !== expected.compressionType) {
+            fail(`${name} 的微信打包类型必须为 ${expected.compressionType}`);
         }
-        if (meta.isRemoteBundle.wechatgame === true) fail(`${name} 禁止配置为远程 Bundle`);
+        const remote = !!(meta.isRemoteBundle && meta.isRemoteBundle.wechatgame === true);
+        if (remote !== expected.remote) {
+            fail(`${name} 的微信远程 Bundle 开关必须为 ${expected.remote}`);
+        }
     });
 }
 
@@ -225,4 +230,4 @@ validateMetasAndJunk();
 validateTextureDimensions();
 validateLoadingBoundary();
 validateAssetPathManifest();
-console.log('Source asset architecture OK: game and home bundles; max texture 2048.');
+console.log('Source asset architecture OK: game in main package, home subpackage, music on CDN; max texture 2048.');

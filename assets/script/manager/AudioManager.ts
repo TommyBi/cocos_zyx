@@ -1,15 +1,10 @@
 import { gameSettings } from './GameSettings';
-import { ASSET_PATHS, BundleName, getAudioClip } from './AssetLoader';
+import { ASSET_PATHS, BundleName, getAudioClip, loadMusicClip } from './AssetLoader';
 
 export type MusicName = 'main' | 'game';
 export type SoundName = 'break' | 'move' | 'hammer' | 'magicWand';
 
 type AudioResource = { bundle: BundleName; path: string };
-
-const MUSIC_RESOURCES: { [key in MusicName]: AudioResource } = {
-    main: { bundle: 'home', path: ASSET_PATHS.home.music },
-    game: { bundle: 'game', path: ASSET_PATHS.game.music },
-};
 
 const SOUND_RESOURCES: { [key in SoundName]: AudioResource } = {
     break: { bundle: 'game', path: ASSET_PATHS.game.breakSound },
@@ -30,21 +25,31 @@ export default class AudioManager {
     }
 
     private currentMusic: MusicName = null;
+    private musicLoadName: MusicName = null;
     private musicRequestId: number = 0;
     private musicAudioId: number = -1;
 
-    /** 切换并循环播放逻辑场景对应的背景音乐。重复请求同一首时不会重头播放。 */
+    /** 切换并循环播放逻辑场景对应的背景音乐。曲目从 CDN 远程 Bundle 拉取，不阻塞界面。 */
     public playMusic(name: MusicName): void {
-        if (this.currentMusic === name && cc.audioEngine.isMusicPlaying()) {
+        if (this.currentMusic === name && (cc.audioEngine.isMusicPlaying() || this.musicLoadName === name)) {
             this.applySettings();
             return;
         }
         this.currentMusic = name;
+        this.musicLoadName = name;
         const requestId = ++this.musicRequestId;
-        const clip = this.getClip(MUSIC_RESOURCES[name]);
-        if (requestId !== this.musicRequestId || this.currentMusic !== name) return;
-        cc.audioEngine.stopMusic();
-        this.startMusicLoop(name, clip, requestId);
+        loadMusicClip(name)
+            .then((clip) => {
+                if (requestId !== this.musicRequestId || this.currentMusic !== name) return;
+                cc.audioEngine.stopMusic();
+                this.startMusicLoop(name, clip, requestId);
+            })
+            .catch((error: Error) => {
+                cc.warn('背景音乐加载失败', name, error);
+            })
+            .then(() => {
+                if (this.musicLoadName === name && requestId === this.musicRequestId) this.musicLoadName = null;
+            });
     }
 
     /** 部分 Web/小游戏容器会忽略底层 loop 标志，结束回调负责无缝补播。 */

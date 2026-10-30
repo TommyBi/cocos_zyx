@@ -21,16 +21,14 @@ function createFlatButton(
     height: number,
     color: cc.Color,
     onClick: () => void,
-    fontSize: number,
+    _fontSize: number,
 ): cc.Node {
     const button = uimanager.createRect(parent, name, width, height, color, 255, Math.min(17, height / 2), x, y);
     button.addComponent(cc.Button);
     // 一个节点只保留一层 Graphics，避免 Cocos 2.4 的后绘制组件吞掉底色。
     uimanager.drawButtonSurface(button, width, height, color, Math.min(17, height / 2));
-    const label = uimanager.createLabel(button, text, 0, 1, fontSize, cc.Color.WHITE, width - 20, height - 8);
-    const outline = label.node.addComponent(cc.LabelOutline);
-    outline.color = new cc.Color(Math.round(color.r * 0.48), Math.round(color.g * 0.48), Math.round(color.b * 0.48));
-    outline.width = 1;
+    const label = uimanager.createLabel(button, text, 0, 1, 24, cc.Color.WHITE, width - 20, height - 8);
+    label.enableBold = true;
     button.on(cc.Node.EventType.TOUCH_START, () => cc.tween(button).to(0.06, { scale: 0.96 }).start());
     button.on(cc.Node.EventType.TOUCH_END, () => {
         cc.tween(button).to(0.1, { scale: 1 }).start();

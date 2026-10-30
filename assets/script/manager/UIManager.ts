@@ -264,19 +264,13 @@ export default class UIManager {
         height: number,
         color: cc.Color,
         onClick: () => void,
-        fontSize: number = 28,
+        fontSize: number = 24,
     ): cc.Node {
         const button = this.createRect(parent, `button_${text}`, width, height, color, 255, 16, x, y);
         button.addComponent(cc.Button);
         this.drawButtonSurface(button, width, height, color, Math.min(20, height * 0.26));
         const label = this.createLabel(button, text, 0, 2, fontSize, cc.Color.WHITE, width - 24, height - 10);
-        const outline = label.node.addComponent(cc.LabelOutline);
-        outline.color = new cc.Color(
-            Math.round(color.r * 0.48),
-            Math.round(color.g * 0.48),
-            Math.round(color.b * 0.48),
-        );
-        outline.width = 1.3;
+        label.enableBold = true;
 
         button.on(cc.Node.EventType.TOUCH_START, () => {
             cc.tween(button).stop();
@@ -372,6 +366,8 @@ export default class UIManager {
         this.modal = root;
 
         const mask = this.createRect(root, 'mask', root.width, root.height, new cc.Color(65, 46, 40), 190);
+        mask.addComponent(cc.BlockInputEvents);
+        this.refreshModalLayout();
         const actionRows = actions.length === 0 ? 0 : (horizontalActions ? 1 : actions.length);
         const panelHeight = 300 + actionRows * 92 + contentHeight;
         const panel = this.createRect(root, 'panel', 560, panelHeight, new cc.Color(211, 164, 98), 255, 26, 0, 0);
@@ -425,7 +421,7 @@ export default class UIManager {
                     cc.Tween.stopAllByTarget(button);
                     this.closeModal();
                     action.onClick();
-                }, 27);
+                }, 24);
                 if (action.icon) action.icon(button);
             });
         }
@@ -520,6 +516,24 @@ export default class UIManager {
     public closeModal(): void {
         if (this.modal && this.modal.isValid) this.modal.destroy();
         this.modal = null;
+    }
+
+    /** 遮罩覆盖整个画布；面板仍使用安全区舞台的位置与缩放。 */
+    public refreshModalLayout(): void {
+        if (!this.modal || !this.modal.isValid || !this.scene) return;
+        const mask = this.modal.getChildByName('mask');
+        if (!mask) return;
+        const canvas = this.scene.getComponent(cc.Canvas) ? this.scene : this.scene.parent;
+        if (!canvas) return;
+        const bottomLeft = this.modal.convertToNodeSpaceAR(
+            canvas.convertToWorldSpaceAR(cc.v2(-cc.winSize.width / 2, -cc.winSize.height / 2)),
+        );
+        const topRight = this.modal.convertToNodeSpaceAR(
+            canvas.convertToWorldSpaceAR(cc.v2(cc.winSize.width / 2, cc.winSize.height / 2)),
+        );
+        mask.setPosition((bottomLeft.x + topRight.x) / 2, (bottomLeft.y + topRight.y) / 2);
+        mask.setContentSize(Math.abs(topRight.x - bottomLeft.x), Math.abs(topRight.y - bottomLeft.y));
+        this.drawRect(mask, mask.width, mask.height, new cc.Color(65, 46, 40), 0, 190);
     }
 
     public drawRect(node: cc.Node, width: number, height: number, color: cc.Color, radius: number = 0, opacity: number = 255): void {

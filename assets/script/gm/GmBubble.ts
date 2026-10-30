@@ -66,10 +66,8 @@ export function attachGmBubble(parent: cc.Node, hooks: GmBubbleHooks): void {
     tailGraphics.lineTo(-2, -8);
     tailGraphics.close();
     tailGraphics.fill();
-    const label = uimanager.createLabel(bubble, 'GM', -5, 1, 21, cc.Color.WHITE, 54, 30);
-    const outline = label.node.addComponent(cc.LabelOutline);
-    outline.color = new cc.Color(130, 64, 54);
-    outline.width = 1.2;
+    const label = uimanager.createLabel(bubble, 'GM', -5, 1, 24, cc.Color.WHITE, 54, 30);
+    label.enableBold = true;
     const dot = uimanager.createCircle(bubble, 'gmBubbleDot', 5, new cc.Color(255, 227, 115), 28, 13);
     dot.zIndex = 60;
     bubble.addComponent(cc.Button);

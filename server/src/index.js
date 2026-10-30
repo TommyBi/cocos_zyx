@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const initSqlJs = require('sql.js');
 
 const economy = require('./economyConfig');
+const { migrateSchema } = require('./schema');
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
@@ -272,39 +273,6 @@ function addExperience(user, amount) {
   return { level, experience };
 }
 
-function ensureWeekSettled() {
-  const currentWeek = getWeekRange();
-  const last = get('SELECT value FROM app_state WHERE key = ?', ['last_settled_week_id']);
-  if (last && last.value === currentWeek.weekId) return;
-
-  const previous = getWeekRange(currentWeek.startAt - 1);
-  // R5：周榜奖励写入是关键经济事务，必须在同一事务内完成并立即落盘。
-  withTransaction(() => {
-    const rows = all(
-      `SELECT player_id FROM weekly_stats
-       WHERE week_id = ? AND weekly_high_score > 0
-       ORDER BY weekly_high_score DESC, weekly_high_score_at ASC, player_id ASC
-       LIMIT ${maxLeaderboardEntries}`,
-      [previous.weekId],
-    );
-    rows.forEach((row, index) => {
-      const rank = index + 1;
-      const tier = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : 'normal';
-      const rewardId = `${previous.weekId}:power:${row.player_id}`;
-      const existing = get('SELECT id FROM reward_mail WHERE reward_id = ?', [rewardId]);
-      if (!existing) {
-        run(
-          `INSERT INTO reward_mail (reward_id, player_id, week_id, ranking_type, rank, reward_tier, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [rewardId, row.player_id, previous.weekId, 'power', rank, tier, now()],
-        );
-      }
-    });
-    run('INSERT OR REPLACE INTO app_state (key, value) VALUES (?, ?)', ['last_settled_week_id', currentWeek.weekId]);
-  });
-  ensurePersisted();
-}
-
 function leaderboard(user) {
   const week = getWeekRange();
   const rows = all(
@@ -350,90 +318,12 @@ function leaderboard(user) {
   };
 }
 
-function initSchema() {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS players (
-      player_id TEXT PRIMARY KEY,
-      device_id TEXT NOT NULL UNIQUE,
-      token TEXT NOT NULL UNIQUE,
-      nickname TEXT NOT NULL DEFAULT '解忧玩家',
-      avatar_url TEXT NOT NULL DEFAULT '',
-      level INTEGER NOT NULL DEFAULT 1,
-      experience INTEGER NOT NULL DEFAULT 0,
-      mood_bean_balance INTEGER NOT NULL DEFAULT 0,
-      total_mood_beans INTEGER NOT NULL DEFAULT 0,
-      highest_single_game_score INTEGER NOT NULL DEFAULT 0,
-      stamina_current INTEGER NOT NULL DEFAULT 30,
-      stamina_updated_at INTEGER NOT NULL DEFAULT 0,
-      created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS game_rounds (
-      player_id TEXT NOT NULL,
-      round_id TEXT NOT NULL,
-      started_at INTEGER NOT NULL,
-      status TEXT NOT NULL DEFAULT 'active',
-      settled_at INTEGER,
-      PRIMARY KEY (player_id, round_id)
-    );
-    CREATE TABLE IF NOT EXISTS stamina_share_claims (
-      player_id TEXT NOT NULL,
-      day_key TEXT NOT NULL,
-      claim_id TEXT NOT NULL,
-      claimed_at INTEGER NOT NULL,
-      PRIMARY KEY (player_id, day_key),
-      UNIQUE (player_id, claim_id)
-    );
-    CREATE TABLE IF NOT EXISTS round_settlements (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      player_id TEXT NOT NULL,
-      round_id TEXT NOT NULL,
-      score INTEGER NOT NULL,
-      mood_token_count INTEGER NOT NULL DEFAULT 0,
-      awarded_mood_beans INTEGER NOT NULL DEFAULT 0,
-      payload_json TEXT NOT NULL DEFAULT '',
-      result_json TEXT NOT NULL DEFAULT '',
-      created_at INTEGER NOT NULL,
-      UNIQUE (player_id, round_id)
-    );
-    CREATE TABLE IF NOT EXISTS weekly_stats (
-      week_id TEXT NOT NULL,
-      player_id TEXT NOT NULL,
-      weekly_high_score INTEGER NOT NULL DEFAULT 0,
-      weekly_high_score_at INTEGER NOT NULL DEFAULT 0,
-      PRIMARY KEY (week_id, player_id)
-    );
-    CREATE TABLE IF NOT EXISTS reward_mail (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      reward_id TEXT NOT NULL UNIQUE,
-      player_id TEXT NOT NULL,
-      week_id TEXT NOT NULL,
-      ranking_type TEXT NOT NULL,
-      rank INTEGER NOT NULL,
-      reward_tier TEXT NOT NULL,
-      created_at INTEGER NOT NULL,
-      claimed_at INTEGER
-    );
-    CREATE TABLE IF NOT EXISTS app_state (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_week_power ON weekly_stats(week_id, weekly_high_score DESC, weekly_high_score_at ASC);
-  `);
-  // 已有玩家库就地加列，不删除余额、历史对局或旧秘境表中的线上数据。
-  const playerColumns = all('PRAGMA table_info(players)').map((column) => column.name);
-  if (!playerColumns.includes('stamina_current')) db.run('ALTER TABLE players ADD COLUMN stamina_current INTEGER NOT NULL DEFAULT 30');
-  if (!playerColumns.includes('stamina_updated_at')) db.run('ALTER TABLE players ADD COLUMN stamina_updated_at INTEGER NOT NULL DEFAULT 0');
-  persist();
-}
-
 app.get(['/health', '/v1/cocos-zyx/health'], (_req, res) => {
-  ok(res, { ok: true, service: 'cocos-zyx-cloud', checkedAt: new Date().toISOString() });
+  ok(res, { ok: true, service: 'cocos-zyx-cloud', apiVersion: 2, schemaVersion: 2, capabilities: ['stamina', 'round-start', 'settlement', 'power-leaderboard', 'daily-share'], checkedAt: new Date().toISOString() });
 });
 
 app.post('/v1/cocos-zyx/players/bootstrap', (req, res) => {
   try {
-    ensureWeekSettled();
     const deviceId = stringValue(req.body.deviceId, 128);
     if (!deviceId) return fail(res, '缺少设备标识');
     // R1：bootstrap 只负责身份建档。客户端提交的任何 localProfile/资产/等级/经验/最高分
@@ -556,7 +446,6 @@ app.post('/v1/cocos-zyx/stamina/share-claim', (req, res) => {
 
 app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
   try {
-    ensureWeekSettled();
     const user = authenticate(req, res);
     if (!user) return;
     const roundId = stringValue(req.body.roundId, 96);
@@ -646,7 +535,6 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
 
 app.get('/v1/cocos-zyx/leaderboards', (req, res) => {
   try {
-    ensureWeekSettled();
     const user = authenticate(req, res);
     if (!user) return;
     if (req.query.type && req.query.type !== 'power') return fail(res, '仅支持单局最高分排行榜', 400, 'LEADERBOARD_TYPE_UNSUPPORTED');
@@ -654,13 +542,6 @@ app.get('/v1/cocos-zyx/leaderboards', (req, res) => {
   } catch (error) {
     fail(res, error.message || '读取排行榜失败', 500);
   }
-});
-
-app.get('/v1/cocos-zyx/rewards', (req, res) => {
-  const user = authenticate(req, res);
-  if (!user) return;
-  const rewards = all("SELECT week_id, ranking_type, rank, reward_tier, created_at FROM reward_mail WHERE player_id = ? AND ranking_type = 'power' AND claimed_at IS NULL ORDER BY created_at DESC", [user.player_id]);
-  ok(res, { rewards });
 });
 
 /**
@@ -713,7 +594,6 @@ app.post('/v1/cocos-zyx/debug/reset', (req, res) => {
     run('DELETE FROM round_settlements WHERE player_id = ?', [user.player_id]);
     run('DELETE FROM game_rounds WHERE player_id = ?', [user.player_id]);
     run('DELETE FROM stamina_share_claims WHERE player_id = ?', [user.player_id]);
-    run('DELETE FROM reward_mail WHERE player_id = ?', [user.player_id]);
     ensurePersisted();
     ok(res, { profile: safeProfile(get('SELECT * FROM players WHERE player_id = ?', [user.player_id])) });
   } catch (error) {
@@ -722,12 +602,16 @@ app.post('/v1/cocos-zyx/debug/reset', (req, res) => {
 });
 }
 
+app.use((_req, res) => fail(res, '接口不存在或已下线', 404, 'ENDPOINT_NOT_FOUND'));
+app.use((error, _req, res, _next) => fail(res, error.type === 'entity.parse.failed' ? '请求 JSON 格式错误' : '请求处理失败', error.status || 500, 'REQUEST_INVALID'));
+
 /** 初始化数据库（可选覆盖路径，供测试使用临时库）并返回可挂载的 app。 */
 async function start(overrideDbPath) {
   if (overrideDbPath) dbPath = path.resolve(overrideDbPath);
   const SQL = await initSqlJs();
   db = fs.existsSync(dbPath) ? new SQL.Database(fs.readFileSync(dbPath)) : new SQL.Database();
-  initSchema();
+  migrateSchema(db);
+  persistNow();
   return app;
 }
 

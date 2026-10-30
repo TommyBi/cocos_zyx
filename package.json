@@ -10,7 +10,9 @@
     "build:wechat": "node scripts/clean-build.js wechatgame && npm run validate:assets && node scripts/build-wechat.js",
     "check:wechat-gm": "node scripts/check-wechat-gm.js",
     "upload:wechat": "node scripts/upload-wechat.js",
-    "open:wechat": "/Applications/wechatwebdevtools.app/Contents/MacOS/cli open --project \"$PWD/build/wechatgame\" --lang zh"
+    "publish:remote": "node scripts/publish-remote.js",
+    "open:wechat": "/Applications/wechatwebdevtools.app/Contents/MacOS/cli open --project \"$PWD/build/wechatgame\" --lang zh",
+    "check:cloud": "node scripts/check-cloud.js"
   },
   "devDependencies": {
     "miniprogram-ci": "^2.1.31"

@@ -40,16 +40,12 @@ import {
     MOOD_COLORS,
 } from './MoodArt';
 import { getWxApi } from '../manager/PlatformAdapter';
+import { calculateGameLayout } from '../manager/ResponsiveLayout';
 
 const { ccclass } = cc._decorator;
 const NEXT_PREVIEW_HEIGHT = 42;
 const NEXT_PREVIEW_OPACITY = 220;
 const TOOL_BUTTON_SIZE = 88;
-// 竖屏节奏：资源区贴近棋盘顶部，棋盘/下一排/道具区之间分别保留可辨认的独立留白。
-const BOARD_CENTER_Y = 140;
-const NEXT_ROW_CENTER_Y = -330;
-const TOOL_DOCK_CENTER_Y = -505;
-const BOTTOM_TIP_Y = -618;
 const ROUND_RESCUE_COOLDOWN_MS = 60 * 1000;
 const HUD_VALUE_COLOR = new cc.Color(112, 78, 65);
 const HUD_LABEL_COLOR = new cc.Color(132, 96, 80);
@@ -61,6 +57,9 @@ export type SettlementExitRequest = {
 
 @ccclass
 export default class ZyxGame extends cc.Component {
+    private layout: ReturnType<typeof calculateGameLayout> = null;
+    private hudRoot: cc.Node = null;
+    private footerRoot: cc.Node = null;
     private boardRoot: cc.Node = null;
     private pieceLayer: cc.Node = null;
     private nextLayer: cc.Node = null;
@@ -164,34 +163,57 @@ export default class ZyxGame extends cc.Component {
         this.updateHud();
     }
 
+    /** 仅移动区域容器，不重置棋盘、教学步骤、道具和计分状态。 */
+    public refreshLayout(): void {
+        if (!this.layout || !this.boardRoot) return;
+        const previous = this.layout;
+        this.layout = calculateGameLayout(this.node.height, BOARD_ROWS * CELL_SIZE);
+        this.hudRoot.y = this.layout.hudY;
+        this.footerRoot.y = this.layout.footerY;
+        this.boardRoot.y = this.layout.boardY;
+        for (const name of ['boardShadow', 'boardFrame']) {
+            const node = this.node.getChildByName(name);
+            if (node) node.y += this.layout.boardY - previous.boardY;
+        }
+        if (this.tutorialGuideRoot) this.tutorialGuideRoot.y += this.layout.boardY - previous.boardY;
+        for (const name of ['nextRow']) {
+            const node = this.node.getChildByName(name);
+            if (node) node.y = this.layout.nextY;
+        }
+        for (const name of ['toolDock', 'toolDockShadow']) {
+            const node = this.node.getChildByName(name);
+            if (node) node.y += this.layout.toolY - previous.toolY;
+        }
+        if (this.boardDangerHalo) this.boardDangerHalo.y = this.layout.boardY;
+        if (this.roundRescuePrompt) this.roundRescuePrompt.y += this.layout.toolY - previous.toolY;
+    }
+
     private buildUI(): void {
         this.clearTutorialGuide();
         this.stopBoardDangerGlow();
         this.node.removeAllChildren();
 
-        const safeArea = uimanager.getSafeAreaMetrics();
-        const boardTopY = BOARD_CENTER_Y + BOARD_ROWS * CELL_SIZE / 2;
-        const preferredTopY = boardTopY + 94 / 2 + 24;
-        const topY = Math.min(preferredTopY, this.node.height / 2 - safeArea.top - 50);
-        const bottomTipY = Math.max(BOTTOM_TIP_Y, -this.node.height / 2 + safeArea.bottom + 36);
-        const hasWeChatCapsule = safeArea.menuLeft < this.node.width / 2 - 12;
-        const hudGap = hasWeChatCapsule ? 10 : 22;
-        const scoreCardWidth = hasWeChatCapsule ? 270 : 288;
-        const beanCardWidth = hasWeChatCapsule ? 190 : 230;
-        const pauseWidth = 64;
+        this.layout = calculateGameLayout(this.node.height, BOARD_ROWS * CELL_SIZE);
+        this.hudRoot = new cc.Node('gameHud');
+        this.hudRoot.setPosition(0, this.layout.hudY);
+        this.node.addChild(this.hudRoot);
+        this.footerRoot = new cc.Node('gameFooter');
+        this.footerRoot.setPosition(0, this.layout.footerY);
+        this.node.addChild(this.footerRoot);
+        const topY = 0;
+        const bottomTipY = 0;
+        const hudGap = 22;
+        const scoreCardWidth = 288;
+        const beanCardWidth = 230;
+        const pauseWidth = 80;
         const hudWidth = scoreCardWidth + beanCardWidth + hudGap;
-        const centeredHudLeft = -hudWidth / 2;
-        const capsuleHudLeft = safeArea.menuLeft - 8 - hudWidth;
-        const safeLeft = -this.node.width / 2 + safeArea.left + 12;
-        const hudLeft = hasWeChatCapsule
-            ? Math.max(safeLeft, Math.min(centeredHudLeft, capsuleHudLeft))
-            : centeredHudLeft;
+        const hudLeft = -hudWidth / 2;
         const leftCardX = hudLeft + scoreCardWidth / 2;
         const beanCardX = hudLeft + scoreCardWidth + hudGap + beanCardWidth / 2;
-        const pauseX = this.node.width / 2 - safeArea.right - 12 - pauseWidth / 2;
-        uimanager.createRect(this.node, 'scoreCompareShadow', scoreCardWidth + 6, 100, new cc.Color(78, 53, 46), 34, 22, leftCardX, topY - 5);
+        const pauseX = this.node.width / 2 - 16 - pauseWidth / 2;
+        uimanager.createRect(this.hudRoot, 'scoreCompareShadow', scoreCardWidth + 6, 100, new cc.Color(78, 53, 46), 34, 22, leftCardX, topY - 5);
         const scoreCard = uimanager.createRect(
-            this.node,
+            this.hudRoot,
             'scoreCompareCard',
             scoreCardWidth,
             94,
@@ -208,24 +230,23 @@ export default class ZyxGame extends cc.Component {
         uimanager.createRect(scoreCard, 'scoreDivider', 2, 54, MOOD_COLORS.creamDeep, 180, 1, 0, -2);
         this.scoreLabel = uimanager.createLabel(scoreCard, '0', -scoreColumnX, -6, 32, HUD_VALUE_COLOR, 110, 38);
         this.bestLabel = uimanager.createLabel(scoreCard, '0', scoreColumnX, -6, 32, HUD_VALUE_COLOR, 110, 38);
-        this.makeHintLabelBold(this.scoreLabel, HUD_VALUE_COLOR, 1.1);
-        this.makeHintLabelBold(this.bestLabel, HUD_VALUE_COLOR, 1.1);
+        this.makeLabelBold(this.scoreLabel);
+        this.makeLabelBold(this.bestLabel);
         this.recordTagOnLeft = false;
         this.recordTagLabel = uimanager.createLabel(scoreCard, '最高记录', scoreColumnX, -37, 12, HUD_LABEL_COLOR, 124, 18);
 
-        uimanager.createRect(this.node, 'beanCardShadow', beanCardWidth + 6, 100, new cc.Color(78, 53, 46), 30, 20, beanCardX, topY - 5);
-        uimanager.createRect(this.node, 'beanCard', beanCardWidth, 94, new cc.Color(239, 232, 187), 246, 19, beanCardX, topY);
+        uimanager.createRect(this.hudRoot, 'beanCardShadow', beanCardWidth + 6, 100, new cc.Color(78, 53, 46), 30, 20, beanCardX, topY - 5);
+        uimanager.createRect(this.hudRoot, 'beanCard', beanCardWidth, 94, new cc.Color(239, 232, 187), 246, 19, beanCardX, topY);
         const beanIconX = beanCardX - beanCardWidth * 0.32;
         // 局内收集位：开心豆图标 + 本局数量；一块一豆，到达一颗只 +1。
-        this.moodBeanHudIcon = createMoodBeanMascot(this.node, beanIconX, topY + 2, hasWeChatCapsule ? 46 : 52);
+        this.moodBeanHudIcon = createMoodBeanMascot(this.hudRoot, beanIconX, topY + 2, 52);
         const beanTextX = beanCardX + beanCardWidth * 0.16;
-        const beanTextWidth = hasWeChatCapsule ? 88 : 112;
-        uimanager.createLabel(this.node, '本局开心豆', beanTextX, topY + 27, 14, HUD_LABEL_COLOR, beanTextWidth, 22);
-        this.roundMoodLabel = uimanager.createLabel(this.node, '0', beanTextX, topY - 7, 30, HUD_VALUE_COLOR, beanTextWidth, 36);
-        this.makeHintLabelBold(this.roundMoodLabel, HUD_VALUE_COLOR, 1.05);
+        const beanTextWidth = 112;
+        this.roundMoodLabel = uimanager.createLabel(this.hudRoot, '0', beanTextX, topY, 30, HUD_VALUE_COLOR, beanTextWidth, 36);
+        this.makeLabelBold(this.roundMoodLabel);
 
         const pauseButton = uimanager.createButton(
-            this.node,
+            this.footerRoot,
             '',
             pauseX,
             bottomTipY,
@@ -233,18 +254,18 @@ export default class ZyxGame extends cc.Component {
             pauseWidth,
             BUTTON_COLORS.red,
             () => this.pauseGame(),
-            25,
+            24,
         );
         pauseButton.name = 'pauseButton';
         pauseButton.zIndex = 180;
         createPauseGlyph(pauseButton, 0, 1, 0.82);
 
-        const tipWidth = Math.min(566, this.node.width - safeArea.left - safeArea.right - pauseWidth - 50);
+        const tipWidth = Math.min(566, this.node.width - pauseWidth - 50);
         const tipRight = pauseX - pauseWidth / 2 - 14;
         const tipX = tipRight - tipWidth / 2;
-        const tipPill = uimanager.createRect(this.node, 'tipPill', tipWidth, 48, new cc.Color(255, 249, 232), 218, 22, tipX, bottomTipY);
+        const tipPill = uimanager.createRect(this.footerRoot, 'tipPill', tipWidth, 48, new cc.Color(255, 249, 232), 218, 22, tipX, bottomTipY);
         this.moodStageLabel = uimanager.createLabel(tipPill, '拖动心情块左右移动，填满一行就能消除', 0, 0, 18, HUD_VALUE_COLOR, tipWidth - 36, 34);
-        this.makeHintLabelBold(this.moodStageLabel, HUD_VALUE_COLOR, 0.7);
+        this.makeLabelBold(this.moodStageLabel);
 
         this.createBoard();
         this.createNextRowPreview();
@@ -255,7 +276,7 @@ export default class ZyxGame extends cc.Component {
     private createBoard(): void {
         const boardWidth = BOARD_COLS * CELL_SIZE;
         const boardHeight = BOARD_ROWS * CELL_SIZE;
-        const boardY = BOARD_CENTER_Y;
+        const boardY = this.layout.boardY;
         const shadow = uimanager.createRect(
             this.node,
             'boardShadow',
@@ -312,7 +333,7 @@ export default class ZyxGame extends cc.Component {
         this.node.addChild(root);
         this.tutorialGuideRoot = root;
 
-        const guideY = BOARD_CENTER_Y + BOARD_ROWS * CELL_SIZE / 2 - 174;
+        const guideY = this.layout.boardY + BOARD_ROWS * CELL_SIZE / 2 - 174;
         const npc = new cc.Node('happyBlockGuide');
         npc.width = 70;
         npc.height = 70;
@@ -377,7 +398,7 @@ export default class ZyxGame extends cc.Component {
             382,
             70,
         );
-        this.makeHintLabelBold(this.tutorialSpeechLabel, new cc.Color(255, 249, 232), 0.55);
+        this.makeLabelBold(this.tutorialSpeechLabel);
     }
 
     /** 弯眼、张嘴和腮红让 NPC 明确传达“开心”，避免之前近似困倦的表情。 */
@@ -823,7 +844,7 @@ export default class ZyxGame extends cc.Component {
         root.width = boardWidth + 52;
         root.height = 114;
         root.setAnchorPoint(0.5, 0.5);
-        root.setPosition(0, NEXT_ROW_CENTER_Y);
+        root.setPosition(0, this.layout.nextY);
         root.zIndex = 80;
         this.node.addChild(root);
 
@@ -860,11 +881,11 @@ export default class ZyxGame extends cc.Component {
         root.addChild(this.nextLayer);
         uimanager.createRect(root, 'nextRowLabelBg', 128, 32, new cc.Color(255, 249, 232), 255, 16, 0, -34);
         const nextLabel = uimanager.createLabel(root, '下一排', 0, -34, 18, new cc.Color(45, 42, 39), 120, 30);
-        this.makeHintLabelBold(nextLabel, new cc.Color(45, 42, 39), 0.65);
+        this.makeLabelBold(nextLabel);
     }
 
     private createToolBar(): void {
-        const dockY = TOOL_DOCK_CENTER_Y;
+        const dockY = this.layout.toolY;
         uimanager.createRect(
             this.node,
             'toolDockShadow',
@@ -893,10 +914,6 @@ export default class ZyxGame extends cc.Component {
         dockGraphics.lineWidth = 2;
         dockGraphics.roundRect(-144, -62, 288, 124, 24);
         dockGraphics.stroke();
-        uimanager.createRect(dock, 'toolDockTab', 102, 24, new cc.Color(245, 220, 177), 255, 12, 0, 52);
-        const dockTitle = uimanager.createLabel(dock, '解压工具', 0, 52, 14, HUD_LABEL_COLOR, 96, 22);
-        this.makeHintLabelBold(dockTitle, HUD_LABEL_COLOR, 0.55);
-
         this.hammerButton = uimanager.createRect(
             dock,
             'reliefToolButton',
@@ -942,16 +959,13 @@ export default class ZyxGame extends cc.Component {
         badgeGraphics.circle(0, 0, 16);
         badgeGraphics.stroke();
         const label = uimanager.createLabel(badge, '0', 0, 0, 17, cc.Color.WHITE, 26, 24);
-        this.makeHintLabelBold(label, new cc.Color(126, 45, 41), 0.8);
+        this.makeLabelBold(label);
         return label;
     }
 
-    /** 用同色描边增加中文字重；白字则搭配深色描边保证在任意背景上清楚。 */
-    private makeHintLabelBold(label: cc.Label, outlineColor: cc.Color, width: number): void {
-        if (!label || !label.node) return;
-        const outline = label.node.getComponent(cc.LabelOutline) || label.node.addComponent(cc.LabelOutline);
-        outline.color = outlineColor;
-        outline.width = width;
+    /** 使用字体原生粗体，不添加描边或阴影。 */
+    private makeLabelBold(label: cc.Label): void {
+        if (label) label.enableBold = true;
     }
 
     private bindToolGestures(): void {
@@ -1080,7 +1094,7 @@ export default class ZyxGame extends cc.Component {
         );
         prompt.zIndex = 1400;
         const label = uimanager.createLabel(prompt, message, 0, 0, 24, cc.Color.WHITE, 390, 42);
-        this.makeHintLabelBold(label, new cc.Color(83, 61, 53), 1.1);
+        this.makeLabelBold(label);
         this.toolSelectionPrompt = prompt;
         cc.tween(prompt)
             .repeatForever(
@@ -1958,7 +1972,9 @@ export default class ZyxGame extends cc.Component {
             // 一块一豆：飞行豆继承来源色块的 moodIndex、颜色和表情。
             const token = createMoodBean(this.node, moodIndex, start.x, start.y, 40, 0);
             token.zIndex = 900;
-            const target = this.moodBeanHudIcon ? this.moodBeanHudIcon.getPosition() : new cc.Vec2(30, 560);
+            const target = this.moodBeanHudIcon
+                ? this.node.convertToNodeSpaceAR(this.moodBeanHudIcon.parent.convertToWorldSpaceAR(this.moodBeanHudIcon.getPosition()))
+                : new cc.Vec2(30, this.layout.hudY);
             const control = new cc.Vec2(
                 start.x + (target.x - start.x) * 0.42 + (rewardIndex % 2 === 0 ? -55 : 55),
                 Math.max(start.y, target.y) + 150,
@@ -2075,26 +2091,17 @@ export default class ZyxGame extends cc.Component {
         this.dismissRoundRescuePrompt(false);
         this.roundRescueInteractive = false;
 
-        const safeArea = uimanager.getSafeAreaMetrics();
-        const iconX = this.node.width / 2 - safeArea.right - 66;
-        const iconY = Math.max(
-            TOOL_DOCK_CENTER_Y + 6,
-            -this.node.height / 2 + safeArea.bottom + 128,
-        );
+        const iconX = this.node.width / 2 - 66;
+        const iconY = this.layout.toolY + 6;
         const bubbleWidth = 312;
-        const bubbleX = Math.max(
-            -this.node.width / 2 + safeArea.left + bubbleWidth / 2 + 16,
-            Math.min(
-                this.node.width / 2 - safeArea.right - bubbleWidth / 2 - 16,
-                iconX - 104,
-            ),
-        );
+        const bubbleX = Math.max(-this.node.width / 2 + bubbleWidth / 2 + 16,
+            Math.min(this.node.width / 2 - bubbleWidth / 2 - 16, iconX - 104));
 
         const prompt = new cc.Node('roundRescuePrompt');
         prompt.width = this.node.width;
         prompt.height = this.node.height;
         prompt.setAnchorPoint(0.5, 0.5);
-        prompt.setPosition(68, 0);
+        prompt.setPosition(0, 0);
         prompt.opacity = 0;
         prompt.zIndex = 720;
         this.node.addChild(prompt);
@@ -2149,7 +2156,7 @@ export default class ZyxGame extends cc.Component {
             bubbleWidth - 34,
             40,
         );
-        this.makeHintLabelBold(bubbleLabel, new cc.Color(255, 249, 232), 0.72);
+        this.makeLabelBold(bubbleLabel);
 
         const icon = new cc.Node('roundRescueLightningButton');
         icon.width = 122;
@@ -2263,7 +2270,7 @@ export default class ZyxGame extends cc.Component {
         const halo = new cc.Node('roundRescueBoardHalo');
         halo.width = boardWidth + 86;
         halo.height = boardHeight + 86;
-        halo.setPosition(0, BOARD_CENTER_Y);
+        halo.setPosition(0, this.layout.boardY);
         halo.zIndex = 8;
         halo.opacity = 88;
         halo.scale = 0.998;
@@ -2415,7 +2422,7 @@ export default class ZyxGame extends cc.Component {
     private setLabelTone(label: cc.Label, color: cc.Color, outlineWidth: number): void {
         if (!label || !label.node) return;
         label.node.color = color;
-        this.makeHintLabelBold(label, color, outlineWidth);
+        this.makeLabelBold(label);
     }
 
     private updateHudNumber(label: cc.Label, value: number): void {
@@ -3044,7 +3051,7 @@ export default class ZyxGame extends cc.Component {
                     270,
                     76,
                 );
-                this.makeHintLabelBold(label, new cc.Color(255, 249, 232), 0.65);
+                this.makeLabelBold(label);
             },
             160,
         );
@@ -3060,7 +3067,7 @@ export default class ZyxGame extends cc.Component {
                 460,
                 30,
             );
-            this.makeHintLabelBold(footer, new cc.Color(255, 249, 232), 0.45);
+            this.makeLabelBold(footer);
         }
     }
 
@@ -3369,9 +3376,9 @@ export default class ZyxGame extends cc.Component {
             },
         ], (panel, centerY) => {
             const scoreCaption = uimanager.createLabel(panel, '本局得分', 0, centerY + 104, 18, HUD_LABEL_COLOR, 240, 28);
-            this.makeHintLabelBold(scoreCaption, new cc.Color(255, 249, 232), 0.55);
+            this.makeLabelBold(scoreCaption);
             const score = uimanager.createLabel(panel, String(settlement.roundScore), 0, centerY + 48, 68, HUD_VALUE_COLOR, 360, 82);
-            this.makeHintLabelBold(score, new cc.Color(255, 249, 232), 1.15);
+            this.makeLabelBold(score);
             score.node.scale = 0.72;
             cc.tween(score.node).to(0.3, { scale: 1 }, { easing: 'backOut' }).start();
 
@@ -3388,9 +3395,9 @@ export default class ZyxGame extends cc.Component {
             );
             createMoodBean(moodChip, 1, -57, 0, 40);
             const moodValue = uimanager.createLabel(moodChip, `×${settlement.roundCollectedMoodBeans}`, 24, 0, 23, HUD_VALUE_COLOR, 112, 34);
-            this.makeHintLabelBold(moodValue, new cc.Color(255, 249, 232), 0.6);
+            this.makeLabelBold(moodValue);
             const moodCaption = uimanager.createLabel(panel, '本局收集 · 到账以云端为准', -106, centerY - 97, 13, HUD_LABEL_COLOR, 240, 24);
-            this.makeHintLabelBold(moodCaption, new cc.Color(255, 249, 232), 0.45);
+            this.makeLabelBold(moodCaption);
             if (settlement.roundBonusMoodBeans > 0) {
                 // 额外奖励必须单列展示，不能伪装成局内单颗豆的倍率。
                 const bonus = uimanager.createLabel(
@@ -3403,7 +3410,7 @@ export default class ZyxGame extends cc.Component {
                     220,
                     22,
                 );
-                this.makeHintLabelBold(bonus, new cc.Color(255, 249, 232), 0.4);
+                this.makeLabelBold(bonus);
             }
 
             const experienceChip = uimanager.createRect(
@@ -3419,7 +3426,7 @@ export default class ZyxGame extends cc.Component {
             );
             createExperienceToken(experienceChip, -57, 0, 36);
             const experienceValue = uimanager.createLabel(experienceChip, `×${settlement.gainedExperience}`, 24, 0, 23, HUD_VALUE_COLOR, 112, 34);
-            this.makeHintLabelBold(experienceValue, new cc.Color(255, 249, 232), 0.6);
+            this.makeLabelBold(experienceValue);
         }, 250, true);
     }
 

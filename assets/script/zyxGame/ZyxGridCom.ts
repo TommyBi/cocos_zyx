@@ -48,7 +48,7 @@ export default class ZyxGridCom extends cc.Component {
         this.callbacks.onInteract();
         this.touching = true;
         this.offset = 0;
-        this.originTouchX = event.touch.getLocation().x;
+        this.originTouchX = this.node.parent.convertToNodeSpaceAR(event.touch.getLocation()).x;
         this.originNodeX = this.node.x;
         this.range = this.callbacks.getMoveRange(this.pieceId);
         this.node.zIndex = 100;
@@ -64,7 +64,7 @@ export default class ZyxGridCom extends cc.Component {
 
     /** 连续跟随手指，同时缓存松手时要吸附到的最近合法格。 */
     private updateDragPosition(event: cc.Event.EventTouch): void {
-        const dx = event.touch.getLocation().x - this.originTouchX;
+        const dx = this.node.parent.convertToNodeSpaceAR(event.touch.getLocation()).x - this.originTouchX;
         const cellOffset = dx / this.cellSize;
         const direction = cellOffset < 0 ? -1 : 1;
         const requested = Math.abs(cellOffset) < DRAG_SNAP_THRESHOLD
