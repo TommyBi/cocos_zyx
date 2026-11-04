@@ -40,6 +40,8 @@ import {
     MOOD_COLORS,
 } from './MoodArt';
 import { calculateGameLayout } from '../manager/ResponsiveLayout';
+import { CloudProfile, cloudService, LeaderboardEntry } from '../manager/CloudService';
+import RankChaseView from './RankChaseView';
 
 const { ccclass } = cc._decorator;
 const NEXT_PREVIEW_HEIGHT = 42;
@@ -48,6 +50,7 @@ const TOOL_BUTTON_SIZE = 88;
 const ROUND_RESCUE_COOLDOWN_MS = 60 * 1000;
 const HUD_VALUE_COLOR = new cc.Color(112, 78, 65);
 const HUD_LABEL_COLOR = new cc.Color(132, 96, 80);
+let rescueShadeFrame: cc.SpriteFrame = null;
 
 export type SettlementExitRequest = {
     restart: boolean;
@@ -93,6 +96,7 @@ export default class ZyxGame extends cc.Component {
     private roundRescuePrompt: cc.Node = null;
     private roundRescueCountdownState: { progress: number } = null;
     private roundRescueInteractive: boolean = false;
+    private roundRescueGuideVisible: boolean = false;
     private boardDangerHalo: cc.Node = null;
     private reviveUsed: boolean = false;
     private onSettlementExit: (request: SettlementExitRequest) => void = null;
@@ -104,6 +108,11 @@ export default class ZyxGame extends cc.Component {
     /** 碎片节点池：复用消除爆散碎片，避免高频 new/destroy 造成的 GC 抖动。 */
     private shardPool: cc.Node[] = [];
     private idleSeconds: number = 0;
+    private rankChase: RankChaseView = null;
+    private rankChaseProfile: CloudProfile = null;
+    private rankChaseSnapshot: Promise<LeaderboardEntry[]> = null;
+    private rankExpanded = false;
+    private rankExpansion = { progress: 0 };
     private tipIndex: number = 0;
     private tipSeconds: number = 0;
     private tutorialStep: number = -1;
@@ -124,26 +133,38 @@ export default class ZyxGame extends cc.Component {
         onSettlementExit: (request: SettlementExitRequest) => void,
         onRoundFinished: (settlement: RoundSettlement, startedAt: number) => void,
         onRestartFromPause: () => Promise<boolean>,
+        profile: CloudProfile = null,
     ): void {
         this.onSettlementExit = onSettlementExit;
         this.onRoundFinished = onRoundFinished;
         this.onRestartFromPause = onRestartFromPause;
+        this.rankChaseProfile = profile;
+        // 每局只在开局读取一次榜单；教学期间预取数据但不展示，后续纯本地追赶。
+        this.rankChaseSnapshot = cloudService.getLeaderboard('power')
+            .then((result) => result.entries.map((entry) => ({ ...entry })))
+            .catch(() => []);
         this.settlementReported = false;
         this.node.setAnchorPoint(0.5, 0.5);
         uimanager.init(this.node);
 
         zyxGameModule.resetRound();
         this.tutorialStep = zyxGameModule.isTutorialRound() ? 0 : -1;
+        this.rankExpanded = this.tutorialStep < 0;
+        this.rankExpansion.progress = this.rankExpanded ? 1 : 0;
         this.reviveUsed = false;
         this.displayedRoundMoods = 0;
         this.loadEffectAssets();
         this.buildUI();
+        if (!zyxGameModule.isTutorialRound()) this.createRankChase();
         this.renderAll();
         this.locked = false;
         if (this.isTutorialGuidedStep()) this.showTutorialStep();
     }
 
     public onDestroy(): void {
+        if (this.rankChase) this.rankChase.dispose();
+        cc.Tween.stopAllByTarget(this.rankExpansion);
+        this.dismissRoundRescuePrompt(false);
         this.clearTutorialGuide();
         // 统一回收：取消所有 scheduleOnce 延迟回调，停止根节点动画，销毁池内碎片。
         // 子节点 tween 随节点销毁自动停止；state 型 tween 的 onUpdate 均有 cc.isValid 守卫。
@@ -159,9 +180,9 @@ export default class ZyxGame extends cc.Component {
         if (!this.node || !this.node.isValid) return;
         this.updateRotatingTip(dt);
         if (this.isTutorialGuidedStep()) return;
-        if (this.locked || this.hammerMode || this.purifierMode || this.hintHand) return;
+        if (this.locked || this.roundRescueGuideVisible || this.hammerMode || this.purifierMode || this.hintHand) return;
         this.idleSeconds += dt;
-        if (this.idleSeconds >= 3) {
+        if (this.idleSeconds >= 2) {
             this.idleSeconds = 0;
             this.playEliminationHint();
         }
@@ -182,7 +203,9 @@ export default class ZyxGame extends cc.Component {
         this.boardRoot.y = this.layout.boardY;
         for (const name of ['boardShadow', 'boardFrame']) {
             const node = this.node.getChildByName(name);
-            if (node) node.y += this.layout.boardY - previous.boardY;
+            if (node) {
+                node.y += this.layout.boardY - previous.boardY;
+            }
         }
         if (this.tutorialGuideRoot) this.tutorialGuideRoot.y += this.layout.boardY - previous.boardY;
         for (const name of ['nextRow']) {
@@ -194,7 +217,56 @@ export default class ZyxGame extends cc.Component {
             if (node) node.y += this.layout.toolY - previous.toolY;
         }
         if (this.boardDangerHalo) this.boardDangerHalo.y = this.layout.boardY;
-        if (this.roundRescuePrompt) this.roundRescuePrompt.y += this.layout.boardY - previous.boardY;
+        this.applyRankLayout();
+        this.refreshRoundRescueLayout();
+    }
+
+    /** 所有横向位移共用一个进度，窗口变化和快速反向点击也不会跳位。 */
+    private applyRankLayout(): void {
+        const progress = this.rankExpansion.progress;
+        const x = this.layout.boardX * progress;
+        for (const node of [this.boardRoot, this.boardDangerHalo, this.tutorialGuideRoot,
+            this.node.getChildByName('boardShadow'), this.node.getChildByName('boardFrame'),
+            this.node.getChildByName('nextRow')]) {
+            if (node) node.x = x;
+        }
+        if (this.rankChase) {
+            const hiddenX = -this.node.width / 2 - this.rankChase.root.width / 2 - 12;
+            this.rankChase.setPosition(hiddenX + (this.layout.rankX - hiddenX) * progress, this.layout.boardY);
+            this.rankChase.setExpansion(progress, -this.node.width / 2 + 24, this.layout.boardY);
+        }
+    }
+
+    private setRankExpanded(expanded: boolean, duration: number = 0.42): void {
+        this.createRankChase();
+        if (this.rankExpanded === expanded) return;
+        this.rankExpanded = expanded;
+        cc.Tween.stopAllByTarget(this.rankExpansion);
+        this.rankChase.setBookmarkVisible(false, () => {
+            if (!cc.isValid(this.node) || this.rankExpanded !== expanded) return;
+            cc.tween(this.rankExpansion)
+                .to(duration, { progress: expanded ? 1 : 0 }, {
+                    easing: 'sineInOut',
+                    onUpdate: () => {
+                        if (cc.isValid(this.node)) this.applyRankLayout();
+                    },
+                })
+                .call(() => {
+                    if (!cc.isValid(this.node) || this.rankExpanded !== expanded) return;
+                    this.applyRankLayout();
+                    if (!expanded) this.rankChase.setBookmarkVisible(true);
+                }).start();
+        });
+    }
+
+    private createRankChase(): void {
+        if (this.rankChase) return;
+        this.rankChase = new RankChaseView(this.node, this.rankChaseProfile, this.rankChaseSnapshot,
+            () => {
+                if (this.tutorialStep < 0) this.setRankExpanded(!this.rankExpanded);
+            });
+        this.applyRankLayout();
+        this.rankChase.updateScore(zyxGameModule.score);
     }
 
     private buildUI(): void {
@@ -280,6 +352,7 @@ export default class ZyxGame extends cc.Component {
         this.createNextRowPreview();
         this.createToolBar();
         if (this.tutorialStep >= 0) this.createTutorialNpcGuide();
+        this.applyRankLayout();
     }
 
     private createBoard(): void {
@@ -294,7 +367,7 @@ export default class ZyxGame extends cc.Component {
             new cc.Color(69, 46, 41),
             34,
             20,
-            0,
+            this.layout.boardX,
             boardY - 6,
         );
         shadow.zIndex = 5;
@@ -303,7 +376,7 @@ export default class ZyxGame extends cc.Component {
         this.boardRoot.width = boardWidth;
         this.boardRoot.height = boardHeight;
         this.boardRoot.setAnchorPoint(0.5, 0.5);
-        this.boardRoot.setPosition(0, boardY);
+        this.boardRoot.setPosition(this.layout.boardX, boardY);
         this.boardRoot.zIndex = 20;
         this.node.addChild(this.boardRoot);
         const viewportMask = this.boardRoot.addComponent(cc.Mask);
@@ -326,7 +399,7 @@ export default class ZyxGame extends cc.Component {
         const frame = new cc.Node('boardFrame');
         frame.width = boardWidth + 18;
         frame.height = boardHeight + 18;
-        frame.setPosition(0, boardY);
+        frame.setPosition(this.layout.boardX, boardY);
         frame.zIndex = 100;
         this.node.addChild(frame);
         this.drawBoardFrame(frame, boardWidth, boardHeight);
@@ -339,6 +412,7 @@ export default class ZyxGame extends cc.Component {
         root.height = BOARD_ROWS * CELL_SIZE;
         root.setAnchorPoint(0.5, 0.5);
         root.zIndex = 190;
+        root.x = this.layout.boardX;
         this.node.addChild(root);
         this.tutorialGuideRoot = root;
 
@@ -511,6 +585,8 @@ export default class ZyxGame extends cc.Component {
 
     /** NPC 连跳两次，气泡同步呼吸，遮罩在庆祝动作中渐隐。 */
     private playTutorialFarewell(): void {
+        // 与教学遮罩同一时刻、同一时长开始，让出左侧空间并展示追赶栏。
+        this.setRankExpanded(true, 0.76);
         const group = this.tutorialBubbleGroup;
         const npc = this.tutorialNpc;
         const mask = this.tutorialDimMask;
@@ -533,7 +609,7 @@ export default class ZyxGame extends cc.Component {
                 .to(0.14, { scale: 1.1 }, { easing: 'quadIn' })
                 .to(0.12, { scale: 1.15 }, { easing: 'quadOut' })
                 .to(0.14, { scale: 1.1 }, { easing: 'quadIn' })
-                .to(0.22, { opacity: 0, scale: 0.92 }, { easing: 'quadIn' })
+                .to(0.24, { opacity: 0, scale: 0.92 }, { easing: 'quadIn' })
                 .start();
         }
 
@@ -548,7 +624,7 @@ export default class ZyxGame extends cc.Component {
             .to(0.14, { y: baseY, scaleX: 1.08, scaleY: 0.92 }, { easing: 'quadIn' })
             .to(0.12, { y: baseY + 24, scaleX: 0.94, scaleY: 1.1 }, { easing: 'quadOut' })
             .to(0.14, { y: baseY, scaleX: 1.06, scaleY: 0.94 }, { easing: 'quadIn' })
-            .to(0.22, { opacity: 0, scale: 0.82 }, { easing: 'quadIn' })
+            .to(0.24, { opacity: 0, scale: 0.82 }, { easing: 'quadIn' })
             .call(() => this.finishTutorialTransition())
             .start();
     }
@@ -556,6 +632,7 @@ export default class ZyxGame extends cc.Component {
     private finishTutorialTransition(): void {
         this.tutorialStep = -1;
         this.clearTutorialGuide();
+        this.setRankExpanded(true, 0.76);
         if (this.moodStageLabel) {
             this.moodStageLabel.string = '快乐时间开始啦：留意下一排，继续填满整行';
             this.moodStageLabel.node.opacity = 255;
@@ -618,15 +695,11 @@ export default class ZyxGame extends cc.Component {
         const pieceNode = this.pieceLayer.getChildByName(`piece_${move.id}`);
         if (!piece || !pieceNode) return;
 
-        const dimMask = new cc.Node('tutorialDimMask');
+        const dimMask = this.createRoundRescueShade(this.pieceLayer, 'tutorialDimMask', new cc.Color(25, 20, 18));
         dimMask.width = BOARD_COLS * CELL_SIZE;
         dimMask.height = BOARD_ROWS * CELL_SIZE;
         dimMask.zIndex = 50;
-        this.pieceLayer.addChild(dimMask);
-        const dimGraphics = dimMask.addComponent(cc.Graphics);
-        dimGraphics.fillColor = new cc.Color(25, 20, 18, 148);
-        dimGraphics.rect(-dimMask.width / 2, -dimMask.height / 2, dimMask.width, dimMask.height);
-        dimGraphics.fill();
+        dimMask.opacity = 148;
         this.tutorialDimMask = dimMask;
         this.tutorialFocusPieceId = move.id;
         pieceNode.zIndex = 90;
@@ -853,7 +926,7 @@ export default class ZyxGame extends cc.Component {
         root.width = boardWidth + 52;
         root.height = 114;
         root.setAnchorPoint(0.5, 0.5);
-        root.setPosition(0, this.layout.nextY);
+        root.setPosition(this.layout.boardX, this.layout.nextY);
         root.zIndex = 80;
         this.node.addChild(root);
 
@@ -1949,10 +2022,6 @@ export default class ZyxGame extends cc.Component {
 
     private animateElimination(result: EliminateResult, onComplete: () => void): void {
         this.updateHud();
-            const rewardText = result.collectedMoodTypes.length > 0
-            ? ` · 开心豆 +${result.collectedMoodTypes.length}`
-            : '';
-        uimanager.showToast(`捋顺 ${result.clearedRows} 行${rewardText}`);
         audioManager.playSound('break');
         this.playTutorialNpcBounce();
         this.playRowClearEffects(result.clearedRowIndexes);
@@ -2089,173 +2158,210 @@ export default class ZyxGame extends cc.Component {
         return true;
     }
 
-    /** 用场内倒计时提示代替强弹窗；提示层本身不遮挡棋盘操作。 */
+    /** 先亮起、从右侧滑入，再压暗背景并显示确认按钮。 */
     private showRoundRescuePrompt(): void {
         this.dismissRoundRescuePrompt(false);
         this.roundRescueInteractive = false;
-
-        const iconX = this.node.width / 2 - 66;
-        const iconY = this.layout.boardY + BOARD_ROWS * CELL_SIZE / 2 - 92;
-        const bubbleWidth = 312;
-        const bubbleX = Math.max(-this.node.width / 2 + bubbleWidth / 2 + 16,
-            Math.min(this.node.width / 2 - bubbleWidth / 2 - 16, iconX - 72 - bubbleWidth / 2));
-
+        this.roundRescueGuideVisible = true;
         const prompt = new cc.Node('roundRescuePrompt');
-        prompt.width = this.node.width;
-        prompt.height = this.node.height;
-        prompt.setAnchorPoint(0.5, 0.5);
-        prompt.setPosition(0, 0);
-        prompt.opacity = 0;
+        prompt.setContentSize(this.node.width, this.node.height);
         prompt.zIndex = 720;
         this.node.addChild(prompt);
         this.roundRescuePrompt = prompt;
 
-        uimanager.createRect(
-            prompt,
-            'roundRescueBubbleShadow',
-            bubbleWidth + 6,
-            72,
-            new cc.Color(72, 48, 43),
-            58,
-            22,
-            bubbleX + 3,
-            iconY - 4,
-        );
-        const bubble = uimanager.createRect(
-            prompt,
-            'roundRescueBubble',
-            bubbleWidth,
-            68,
-            new cc.Color(255, 249, 232),
-            252,
-            21,
-            bubbleX,
-            iconY,
-        );
-        const bubbleGraphics = bubble.getComponent(cc.Graphics);
-        bubbleGraphics.strokeColor = new cc.Color(220, 113, 91, 178);
-        bubbleGraphics.lineWidth = 2;
-        bubbleGraphics.roundRect(-bubbleWidth / 2 + 1, -33, bubbleWidth - 2, 66, 20);
-        bubbleGraphics.stroke();
+        const mask = this.createRoundRescueShade(prompt, 'roundRescueMask', new cc.Color(30, 25, 24));
+        mask.addComponent(cc.BlockInputEvents);
+        const wash = this.createRoundRescueShade(prompt, 'roundRescueLight', new cc.Color(255, 233, 169));
+        wash.zIndex = 1;
+        const drawer = new cc.Node('roundRescueDrawer');
+        drawer.zIndex = 2;
+        prompt.addChild(drawer);
+        this.refreshRoundRescueLayout();
+        const dockX = this.node.width / 2 - 66;
+        const offscreenX = mask.x + mask.width / 2 + 480;
+        drawer.x = offscreenX;
 
-        const pointer = new cc.Node('roundRescueBubblePointer');
-        pointer.setPosition(bubbleWidth / 2, 0);
-        bubble.addChild(pointer);
-        const pointerGraphics = pointer.addComponent(cc.Graphics);
-        pointerGraphics.fillColor = new cc.Color(255, 249, 232, 252);
-        pointerGraphics.moveTo(0, -11);
-        pointerGraphics.lineTo(0, 11);
-        pointerGraphics.lineTo(17, 0);
-        pointerGraphics.close();
-        pointerGraphics.fill();
-
-        const bubbleLabel = uimanager.createLabel(
-            bubble,
-            getRewardOfferIcon() === 'video' ? '完整看视频，清除全部色块' : '分享给好友，清除全部色块',
-            0,
-            1,
-            20,
-            HUD_VALUE_COLOR,
-            bubbleWidth - 34,
-            40,
-        );
-        this.makeLabelBold(bubbleLabel);
-
-        const icon = new cc.Node('roundRescueLightningButton');
-        icon.width = 122;
-        icon.height = 122;
-        icon.setAnchorPoint(0.5, 0.5);
-        icon.setPosition(iconX, iconY);
-        icon.zIndex = 3;
-        prompt.addChild(icon);
-        const button = icon.addComponent(cc.Button);
-        button.transition = cc.Button.Transition.NONE;
-        button.interactable = false;
+        const icon = new cc.Node('roundRescueCountdownButton');
+        icon.setContentSize(122, 122);
+        drawer.addChild(icon);
+        const iconButton = icon.addComponent(cc.Button);
+        iconButton.transition = cc.Button.Transition.NONE;
+        iconButton.interactable = false;
         icon.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
             event.stopPropagation();
             this.handleRoundRescueClick();
         }, this);
-
+        const halo = uimanager.createCircle(icon, 'roundRescueFocus', 66, new cc.Color(255, 223, 136, 60));
+        halo.zIndex = -1;
+        const lightning = new cc.Node('roundRescueLightning');
+        icon.addChild(lightning);
+        this.drawRoundRescueLightning(lightning);
         const ring = new cc.Node('roundRescueCountdownRing');
-        ring.width = 118;
-        ring.height = 118;
-        ring.zIndex = 1;
         icon.addChild(ring);
+        const countdownLabel = uimanager.createLabel(icon, '10秒', 0, -80, 24,
+            MOOD_COLORS.cream, 108, 38);
+        this.makeLabelBold(countdownLabel);
 
-        const heartbeat = new cc.Node('roundRescueHeartbeat');
-        heartbeat.width = 90;
-        heartbeat.height = 90;
-        heartbeat.zIndex = 2;
-        icon.addChild(heartbeat);
-        this.drawRoundRescueLightning(heartbeat);
-        cc.tween(heartbeat)
-            .repeatForever(
-                cc.tween()
-                    .to(0.1, { scale: 1.17 }, { easing: 'quadOut' })
-                    .to(0.1, { scale: 0.98 }, { easing: 'quadIn' })
-                    .to(0.08, { scale: 1.1 }, { easing: 'quadOut' })
-                    .to(0.12, { scale: 1 }, { easing: 'backOut' })
-                    .delay(0.56),
-            )
-            .start();
+        const explanation = new cc.Node('roundRescueExplanation');
+        explanation.opacity = 0;
+        drawer.addChild(explanation);
+        uimanager.createRect(explanation, 'roundRescueBubbleShadow', 334, 126,
+            new cc.Color(62, 43, 36), 54, 22, -242, 26);
+        const bubble = uimanager.createRect(explanation, 'roundRescueBubble', 330, 122,
+            MOOD_COLORS.cream, 255, 22, -242, 32);
+        const text = uimanager.createLabel(bubble,
+            getRewardOfferIcon() === 'video' ? '完整看视频\n清空全部色块' : '分享给好友\n清空全部色块',
+            0, 0, 26, MOOD_COLORS.cocoa, 298, 84);
+        this.makeLabelBold(text);
+        const pointer = new cc.Node('roundRescuePointer');
+        pointer.setPosition(-70, 28);
+        explanation.addChild(pointer);
+        const graphics = pointer.addComponent(cc.Graphics);
+        graphics.fillColor = MOOD_COLORS.cream;
+        graphics.moveTo(-10, -10);
+        graphics.lineTo(4, 0);
+        graphics.lineTo(-10, 10);
+        graphics.close();
+        graphics.fill();
+        const accept = uimanager.createButton(explanation, '我可以', -242, -70, 202, 60,
+            BUTTON_COLORS.yellow, () => this.acknowledgeRoundRescue(), 26);
+        accept.name = 'roundRescueAccept';
+        const acceptButton = accept.getComponent(cc.Button);
+        acceptButton.interactable = false;
 
         const countdownState = { progress: 1 };
         this.roundRescueCountdownState = countdownState;
         const updateCountdown = () => {
             if (!cc.isValid(ring) || this.roundRescueCountdownState !== countdownState) return;
             this.drawRoundRescueCountdown(ring, countdownState.progress);
+            const text = `${Math.max(0, Math.ceil(countdownState.progress * 10))}秒`;
+            if (countdownLabel.string !== text) countdownLabel.string = text;
         };
         updateCountdown();
-        cc.tween(countdownState)
-            .to(10, { progress: 0 }, { easing: 'linear', onUpdate: updateCountdown })
-            .call(() => {
-                if (this.roundRescueCountdownState !== countdownState) return;
-                this.dismissRoundRescuePrompt(true);
-            })
-            .start();
-
-        cc.tween(prompt)
-            .to(0.38, { x: 0, opacity: 255 }, { easing: 'backOut' })
+        cc.tween(wash).to(0.12, { opacity: 48 }, { easing: 'sineOut' })
+            .to(0.28, { opacity: 0 }, { easing: 'sineInOut' }).start();
+        cc.tween(drawer)
+            .to(0.34, { x: dockX }, { easing: 'sineOut' })
             .call(() => {
                 if (this.roundRescuePrompt !== prompt || !cc.isValid(prompt)) return;
-                this.roundRescueInteractive = true;
-                button.interactable = true;
-            })
-            .start();
+                cc.tween(mask).to(0.18, { opacity: 178 }, { easing: 'sineInOut' }).start();
+                cc.tween(explanation).to(0.18, { opacity: 255 }, { easing: 'sineOut' })
+                    .call(() => {
+                        if (this.roundRescuePrompt !== prompt || !cc.isValid(prompt)) return;
+                        this.roundRescueInteractive = true;
+                        iconButton.interactable = true;
+                        acceptButton.interactable = true;
+                        cc.tween(countdownState)
+                            .to(10, { progress: 0 }, { easing: 'linear', onUpdate: updateCountdown })
+                            .call(() => {
+                                if (this.roundRescueCountdownState === countdownState) this.dismissRoundRescuePrompt(true);
+                            }).start();
+                    }).start();
+            }).start();
+    }
+
+    /** Graphics 的顶点颜色不跟随 opacity；遮罩用共享白色纹理平滑渐变。 */
+    private createRoundRescueShade(parent: cc.Node, name: string, color: cc.Color): cc.Node {
+        if (!rescueShadeFrame) {
+            const texture = new cc.Texture2D();
+            texture.initWithData(new Uint8Array([255, 255, 255, 255]), cc.Texture2D.PixelFormat.RGBA8888, 1, 1);
+            rescueShadeFrame = new cc.SpriteFrame(texture);
+        }
+        const layer = new cc.Node(name);
+        parent.addChild(layer);
+        const sprite = layer.addComponent(cc.Sprite);
+        sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+        sprite.spriteFrame = rescueShadeFrame;
+        layer.color = color;
+        layer.opacity = 0;
+        return layer;
+    }
+
+    /** 以 Canvas 的完整可见范围覆盖遮罩，右侧按钮仍停在游戏舞台边缘。 */
+    private refreshRoundRescueLayout(): void {
+        const prompt = this.roundRescuePrompt;
+        if (!prompt) return;
+        let canvas = this.node;
+        while (canvas.parent && !canvas.getComponent(cc.Canvas)) canvas = canvas.parent;
+        const bottomLeft = prompt.convertToNodeSpaceAR(canvas.convertToWorldSpaceAR(
+            cc.v2(-cc.winSize.width / 2, -cc.winSize.height / 2)));
+        const topRight = prompt.convertToNodeSpaceAR(canvas.convertToWorldSpaceAR(
+            cc.v2(cc.winSize.width / 2, cc.winSize.height / 2)));
+        for (const name of ['roundRescueMask', 'roundRescueLight']) {
+            const layer = prompt.getChildByName(name);
+            layer.setPosition((bottomLeft.x + topRight.x) / 2, (bottomLeft.y + topRight.y) / 2);
+            layer.setContentSize(topRight.x - bottomLeft.x, topRight.y - bottomLeft.y);
+        }
+        const drawer = prompt.getChildByName('roundRescueDrawer');
+        drawer.y = Math.min(150, this.node.height * 0.1);
+        if (this.roundRescueInteractive) drawer.x = this.node.width / 2 - 66;
+    }
+
+    /** “我可以”只确认说明；倒计时按钮留在右侧，之后点击才拉起奖励。 */
+    private acknowledgeRoundRescue(): void {
+        if (!this.roundRescueGuideVisible || !this.roundRescueInteractive || !this.roundRescuePrompt) return;
+        this.roundRescueInteractive = false;
+        const prompt = this.roundRescuePrompt;
+        const drawer = prompt.getChildByName('roundRescueDrawer');
+        const explanation = drawer.getChildByName('roundRescueExplanation');
+        const mask = prompt.getChildByName('roundRescueMask');
+        cc.Tween.stopAllByTarget(explanation);
+        cc.tween(explanation)
+            .to(0.26, { x: this.node.width / 2 - drawer.x + 440 }, { easing: 'sineIn' })
+            .call(() => {
+                if (this.roundRescuePrompt !== prompt || !cc.isValid(prompt)) return;
+                explanation.destroy();
+                cc.tween(mask).to(0.18, { opacity: 0 }, { easing: 'sineInOut' })
+                    .call(() => {
+                        if (this.roundRescuePrompt !== prompt || !cc.isValid(prompt)) return;
+                        mask.active = false;
+                        this.roundRescueGuideVisible = false;
+                        this.roundRescueInteractive = true;
+                        this.idleSeconds = 0;
+                    }).start();
+            }).start();
     }
 
     private handleRoundRescueClick(): void {
-        if (
-            !this.roundRescueInteractive
-            || this.locked
-            || this.rewardedAdLoading
-            || !this.roundRescuePrompt
-        ) return;
-        this.dismissRoundRescuePrompt(false);
-        this.setToolSelectionMode(null);
-        this.requestRoundRescue();
+        if (!this.roundRescueInteractive || this.locked || this.rewardedAdLoading || !this.roundRescuePrompt) return;
+        this.locked = true;
+        this.dismissRoundRescuePrompt(true, () => {
+            this.setToolSelectionMode(null);
+            this.requestRoundRescue();
+        });
     }
 
-    private dismissRoundRescuePrompt(animated: boolean): void {
+    private dismissRoundRescuePrompt(animated: boolean, onComplete: () => void = null): void {
         const prompt = this.roundRescuePrompt;
         const countdownState = this.roundRescueCountdownState;
         this.roundRescueInteractive = false;
+        this.roundRescueGuideVisible = false;
         this.roundRescuePrompt = null;
         this.roundRescueCountdownState = null;
         if (countdownState) cc.Tween.stopAllByTarget(countdownState);
         if (!prompt || !cc.isValid(prompt)) return;
-
-        cc.Tween.stopAllByTarget(prompt);
+        const drawer = prompt.getChildByName('roundRescueDrawer');
+        const mask = prompt.getChildByName('roundRescueMask');
+        const explanation = drawer.getChildByName('roundRescueExplanation');
+        for (const node of [prompt, drawer, mask, explanation, prompt.getChildByName('roundRescueLight')]) {
+            if (node) cc.Tween.stopAllByTarget(node);
+        }
         if (!animated) {
             prompt.destroy();
             return;
         }
-        cc.tween(prompt)
-            .to(0.28, { x: 104, opacity: 0 }, { easing: 'sineIn' })
+        // 先完整收回右侧，再撤掉背景遮罩，最后进入奖励流程。
+        cc.tween(drawer)
+            .to(0.28, { x: mask.x + mask.width / 2 + 480 }, { easing: 'sineIn' })
             .call(() => {
-                if (cc.isValid(prompt)) prompt.destroy();
-            })
-            .start();
+                if (!cc.isValid(prompt)) return;
+                cc.tween(mask).to(0.18, { opacity: 0 }, { easing: 'sineInOut' })
+                    .call(() => {
+                        if (!cc.isValid(prompt)) return;
+                        prompt.destroy();
+                        if (onComplete && cc.isValid(this.node)) onComplete();
+                    }).start();
+            }).start();
     }
 
     /** 危险状态只由棋盘高度决定，与一次性的福利入口生命周期解耦。 */
@@ -2273,7 +2379,7 @@ export default class ZyxGame extends cc.Component {
         const halo = new cc.Node('roundRescueBoardHalo');
         halo.width = boardWidth + 86;
         halo.height = boardHeight + 86;
-        halo.setPosition(0, this.layout.boardY);
+        halo.setPosition(this.boardRoot.x, this.layout.boardY);
         halo.zIndex = 8;
         halo.opacity = 88;
         halo.scale = 0.998;
@@ -2363,8 +2469,8 @@ export default class ZyxGame extends cc.Component {
             0,
             0,
             53,
-            -Math.PI / 2,
-            -Math.PI / 2 + Math.PI * 2 * safeProgress,
+            Math.PI / 2,
+            Math.PI / 2 - Math.PI * 2 * safeProgress,
             false,
         );
         graphics.stroke();
@@ -2400,6 +2506,7 @@ export default class ZyxGame extends cc.Component {
     }
 
     private updateHud(): void {
+        if (this.rankChase) this.rankChase.updateScore(zyxGameModule.score);
         const isNewRecord = zyxGameModule.score > zyxGameModule.startingBestScore;
         const scoreColor = isNewRecord ? MOOD_COLORS.coral : HUD_VALUE_COLOR;
         this.setLabelTone(this.scoreLabel, scoreColor, 1.1);

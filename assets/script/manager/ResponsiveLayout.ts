@@ -1,6 +1,7 @@
 export const DESIGN_WIDTH = 750;
 export const DESIGN_HEIGHT = 1334;
 export const GAME_MIN_HEIGHT = 1390;
+export const GAME_RANK_PANEL_WIDTH = 88;
 
 export type ViewportRect = { x: number; y: number; width: number; height: number };
 export type StageLayout = { x: number; y: number; width: number; height: number; scale: number };
@@ -60,7 +61,10 @@ export function calculateGameLayout(height: number, boardHeight: number) {
     const nextY = nextTop - 60;
     const toolY = nextTop - 120 - 22 - 74 - extraGap;
     const footerY = -height / 2 + 20 + 40;
-    return { hudY, boardY, nextY, toolY, footerY };
+    // 给左侧追赶底板留出独立空间，棋盘与下一排共用同一中轴。
+    const boardX = 42;
+    const rankX = -DESIGN_WIDTH / 2 + 8 + GAME_RANK_PANEL_WIDTH / 2;
+    return { hudY, boardX, rankX, boardY, nextY, toolY, footerY };
 }
 
 /** 将全局安全边界与分屏区域相交；胶囊占用整条顶部导航区域。 */

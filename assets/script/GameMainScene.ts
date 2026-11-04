@@ -2081,6 +2081,7 @@ if (started.seed) zyxGameModule.setRoundSeed(started.seed, started.isTutorial ==
                 (request) => this.handleSettlementExit(request),
                 (settlement, startedAt) => this.submitSettlementToCloud(settlement, startedAt),
                 () => this.startGame(),
+                this.currentCloudProfile,
             );
             storage.removeItem(PENDING_START_ROUND_ID_KEY);
             return true;

@@ -152,10 +152,20 @@ test('五个奖励点位全部接入统一双通道，不再直接调用分享�
     }
 });
 
-test('救场入口位于棋盘右上方，消除操作提示在闲置3秒后出现', () => {
+test('救场从右侧入场后压暗并启动倒计时，确认后先收回再撤罩', () => {
     const game = fs.readFileSync(path.join(repoRoot, 'assets/script/zyxGame/ZyxGame.ts'), 'utf8');
-    assert.match(game, /const iconY = this\.layout\.boardY \+ BOARD_ROWS \* CELL_SIZE \/ 2 - 92;/);
-    assert.match(game, /iconX - 72 - bubbleWidth \/ 2/);
-    assert.match(game, /this\.idleSeconds >= 3/);
-    assert.doesNotMatch(game, /this\.idleSeconds >= 8/);
+    const prompt = game.slice(game.indexOf('private showRoundRescuePrompt()'), game.indexOf('private refreshRoundRescueLayout()'));
+    assert.match(prompt, /'roundRescueMask'/);
+    assert.match(prompt, /'roundRescueLight'/);
+    assert.match(prompt, /const dockX = this\.node\.width \/ 2 - 66/);
+    assert.match(prompt, /'我可以'/);
+    assert.ok(prompt.indexOf('{ x: dockX }') < prompt.indexOf('cc.tween(mask).to'));
+    assert.ok(prompt.indexOf('acceptButton.interactable = true') < prompt.indexOf('.to(10, { progress: 0 }'));
+    const close = game.slice(game.indexOf('private dismissRoundRescuePrompt('), game.indexOf('private updateBoardDangerState()'));
+    assert.ok(close.indexOf('cc.tween(drawer)') < close.indexOf('cc.tween(mask)'));
+    assert.ok(close.indexOf('prompt.destroy();', close.indexOf('cc.tween(mask)')) < close.indexOf('onComplete();'));
+    assert.match(game, /this\.idleSeconds >= 2/);
+    const eliminate = game.slice(game.indexOf('private animateElimination('), game.indexOf('private playMoodCollect('));
+    assert.doesNotMatch(eliminate, /showToast/);
+    assert.match(eliminate, /this\.playMoodCollect\(result\.removedPieceIds\)/);
 });

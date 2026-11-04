@@ -83,3 +83,17 @@ test('刘海屏、胶囊、平板和折叠分区：所有局内区域有间隔�
     assert.ok(stage.y - stage.height * stage.scale / 2 >= -h / 2 + safe.bottom - 0.000001);
   }
 });
+
+test('棋盘右移后为追赶底板留出空间，下一排仍完整位于画布内', () => {
+  const boardWidth = 8 * 76;
+  for (const height of [1390, 1480, 1560]) {
+    const pos = layout.calculateGameLayout(height, 10 * 76);
+    const rankLeft = pos.rankX - layout.GAME_RANK_PANEL_WIDTH / 2;
+    const rankRight = pos.rankX + layout.GAME_RANK_PANEL_WIDTH / 2;
+    const boardLeft = pos.boardX - (boardWidth + 18) / 2;
+    assert.ok(pos.boardX > 0);
+    assert.ok(rankLeft >= -layout.DESIGN_WIDTH / 2 + 8);
+    assert.ok(boardLeft - rankRight >= 8);
+    assert.ok(pos.boardX + (boardWidth + 52) / 2 <= layout.DESIGN_WIDTH / 2);
+  }
+});

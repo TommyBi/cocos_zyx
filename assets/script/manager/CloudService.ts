@@ -75,6 +75,7 @@ export type StartRoundResult = {
 
 export type LeaderboardEntry = {
     rank: number;
+    playerId: string;
     nickname: string;
     avatarUrl: string;
     value: number;
