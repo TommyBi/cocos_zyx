@@ -121,6 +121,12 @@ test('400 带永久业务错误码（INVALID_ROUND_TIME）进入 dead-letter，�
   assert.strictEqual(zyxGameModule.getDeadRoundSettlements()[0].record.roundId, 'round_bad');
 });
 
+test('重放校验失败的记录不可修复，应进入 dead-letter 而不是无限重试', () => {
+  for (const businessCode of ['REPLAY_INVALID', 'REPLAY_MISMATCH']) {
+    assert.strictEqual(sync.isPermanentSettlementError({ status: 400, businessCode }), true);
+  }
+});
+
 test('409 带永久业务错误码（ROUND_PAYLOAD_CONFLICT）进入 dead-letter', async () => {
   zyxGameModule.enqueuePendingRoundSettlement(validRecord('round_409_perm'));
   const outcome = await sync.flushPendingRoundSettlements(

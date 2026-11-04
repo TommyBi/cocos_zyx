@@ -1,6 +1,6 @@
 # 烦恼排排消
 
-> **给接手的 AI agent**：请先读 `docs/agent-handoff-phase-a.md`（当前架构、数据和部署交接），再动代码。
+> **给接手的 AI agent**：请先读 [`docs/CHANGELOG.md`](docs/CHANGELOG.md)（最新改动与不可回退边界，规则冲突时以此为准），再读 `docs/agent-handoff-phase-a.md`（架构、数据和部署交接），然后动代码。
 
 一个面向微信小游戏的 Cocos Creator 2.4.13 回合制左右消除游戏。玩家在“心情整理所”中移动柔软心情块，填满整行后消除；带表情的心情块被消除时会显现为 1 颗同色、同表情的开心豆并飞入局内收集位。
 

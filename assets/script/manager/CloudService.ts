@@ -1,27 +1,40 @@
 import { getWxApi } from './PlatformAdapter';
 
 const PRODUCTION_API_BASE = 'https://api.tcjstory.cn/v1/cocos-zyx';
-/** 本地开发覆盖：在浏览器/调试环境写入 zyx_api_base_override 后指向本地服务端；线上永远为空。 */
-const API_BASE_OVERRIDE_KEY = 'zyx_api_base_override';
+const STAGING_API_BASE = 'https://staging-api.tcjstory.cn/v1/cocos-zyx';
 
-/** 微信包固定使用 HTTPS 正式服务；浏览器仅允许本机开发服务覆盖。 */
+/**
+ * 两环境自动切换：
+ * - 微信正式版（release） → Production
+ * - 微信开发版/体验版（develop/trial） → Staging
+ * - 浏览器 Web 预览 → Staging
+ *
+ * 所有测试统一走 Staging，服务端修改部署到测试服后生效。
+ */
 export function getApiBase(): string {
     const wxApi = getWxApi();
-    if (wxApi && typeof wxApi.request === 'function') return PRODUCTION_API_BASE;
-    try {
-        const override = cc.sys.localStorage.getItem(API_BASE_OVERRIDE_KEY) || '';
-        if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/v1\/cocos-zyx\/?$/.test(override)) {
-            return override.replace(/\/$/, '');
+    if (wxApi && typeof wxApi.request === 'function') {
+        try {
+            const accountInfo = wxApi.getAccountInfoSync && wxApi.getAccountInfoSync();
+            const envVersion = accountInfo && accountInfo.miniProgram
+                ? accountInfo.miniProgram.envVersion : 'release';
+            if (envVersion === 'release') return PRODUCTION_API_BASE;
+            return STAGING_API_BASE;
+        } catch (error) {
+            return PRODUCTION_API_BASE;
         }
-    } catch (error) {
-        // 读取失败时使用线上地址。
     }
-    return PRODUCTION_API_BASE;
+    return STAGING_API_BASE;
 }
 
-/** GM 云同步只允许浏览器中的本机开发服务。 */
+/** 当前环境名称，便于日志和 UI 标识。 */
+export function getEnvName(): string {
+    return getApiBase() === PRODUCTION_API_BASE ? 'production' : 'staging';
+}
+
+/** GM 云同步仅在非 Production 环境可用。 */
 export function isLocalApiOverrideActive(): boolean {
-    return getApiBase() !== PRODUCTION_API_BASE;
+    return getEnvName() !== 'production';
 }
 
 export type CloudProfile = {
@@ -56,6 +69,8 @@ export type StartRoundResult = {
     roundId: string;
     stamina: StaminaState;
     duplicate?: boolean;
+    seed: number;
+    isTutorial: boolean;
 };
 
 export type LeaderboardEntry = {
@@ -66,11 +81,17 @@ export type LeaderboardEntry = {
     rewardTier: 'gold' | 'silver' | 'bronze' | 'normal';
 };
 
+/** 永久单局最高分榜：前 200 名列表 + 自己独立的名次与最高分。 */
 export type LeaderboardResult = {
-    weekId: string;
-    type: 'power';
     entries: LeaderboardEntry[];
-    self: { rank: number; isRanked: boolean; value: number; rewardTier: string; distanceToRank200: number };
+    self: {
+        /** 实际名次；尚未产生有效分数时为 null。 */
+        rank: number | null;
+        /** 自己单局最高分。 */
+        bestScore: number;
+        /** 是否进入前 200 名榜单。 */
+        onBoard: boolean;
+    };
 };
 
 export type RoundSettlementResult = {
@@ -98,13 +119,15 @@ export default class CloudService {
     private deviceId: string = '';
 
     /**
-     * 身份建档：只提交设备标识与昵称头像。
+     * 微信端用一次性 loginCode 换取服务端权威 openid，本地 deviceId 只用于旧账号迁移与 Web 预览。
      * R1：经济数据一律由服务端结算与事务接口产生，不接受任何客户端本地资产作为建档基线。
      */
     public async bootstrap(nickname: string, avatarUrl: string): Promise<CloudProfile> {
         this.ensureDeviceId();
+        const loginCode = await this.requestWeChatLoginCode();
         const data = await this.request('/players/bootstrap', 'POST', {
             deviceId: this.deviceId,
+            loginCode,
             nickname,
             avatarUrl,
         }, false);
@@ -113,23 +136,30 @@ export default class CloudService {
         return data.profile as CloudProfile;
     }
 
+    /** 仅在玩家主动完成微信授权后调用，普通登录不会覆盖服务端资料。 */
+    public async updateWeChatProfile(nickname: string, avatarUrl: string): Promise<CloudProfile> {
+        const data = await this.request('/players/profile', 'POST', { nickname, avatarUrl }, true);
+        return data.profile as CloudProfile;
+    }
+
     /** roundId 由客户端在请求前生成；超时后复用同一 ID 重试，不重复消耗体力。 */
     public async startRound(roundId: string): Promise<StartRoundResult> {
         return await this.request('/games/start', 'POST', { roundId }, true) as StartRoundResult;
     }
 
-    /** 每日分享补体力；claimId 用于网络超时后的幂等重试。 */
+    /** 每日分享/激励视频补体力；claimId 用于网络超时后的幂等重试。 */
     public async claimSharedStamina(claimId: string): Promise<StaminaShareResult> {
         return await this.request('/stamina/share-claim', 'POST', { claimId }, true) as StaminaShareResult;
     }
 
-    /** 对局结算；roundId 幂等，重复提交返回首次结果。 */
+    /** 对局结算；roundId 幂等，重复提交返回首次结果。actions 为操作序列，服务端用于种子重放校验。 */
     public async submitSettlement(
         roundId: string,
         startedAt: number,
         endedAt: number,
         score: number,
         collectedMoodBeanCount: number,
+        actions?: any[],
     ): Promise<RoundSettlementResult> {
         const data = await this.request('/games/settlements', 'POST', {
             roundId,
@@ -137,6 +167,7 @@ export default class CloudService {
             endedAt,
             score,
             collectedMoodBeanCount,
+            actions: actions || [],
         }, true);
         return data as RoundSettlementResult;
     }
@@ -151,6 +182,21 @@ export default class CloudService {
      */
     public async postAuthenticated(path: string, body: any): Promise<any> {
         return await this.request(path, 'POST', body, true);
+    }
+
+    /** 每次建档都获取新 code；code 过期或已使用时由服务端明确报错，禁止退回设备账号冒充登录成功。 */
+    private requestWeChatLoginCode(): Promise<string> {
+        const wxApi = getWxApi();
+        if (!wxApi || typeof wxApi.login !== 'function') return Promise.resolve('');
+        return new Promise((resolve, reject) => {
+            wxApi.login({
+                success: (result: any) => {
+                    if (result && result.code) resolve(String(result.code));
+                    else reject(new Error(result && result.errMsg ? result.errMsg : '微信登录未返回有效凭证'));
+                },
+                fail: (error: any) => reject(new Error(error && error.errMsg ? error.errMsg : '微信登录失败')),
+            });
+        });
     }
 
     private ensureDeviceId(): void {

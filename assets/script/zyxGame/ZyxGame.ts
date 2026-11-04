@@ -14,10 +14,10 @@ import { settingsPanel } from '../manager/SettingsPanel';
 import { gameSettings } from '../manager/GameSettings';
 import { audioManager } from '../manager/AudioManager';
 import {
-    USE_SHARE_INSTEAD_OF_VIDEO,
+    getRewardOfferActionText,
     getRewardOfferFailToast,
     getRewardOfferIcon,
-    requestShareReward,
+    requestRewardOffer,
 } from '../manager/ShareReward';
 import { ASSET_PATHS, getSkeletonData, getSpriteFrame } from '../manager/AssetLoader';
 import ZyxGridCom from './ZyxGridCom';
@@ -39,7 +39,6 @@ import {
     getMoodName,
     MOOD_COLORS,
 } from './MoodArt';
-import { getWxApi } from '../manager/PlatformAdapter';
 import { calculateGameLayout } from '../manager/ResponsiveLayout';
 
 const { ccclass } = cc._decorator;
@@ -102,6 +101,8 @@ export default class ZyxGame extends cc.Component {
     private settlementReported: boolean = false;
     private pieceColors: { [key: number]: cc.Color } = {};
     private displayedRoundMoods: number = 0;
+    /** 碎片节点池：复用消除爆散碎片，避免高频 new/destroy 造成的 GC 抖动。 */
+    private shardPool: cc.Node[] = [];
     private idleSeconds: number = 0;
     private tipIndex: number = 0;
     private tipSeconds: number = 0;
@@ -144,6 +145,14 @@ export default class ZyxGame extends cc.Component {
 
     public onDestroy(): void {
         this.clearTutorialGuide();
+        // 统一回收：取消所有 scheduleOnce 延迟回调，停止根节点动画，销毁池内碎片。
+        // 子节点 tween 随节点销毁自动停止；state 型 tween 的 onUpdate 均有 cc.isValid 守卫。
+        this.unscheduleAllCallbacks();
+        if (this.node) cc.Tween.stopAllByTarget(this.node);
+        for (const shard of this.shardPool) {
+            if (cc.isValid(shard)) shard.destroy();
+        }
+        this.shardPool.length = 0;
     }
 
     public update(dt: number): void {
@@ -152,7 +161,7 @@ export default class ZyxGame extends cc.Component {
         if (this.isTutorialGuidedStep()) return;
         if (this.locked || this.hammerMode || this.purifierMode || this.hintHand) return;
         this.idleSeconds += dt;
-        if (this.idleSeconds >= 8) {
+        if (this.idleSeconds >= 3) {
             this.idleSeconds = 0;
             this.playEliminationHint();
         }
@@ -185,7 +194,7 @@ export default class ZyxGame extends cc.Component {
             if (node) node.y += this.layout.toolY - previous.toolY;
         }
         if (this.boardDangerHalo) this.boardDangerHalo.y = this.layout.boardY;
-        if (this.roundRescuePrompt) this.roundRescuePrompt.y += this.layout.toolY - previous.toolY;
+        if (this.roundRescuePrompt) this.roundRescuePrompt.y += this.layout.boardY - previous.boardY;
     }
 
     private buildUI(): void {
@@ -1332,20 +1341,14 @@ export default class ZyxGame extends cc.Component {
             if (!node) continue;
 
             hasAnimation = true;
-            cc.tween(node).stop();
+            cc.Tween.stopAllByTarget(node);
             node.opacity = 255;
-            const color = this.pieceColors[id];
-            const fadeState = { alpha: 1, scale: node.scale };
-            cc.tween(fadeState)
-                .to(0.3, { alpha: 0, scale: 0.78 }, {
-                    onUpdate: () => {
-                        node.scale = fadeState.scale;
-                        if (color) this.drawPiece(node, color, fadeState.alpha);
-                    },
-                } as any)
+            // 色块已在创建时绘好，淡出与缩放直接驱动节点属性，无需每帧重绘材质。
+            cc.tween(node)
+                .to(0.3, { opacity: 0, scale: 0.78 }, { easing: 'sineIn' })
                 .call(() => {
                     delete this.pieceColors[id];
-                    node.destroy();
+                    if (cc.isValid(node)) node.destroy();
                 })
                 .start();
         }
@@ -1432,15 +1435,13 @@ export default class ZyxGame extends cc.Component {
         this.boardRoot.addChild(flash);
 
         const flashState = { alpha: 0, scaleX: 0.16 };
-        const updateFlash = () => {
-            if (!cc.isValid(flash)) return;
-            flash.scaleX = flashState.scaleX;
-            this.drawRowFlash(flash, flashState.alpha);
-        };
-        updateFlash();
-        cc.tween(flashState)
-            .to(0.08, { alpha: 0.72, scaleX: 1 }, { easing: 'quadOut', onUpdate: updateFlash })
-            .to(0.22, { alpha: 0, scaleX: 1.04 }, { easing: 'quadIn', onUpdate: updateFlash })
+        // 创建时绘制一次完整亮度，后续用节点透明度与横向缩放复现原有关键帧。
+        this.drawRowFlash(flash, 1);
+        flash.opacity = 0;
+        flash.scaleX = flashState.scaleX;
+        cc.tween(flash)
+            .to(0.08, { opacity: Math.round(255 * 0.72), scaleX: 1 }, { easing: 'quadOut' })
+            .to(0.22, { opacity: 0, scaleX: 1.04 }, { easing: 'quadIn' })
             .call(() => flash.destroy())
             .start();
 
@@ -1487,17 +1488,14 @@ export default class ZyxGame extends cc.Component {
 
         const startX = -boardWidth / 2 - sweepWidth / 2;
         const endX = boardWidth / 2 + sweepWidth / 2;
-        const sweepState = { alpha: 0, x: startX };
-        const updateSweep = () => {
-            if (!cc.isValid(sweep)) return;
-            sweep.setPosition(sweepState.x, rowY);
-            this.drawRowSweep(sweep, sweepState.alpha);
-        };
-        updateSweep();
-        cc.tween(sweepState)
-            .to(0.05, { alpha: 0.72, x: startX + 34 }, { easing: 'quadOut', onUpdate: updateSweep })
-            .to(0.2, { alpha: 0.68, x: endX - 34 }, { easing: 'sineInOut', onUpdate: updateSweep })
-            .to(0.05, { alpha: 0, x: endX }, { easing: 'quadIn', onUpdate: updateSweep })
+        // 创建时绘制一次完整亮度，后续位移与透明度直接驱动节点属性。
+        this.drawRowSweep(sweep, 1);
+        sweep.opacity = 0;
+        sweep.setPosition(startX, rowY);
+        cc.tween(sweep)
+            .to(0.05, { opacity: Math.round(255 * 0.72), x: startX + 34 }, { easing: 'quadOut' })
+            .to(0.2, { opacity: Math.round(255 * 0.68), x: endX - 34 }, { easing: 'sineInOut' })
+            .to(0.05, { opacity: 0, x: endX }, { easing: 'quadIn' })
             .call(() => sweep.destroy())
             .start();
     }
@@ -1546,7 +1544,7 @@ export default class ZyxGame extends cc.Component {
             return;
         }
 
-        cc.tween(pieceNode).stop();
+        cc.Tween.stopAllByTarget(pieceNode);
         const strike = createHammerGlyph(this.pieceLayer, pieceNode.x + 42, pieceNode.y + 62, 0.88);
         strike.name = `hammerStrike_${id}`;
         strike.angle = 68;
@@ -1605,6 +1603,21 @@ export default class ZyxGame extends cc.Component {
         graphics.stroke();
     }
 
+    private acquireShard(): cc.Node {
+        const shard = this.shardPool.pop() || new cc.Node('pieceShard');
+        if (!shard.getComponent(cc.Graphics)) shard.addComponent(cc.Graphics);
+        return shard;
+    }
+
+    private releaseShard(shard: cc.Node): void {
+        if (!cc.isValid(shard)) return;
+        cc.Tween.stopAllByTarget(shard);
+        shard.removeFromParent(false);
+        // 池容量设上限，避免极端连消后驻留过多节点。
+        if (this.shardPool.length < 96) this.shardPool.push(shard);
+        else shard.destroy();
+    }
+
     private spawnPieceShards(pieceNode: cc.Node, color: cc.Color, id: number, rowClear: boolean): void {
         const targetShardWidth = rowClear ? 20 : 24;
         const minColumns = rowClear ? 4 : 3;
@@ -1618,7 +1631,7 @@ export default class ZyxGame extends cc.Component {
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < columns; col++) {
                 const index = shardIndex++;
-                const shard = new cc.Node(`pieceShard_${id}_${index}`);
+                const shard = this.acquireShard();
                 shard.width = shardWidth + 0.6;
                 shard.height = shardHeight + 0.6;
                 shard.setAnchorPoint(0.5, 0.5);
@@ -1626,7 +1639,13 @@ export default class ZyxGame extends cc.Component {
                 const startY = pieceNode.y + pieceNode.height / 2 - shardHeight * (row + 0.5);
                 shard.setPosition(startX, startY);
                 shard.zIndex = 28;
+                shard.opacity = 255;
+                shard.scale = 1;
+                const startRotation = ((index * 13) % 19) - 9;
+                shard.angle = -startRotation;
                 this.pieceLayer.addChild(shard);
+                // 只在生成时绘制一次；透明度交由 node.opacity 驱动，避免每帧重建 Graphics 顶点。
+                this.drawPieceShard(shard, color, 1, index);
 
                 const side = rowClear
                     ? (startX < 0 ? -1 : 1)
@@ -1648,34 +1667,18 @@ export default class ZyxGame extends cc.Component {
                         ? 46 + (index % 7) * 18
                         : 62 + (index % 8) * 22
                 );
-                const startRotation = ((index * 13) % 19) - 9;
                 // 碎片只走一次「爆散并消失」；不再先落一半、再进入第二段下坠。
                 const burstDuration = 0.28 + (index % 4) * 0.015;
                 const burstY = startY + lift * 0.42 - fall * 0.24;
-                const shardState = {
-                    x: startX,
-                    y: startY,
-                    rotation: startRotation,
-                    scale: 1,
-                    alpha: 1,
-                };
-                const updateShard = () => {
-                    if (!cc.isValid(shard)) return;
-                    shard.setPosition(shardState.x, shardState.y);
-                    shard.angle = -shardState.rotation;
-                    shard.scale = shardState.scale;
-                    this.drawPieceShard(shard, color, shardState.alpha, index);
-                };
-                updateShard();
-                cc.tween(shardState)
+                cc.tween(shard)
                     .to(burstDuration, {
                         x: startX + spread,
                         y: burstY,
-                        rotation: turn,
+                        angle: -startRotation - turn,
                         scale: 0.22 + (index % 4) * 0.045,
-                        alpha: 0,
-                    }, { easing: 'quadOut', onUpdate: updateShard })
-                    .call(() => shard.destroy())
+                        opacity: 0,
+                    }, { easing: 'quadOut' })
+                    .call(() => this.releaseShard(shard))
                     .start();
             }
         }
@@ -1928,7 +1931,7 @@ export default class ZyxGame extends cc.Component {
             const color = this.pieceColors[id];
             if (!node || !color) continue;
             targets.push({ id, node, color });
-            cc.tween(node).stop();
+            cc.Tween.stopAllByTarget(node);
             cc.tween(node)
                 .to(0.045, { scaleX: 1.03, scaleY: 0.72 }, { easing: 'quadOut' })
                 .start();
@@ -2092,10 +2095,10 @@ export default class ZyxGame extends cc.Component {
         this.roundRescueInteractive = false;
 
         const iconX = this.node.width / 2 - 66;
-        const iconY = this.layout.toolY + 6;
+        const iconY = this.layout.boardY + BOARD_ROWS * CELL_SIZE / 2 - 92;
         const bubbleWidth = 312;
         const bubbleX = Math.max(-this.node.width / 2 + bubbleWidth / 2 + 16,
-            Math.min(this.node.width / 2 - bubbleWidth / 2 - 16, iconX - 104));
+            Math.min(this.node.width / 2 - bubbleWidth / 2 - 16, iconX - 72 - bubbleWidth / 2));
 
         const prompt = new cc.Node('roundRescuePrompt');
         prompt.width = this.node.width;
@@ -2116,7 +2119,7 @@ export default class ZyxGame extends cc.Component {
             58,
             22,
             bubbleX + 3,
-            iconY + 97,
+            iconY - 4,
         );
         const bubble = uimanager.createRect(
             prompt,
@@ -2127,7 +2130,7 @@ export default class ZyxGame extends cc.Component {
             252,
             21,
             bubbleX,
-            iconY + 101,
+            iconY,
         );
         const bubbleGraphics = bubble.getComponent(cc.Graphics);
         bubbleGraphics.strokeColor = new cc.Color(220, 113, 91, 178);
@@ -2136,19 +2139,19 @@ export default class ZyxGame extends cc.Component {
         bubbleGraphics.stroke();
 
         const pointer = new cc.Node('roundRescueBubblePointer');
-        pointer.setPosition(iconX - bubbleX, -33);
+        pointer.setPosition(bubbleWidth / 2, 0);
         bubble.addChild(pointer);
         const pointerGraphics = pointer.addComponent(cc.Graphics);
         pointerGraphics.fillColor = new cc.Color(255, 249, 232, 252);
-        pointerGraphics.moveTo(-11, 0);
-        pointerGraphics.lineTo(11, 0);
-        pointerGraphics.lineTo(0, -17);
+        pointerGraphics.moveTo(0, -11);
+        pointerGraphics.lineTo(0, 11);
+        pointerGraphics.lineTo(17, 0);
         pointerGraphics.close();
         pointerGraphics.fill();
 
         const bubbleLabel = uimanager.createLabel(
             bubble,
-            '分享给好友，清除全部色块',
+            getRewardOfferIcon() === 'video' ? '完整看视频，清除全部色块' : '分享给好友，清除全部色块',
             0,
             1,
             20,
@@ -2702,104 +2705,9 @@ export default class ZyxGame extends cc.Component {
         });
     }
 
-    /** 统一获取入口：当前分享；开关关闭后仍走完整激励视频实现。 */
+    /** 局内所有奖励点位共用管理器的分享/激励视频双通道。 */
     private showRewardOffer(onResult: (rewarded: boolean) => void): void {
-        if (USE_SHARE_INSTEAD_OF_VIDEO) {
-            requestShareReward(onResult);
-            return;
-        }
-        this.showRewardedVideo(onResult);
-    }
-
-    /** 保留完整激励视频链路，待用户量达标后把 USE_SHARE_INSTEAD_OF_VIDEO 改为 false 即可恢复。 */
-    private showRewardedVideo(onResult: (rewarded: boolean) => void): void {
-        const wxApi = getWxApi();
-        const runtime = typeof window !== 'undefined' ? window as any : null;
-        const adUnitId = runtime && runtime.__ZYX_REWARDED_AD_UNIT_ID__
-            ? String(runtime.__ZYX_REWARDED_AD_UNIT_ID__)
-            : '';
-
-        if (!wxApi || typeof wxApi.createRewardedVideoAd !== 'function') {
-            uimanager.showModal(
-                '看视频获得一次机会',
-                '网页预览使用模拟奖励；接入微信广告位后会播放真实激励视频。',
-                [
-                    { text: '模拟观看完成', color: BUTTON_COLORS.green, onClick: () => onResult(true) },
-                    { text: '稍后再说', color: BUTTON_COLORS.red, onClick: () => onResult(false) },
-                ],
-            );
-            return;
-        }
-        if (!adUnitId) {
-            uimanager.showToast('请先配置激励视频广告位');
-            onResult(false);
-            return;
-        }
-
-        let ad: any = null;
-        try {
-            ad = wxApi.createRewardedVideoAd({ adUnitId });
-        } catch (error) {
-            uimanager.showToast('视频组件初始化失败，请稍后再试');
-            onResult(false);
-            return;
-        }
-
-        let completed = false;
-        const cleanup = (): void => {
-            if (!ad) return;
-            if (typeof ad.offClose === 'function') ad.offClose(onClose);
-            if (typeof ad.offError === 'function') ad.offError(onError);
-        };
-        const finish = (rewarded: boolean, errorMessage: string = ''): void => {
-            if (completed) return;
-            completed = true;
-            cleanup();
-            if (errorMessage) uimanager.showToast(errorMessage);
-            onResult(rewarded);
-        };
-        const onClose = (result: any): void => {
-            // 旧版基础库可能不返回 result；明确返回 isEnded=false 时才视作中途退出。
-            finish(!result || result.isEnded !== false);
-        };
-        const onError = (): void => {
-            finish(false, '视频暂时没有准备好，请稍后再试');
-        };
-
-        if (!ad || typeof ad.onClose !== 'function' || typeof ad.onError !== 'function') {
-            finish(false, '当前微信版本暂不支持激励视频');
-            return;
-        }
-        ad.onClose(onClose);
-        ad.onError(onError);
-        try {
-            const showResult = ad.show();
-            if (showResult && typeof showResult.catch === 'function') {
-                showResult.catch(() => {
-                    if (completed) return;
-                    try {
-                        const loadResult = ad.load();
-                        if (!loadResult || typeof loadResult.then !== 'function') {
-                            onError();
-                            return;
-                        }
-                        loadResult
-                            .then(() => {
-                                if (completed) return;
-                                const retryResult = ad.show();
-                                if (retryResult && typeof retryResult.catch === 'function') {
-                                    retryResult.catch(onError);
-                                }
-                            })
-                            .catch(onError);
-                    } catch (error) {
-                        onError();
-                    }
-                });
-            }
-        } catch (error) {
-            onError();
-        }
+        requestRewardOffer(onResult);
     }
 
     private markInteraction(): void {
@@ -3009,14 +2917,13 @@ export default class ZyxGame extends cc.Component {
 
     private showReviveModal(reason: string): void {
         this.locked = true;
-        const modal = uimanager.showModal(
-            '再给心情一次机会',
-            USE_SHARE_INSTEAD_OF_VIDEO
-                ? '是否需要复活，创造更高纪录？\n分享给好友后，将清理棋盘上半区后继续挑战。'
-                : '是否需要复活，创造更高纪录？\n看完视频，将清理棋盘上半区后继续挑战。',
+        const videoEnabled = getRewardOfferIcon() === 'video';
+        uimanager.showModal(
+            '复活',
+            videoEnabled ? '完整看完视频即可继续游戏，挑战高分' : '分享好友即可继续游戏，挑战高分',
             [
                 {
-                    text: '复活',
+                    text: `${getRewardOfferActionText()}复活`,
                     color: BUTTON_COLORS.yellow,
                     onClick: () => this.requestRevive(reason),
                     icon: (button) => decorateActionButton(button, getRewardOfferIcon()),
@@ -3027,48 +2934,7 @@ export default class ZyxGame extends cc.Component {
                     onClick: () => this.finishGame(reason),
                 },
             ],
-            (panel, centerY) => {
-                const badge = uimanager.createRect(
-                    panel,
-                    'revivePreview',
-                    390,
-                    108,
-                    new cc.Color(255, 238, 191),
-                    255,
-                    26,
-                    0,
-                    centerY,
-                );
-                if (USE_SHARE_INSTEAD_OF_VIDEO) createShareGlyph(badge, -128, 0, 0.92);
-                else createVideoGlyph(badge, -128, 0, 0.92);
-                const label = uimanager.createLabel(
-                    badge,
-                    '闪电清理上半区\n保留下半区继续挑战',
-                    58,
-                    0,
-                    21,
-                    HUD_VALUE_COLOR,
-                    270,
-                    76,
-                );
-                this.makeLabelBold(label);
-            },
-            160,
         );
-        const panel = modal && modal.getChildByName('panel');
-        if (panel) {
-            const footer = uimanager.createLabel(
-                panel,
-                '每次挑战仅有一次复活机会',
-                0,
-                -panel.height / 2 + 29,
-                17,
-                HUD_LABEL_COLOR,
-                460,
-                30,
-            );
-            this.makeLabelBold(footer);
-        }
     }
 
     private requestRevive(reason: string): void {
@@ -3396,8 +3262,6 @@ export default class ZyxGame extends cc.Component {
             createMoodBean(moodChip, 1, -57, 0, 40);
             const moodValue = uimanager.createLabel(moodChip, `×${settlement.roundCollectedMoodBeans}`, 24, 0, 23, HUD_VALUE_COLOR, 112, 34);
             this.makeLabelBold(moodValue);
-            const moodCaption = uimanager.createLabel(panel, '本局收集 · 到账以云端为准', -106, centerY - 97, 13, HUD_LABEL_COLOR, 240, 24);
-            this.makeLabelBold(moodCaption);
             if (settlement.roundBonusMoodBeans > 0) {
                 // 额外奖励必须单列展示，不能伪装成局内单颗豆的倍率。
                 const bonus = uimanager.createLabel(

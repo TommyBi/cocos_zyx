@@ -36,6 +36,68 @@ export const MOOD_COLORS = {
     glow: new cc.Color(255, 224, 134),
 };
 
+/** 首页、资料弹窗与排行榜共用的圆角头像框。 */
+export function createAvatarFrame(parent: cc.Node, name: string, x: number, y: number, size: number = 92): cc.Node {
+    const frame = new cc.Node(name);
+    frame.width = size;
+    frame.height = size;
+    frame.setPosition(x, y);
+    parent.addChild(frame);
+    const graphics = frame.addComponent(cc.Graphics);
+    const rectSize = size - 2;
+    graphics.fillColor = new cc.Color(255, 239, 190);
+    graphics.strokeColor = MOOD_COLORS.cocoaSoft;
+    graphics.lineWidth = 4;
+    graphics.roundRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, Math.min(28, rectSize * 22 / 90));
+    graphics.fill();
+    graphics.stroke();
+    return frame;
+}
+
+let roundedAvatarMaskFrame: cc.SpriteFrame = null;
+
+/** 生成共享圆角透明蒙版，避免微信头像的矩形四角从圆角框中露出。 */
+function getRoundedAvatarMaskFrame(): cc.SpriteFrame {
+    if (roundedAvatarMaskFrame) return roundedAvatarMaskFrame;
+    const size = 64;
+    const radius = 15;
+    const data = new Uint8Array(size * size * 4);
+    const samples = [0.125, 0.375, 0.625, 0.875];
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            let coverage = 0;
+            for (const sampleY of samples) {
+                for (const sampleX of samples) {
+                    const px = x + sampleX - size / 2;
+                    const py = y + sampleY - size / 2;
+                    const qx = Math.abs(px) - (size / 2 - radius);
+                    const qy = Math.abs(py) - (size / 2 - radius);
+                    const distance = Math.hypot(Math.max(qx, 0), Math.max(qy, 0))
+                        + Math.min(Math.max(qx, qy), 0);
+                    if (distance <= radius) coverage++;
+                }
+            }
+            const offset = (y * size + x) * 4;
+            data[offset] = 255;
+            data[offset + 1] = 255;
+            data[offset + 2] = 255;
+            data[offset + 3] = Math.round(coverage * 255 / 16);
+        }
+    }
+    const texture = new cc.Texture2D();
+    texture.initWithData(data, cc.Texture2D.PixelFormat.RGBA8888, size, size);
+    roundedAvatarMaskFrame = new cc.SpriteFrame(texture);
+    return roundedAvatarMaskFrame;
+}
+
+export function applyRoundedAvatarMask(maskNode: cc.Node): cc.Mask {
+    const mask = maskNode.getComponent(cc.Mask) || maskNode.addComponent(cc.Mask);
+    mask.type = cc.Mask.Type.IMAGE_STENCIL;
+    mask.spriteFrame = getRoundedAvatarMaskFrame();
+    mask.alphaThreshold = 0.05;
+    return mask;
+}
+
 export function getMoodColor(index: number): cc.Color {
     const mood = MOOD_VISUALS[Math.max(0, Math.min(MOOD_VISUALS.length - 1, index - 1))];
     return mood.color;

@@ -10,4 +10,7 @@ if (!allowedTargets.has(target)) {
 const buildRoot = path.resolve(__dirname, '..', 'build');
 const targetPath = path.join(buildRoot, target);
 fs.rmSync(targetPath, { recursive: true, force: true });
+if (target === 'wechatgame') {
+    fs.rmSync(path.join(buildRoot, 'wechatgame-cdn'), { recursive: true, force: true });
+}
 console.log(`Cleaned generated build: build/${target}`);

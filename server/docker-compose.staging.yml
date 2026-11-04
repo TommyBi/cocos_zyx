@@ -1,0 +1,26 @@
+name: tcjstory-cocos-zyx-staging
+
+services:
+  cocos_zyx_api_staging:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env.staging
+    environment:
+      PORT: 8080
+      DB_PATH: /app/data/game-staging.sqlite
+      NODE_ENV: staging
+      ENABLE_GM_ROUTES: '1'
+    volumes:
+      - cocos_zyx_staging_data:/app/data
+    networks:
+      - cocos_zyx_staging_internal
+      - tcjstory_gateway
+
+networks:
+  cocos_zyx_staging_internal:
+  tcjstory_gateway:
+    external: true
+
+volumes:
+  cocos_zyx_staging_data:

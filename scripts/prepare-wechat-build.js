@@ -125,21 +125,28 @@ if (!fs.existsSync(path.join(buildRoot, 'assets', 'game'))) {
 if (fs.existsSync(path.join(buildRoot, 'assets', 'game-assets'))) {
     throw new Error('构建产物仍包含旧 game-assets Bundle');
 }
-const remoteRoot = path.join(buildRoot, 'remote');
-const remoteMusicRoot = path.join(remoteRoot, 'music');
+const generatedRemoteRoot = path.join(buildRoot, 'remote');
+const cdnRoot = path.resolve(buildRoot, '..', 'wechatgame-cdn');
+const remoteRoot = path.join(cdnRoot, 'remote');
+const remoteMusicRoot = path.join(generatedRemoteRoot, 'music');
 if (!fs.existsSync(remoteMusicRoot)) {
     throw new Error('背景音乐远程 Bundle 没有生成到 build/wechatgame/remote/music');
 }
 if (fs.existsSync(path.join(buildRoot, 'assets', 'music'))) {
     throw new Error('音乐 Bundle 被打进了主包');
 }
-const remoteNames = fs.readdirSync(remoteRoot, { withFileTypes: true })
+const remoteNames = fs.readdirSync(generatedRemoteRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
 if (JSON.stringify(remoteNames) !== JSON.stringify(expectedRemoteBundles)) {
     throw new Error(`remote 目录必须且只能包含 ${expectedRemoteBundles.join(', ')}，实际为 ${remoteNames.join(', ')}`);
 }
+
+// CDN 文件不能留在微信项目目录：开发者工具会把它们计入本地主包体积。
+fs.rmSync(cdnRoot, { recursive: true, force: true });
+fs.mkdirSync(cdnRoot, { recursive: true });
+fs.renameSync(generatedRemoteRoot, remoteRoot);
 
 function walkFiles(target, files = []) {
     if (!fs.existsSync(target)) return files;
@@ -151,10 +158,9 @@ function walkFiles(target, files = []) {
     return files;
 }
 
-const packedOversizedAudio = walkFiles(buildRoot).filter((filePath) => {
-    if (filePath.startsWith(`${remoteRoot}${path.sep}`)) return false;
-    return filePath.endsWith('.mp3') && fs.statSync(filePath).size > 128 * 1024;
-});
+const packedOversizedAudio = walkFiles(buildRoot).filter((filePath) => (
+    filePath.endsWith('.mp3') && fs.statSync(filePath).size > 128 * 1024
+));
 if (packedOversizedAudio.length > 0) {
     throw new Error(`超过 128KB 的音频仍在代码包内：${packedOversizedAudio.join(', ')}`);
 }
@@ -170,13 +176,13 @@ subpackageSizes.forEach(({ name, bytes }) => {
 const totalBytes = dirSizeBytes(buildRoot);
 const subpackageBytes = subpackageSizes.reduce((sum, item) => sum + item.bytes, 0);
 const remoteBytes = dirSizeBytes(remoteRoot);
-const mainBytes = totalBytes - subpackageBytes - remoteBytes;
+const mainBytes = totalBytes - subpackageBytes;
 if (mainBytes > 4 * 1024 * 1024) {
     throw new Error(`微信主包超过 4MB：${formatMb(mainBytes)}`);
 }
 
 console.log(`Prepared WeChat mini game: ${APP_ID}`);
-console.log(`Main package: ${formatMb(mainBytes)} (music excluded)`);
+console.log(`Main package: ${formatMb(mainBytes)} (CDN directory is outside the WeChat project)`);
 subpackageSizes.forEach(({ name, bytes }) => console.log(`Subpackage ${name}: ${formatMb(bytes)}`));
 console.log(`Remote music: ${formatMb(remoteBytes)} -> ${CDN_ROOT}remote/music/`);
-console.log('Upload build/wechatgame/remote to the CDN. Do not publish it from the API origin.');
+console.log('Upload build/wechatgame-cdn/remote to the CDN. Do not publish it from the API origin.');

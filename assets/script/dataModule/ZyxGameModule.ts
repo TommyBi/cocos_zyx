@@ -145,6 +145,7 @@ export type PendingRoundSettlement = {
     endedAt: number;
     score: number;
     collectedMoodBeanCount: number;
+    actions?: any[];
 };
 
 /** 永久失败的结算记录：移出活动队列后保留原因与时间，供排查且不堵塞后续记录。 */
@@ -218,11 +219,17 @@ export default class ZyxGameModule {
     private nextId: number = 1;
     private roundSettled: boolean = false;
     private seedOverride: number = 0;
+    /** 服务端开局配置在 resetRound 生成棋盘前一次性消费，禁止被本地随机配置覆盖。 */
+    private pendingServerSeed: number = 0;
+    private pendingServerTutorial: boolean = null;
+    private currentRoundIsTutorial: boolean = false;
     private randomState: number = 1;
     private tutorialMoves: TutorialMove[] = [];
     private loggedInGameCount: number = 0;
     private sessionStartedRounds: number = 0;
     private hasGameCountBaseline: boolean = false;
+    /** 本局操作序列：记录所有影响棋盘的操作，结算时提交给服务端重放校验。 */
+    public roundActions: any[] = [];
 
     public resetRound(): void {
         this.score = 0;
@@ -234,9 +241,11 @@ export default class ZyxGameModule {
         this.colorPurifierCount = Math.max(0, this.readNumber('zyx_magic_wand_inventory', 0));
         this.roundSettled = false;
         this.roundStartedAt = Date.now();
+        this.roundActions = [];
         this.bestScore = this.readNumber('zyx_best_score', 0);
         this.startingBestScore = this.bestScore;
-        this.roundSeed = this.seedOverride || this.createRandomSeed();
+        this.roundSeed = this.pendingServerSeed || this.seedOverride || this.createRandomSeed();
+        this.pendingServerSeed = 0;
         this.randomState = this.roundSeed;
         this.generationDebugLog = [];
         this.sessionStartedRounds++;
@@ -246,6 +255,10 @@ export default class ZyxGameModule {
             this.loggedInGameCount + this.sessionStartedRounds,
         );
         cc.sys.localStorage.setItem(TUTORIAL_CHALLENGE_COUNT_KEY, String(this.challengeCount));
+        this.currentRoundIsTutorial = this.pendingServerTutorial === null
+            ? this.challengeCount > 0 && this.challengeCount <= 2
+            : this.pendingServerTutorial;
+        this.pendingServerTutorial = null;
         this.syncPersistentProgress();
         cc.log(`[棋盘调试] 本局随机种子 ${this.roundSeed}`);
 
@@ -268,9 +281,9 @@ export default class ZyxGameModule {
         }
     }
 
-    /** 登录返回的已完成局数与本次会话开局数共同决定是否进入前两局教学。 */
+    /** 开局后由服务端配置决定；离线或本地测试回退到已完成局数。 */
     public isTutorialRound(): boolean {
-        return this.challengeCount > 0 && this.challengeCount <= 2;
+        return this.currentRoundIsTutorial;
     }
 
     /** 首次启动分流：云端没有完成局数的新用户直接进入消除；无法联网时也优先保证可玩。 */
@@ -287,6 +300,14 @@ export default class ZyxGameModule {
     public setRoundSeedOverride(seed: number): void {
         const normalized = Math.floor(Number(seed)) >>> 0;
         this.seedOverride = normalized || 0;
+    }
+
+    /** 服务端下发开局配置；在随后的 resetRound 中生效，且仅消费一次。 */
+    public setRoundSeed(seed: number, isTutorial?: boolean): void {
+        this.pendingServerSeed = seed >>> 0 || 1;
+        if (typeof isTutorial === 'boolean') this.pendingServerTutorial = isTutorial;
+        this.roundSeed = this.pendingServerSeed;
+        this.randomState = this.roundSeed;
     }
 
     /** 在任何本地进度消费方（首页展示、云 bootstrap 建档）之前调用，确保模块字段与持久化存档一致。 */
@@ -327,6 +348,7 @@ export default class ZyxGameModule {
         const safeOffset = Math.max(range.min, Math.min(range.max, offset));
         if (safeOffset === 0) return false;
         piece.col += safeOffset;
+        this.roundActions.push({ type: 'move', id, offset: safeOffset });
         return true;
     }
 
@@ -335,6 +357,7 @@ export default class ZyxGameModule {
         this.hammerCount--;
         this.saveToolInventory();
         this.pieces = this.pieces.filter((piece) => piece.id !== id);
+        this.roundActions.push({ type: 'hammer', id });
         return true;
     }
 
@@ -357,6 +380,7 @@ export default class ZyxGameModule {
         const removedSet: { [key: number]: boolean } = {};
         removedPieceIds.forEach((id) => removedSet[id] = true);
         this.pieces = this.pieces.filter((piece) => !removedSet[piece.id]);
+        this.roundActions.push({ type: 'purify', color });
         return removedPieceIds;
     }
 
@@ -416,6 +440,7 @@ export default class ZyxGameModule {
     public removeAllPieces(): number[] {
         const removedPieceIds = this.pieces.map((piece) => piece.id);
         this.pieces = [];
+        this.roundActions.push({ type: 'clear' });
         return removedPieceIds;
     }
 
@@ -430,6 +455,7 @@ export default class ZyxGameModule {
         const removedSet: { [key: number]: boolean } = {};
         removedPieceIds.forEach((id) => removedSet[id] = true);
         this.pieces = this.pieces.filter((piece) => !removedSet[piece.id]);
+        this.roundActions.push({ type: 'revive', rowCount });
         return removedPieceIds;
     }
 
@@ -526,6 +552,7 @@ this.bestScore = this.score;
     public appendNextRow(): boolean {
         if (this.pieces.some((piece) => piece.row === 0)) return false;
 
+        this.roundActions.push({ type: 'append' });
         for (const piece of this.pieces) piece.row--;
         for (const next of this.nextPieces) {
             this.pieces.push(this.createPiece(

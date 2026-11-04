@@ -12,7 +12,8 @@
     "upload:wechat": "node scripts/upload-wechat.js",
     "publish:remote": "node scripts/publish-remote.js",
     "open:wechat": "/Applications/wechatwebdevtools.app/Contents/MacOS/cli open --project \"$PWD/build/wechatgame\" --lang zh",
-    "check:cloud": "node scripts/check-cloud.js"
+    "check:cloud": "node scripts/check-cloud.js production",
+    "check:cloud:staging": "node scripts/check-cloud.js staging"
   },
   "devDependencies": {
     "miniprogram-ci": "^2.1.31"

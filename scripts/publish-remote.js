@@ -12,7 +12,7 @@ const path = require('path');
 
 const repoRoot = path.resolve(__dirname, '..');
 const envPath = path.join(repoRoot, '.oss.local.env');
-const remoteRoot = path.join(repoRoot, 'build', 'wechatgame', 'remote');
+const remoteRoot = path.join(repoRoot, 'build', 'wechatgame-cdn', 'remote');
 const BUCKET = 'tcjstory-cocos-zyx';
 const REGION = 'oss-cn-beijing';
 const KEY_PREFIX = 'cocos-zyx/remote/';
@@ -91,7 +91,7 @@ async function main() {
     if (!accessKeyId || !accessKeySecret) throw new Error('.oss.local.env 里缺少 OSS_ACCESS_KEY_ID 或 OSS_ACCESS_KEY_SECRET');
     if (env.OSS_BUCKET && env.OSS_BUCKET !== BUCKET) throw new Error(`只允许上传到 ${BUCKET}`);
     if (env.OSS_REGION && env.OSS_REGION !== REGION) throw new Error(`只允许上传到 ${REGION}`);
-    if (!fs.existsSync(remoteRoot)) throw new Error('没有 build/wechatgame/remote，请先执行 npm run build:wechat');
+    if (!fs.existsSync(remoteRoot)) throw new Error('没有 build/wechatgame-cdn/remote，请先执行 npm run build:wechat');
 
     const files = walk(remoteRoot);
     if (files.length === 0) throw new Error('remote 目录是空的');

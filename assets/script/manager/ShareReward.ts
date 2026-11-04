@@ -2,10 +2,13 @@ import { BUTTON_COLORS, uimanager } from './UIManager';
 import { getWxApi } from './PlatformAdapter';
 
 /**
- * 用户量未达标、激励视频暂不可用时，用分享代替获取道具/救场/复活。
- * 恢复看视频逻辑时，把此开关改为 false 即可；视频代码与图标均保留。
+ * 激励视频总开关。false 时所有奖励点位走分享；true 时统一切换为激励视频。
+ * 用户量达标后，填入下方广告位 ID 并将此开关改为 true 即可。
  */
-export const USE_SHARE_INSTEAD_OF_VIDEO = true;
+export const REWARDED_VIDEO_ENABLED = false;
+
+/** 微信激励视频广告位 ID；所有奖励点位共用，暂未申请到时保持空字符串。 */
+export const REWARDED_VIDEO_AD_UNIT_ID = '';
 
 /** 分享发起后回到前台，间隔达到该毫秒数才视为成功（微信无分享结果回调）。 */
 export const SHARE_SUCCESS_MIN_MS = 3000;
@@ -79,22 +82,38 @@ export function registerSystemShare(): void {
 
 /** 当前获取奖励入口应展示的动作图标类型。 */
 export function getRewardOfferIcon(): 'share' | 'video' {
-    return USE_SHARE_INSTEAD_OF_VIDEO ? 'share' : 'video';
+    return REWARDED_VIDEO_ENABLED ? 'video' : 'share';
 }
 
-export function getRewardOfferFailToast(kind: 'tool' | 'rescue' | 'revive'): string {
-    if (USE_SHARE_INSTEAD_OF_VIDEO) {
+/** 奖励点位共用的动作文案，避免切换通道后仍显示“分享”。 */
+export function getRewardOfferActionText(): string {
+    return REWARDED_VIDEO_ENABLED ? '看视频' : '分享';
+}
+
+export function getRewardOfferFailToast(kind: 'tool' | 'rescue' | 'revive' | 'stamina'): string {
+    if (!REWARDED_VIDEO_ENABLED) {
         if (kind === 'revive') return '这次分享没有完成，再试一次就可以复活啦';
         if (kind === 'rescue') return '这次分享没有完成，下次机会再试试吧';
+        if (kind === 'stamina') return '分享未完成，体力没有变化';
         return '这次分享没有完成，再试一次就可以获得使用机会';
     }
     if (kind === 'revive') return '完整看完视频才能复活';
     if (kind === 'rescue') return '完整看完视频才能获得帮助';
+    if (kind === 'stamina') return '完整看完视频才能获得体力';
     return '完整看完视频才能获得使用机会';
 }
 
+/** 所有奖励点位的统一入口，由总开关决定走分享还是激励视频。 */
+export function requestRewardOffer(onResult: (rewarded: boolean) => void, rewardName: string = '一次机会'): void {
+    if (REWARDED_VIDEO_ENABLED) {
+        requestRewardedVideoReward(onResult, rewardName);
+        return;
+    }
+    requestShareReward(onResult, rewardName);
+}
+
 /**
- * 发起一次获取奖励：当前走微信分享；开关关闭后由调用方改走激励视频。
+ * 发起一次微信分享奖励。微信无分享结果回调，回到前台后按停留时长判定。
  * Web 预览提供模拟成功/未完成，便于本地验收。
  */
 export function requestShareReward(onResult: (rewarded: boolean) => void, rewardName: string = '一次机会'): void {
@@ -119,6 +138,10 @@ export function requestShareReward(onResult: (rewarded: boolean) => void, reward
                     onClick: () => onResult(false),
                 },
             ],
+            null,
+            0,
+            false,
+            true,
         );
         return;
     }
@@ -140,5 +163,93 @@ export function requestShareReward(onResult: (rewarded: boolean) => void, reward
         });
     } catch (error) {
         finishPending(false, '分享暂时不可用，请稍后再试');
+    }
+}
+
+/** 播放一次激励视频；只有完整观看（或旧基础库未返回观看状态）才发放奖励。 */
+function requestRewardedVideoReward(onResult: (rewarded: boolean) => void, rewardName: string): void {
+    const wxApi = getWxApi();
+    if (!wxApi || typeof wxApi.createRewardedVideoAd !== 'function') {
+        uimanager.showModal(
+            `看视频获得${rewardName}`,
+            '网页预览使用模拟奖励；微信里会播放真实激励视频。',
+            [
+                { text: '模拟观看完成', color: BUTTON_COLORS.green, onClick: () => onResult(true) },
+                { text: '模拟中途关闭', color: BUTTON_COLORS.red, onClick: () => onResult(false) },
+            ],
+        );
+        return;
+    }
+
+    const adUnitId = REWARDED_VIDEO_AD_UNIT_ID.trim();
+    if (!adUnitId) {
+        uimanager.showToast('请先配置激励视频广告位');
+        onResult(false);
+        return;
+    }
+
+    let ad: any = null;
+    try {
+        ad = wxApi.createRewardedVideoAd({ adUnitId });
+    } catch (error) {
+        uimanager.showToast('视频组件初始化失败，请稍后再试');
+        onResult(false);
+        return;
+    }
+
+    let completed = false;
+    const cleanup = (): void => {
+        if (!ad) return;
+        if (typeof ad.offClose === 'function') ad.offClose(onClose);
+        if (typeof ad.offError === 'function') ad.offError(onError);
+    };
+    const finish = (rewarded: boolean, errorMessage: string = ''): void => {
+        if (completed) return;
+        completed = true;
+        cleanup();
+        if (errorMessage) uimanager.showToast(errorMessage);
+        onResult(rewarded);
+    };
+    const onClose = (result: any): void => {
+        // 旧版基础库可能不返回 result；明确返回 isEnded=false 时才视作中途退出。
+        finish(!result || result.isEnded !== false);
+    };
+    const onError = (): void => {
+        finish(false, '视频暂时没有准备好，请稍后再试');
+    };
+
+    if (!ad || typeof ad.onClose !== 'function' || typeof ad.onError !== 'function') {
+        finish(false, '当前微信版本暂不支持激励视频');
+        return;
+    }
+    ad.onClose(onClose);
+    ad.onError(onError);
+    try {
+        const showResult = ad.show();
+        if (showResult && typeof showResult.catch === 'function') {
+            showResult.catch(() => {
+                if (completed) return;
+                try {
+                    const loadResult = ad.load();
+                    if (!loadResult || typeof loadResult.then !== 'function') {
+                        onError();
+                        return;
+                    }
+                    loadResult
+                        .then(() => {
+                            if (completed) return;
+                            const retryResult = ad.show();
+                            if (retryResult && typeof retryResult.catch === 'function') {
+                                retryResult.catch(onError);
+                            }
+                        })
+                        .catch(onError);
+                } catch (error) {
+                    onError();
+                }
+            });
+        }
+    } catch (error) {
+        onError();
     }
 }

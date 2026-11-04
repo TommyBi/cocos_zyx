@@ -6,6 +6,8 @@ export type ModalAction = {
     color: cc.Color;
     onClick: () => void;
     icon?: (button: cc.Node) => void;
+    /** 微信授权等依赖直接点击手势的操作，不能在调用前销毁弹窗。 */
+    closeOnClick?: boolean;
 };
 
 export type ModalDecoration = (panel: cc.Node, centerY: number) => void;
@@ -27,6 +29,13 @@ export const BUTTON_COLORS = {
     green: new cc.Color(105, 181, 129),
     red: new cc.Color(226, 104, 95),
 };
+export const BUTTON_TEXT_COLOR = new cc.Color(88, 61, 55);
+
+/** 昵称只在展示层截断，服务端仍保存完整微信资料；按 Unicode 字符计数，避免拆散表情。 */
+export function formatDisplayNickname(nickname: string): string {
+    const characters = Array.from(typeof nickname === 'string' ? nickname.trim() : '');
+    return characters.length > 7 ? `${characters.slice(0, 7).join('')}...` : characters.join('');
+}
 
 /** 只保留核心流程需要的轻量 UI 工厂与弹窗。 */
 export default class UIManager {
@@ -247,7 +256,7 @@ export default class UIManager {
         label.overflow = cc.Label.Overflow.SHRINK;
         label.enableWrapText = true;
         label.fontFamily = 'PingFang SC';
-        label.cacheMode = cc.Label.CacheMode.NONE;
+        label.cacheMode = cc.Label.CacheMode.CHAR;
         (label as any).isSystemFontUsed = true;
         // cc.Label 在 addComponent/string 初始化时会重置节点尺寸，尺寸必须最后写入。
         node.width = width;
@@ -269,7 +278,7 @@ export default class UIManager {
         const button = this.createRect(parent, `button_${text}`, width, height, color, 255, 16, x, y);
         button.addComponent(cc.Button);
         this.drawButtonSurface(button, width, height, color, Math.min(20, height * 0.26));
-        const label = this.createLabel(button, text, 0, 2, fontSize, cc.Color.WHITE, width - 24, height - 10);
+        const label = this.createLabel(button, text, 0, 2, fontSize, BUTTON_TEXT_COLOR, width - 24, height - 10);
         label.enableBold = true;
 
         button.on(cc.Node.EventType.TOUCH_START, () => {
@@ -344,6 +353,70 @@ export default class UIManager {
             .start();
     }
 
+    /**
+     * 首次微信资料授权的底部说明层。真正的点击由全屏透明 UserInfoButton 承接，
+     * 这里只负责展示熟悉的授权上下文，不放置另一套可见原生按钮。
+     */
+    public showWeChatAuthorizationSheet(): () => void {
+        if (!this.scene || !this.scene.isValid) return () => undefined;
+        const root = new cc.Node('wechatAuthorizationSheet');
+        root.width = this.scene.width;
+        root.height = this.scene.height;
+        root.zIndex = 2200;
+        root.addComponent(cc.BlockInputEvents);
+        this.scene.addChild(root);
+        const mask = this.createRect(root, 'mask', root.width, root.height, new cc.Color(35, 35, 35), 150);
+        mask.addComponent(cc.BlockInputEvents);
+
+        const safeArea = this.getSafeAreaMetrics();
+        let panelBottom = -root.height / 2 + 24 + safeArea.bottom;
+        const canvas = this.scene.getComponent(cc.Canvas) ? this.scene : this.scene.parent;
+        if (canvas) {
+            const bottomLeft = root.convertToNodeSpaceAR(
+                canvas.convertToWorldSpaceAR(cc.v2(-cc.winSize.width / 2, -cc.winSize.height / 2)),
+            );
+            const topRight = root.convertToNodeSpaceAR(
+                canvas.convertToWorldSpaceAR(cc.v2(cc.winSize.width / 2, cc.winSize.height / 2)),
+            );
+            mask.setPosition((bottomLeft.x + topRight.x) / 2, (bottomLeft.y + topRight.y) / 2);
+            mask.setContentSize(Math.abs(topRight.x - bottomLeft.x), Math.abs(topRight.y - bottomLeft.y));
+            this.drawRect(mask, mask.width, mask.height, new cc.Color(35, 35, 35), 0, 150);
+            panelBottom = bottomLeft.y + 24 + safeArea.bottom;
+        }
+
+        const panelHeight = 290;
+        const panelY = panelBottom + panelHeight / 2;
+        const panelWidth = Math.min(640, Math.max(320, root.width - 40));
+        const panel = this.createRect(root, 'authorizationPanel', panelWidth, panelHeight,
+            new cc.Color(255, 252, 244), 255, 28, 0, panelY);
+        this.createRect(panel, 'sheetHandle', 64, 6, new cc.Color(215, 211, 204), 255, 3, 0, 121);
+        const title = this.createLabel(panel, '微信授权', 0, 72, 30, new cc.Color(45, 42, 39), 440, 42);
+        title.enableBold = true;
+        this.createLabel(panel, '使用你的微信昵称和头像\n用于游戏资料与排行榜展示', 0, 16, 22,
+            new cc.Color(112, 105, 98), panelWidth - 80, 66);
+        this.createButton(panel, '微信一键授权', 0, -82, Math.min(480, panelWidth - 80), 74,
+            BUTTON_COLORS.green, () => undefined, 26);
+
+        mask.opacity = 0;
+        panel.y = panelY - 46;
+        panel.opacity = 0;
+        cc.tween(mask).to(0.14, { opacity: 150 }).start();
+        cc.tween(panel).to(0.18, { y: panelY, opacity: 255 }, { easing: 'quadOut' }).start();
+        let closed = false;
+        return () => {
+            if (closed) return;
+            closed = true;
+            if (!cc.isValid(root)) return;
+            cc.Tween.stopAllByTarget(panel);
+            cc.Tween.stopAllByTarget(mask);
+            cc.tween(panel).to(0.14, { y: panelY - 32, opacity: 0 }, { easing: 'quadIn' }).start();
+            cc.tween(mask).to(0.14, { opacity: 0 }).start();
+            cc.tween(root).delay(0.14).call(() => {
+                if (cc.isValid(root)) root.destroy();
+            }).start();
+        };
+    }
+
     public showModal(
         title: string,
         message: string,
@@ -352,6 +425,7 @@ export default class UIManager {
         contentHeight: number = 0,
         horizontalActions: boolean = false,
         dismissible: boolean = false,
+        panelWidth: number = 560,
     ): cc.Node {
         if (!this.scene) return null;
         this.closeModal();
@@ -368,9 +442,11 @@ export default class UIManager {
         const mask = this.createRect(root, 'mask', root.width, root.height, new cc.Color(65, 46, 40), 190);
         mask.addComponent(cc.BlockInputEvents);
         this.refreshModalLayout();
+        mask.opacity = 0;
+        cc.tween(mask).to(0.14, { opacity: 190 }).start();
         const actionRows = actions.length === 0 ? 0 : (horizontalActions ? 1 : actions.length);
         const panelHeight = 300 + actionRows * 92 + contentHeight;
-        const panel = this.createRect(root, 'panel', 560, panelHeight, new cc.Color(211, 164, 98), 255, 26, 0, 0);
+        const panel = this.createRect(root, 'panel', panelWidth, panelHeight, new cc.Color(211, 164, 98), 255, 26, 0, 0);
         if (dismissible) {
             mask.on(cc.Node.EventType.TOUCH_END, () => {
                 if (this.modal === root) this.closeModal();
@@ -380,9 +456,9 @@ export default class UIManager {
                 if (this.modal === root) this.closeModal();
             });
         }
-        this.createRect(panel, 'panelInner', 540, panelHeight - 20, new cc.Color(255, 244, 220), 255, 22);
+        this.createRect(panel, 'panelInner', panelWidth - 20, panelHeight - 20, new cc.Color(255, 244, 220), 255, 22);
         this.createModalTitlePlate(panel, title, panelHeight);
-        this.createLabel(panel, message, 0, panelHeight / 2 - 150, 24, new cc.Color(124, 92, 76), 470, 82);
+        this.createLabel(panel, message, 0, panelHeight / 2 - 150, 24, new cc.Color(124, 92, 76), panelWidth - 90, 82);
 
         let startY = panelHeight / 2 - 245;
         if (decoration && contentHeight > 0) {
@@ -407,7 +483,7 @@ export default class UIManager {
                     action.color,
                     () => {
                         cc.Tween.stopAllByTarget(button);
-                        this.closeModal();
+                        if (action.closeOnClick !== false) this.closeModal();
                         action.onClick();
                     },
                     24,
@@ -419,7 +495,7 @@ export default class UIManager {
                 let button: cc.Node = null;
                 button = this.createButton(panel, action.text, 0, startY - index * 92, 420, 72, action.color, () => {
                     cc.Tween.stopAllByTarget(button);
-                    this.closeModal();
+                    if (action.closeOnClick !== false) this.closeModal();
                     action.onClick();
                 }, 24);
                 if (action.icon) action.icon(button);
@@ -428,31 +504,46 @@ export default class UIManager {
 
         panel.scale = 0.82;
         panel.opacity = 0;
-        cc.tween(panel).to(0.2, { scale: 1, opacity: 255 }, { easing: 'backOut' }).start();
+        cc.tween(panel).to(0.18, { scale: 1, opacity: 255 }, { easing: 'backOut' }).start();
         return root;
     }
 
-    /** 可关闭弹窗专用的奶油色关闭钮，与标题牌和正文的暖色纸张风格一致。 */
+    /** 圆角方形关闭钮：矢量边缘与叉号，避免细线圆环和文字字形缩放后的锯齿。 */
     private createModalCloseButton(panel: cc.Node, panelHeight: number, onClose: () => void): void {
-        const button = this.createCircle(
+        const button = this.createRect(
             panel,
             'modalCloseButton',
-            28,
-            new cc.Color(255, 244, 220),
+            56,
+            56,
+            new cc.Color(255, 232, 176),
+            255,
+            17,
             panel.width / 2 - 25,
             panelHeight / 2 - 25,
         );
         button.zIndex = 80;
-        // 图形保持轻巧，触摸热区单独放大，便于真机手指操作。
+        // 图形保持 56，触摸热区单独放大到 72。
         button.width = 72;
         button.height = 72;
         const graphics = button.getComponent(cc.Graphics);
+        graphics.clear();
+        graphics.fillColor = new cc.Color(88, 61, 55, 48);
+        graphics.roundRect(-28, -30, 56, 56, 17);
+        graphics.fill();
+        graphics.fillColor = new cc.Color(255, 232, 176);
         graphics.strokeColor = new cc.Color(137, 98, 76);
-        graphics.lineWidth = 2.4;
-        graphics.circle(0, 0, 26.5);
+        graphics.lineWidth = 3;
+        graphics.roundRect(-28, -28, 56, 56, 17);
+        graphics.fill();
         graphics.stroke();
-        const label = this.createLabel(button, '×', 0, 2, 36, new cc.Color(101, 70, 58), 42, 42);
-        label.node.zIndex = 2;
+        graphics.strokeColor = new cc.Color(88, 61, 55);
+        graphics.lineWidth = 4.5;
+        graphics.lineCap = cc.Graphics.LineCap.ROUND;
+        graphics.moveTo(-10, -10);
+        graphics.lineTo(10, 10);
+        graphics.moveTo(10, -10);
+        graphics.lineTo(-10, 10);
+        graphics.stroke();
         button.addComponent(cc.Button);
         button.on(cc.Node.EventType.TOUCH_START, () => {
             cc.Tween.stopAllByTarget(button);
@@ -514,8 +605,26 @@ export default class UIManager {
     }
 
     public closeModal(): void {
-        if (this.modal && this.modal.isValid) this.modal.destroy();
+        const root = this.modal;
         this.modal = null;
+        if (!root || !root.isValid) return;
+        const panel = root.getChildByName('panel');
+        const mask = root.getChildByName('mask');
+        if (!panel) {
+            root.destroy();
+            return;
+        }
+        // 新弹窗可以立即创建；关闭中的旧层级退到其后，不拦截新面板。
+        root.zIndex = 1999;
+        cc.Tween.stopAllByTarget(panel);
+        cc.tween(panel).to(0.14, { scale: 0.86, opacity: 0 }, { easing: 'quadIn' }).start();
+        if (mask) {
+            cc.Tween.stopAllByTarget(mask);
+            cc.tween(mask).to(0.14, { opacity: 0 }).start();
+        }
+        cc.tween(root).delay(0.14).call(() => {
+            if (cc.isValid(root)) root.destroy();
+        }).start();
     }
 
     /** 遮罩覆盖整个画布；面板仍使用安全区舞台的位置与缩放。 */

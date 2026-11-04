@@ -18,6 +18,153 @@ export function getWxApi(): any {
     return null;
 }
 
+export type WeChatUserProfile = {
+    nickName: string;
+    avatarUrl: string;
+};
+
+function parseWeChatUserInfo(info: any): WeChatUserProfile {
+    const nickName = info && typeof info.nickName === 'string' ? info.nickName.trim() : '';
+    const avatarUrl = info && typeof info.avatarUrl === 'string' ? info.avatarUrl : '';
+    if (!nickName) throw new Error('未获取到有效的微信昵称');
+    return { nickName, avatarUrl };
+}
+
+function parseUserInfoResult(result: any): WeChatUserProfile {
+    if (!result || !result.userInfo) {
+        throw new Error(result && result.errMsg ? result.errMsg : '微信授权已取消');
+    }
+    return parseWeChatUserInfo(result.userInfo);
+}
+
+/** 未授权时必须由原生按钮发起，不能用 wx.authorize 或普通 Cocos 点击事件替代。 */
+function requestWithUserInfoButton(
+    wxApi: any,
+    presentAuthorizationSheet?: () => (() => void),
+): Promise<WeChatUserProfile> {
+    return new Promise((resolve, reject) => {
+        const hideAuthorizationSheet = presentAuthorizationSheet ? presentAuthorizationSheet() : () => undefined;
+        const windowInfo = typeof wxApi.getWindowInfo === 'function'
+            ? wxApi.getWindowInfo()
+            : (typeof wxApi.getSystemInfoSync === 'function' ? wxApi.getSystemInfoSync() : {});
+        const windowWidth = windowInfo.windowWidth || 375;
+        const windowHeight = windowInfo.windowHeight || 667;
+        let button: any = null;
+        try {
+            button = wxApi.createUserInfoButton({
+                type: 'text',
+                text: '',
+                style: {
+                    left: 0,
+                    top: 0,
+                    width: windowWidth,
+                    height: windowHeight,
+                    lineHeight: windowHeight,
+                    backgroundColor: 'rgba(0,0,0,0)',
+                    borderColor: 'rgba(0,0,0,0)',
+                    borderWidth: 0,
+                    color: 'rgba(0,0,0,0)',
+                    textAlign: 'center',
+                    fontSize: 1,
+                },
+            });
+        } catch (error) {
+            hideAuthorizationSheet();
+            reject(error);
+            return;
+        }
+        if (!button || typeof button.onTap !== 'function') {
+            hideAuthorizationSheet();
+            reject(new Error('微信用户信息按钮创建失败'));
+            return;
+        }
+        let settled = false;
+        const finish = (callback: () => void): void => {
+            if (settled) return;
+            settled = true;
+            try {
+                if (typeof button.destroy === 'function') button.destroy();
+            } finally {
+                hideAuthorizationSheet();
+                callback();
+            }
+        };
+        button.onTap((result: any) => {
+            try {
+                const profile = parseUserInfoResult(result);
+                finish(() => resolve(profile));
+            } catch (error) {
+                finish(() => reject(error));
+            }
+        });
+    });
+}
+
+/** 仅为没有原生按钮和既有授权查询能力的旧容器保留。 */
+function requestWithLegacyUserProfile(wxApi: any): Promise<WeChatUserProfile> {
+    if (!wxApi || typeof wxApi.getUserProfile !== 'function') {
+        return Promise.reject(new Error('当前环境不支持微信资料授权'));
+    }
+    return new Promise((resolve, reject) => {
+        wxApi.getUserProfile({
+            desc: '用于展示游戏昵称、头像和排行榜信息',
+            success: (result: any) => {
+                try {
+                    resolve(parseUserInfoResult(result));
+                } catch (error) {
+                    reject(error);
+                }
+            },
+            fail: (error: any) => reject(new Error(error && error.errMsg ? error.errMsg : '微信授权已取消')),
+        });
+    });
+}
+
+function requestFirstAuthorization(
+    wxApi: any,
+    presentAuthorizationSheet?: () => (() => void),
+): Promise<WeChatUserProfile> {
+    if (wxApi && typeof wxApi.createUserInfoButton === 'function') {
+        return requestWithUserInfoButton(wxApi, presentAuthorizationSheet);
+    }
+    return requestWithLegacyUserProfile(wxApi);
+}
+
+/**
+ * 已授权玩家直接读取资料；未授权玩家才创建原生用户信息按钮。
+ * 这是微信官方推荐顺序，也避免每次打开排行榜都强制玩家重复授权。
+ */
+export function requestWeChatUserProfile(presentAuthorizationSheet?: () => (() => void)): Promise<WeChatUserProfile> {
+    const wxApi = getWxApi();
+    if (!wxApi || typeof wxApi.getSetting !== 'function' || typeof wxApi.getUserInfo !== 'function') {
+        return requestFirstAuthorization(wxApi, presentAuthorizationSheet);
+    }
+    return new Promise((resolve, reject) => {
+        const requestFirst = (): void => {
+            requestFirstAuthorization(wxApi, presentAuthorizationSheet).then(resolve, reject);
+        };
+        wxApi.getSetting({
+            success: (setting: any) => {
+                if (!setting || !setting.authSetting || setting.authSetting['scope.userInfo'] !== true) {
+                    requestFirst();
+                    return;
+                }
+                wxApi.getUserInfo({
+                    success: (result: any) => {
+                        try {
+                            resolve(parseUserInfoResult(result));
+                        } catch (error) {
+                            reject(error);
+                        }
+                    },
+                    fail: (error: any) => reject(new Error(error && error.errMsg ? error.errMsg : '读取已授权微信资料失败')),
+                });
+            },
+            fail: requestFirst,
+        });
+    });
+}
+
 /**
  * 微信短震动（light）。
  * 只负责平台调用与降级；是否允许震动由 GameSettings 的开关决定。

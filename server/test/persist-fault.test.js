@@ -75,7 +75,7 @@ async function withPersistFailure(fn) {
 
 test('开局写盘失败后重试同一 roundId，只扣一次体力', async () => {
   const { token, profile } = await bootstrap('fault_start_device');
-  assert.equal(profile.stamina.current, 30);
+  assert.equal(profile.stamina.current, 10);
   const body = { roundId: 'fault_start_round' };
   await withPersistFailure(async () => {
     const first = await api('/games/start', { method: 'POST', token, body });
@@ -86,9 +86,9 @@ test('开局写盘失败后重试同一 roundId，只扣一次体力', async () 
   const retry = await api('/games/start', { method: 'POST', token, body });
   assert.equal(retry.status, 200);
   assert.equal(retry.payload.data.duplicate, true);
-  assert.equal(retry.payload.data.stamina.current, 29);
+  assert.equal(retry.payload.data.stamina.current, 9);
   const onDisk = await readDisk('SELECT stamina_current FROM players WHERE device_id = ?', ['fault_start_device']);
-  assert.equal(onDisk[0].stamina_current, 29);
+  assert.equal(onDisk[0].stamina_current, 9);
   const roundsOnDisk = await readDisk('SELECT round_id FROM game_rounds WHERE round_id = ?', [body.roundId]);
   assert.equal(roundsOnDisk.length, 1);
 });
@@ -125,7 +125,7 @@ test('结算写盘失败后重试同一 roundId，只发一次开心豆', async 
 
 test('分享领取写盘失败后重试同一 claimId，只补一次体力', async () => {
   const { token } = await bootstrap('fault_share_device');
-  for (let index = 0; index < 30; index++) {
+  for (let index = 0; index < 10; index++) {
     const startResult = await api('/games/start', { method: 'POST', token, body: { roundId: `fault_share_round_${index}` } });
     assert.equal(startResult.status, 200);
   }

@@ -55,6 +55,8 @@ const PERMANENT_BUSINESS_CODES = new Set([
     'INVALID_BEAN_AMOUNT',
     'ROUND_PAYLOAD_CONFLICT',
     'ROUND_NOT_STARTED',
+    'REPLAY_INVALID',
+    'REPLAY_MISMATCH',
 ]);
 
 /** 401 凭证失效：不应在此处理，CloudService 层已自动 bootstrap 重试一次。 */

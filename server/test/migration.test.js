@@ -6,6 +6,7 @@ const os = require('os');
 const path = require('path');
 const initSqlJs = require('sql.js');
 const { start } = require('../src/index.js');
+const { migrateSchema } = require('../src/schema.js');
 
 let server;
 let baseUrl;
@@ -44,6 +45,12 @@ test.before(async () => {
   `);
   old.run('INSERT INTO players VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     ['legacy_player', 'legacy_device', 'legacy_token', '旧玩家', '', 5, 3, 20, 80, 900, clock - 1000, clock - 1000]);
+  old.run('INSERT INTO players VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    ['legacy_crafty', 'legacy_crafty_device', 'legacy_crafty_token', '狡猾的狐狸', '', 2, 8, 12, 30, 500, clock - 1000, clock - 1000]);
+  old.run('INSERT INTO players VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    ['legacy_lazy', 'legacy_lazy_device', 'legacy_lazy_token', '慵懒的猫咪', '', 3, 9, 15, 40, 600, clock - 1000, clock - 1000]);
+  old.run('INSERT INTO players VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    ['legacy_positive', 'legacy_positive_device', 'legacy_positive_token', '美丽的狐狸', '', 4, 10, 18, 50, 700, clock - 1000, clock - 1000]);
   old.run('INSERT INTO round_settlements (player_id, round_id, score, mood_token_count, awarded_mood_beans, created_at) VALUES (?, ?, ?, ?, ?, ?)',
     ['legacy_player', 'legacy_round', 900, 60, 60, clock - 1000]);
   old.run("INSERT INTO weekly_stats VALUES ('2026-W44', 'legacy_player', 900, 100, 60, 100)");
@@ -61,7 +68,7 @@ test.after(async () => {
   await new Promise((resolve) => server.close(resolve));
 });
 
-test('旧档案余额不变，体力初始化 30，旧画作表被清理', async () => {
+test('旧档案余额不变，体力初始化 10，旧画作表被清理', async () => {
   const response = await fetch(`${baseUrl}/v1/cocos-zyx/players/bootstrap`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -71,7 +78,7 @@ test('旧档案余额不变，体力初始化 30，旧画作表被清理', async
   const data = (await response.json()).data;
   assert.equal(data.profile.moodBeanBalance, 20);
   assert.equal(data.profile.level, 5);
-  assert.equal(data.profile.stamina.current, 30);
+  assert.equal(data.profile.stamina.current, 10);
   const begin = await fetch(`${baseUrl}/v1/cocos-zyx/games/start`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.token}` }, body: JSON.stringify({ roundId: 'migrated_round' }) });
   assert.equal(begin.status, 200);
   Date.now = () => clock + 10000;
@@ -85,7 +92,39 @@ test('旧档案余额不变，体力初始化 30，旧画作表被清理', async
   const disk = new SQL.Database(fs.readFileSync(dbFilePath));
   assert.equal(disk.exec("SELECT name FROM sqlite_master WHERE name IN ('official_art_progress', 'official_art_actions', 'reward_mail', 'app_state')").length, 0);
   assert.equal(disk.exec('SELECT score FROM round_settlements')[0].values[0][0], 900);
-  assert.equal(disk.exec('SELECT weekly_high_score FROM weekly_stats')[0].values[0][0], 900);
-  assert.ok(!disk.exec('PRAGMA table_info(weekly_stats)')[0].values.some((row) => row[1] === 'weekly_mood_beans'));
+  // 周榜表整体废弃，永久榜直接读取 players 的单局最高分，历史最高分保留。
+  assert.equal(disk.exec("SELECT name FROM sqlite_master WHERE name = 'weekly_stats'").length, 0);
+  assert.equal(disk.exec('SELECT highest_single_game_score FROM players')[0].values[0][0], 900);
   disk.close();
+});
+
+test('历史贬义随机昵称只替换前缀，正常昵称不变且迁移可重复执行', async () => {
+  const SQL = await initSqlJs();
+  const disk = new SQL.Database(fs.readFileSync(dbFilePath));
+  const sql = "SELECT player_id, nickname FROM players WHERE player_id IN ('legacy_crafty', 'legacy_lazy', 'legacy_positive') ORDER BY player_id";
+  const expected = [
+    ['legacy_crafty', '机灵的狐狸'],
+    ['legacy_lazy', '温柔的猫咪'],
+    ['legacy_positive', '美丽的狐狸'],
+  ];
+  assert.deepEqual(disk.exec(sql)[0].values, expected);
+  migrateSchema(disk);
+  migrateSchema(disk);
+  assert.deepEqual(disk.exec(sql)[0].values, expected);
+  assert.equal(disk.exec("SELECT COUNT(*) FROM players WHERE substr(nickname, 1, 3) IN ('狡猾的', '慵懒的')")[0].values[0][0], 0);
+  assert.equal(disk.exec("SELECT nickname FROM players WHERE player_id = 'legacy_player'")[0].values[0][0], '旧玩家');
+  assert.equal(disk.exec('PRAGMA user_version')[0].values[0][0], 5);
+  disk.close();
+});
+
+test('历史库中的新账号显式获得 10 点体力，不依赖旧列默认值', async () => {
+  const response = await fetch(`${baseUrl}/v1/cocos-zyx/players/bootstrap`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deviceId: 'legacy_new_device' }),
+  });
+  assert.equal(response.status, 200);
+  const data = (await response.json()).data;
+  assert.equal(data.profile.stamina.current, 10);
+  assert.equal(data.profile.stamina.max, 10);
 });

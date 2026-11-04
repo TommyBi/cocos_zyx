@@ -35,7 +35,8 @@ export default class SettingsPanel {
                 onClick: () => undefined,
             },
         ];
-        uimanager.showModal('设   置', '', actions, render, 260);
+        // 局内暂停弹窗需要显式选择操作；首页设置允许点击遮罩关闭。
+        uimanager.showModal('设   置', '', actions, render, 260, false, !options.actions);
     }
 
     private createSoundRow(parent: cc.Node, y: number): void {

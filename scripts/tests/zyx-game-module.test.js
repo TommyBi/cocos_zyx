@@ -220,6 +220,32 @@ test('dead-letter：坏记录移出活动队列并保留原因与时间，不堵
   assert.ok(Number.isFinite(dead[0].deadAt));
 });
 
+test('服务端开局配置在 resetRound 生成棋盘前生效，并且只消费一次', () => {
+  const store = installCcStub();
+  const module = createModule(store);
+  module.setRoundSeedOverride(99);
+
+  module.setRoundSeed(123456, true);
+  module.resetRound();
+  assert.strictEqual(module.roundSeed, 123456);
+  assert.strictEqual(module.isTutorialRound(), true, '服务端教学标记优先于本地挑战次数');
+
+  module.setRoundSeed(123456, false);
+  module.resetRound();
+  assert.strictEqual(module.roundSeed, 123456);
+  assert.strictEqual(module.isTutorialRound(), false);
+  assert.strictEqual(module.appendNextRow(), true);
+  module.resolveBoard();
+  const { replayRound } = require(path.join(repoRoot, 'server', 'src', 'gameEngine.js'));
+  const replay = replayRound(123456, false, module.roundActions);
+  assert.strictEqual(replay.valid, true);
+  assert.strictEqual(replay.score, module.score, '客户端与服务端必须使用同一随机序列');
+  assert.strictEqual(replay.collectedMoodBeans, module.roundCollectedMoodBeans);
+
+  module.resetRound();
+  assert.strictEqual(module.roundSeed, 99, '下一局不得复用上一局的服务端种子');
+});
+
 test('暂停重开语义：只 resetRound 不 finishRound 时余额、经验与待提交队列均不变', () => {
   const store = installCcStub();
   const module = createModule(store);

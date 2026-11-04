@@ -100,12 +100,29 @@ export function createPauseGlyph(parent: cc.Node, x: number, y: number, scale: n
 
 export function decorateActionButton(button: cc.Node, icon: 'video' | 'share' | 'back' | 'restart'): void {
     const label = button.getChildByName('label');
-    const iconX = -Math.min(92, button.width * 0.34);
-    if (label) {
-        label.x = button.width <= 260 ? 22 : 30;
-        label.width = Math.max(96, button.width - 110);
-    }
     const glyphScale = button.width <= 260 ? 0.7 : 0.78;
+    // 图标和文字作为一个整体居中于按钮。
+    // 图标视觉宽度约 64 * scale，文字宽度由 label 内容决定。
+    const glyphWidth = 64 * glyphScale;
+    const gap = 12;
+    let textWidth = 0;
+    if (label) {
+        const labelComp = label.getComponent(cc.Label);
+        // 强制更新一次以获取真实文字宽度
+        if (labelComp) {
+            labelComp.enableBold = true;
+            (labelComp as any)._updateRenderData && (labelComp as any)._updateRenderData(true);
+        }
+        textWidth = label.width > 0 ? Math.min(label.width, button.width * 0.5) : button.width * 0.3;
+    }
+    const totalWidth = glyphWidth + gap + textWidth;
+    const startX = -totalWidth / 2;
+    const iconX = startX + glyphWidth / 2;
+    const labelX = startX + glyphWidth + gap + textWidth / 2;
+    if (label) {
+        label.x = labelX;
+        label.width = textWidth;
+    }
     if (icon === 'video') createVideoGlyph(button, iconX, 2, glyphScale);
     else if (icon === 'share') createShareGlyph(button, iconX, 2, glyphScale);
     else if (icon === 'back') createBackGlyph(button, iconX, 1, glyphScale);

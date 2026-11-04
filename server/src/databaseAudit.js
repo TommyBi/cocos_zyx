@@ -1,4 +1,4 @@
-/** 离线核对迁移前后核心业务数据；只输出计数和哈希，不输出档案或令牌。 */
+/** 离线核对迁移前后核心业务数据；昵称只允许预期的贬义前缀修正，不输出档案或令牌。 */
 const fs = require('node:fs');
 const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
@@ -10,9 +10,16 @@ function digest(db, sql) {
 }
 function core(db) {
   return {
-    players: digest(db, 'SELECT player_id, device_id, token, nickname, avatar_url, level, experience, mood_bean_balance, total_mood_beans, highest_single_game_score, created_at, updated_at FROM players ORDER BY player_id'),
+    players: digest(db, `SELECT player_id, device_id, token,
+      CASE
+        WHEN substr(nickname, 1, 3) = '狡猾的' THEN '机灵的' || substr(nickname, 4)
+        WHEN substr(nickname, 1, 3) = '慵懒的' THEN '温柔的' || substr(nickname, 4)
+        ELSE nickname
+      END AS nickname,
+      avatar_url, level, experience, mood_bean_balance, total_mood_beans, highest_single_game_score, created_at, updated_at
+      FROM players ORDER BY player_id`),
     settlements: digest(db, 'SELECT player_id, round_id, score, mood_token_count, awarded_mood_beans, created_at FROM round_settlements ORDER BY player_id, round_id'),
-    leaderboard: digest(db, 'SELECT week_id, player_id, weekly_high_score, weekly_high_score_at FROM weekly_stats ORDER BY week_id, player_id'),
+    leaderboard: digest(db, 'SELECT player_id, highest_single_game_score FROM players ORDER BY player_id'),
   };
 }
 (async () => {

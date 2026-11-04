@@ -10,11 +10,12 @@ const initSqlJs = require('sql.js');
 
 const economy = require('./economyConfig');
 const { migrateSchema } = require('./schema');
+const { replayRound } = require('./gameEngine');
+const { exchangeWeChatLoginCode } = require('./wechatAuth');
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
 let dbPath = path.resolve(process.env.DB_PATH || path.join(__dirname, '..', 'data', 'game.sqlite'));
-const maxLeaderboardEntries = 200;
 const chinaOffsetMs = 8 * 60 * 60 * 1000;
 let db;
 
@@ -54,6 +55,14 @@ function newToken() {
 
 function newGuestId() {
   return `guest_${crypto.randomBytes(18).toString('hex')}`;
+}
+
+const DEFAULT_NICKNAME_ADJECTIVES = ['美丽的', '快乐的', '勇敢的', '温柔的', '机灵的', '幸运的', '恬静的', '活泼的', '善良的', '可爱的'];
+const DEFAULT_NICKNAME_ANIMALS = ['狐狸', '天鹅', '小熊', '猫咪', '兔子', '企鹅', '小鹿', '松鼠', '熊猫', '海豚', '柴犬', '考拉'];
+function createDefaultNickname() {
+  const adjective = DEFAULT_NICKNAME_ADJECTIVES[crypto.randomInt(DEFAULT_NICKNAME_ADJECTIVES.length)];
+  const animal = DEFAULT_NICKNAME_ANIMALS[crypto.randomInt(DEFAULT_NICKNAME_ANIMALS.length)];
+  return `${adjective}${animal}`;
 }
 
 const PERSIST_DEBOUNCE_MS = 500;
@@ -179,38 +188,16 @@ function all(sql, params = []) {
   }
 }
 
-function getWeekRange(timestamp = now()) {
-  const shifted = new Date(timestamp + chinaOffsetMs);
-  const day = shifted.getUTCDay() || 7;
-  const monday = Date.UTC(
-    shifted.getUTCFullYear(),
-    shifted.getUTCMonth(),
-    shifted.getUTCDate() - (day - 1),
-  ) - chinaOffsetMs;
-  const sunday = monday + 7 * 24 * 60 * 60 * 1000;
-  const isoThursday = new Date(monday + 3 * 24 * 60 * 60 * 1000 + chinaOffsetMs);
-  const year = isoThursday.getUTCFullYear();
-  const firstThursday = Date.UTC(year, 0, 4);
-  const firstDay = new Date(firstThursday + chinaOffsetMs).getUTCDay() || 7;
-  const firstMonday = firstThursday - (firstDay - 1) * 24 * 60 * 60 * 1000;
-  const week = Math.floor((monday + chinaOffsetMs - firstMonday) / (7 * 24 * 60 * 60 * 1000)) + 1;
-  return {
-    weekId: `${year}-W${String(week).padStart(2, '0')}`,
-    startAt: monday,
-    endAt: sunday,
-  };
-}
-
-/** 体力按服务端时钟懒恢复；未花完的 10 分钟进度在非满体力时保留。 */
+/** 体力按服务端时钟懒恢复；低于上限时每 5 分钟恢复 1 点，额外发放可超过上限。 */
 function getStaminaState(user, at = now()) {
-  let current = clampInt(user.stamina_current, 0, economy.STAMINA_MAX);
+  let current = Math.max(0, Number.parseInt(user.stamina_current, 10) || 0);
   let updatedAt = Number(user.stamina_updated_at) || at;
-  if (current === economy.STAMINA_MAX) {
+  if (current >= economy.STAMINA_MAX) {
     updatedAt = at;
   } else {
     const recovered = Math.max(0, Math.floor((at - updatedAt) / economy.STAMINA_REGEN_MS));
     current = Math.min(economy.STAMINA_MAX, current + recovered);
-    updatedAt = current === economy.STAMINA_MAX ? at : updatedAt + recovered * economy.STAMINA_REGEN_MS;
+    updatedAt = current >= economy.STAMINA_MAX ? at : updatedAt + recovered * economy.STAMINA_REGEN_MS;
   }
   const dayKey = new Date(at + chinaOffsetMs).toISOString().slice(0, 10);
   const sharedToday = user.player_id
@@ -221,7 +208,7 @@ function getStaminaState(user, at = now()) {
     updatedAt,
     max: economy.STAMINA_MAX,
     regenSeconds: economy.STAMINA_REGEN_MS / 1000,
-    nextRecoveryAt: current === economy.STAMINA_MAX ? null : new Date(updatedAt + economy.STAMINA_REGEN_MS).toISOString(),
+    nextRecoveryAt: current >= economy.STAMINA_MAX ? null : new Date(updatedAt + economy.STAMINA_REGEN_MS).toISOString(),
     serverTime: new Date(at).toISOString(),
     shareAvailableToday: !sharedToday,
   };
@@ -273,86 +260,108 @@ function addExperience(user, amount) {
   return { level, experience };
 }
 
+/**
+ * 永久单局最高分排行榜。
+ * 直接基于 players.highest_single_game_score，无周期、无结算概念：
+ * 列表返回全服前 200 名，自己始终单独返回名次与单局最高分（未上榜时 onBoard=false）。
+ */
 function leaderboard(user) {
-  const week = getWeekRange();
   const rows = all(
-    `SELECT p.player_id, p.nickname, p.avatar_url, w.weekly_high_score AS value,
-      ROW_NUMBER() OVER (ORDER BY w.weekly_high_score DESC, w.weekly_high_score_at ASC, w.player_id ASC) AS rank
-     FROM weekly_stats w
-     INNER JOIN players p ON p.player_id = w.player_id
-     WHERE w.week_id = ? AND w.weekly_high_score > 0
-     ORDER BY w.weekly_high_score DESC, w.weekly_high_score_at ASC, w.player_id ASC
-     LIMIT ${maxLeaderboardEntries}`,
-    [week.weekId],
+    `SELECT player_id, nickname, avatar_url, highest_single_game_score AS value
+     FROM players WHERE highest_single_game_score > 0
+     ORDER BY highest_single_game_score DESC, updated_at ASC, player_id ASC
+     LIMIT 200`,
   );
-  const entries = rows.map((row) => ({
-    rank: row.rank,
+  const entries = rows.map((row, index) => ({
+    rank: index + 1,
     playerId: row.player_id,
     nickname: row.nickname,
     avatarUrl: row.avatar_url,
     value: row.value,
-    rewardTier: row.rank === 1 ? 'gold' : row.rank === 2 ? 'silver' : row.rank === 3 ? 'bronze' : 'normal',
+    rewardTier: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'normal',
   }));
-  const self = entries.find((entry) => entry.playerId === user.player_id);
-  const selfStat = get('SELECT weekly_high_score AS value FROM weekly_stats WHERE week_id = ? AND player_id = ?', [week.weekId, user.player_id]);
-  const boundary = entries.length === maxLeaderboardEntries ? entries[entries.length - 1].value : 0;
-  return {
-    weekId: week.weekId,
-    type: 'power',
-    periodStartAt: new Date(week.startAt).toISOString(),
-    periodEndAt: new Date(week.endAt).toISOString(),
-    entries,
-    self: self ? {
-      rank: self.rank,
-      isRanked: true,
-      value: self.value,
-      rewardTier: self.rewardTier,
-      distanceToRank200: 0,
-    } : {
-      rank: null,
-      isRanked: false,
-      value: selfStat ? selfStat.value : 0,
-      rewardTier: null,
-      distanceToRank200: Math.max(0, boundary - (selfStat ? selfStat.value : 0)),
-    },
-  };
+  const bestScore = Math.max(0, user.highest_single_game_score || 0);
+  const onBoard = entries.some((entry) => entry.playerId === user.player_id);
+  // 实际名次 = 分数严格高于自己的人数 + 1；同分并列取相同名次。
+  let rank = null;
+  if (bestScore > 0) {
+    const higher = get('SELECT COUNT(*) AS count FROM players WHERE highest_single_game_score > ?', [bestScore]);
+    rank = (Number(higher && higher.count) || 0) + 1;
+  }
+  return { entries, self: { rank, bestScore, onBoard } };
 }
 
 app.get(['/health', '/v1/cocos-zyx/health'], (_req, res) => {
-  ok(res, { ok: true, service: 'cocos-zyx-cloud', apiVersion: 2, schemaVersion: 2, capabilities: ['stamina', 'round-start', 'settlement', 'power-leaderboard', 'daily-share'], checkedAt: new Date().toISOString() });
+  ok(res, { ok: true, service: 'cocos-zyx-cloud', apiVersion: 3, schemaVersion: 5, capabilities: ['wechat-login', 'stamina', 'round-start', 'settlement', 'power-leaderboard', 'daily-share'], checkedAt: new Date().toISOString() });
 });
 
-app.post('/v1/cocos-zyx/players/bootstrap', (req, res) => {
+app.post('/v1/cocos-zyx/players/bootstrap', async (req, res) => {
   try {
     const deviceId = stringValue(req.body.deviceId, 128);
-    if (!deviceId) return fail(res, '缺少设备标识');
-    // R1：bootstrap 只负责身份建档。客户端提交的任何 localProfile/资产/等级/经验/最高分
-    // 一律忽略，不建档、不合并；经济数据只来自服务端结算与事务接口。
-    const nickname = stringValue(req.body.nickname, 24);
-    const avatarUrl = stringValue(req.body.avatarUrl, 512);
-    let user = get('SELECT * FROM players WHERE device_id = ?', [deviceId]);
+    const loginCode = stringValue(req.body.loginCode, 128);
+    if (!deviceId) return fail(res, '缺少设备标识', 400, 'DEVICE_ID_REQUIRED');
+
+    // 微信端只信任服务端用一次性 code 换回的 openid；Web 预览才单独使用 deviceId。
+    const wechatOpenId = loginCode ? await exchangeWeChatLoginCode(loginCode) : '';
+    const deviceUser = get('SELECT * FROM players WHERE device_id = ?', [deviceId]);
+    let user = wechatOpenId
+      ? get('SELECT * FROM players WHERE wechat_openid = ?', [wechatOpenId])
+      : deviceUser;
+
+    // 旧账号首次微信登录时原地绑定，保留 playerId、资产、分数和历史对局。
+    if (!user && wechatOpenId && deviceUser && !deviceUser.wechat_openid) {
+      run('UPDATE players SET wechat_openid = ?, updated_at = ? WHERE player_id = ?',
+        [wechatOpenId, now(), deviceUser.player_id]);
+      user = get('SELECT * FROM players WHERE player_id = ?', [deviceUser.player_id]);
+    }
+
+    // bootstrap 只负责身份建档，资料只能经显式授权接口修改；其他客户端数值一律忽略。
     if (!user) {
       const createdAt = now();
+      // 同一设备切换微信账号时不能再占用旧账号的唯一 deviceId，身份仍以 openid 为准。
+      const storedDeviceId = deviceUser ? `wx_${crypto.randomBytes(18).toString('hex')}` : deviceId;
       run(
-        `INSERT INTO players (player_id, device_id, token, nickname, avatar_url, level, experience,
-          mood_bean_balance, total_mood_beans, highest_single_game_score, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, 1, 0, 0, 0, 0, ?, ?)`,
-        [newGuestId(), deviceId, newToken(), nickname || '解忧玩家', avatarUrl, createdAt, createdAt],
+        `INSERT INTO players (player_id, device_id, wechat_openid, token, nickname, avatar_url, level, experience,
+          mood_bean_balance, total_mood_beans, highest_single_game_score, stamina_current, stamina_updated_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, 1, 0, 0, 0, 0, ?, ?, ?, ?)`,
+        [newGuestId(), storedDeviceId, wechatOpenId || null, newToken(), createDefaultNickname(), '', economy.STAMINA_MAX, createdAt, createdAt, createdAt],
       );
       // R5：新玩家建档是关键经济事务，落盘成功后才能返回。
       ensurePersisted();
-      user = get('SELECT * FROM players WHERE device_id = ?', [deviceId]);
+      user = get('SELECT * FROM players WHERE device_id = ?', [storedDeviceId]);
     } else {
-      // 只更新允许变化的昵称和头像；空昵称保留原值，不合并任何客户端经济数值。
-      run('UPDATE players SET nickname = ?, avatar_url = ?, updated_at = ? WHERE player_id = ?',
-        [nickname || user.nickname, avatarUrl || user.avatar_url, now(), user.player_id]);
+      // 历史通用名只迁移一次，之后登录绝不覆盖默认昵称或已授权微信资料。
+      if (user.nickname === '解忧玩家' || user.nickname === '顺心朋友') {
+        run('UPDATE players SET nickname = ?, updated_at = ? WHERE player_id = ?',
+          [createDefaultNickname(), now(), user.player_id]);
+      }
       // 建档落盘失败后的重试会走到这里：必须先把内存中的档案可靠写盘才能返回 2xx。
-      if (persistDirty) ensurePersisted();
+      if (persistDirty || persistPending) ensurePersisted();
       user = get('SELECT * FROM players WHERE player_id = ?', [user.player_id]);
     }
-    ok(res, { token: user.token, serverTime: new Date().toISOString(), currentWeekId: getWeekRange().weekId, profile: safeProfile(user) });
+    ok(res, { token: user.token, serverTime: new Date().toISOString(), profile: safeProfile(user) });
   } catch (error) {
-    fail(res, error.message || '初始化玩家失败', 500);
+    fail(res, error.message || '初始化玩家失败', error.status || 500, error.errorCode);
+  }
+});
+
+/** 微信资料由玩家主动授权后单独更新，普通 bootstrap 不得覆盖。 */
+app.post('/v1/cocos-zyx/players/profile', (req, res) => {
+  try {
+    const user = authenticate(req, res);
+    if (!user) return;
+    const nickname = stringValue(req.body.nickname, 24);
+    const avatarUrl = stringValue(req.body.avatarUrl, 512);
+    if (!nickname) return fail(res, '微信昵称不能为空', 400, 'PROFILE_NICKNAME_INVALID');
+    if (avatarUrl && !/^https:\/\//i.test(avatarUrl)) {
+      return fail(res, '微信头像地址无效', 400, 'PROFILE_AVATAR_INVALID');
+    }
+    run('UPDATE players SET nickname = ?, avatar_url = ?, updated_at = ? WHERE player_id = ?',
+      [nickname, avatarUrl, now(), user.player_id]);
+    ensurePersisted();
+    ok(res, { profile: safeProfile(get('SELECT * FROM players WHERE player_id = ?', [user.player_id])) });
+  } catch (error) {
+    fail(res, error.message || '更新玩家资料失败', 500);
   }
 });
 
@@ -364,12 +373,18 @@ app.post('/v1/cocos-zyx/games/start', (req, res) => {
     const roundId = stringValue(req.body.roundId, 96);
     if (!roundId) return fail(res, '缺少对局标识', 400, 'ROUND_ID_INVALID');
 
-    const existing = get('SELECT status FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
+    const existing = get('SELECT status, seed, is_tutorial FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
     if (existing) {
       if (existing.status !== 'active') return fail(res, '此对局已结算', 409, 'ROUND_ALREADY_SETTLED');
       ensurePersisted();
       const fresh = get('SELECT * FROM players WHERE player_id = ?', [user.player_id]);
-      return ok(res, { roundId, duplicate: true, stamina: getStaminaState(fresh) });
+      return ok(res, {
+        roundId,
+        duplicate: true,
+        stamina: getStaminaState(fresh),
+        seed: existing.seed,
+        isTutorial: !!existing.is_tutorial,
+      });
     }
 
     const startedAt = now();
@@ -383,23 +398,30 @@ app.post('/v1/cocos-zyx/games/start', (req, res) => {
       });
     }
 
+    // 生成对局种子：服务端权威随机源，客户端用同一种子驱动棋盘生成
+    const seed = crypto.randomBytes(4).readUInt32BE(0) || 1;
+    // 判断教学局：完成局数 < 2 时为教学
+    const gameCountRow = get('SELECT COUNT(*) AS count FROM round_settlements WHERE player_id = ?', [user.player_id]);
+    const gameCount = Number(gameCountRow && gameCountRow.count) || 0;
+    const isTutorial = gameCount < 2;
+
     let stamina;
     withTransaction(() => {
       const spent = state.current - economy.STAMINA_COST_PER_ROUND;
       run('UPDATE players SET stamina_current = ?, stamina_updated_at = ?, updated_at = ? WHERE player_id = ?',
         [spent, state.updatedAt, startedAt, user.player_id]);
-      run('INSERT INTO game_rounds (player_id, round_id, started_at, status) VALUES (?, ?, ?, ?)',
-        [user.player_id, roundId, startedAt, 'active']);
+      run('INSERT INTO game_rounds (player_id, round_id, started_at, status, seed, is_tutorial) VALUES (?, ?, ?, ?, ?, ?)',
+        [user.player_id, roundId, startedAt, 'active', seed, isTutorial ? 1 : 0]);
       stamina = getStaminaState({ player_id: user.player_id, stamina_current: spent, stamina_updated_at: state.updatedAt }, startedAt);
     });
     ensurePersisted();
-    ok(res, { roundId, stamina });
+    ok(res, { roundId, stamina, seed, isTutorial });
   } catch (error) {
     fail(res, error.message || '开始对局失败', 500);
   }
 });
 
-/** 分享补体力：每个服务端玩家按北京时间每天领取一次，上限 30 点。 */
+/** 分享补体力：每个服务端玩家按北京时间每天领取一次，允许额外体力超过自然恢复上限。 */
 app.post('/v1/cocos-zyx/stamina/share-claim', (req, res) => {
   try {
     const user = authenticate(req, res);
@@ -422,17 +444,9 @@ app.post('/v1/cocos-zyx/stamina/share-claim', (req, res) => {
       });
     }
     const state = getStaminaState(user, claimedAt);
-    if (state.current >= economy.STAMINA_MAX) {
-      return res.status(409).json({
-        code: 409,
-        message: '体力已满，暂时无需补充',
-        errorCode: 'STAMINA_FULL',
-        data: { stamina: state },
-      });
-    }
     withTransaction(() => {
       run('UPDATE players SET stamina_current = ?, stamina_updated_at = ?, updated_at = ? WHERE player_id = ?',
-        [Math.min(economy.STAMINA_MAX, state.current + economy.STAMINA_SHARE_REWARD), state.updatedAt, claimedAt, user.player_id]);
+        [state.current + economy.STAMINA_SHARE_REWARD, state.updatedAt, claimedAt, user.player_id]);
       run('INSERT INTO stamina_share_claims (player_id, day_key, claim_id, claimed_at) VALUES (?, ?, ?, ?)',
         [user.player_id, dayKey, claimId, claimedAt]);
     });
@@ -470,7 +484,7 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
       return fail(res, '同一对局标识的请求内容不一致', 409, 'ROUND_PAYLOAD_CONFLICT');
     }
 
-    const startedRound = get('SELECT started_at, status FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
+    const startedRound = get('SELECT started_at, status, seed, is_tutorial FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
     if (!startedRound) return fail(res, '对局未在服务端开始', 409, 'ROUND_NOT_STARTED');
     if (startedRound.status !== 'active') return fail(res, '此对局已结算', 409, 'ROUND_ALREADY_SETTLED');
 
@@ -482,6 +496,19 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
     // 离线补传窗口依据服务端记录的开局时间，客户端改本地时钟不能延长窗口。
     if (startedRound.started_at < now() - economy.MAX_OFFLINE_SETTLEMENT_AGE_MS) return fail(res, '对局超出离线补传窗口', 400, 'SETTLEMENT_TOO_OLD');
 
+    // ---- 种子重放校验：服务端用相同种子重放操作序列，验证分数和心情豆 ----
+    const actions = Array.isArray(req.body.actions) ? req.body.actions : [];
+    if (actions.length > 0 && startedRound.seed) {
+      const replayResult = replayRound(startedRound.seed, !!startedRound.is_tutorial, actions);
+      if (!replayResult.valid) {
+        return fail(res, '操作序列校验失败', 400, 'REPLAY_INVALID');
+      }
+      if (replayResult.score !== score || replayResult.collectedMoodBeans !== collectedMoodBeanCount) {
+        console.warn(`[结算校验] 玩家 ${user.player_id} 局 ${roundId} 重放不一致: 提交 score=${score} beans=${collectedMoodBeanCount}, 重放 score=${replayResult.score} beans=${replayResult.collectedMoodBeans}`);
+        return fail(res, '结算数据校验失败', 400, 'REPLAY_MISMATCH');
+      }
+    }
+
     const settledAt = now();
     // 一块一豆：基础心情豆 = 本局收集的带表情心情块数；额外奖励必须经服务端验证，第一版为 0。
     const baseMoodBeans = collectedMoodBeanCount;
@@ -491,9 +518,8 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
     const experience = addExperience(user, gainedExperience);
     const highestScore = Math.max(user.highest_single_game_score, score);
 
-    const week = getWeekRange(settledAt);
     let resultData;
-    // 结算记录、玩家进度、周榜更新必须同生同死；中途异常整体回滚，客户端重试由 roundId 幂等。
+    // 结算记录与玩家进度同事务写入；单局最高分直接落在 players，排行榜实时读取，无需额外表。
     withTransaction(() => {
       run('INSERT INTO round_settlements (player_id, round_id, score, mood_token_count, awarded_mood_beans, payload_json, result_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [user.player_id, roundId, score, baseMoodBeans, awardedMoodBeans, payloadJson, '', settledAt]);
@@ -502,12 +528,6 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
       run(`UPDATE players SET mood_bean_balance = mood_bean_balance + ?, total_mood_beans = total_mood_beans + ?,
            highest_single_game_score = ?, level = ?, experience = ?, updated_at = ? WHERE player_id = ?`,
         [awardedMoodBeans, awardedMoodBeans, highestScore, experience.level, experience.experience, settledAt, user.player_id]);
-      run(`INSERT INTO weekly_stats (week_id, player_id, weekly_high_score, weekly_high_score_at)
-           VALUES (?, ?, ?, ?)
-           ON CONFLICT(week_id, player_id) DO UPDATE SET
-             weekly_high_score = MAX(weekly_high_score, excluded.weekly_high_score),
-             weekly_high_score_at = CASE WHEN excluded.weekly_high_score > weekly_high_score THEN excluded.weekly_high_score_at ELSE weekly_high_score_at END`,
-        [week.weekId, user.player_id, score, settledAt]);
       const fresh = get('SELECT * FROM players WHERE player_id = ?', [user.player_id]);
       resultData = {
         accepted: true,
@@ -590,7 +610,6 @@ app.post('/v1/cocos-zyx/debug/reset', (req, res) => {
        stamina_current = ?, stamina_updated_at = ?, updated_at = ? WHERE player_id = ?`,
       [economy.STAMINA_MAX, updatedAt, updatedAt, user.player_id],
     );
-    run('DELETE FROM weekly_stats WHERE player_id = ?', [user.player_id]);
     run('DELETE FROM round_settlements WHERE player_id = ?', [user.player_id]);
     run('DELETE FROM game_rounds WHERE player_id = ?', [user.player_id]);
     run('DELETE FROM stamina_share_claims WHERE player_id = ?', [user.player_id]);
