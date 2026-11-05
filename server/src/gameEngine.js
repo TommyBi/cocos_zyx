@@ -217,7 +217,7 @@ function findFullRows(pieces) {
   return fullRows;
 }
 
-function eliminateFullRows(pieces, chain) {
+function eliminateFullRows(pieces, comboState) {
   const fullRows = findFullRows(pieces);
   if (fullRows.length === 0) {
     return { clearedRows: 0, gainedScore: 0, collectedMoodTypes: [], remaining: pieces };
@@ -227,21 +227,53 @@ function eliminateFullRows(pieces, chain) {
   const removedPieces = pieces.filter(p => rowSet[p.row]);
   const collectedMoodTypes = removedPieces.filter(p => p.stampMood > 0).map(p => p.stampMood);
   const remaining = pieces.filter(p => !rowSet[p.row]);
-  return { clearedRows: fullRows.length, gainedScore: fullRows.length * 10 * chain, collectedMoodTypes, remaining };
+  if (!comboState.cleared) {
+    comboState.count = Math.min(5, comboState.count + 1);
+    comboState.cleared = true;
+    if (comboState.count === 4) comboState.pendingBomb = true;
+  }
+  return { clearedRows: fullRows.length, gainedScore: fullRows.length * 10 * comboState.count, collectedMoodTypes, remaining };
 }
 
-function resolveBoard(pieces, chain = 1) {
+function awardBomb(pieces, nextId, clearedRows) {
+  if (clearedRows < 2) return;
+  let target = pieces.filter(p => !p.bomb).sort((a, b) => b.row - a.row || a.col - b.col || a.id - b.id)[0];
+  if (!target) {
+    for (let row = BOARD_ROWS - 1; row >= 0 && !target; row--) {
+      for (let col = 0; col < BOARD_COLS && !target; col++) {
+        if (pieces.some(p => p.row === row && col >= p.col && col < p.col + p.size)) continue;
+        target = { id: nextId.value++, row, col, size: 1, color: 1, stampMood: 0, stampCell: 0, collectibleType: 0, collectibleCell: 0 };
+        pieces.push(target);
+      }
+    }
+  }
+  if (target) target.bomb = true;
+}
+
+function detonateBomb(pieces, id) {
+  const bomb = pieces.find(p => p.id === id && p.bomb);
+  if (!bomb) return null;
+  const col = bomb.col + bomb.size / 2;
+  const removed = pieces.filter(p => p.id === id || (Math.abs(p.row - bomb.row) <= 1 && p.col < col + 1.5 && p.col + p.size > col - 1.5));
+  return { pieces: pieces.filter(p => !removed.includes(p)), collectedMoodBeans: removed.filter(p => p.stampMood > 0).length };
+}
+
+function resolveBoard(pieces, nextId, comboState) {
   let clearedRows = 0, gainedScore = 0, collectedMoodBeans = 0;
   let current = pieces;
   while (true) {
     applyGravity(current);
-    const result = eliminateFullRows(current, chain);
+    const result = eliminateFullRows(current, comboState);
     if (result.clearedRows === 0) break;
     clearedRows += result.clearedRows;
     gainedScore += result.gainedScore;
     collectedMoodBeans += result.collectedMoodTypes.length;
     current = result.remaining;
-    chain++;
+  }
+  awardBomb(current, nextId, clearedRows);
+  if (comboState.pendingBomb) {
+    comboState.pendingBomb = false;
+    awardBomb(current, nextId, 2);
   }
   return { pieces: current, clearedRows, gainedScore, collectedMoodBeans };
 }
@@ -325,13 +357,19 @@ function replayRound(seed, isTutorial, actions) {
   let roundClearedRows = 0;
   let roundCollectedMoodBeans = 0;
   let turn = 0;
+  const comboState = { count: 0, cleared: false, pendingBomb: false };
 
   for (const action of actions) {
+    // append 是当前操作的自动补排，不另开操作，也不打断已产生的连消。
+    if (action.type !== 'append') {
+      if (!comboState.cleared) comboState.count = 0;
+      comboState.cleared = false;
+    }
     switch (action.type) {
       case 'move': {
         const moved = movePiece(pieces, action.id, action.offset);
         if (!moved) return { score: -1, collectedMoodBeans: -1, valid: false };
-        const result = resolveBoard(pieces);
+        const result = resolveBoard(pieces, nextId, comboState);
         pieces = result.pieces;
         score += result.gainedScore;
         roundClearedRows += result.clearedRows;
@@ -340,16 +378,26 @@ function replayRound(seed, isTutorial, actions) {
       }
       case 'hammer': {
         pieces = useHammer(pieces, action.id);
-        const result = resolveBoard(pieces);
+        const result = resolveBoard(pieces, nextId, comboState);
         pieces = result.pieces;
         score += result.gainedScore;
         roundClearedRows += result.clearedRows;
         roundCollectedMoodBeans += result.collectedMoodBeans;
         break;
       }
+      case 'bomb': {
+        const blast = detonateBomb(pieces, action.id);
+        if (!blast) return { score: -1, collectedMoodBeans: -1, valid: false };
+        const result = resolveBoard(blast.pieces, nextId, comboState);
+        pieces = result.pieces;
+        score += result.gainedScore;
+        roundClearedRows += result.clearedRows;
+        roundCollectedMoodBeans += blast.collectedMoodBeans + result.collectedMoodBeans;
+        break;
+      }
       case 'purify': {
         pieces = useColorPurifier(pieces, action.color);
-        const result = resolveBoard(pieces);
+        const result = resolveBoard(pieces, nextId, comboState);
         pieces = result.pieces;
         score += result.gainedScore;
         roundClearedRows += result.clearedRows;
@@ -358,7 +406,7 @@ function replayRound(seed, isTutorial, actions) {
       }
       case 'revive': {
         pieces = removeTopRows(pieces, action.rowCount || 8);
-        const result = resolveBoard(pieces);
+        const result = resolveBoard(pieces, nextId, comboState);
         pieces = result.pieces;
         score += result.gainedScore;
         roundClearedRows += result.clearedRows;
@@ -376,7 +424,7 @@ function replayRound(seed, isTutorial, actions) {
         turn++;
         nextPieces = generateNextRow(random, turn, pieces, roundClearedRows);
         // 推进后自动重力+消除
-        const result = resolveBoard(pieces);
+        const result = resolveBoard(pieces, nextId, comboState);
         pieces = result.pieces;
         score += result.gainedScore;
         roundClearedRows += result.clearedRows;

@@ -352,7 +352,7 @@ test('暂停重开不保存最高分：消除过程中只更新内存，只有�
     id: 999, row: 9, col: 0, size: 8, color: 1,
     stampMood: 1, stampCell: 0, collectibleType: 0, collectibleCell: 0,
   });
-  const result = module.eliminateFullRows(1);
+  const result = module.eliminateFullRows();
   assert.strictEqual(result.clearedRows, 1);
   assert.strictEqual(module.score, 200, '消除得分后应到 200');
   assert.ok(module.roundCollectedMoodBeans > 0, '消除带表情块应收集豆');
@@ -380,4 +380,197 @@ test('暂停重开不保存最高分：消除过程中只更新内存，只有�
   module.enqueuePendingRoundSettlement({ roundId: 'round_best', startedAt: 1, endedAt: 2, score: 200, collectedMoodBeanCount: 10 });
   assert.strictEqual(module.moodBeanBalance, 0, '基准不 immediate 入账');
   assert.strictEqual(module.getDisplayMoodBeanBalance(), 0, '待提交不预支奖励');
+});
+
+function boardPiece(id, row, col, size, extra = {}) {
+  return { id, row, col, size, color: 1, stampMood: 1, stampCell: 0, collectibleType: 0, collectibleCell: 0, ...extra };
+}
+
+test('连续成功操作递增到 5 倍，无消除的有效操作后归零', () => {
+  const module = createModule(installCcStub());
+  module.resetRound();
+  for (let action = 1; action <= 7; action++) {
+    module.beginPlayerAction();
+    module.pieces = [boardPiece(action, 9, 0, 8)];
+    const result = module.eliminateFullRows();
+    assert.strictEqual(result.combo, Math.min(action, 5));
+    assert.strictEqual(result.gainedScore, 10 * Math.min(action, 5));
+    module.finishPlayerAction();
+  }
+  module.beginPlayerAction();
+  module.pieces = [boardPiece(100, 9, 0, 1)];
+  module.resolveBoard();
+  module.finishPlayerAction();
+  assert.strictEqual(module.combo, 0);
+  module.beginPlayerAction();
+  module.pieces = [boardPiece(101, 9, 0, 8)];
+  assert.strictEqual(module.eliminateFullRows().gainedScore, 10);
+  module.resetRound();
+  assert.strictEqual(module.combo, 0);
+});
+
+test('教学三次真实移动依次产生 10/20/30 分，服务端按跨操作连消重放', () => {
+  const module = createModule(installCcStub());
+  module.setRoundSeed(42, true);
+  module.resetRound();
+  for (let step = 0; step < 3; step++) {
+    const move = module.getTutorialMove(step);
+    assert.strictEqual(module.movePiece(move.id, move.offset), true);
+    const result = module.resolveBoard();
+    module.finishPlayerAction();
+    assert.strictEqual(result.gainedScore, 10 * (step + 1));
+    assert.strictEqual(module.combo, step + 1);
+    // 普通点击/无效移动不会被记为一次失败操作。
+    assert.strictEqual(module.movePiece(999, 1), false);
+    assert.strictEqual(module.combo, step + 1);
+    const { replayRound } = require(path.join(repoRoot, 'server', 'src', 'gameEngine.js'));
+    const replay = replayRound(42, true, module.roundActions);
+    assert.strictEqual(replay.valid, true);
+    assert.strictEqual(replay.score, module.score);
+  }
+});
+
+test('同一次操作的自动补排不打断也不重复增加 combo', () => {
+  const module = createModule(installCcStub());
+  module.resetRound();
+  for (let action = 1; action <= 2; action++) {
+    module.beginPlayerAction();
+    module.pieces = [boardPiece(action, 9, 0, 8)];
+    assert.strictEqual(module.resolveBoard().gainedScore, action * 10);
+    module.nextPieces = [];
+    assert.strictEqual(module.appendNextRow(), true);
+    assert.strictEqual(module.resolveBoard().clearedRows, 0);
+    module.pieces = [boardPiece(100 + action, 9, 0, 8)];
+    assert.strictEqual(module.resolveBoard().gainedScore, action * 10, '补排后消除沿用本次倍率');
+    module.finishPlayerAction();
+    assert.strictEqual(module.combo, action);
+  }
+});
+
+test('达到 Great 额外奖励一次炸弹，与双排奖励叠加，Perfect 不重复发放', () => {
+  const module = createModule(installCcStub());
+  module.resetRound();
+  for (let action = 1; action <= 6; action++) {
+    module.beginPlayerAction();
+    module.pieces = [boardPiece(100 + action, 9, 0, 8)];
+    if (action === 4) module.pieces.push(boardPiece(200, 8, 0, 8));
+    module.resolveBoard();
+    module.finishPlayerAction();
+    assert.strictEqual(module.pieces.filter(p => p.bomb).length, action === 4 ? 2 : 0);
+    assert.strictEqual(module.claimComboBomb(), null, '同一 Great 奖励不可重复领取');
+  }
+});
+
+test('真实种子连续四次成功移动到 Great，额外炸弹可引爆且服务端重放一致', () => {
+  const module = createModule(installCcStub());
+  module.setRoundSeed(4, true);
+  module.resetRound();
+  for (let step = 0; step < 3; step++) {
+    const move = module.getTutorialMove(step);
+    module.movePiece(move.id, move.offset);
+    module.resolveBoard();
+    module.finishPlayerAction();
+  }
+  for (let index = 0; index < 3; index++) module.appendNextRow();
+  module.resolveBoard();
+  module.finishPlayerAction();
+  assert.strictEqual(module.movePiece(19, 1), true);
+  module.resolveBoard();
+  assert.strictEqual(module.combo, 4);
+  const bomb = module.pieces.find(p => p.bomb);
+  assert.ok(bomb, '第四次仅清一排，也必须奖励 Great 炸弹');
+  assert.strictEqual(module.roundClearedRows, 4);
+  assert.strictEqual(module.score, 100);
+  module.detonateBomb(bomb.id);
+  module.resolveBoard();
+  const { replayRound } = require(path.join(repoRoot, 'server', 'src', 'gameEngine.js'));
+  const replay = replayRound(4, true, module.roundActions);
+  assert.strictEqual(replay.valid, true);
+  assert.strictEqual(replay.score, module.score);
+  assert.strictEqual(replay.collectedMoodBeans, module.roundCollectedMoodBeans);
+});
+
+test('偶数宽横块的爆破范围以整块中央对称覆盖两侧邻块', () => {
+  const module = createModule(installCcStub());
+  module.resetRound();
+  module.pieces = [boardPiece(100, 9, 2, 2, { bomb: true }), boardPiece(101, 9, 1, 1), boardPiece(102, 9, 4, 1), boardPiece(103, 9, 5, 1)];
+  assert.deepStrictEqual(module.detonateBomb(100).removedPieceIds, [100, 101, 102]);
+  assert.deepStrictEqual(module.pieces.map(p => p.id), [103]);
+});
+
+test('同次操作两轮掉落消除累计两排，稳定后只发一枚炸弹；全清仍保留奖励', () => {
+  const module = createModule(installCcStub());
+  module.resetRound();
+  // 中间满行先消；上方右半块随后落到底行，与左半块拼满，产生第二次消除。
+  module.pieces = [boardPiece(100, 9, 0, 4), boardPiece(101, 8, 0, 8), boardPiece(102, 7, 4, 4)];
+  const result = module.resolveBoard();
+  assert.strictEqual(result.clearedRows, 2);
+  assert.strictEqual(result.gainedScore, 20);
+  assert.strictEqual(module.pieces.length, 1);
+  assert.strictEqual(module.pieces[0].bomb, true);
+  assert.strictEqual(module.pieces[0].row, 9);
+  assert.strictEqual(module.pieces[0].size, 1);
+  const bombId = module.pieces[0].id;
+  module.resolveBoard();
+  assert.strictEqual(module.pieces.length, 1, '无新消除不重复奖励');
+  assert.strictEqual(module.pieces[0].id, bombId);
+});
+
+test('同时清两排为基础分 20，炸弹附着在幸存普通横块，随移动保留', () => {
+  const module = createModule(installCcStub());
+  module.resetRound();
+  module.pieces = [boardPiece(100, 9, 0, 8), boardPiece(101, 8, 0, 8), boardPiece(102, 7, 2, 2)];
+  const result = module.resolveBoard();
+  assert.strictEqual(result.clearedRows, 2);
+  assert.strictEqual(result.gainedScore, 20);
+  const bomb = module.getPiece(102);
+  assert.strictEqual(bomb.bomb, true);
+  assert.strictEqual(bomb.size, 2);
+  assert.strictEqual(module.movePiece(102, 1), true);
+  assert.strictEqual(bomb.size, 2);
+  assert.strictEqual(bomb.col, 3);
+});
+
+test('炸弹按横块中心的 3×3 范围移除相交整块，收豆一次且不能重复引爆', () => {
+  const module = createModule(installCcStub());
+  module.resetRound();
+  module.pieces = [
+    boardPiece(100, 8, 1, 3, { bomb: true }),
+    boardPiece(101, 7, 0, 2), // 和范围左边缘相交，整块移除。
+    boardPiece(102, 9, 3, 3), // 和范围右边缘相交，整块移除。
+    boardPiece(103, 7, 4, 2), // 横向超出。
+    boardPiece(104, 6, 3, 1), // 纵向超出。
+  ];
+  const before = module.roundCollectedMoodBeans;
+  const blast = module.detonateBomb(100);
+  assert.deepStrictEqual(blast.removedPieceIds, [100, 101, 102]);
+  assert.deepStrictEqual(module.pieces.map(p => p.id), [103, 104]);
+  assert.strictEqual(module.roundCollectedMoodBeans - before, 3);
+  assert.strictEqual(module.detonateBomb(100), null);
+  assert.strictEqual(module.detonateBomb(103), null, '普通块不可冒充炸弹');
+  assert.deepStrictEqual(module.roundActions, [{ type: 'bomb', id: 100 }]);
+});
+
+test('多种种子的真实移动、连消、奖励炸弹与爆破，客户端和服务端重放一致', () => {
+  const { replayRound } = require(path.join(repoRoot, 'server', 'src', 'gameEngine.js'));
+  let detonated = 0;
+  for (const seed of [3, 42, 20261105, 789]) {
+    const module = createModule(installCcStub());
+    module.setRoundSeed(seed, false);
+    module.resetRound();
+    for (let turn = 0; turn < 65; turn++) {
+      const bomb = module.pieces.find(p => p.bomb);
+      const hint = module.findEliminationHint();
+      if (bomb) { module.detonateBomb(bomb.id); detonated++; module.resolveBoard(); }
+      else if (hint && turn % 3 !== 0) { module.movePiece(hint.id, hint.offset); module.resolveBoard(); }
+      if (!module.appendNextRow()) break;
+      module.resolveBoard();
+      const replay = replayRound(seed, false, module.roundActions);
+      assert.strictEqual(replay.valid, true, `seed=${seed}, turn=${turn}`);
+      assert.strictEqual(replay.score, module.score, `score seed=${seed}, turn=${turn}`);
+      assert.strictEqual(replay.collectedMoodBeans, module.roundCollectedMoodBeans, `beans seed=${seed}, turn=${turn}`);
+    }
+  }
+  assert.ok(detonated > 0, '必须覆盖真实开局获得奖励后引爆的完整路径');
+  assert.strictEqual(replayRound(42, false, [{ type: 'bomb', id: 1 }]).valid, false);
 });

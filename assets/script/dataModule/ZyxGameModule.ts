@@ -84,6 +84,8 @@ export type BoardPiece = {
     /** 未来收藏物预留：0 表示当前没有收藏物。 */
     collectibleType: number;
     collectibleCell: number;
+    /** 炸弹附着在普通横块中央；不参与随机出块。 */
+    bomb?: boolean;
 };
 
 export type NextPiece = {
@@ -116,6 +118,7 @@ export type EliminateResult = ResolveResult & {
     removedPieceIds: number[];
     clearedRowIndexes: number[];
     collectedMoodTypes: number[];
+    combo?: number;
 };
 
 export type RoundSettlement = {
@@ -198,6 +201,10 @@ export default class ZyxGameModule {
     public pieces: BoardPiece[] = [];
     public nextPieces: NextPiece[] = [];
     public score: number = 0;
+    /** 连续产生满行消除的玩家操作次数，最高显示/计分 5 倍。 */
+    public combo: number = 0;
+    private comboActionCleared: boolean = false;
+    private pendingComboBomb: boolean = false;
     public bestScore: number = 0;
     public hammerCount: number = 0;
     public colorPurifierCount: number = 0;
@@ -233,6 +240,9 @@ export default class ZyxGameModule {
 
     public resetRound(): void {
         this.score = 0;
+        this.combo = 0;
+        this.comboActionCleared = false;
+        this.pendingComboBomb = false;
         this.turn = 0;
         this.roundClearedRows = 0;
         this.roundCollectedMoodBeans = 0;
@@ -347,6 +357,7 @@ export default class ZyxGameModule {
         const range = this.getMoveRange(id);
         const safeOffset = Math.max(range.min, Math.min(range.max, offset));
         if (safeOffset === 0) return false;
+        this.beginPlayerAction();
         piece.col += safeOffset;
         this.roundActions.push({ type: 'move', id, offset: safeOffset });
         return true;
@@ -354,6 +365,7 @@ export default class ZyxGameModule {
 
     public useHammer(id: number): boolean {
         if (this.hammerCount <= 0 || !this.getPiece(id)) return false;
+        this.beginPlayerAction();
         this.hammerCount--;
         this.saveToolInventory();
         this.pieces = this.pieces.filter((piece) => piece.id !== id);
@@ -375,6 +387,7 @@ export default class ZyxGameModule {
             .map((piece) => piece.id);
         if (removedPieceIds.length === 0) return [];
 
+        this.beginPlayerAction();
         this.colorPurifierCount--;
         this.saveToolInventory();
         const removedSet: { [key: number]: boolean } = {};
@@ -438,6 +451,7 @@ export default class ZyxGameModule {
 
     /** 紧急分享救场：一次性清空当前棋盘，并返回需要播放退场动画的色块。 */
     public removeAllPieces(): number[] {
+        this.beginPlayerAction();
         const removedPieceIds = this.pieces.map((piece) => piece.id);
         this.pieces = [];
         this.roundActions.push({ type: 'clear' });
@@ -452,6 +466,7 @@ export default class ZyxGameModule {
             .map((piece) => piece.id);
         if (removedPieceIds.length === 0) return [];
 
+        this.beginPlayerAction();
         const removedSet: { [key: number]: boolean } = {};
         removedPieceIds.forEach((id) => removedSet[id] = true);
         this.pieces = this.pieces.filter((piece) => !removedSet[piece.id]);
@@ -476,21 +491,77 @@ export default class ZyxGameModule {
         return null;
     }
 
+    /** 只有成功移动/使用道具才开启操作；无效拖动、点击与自动补排不打断连消。 */
+    public beginPlayerAction(): void {
+        if (!this.comboActionCleared) this.combo = 0;
+        this.comboActionCleared = false;
+    }
+
+    /** 包含自动补排在内的一次操作结算完毕；没有满行消除才归零。 */
+    public finishPlayerAction(): void {
+        if (!this.comboActionCleared) this.combo = 0;
+    }
+
     public resolveBoard(): ResolveResult {
         let clearedRows = 0;
         let gainedScore = 0;
-        let chain = 1;
 
         while (true) {
             this.applyGravity();
-            const result = this.eliminateFullRows(chain);
+            const result = this.eliminateFullRows();
             if (result.clearedRows === 0) break;
 
             clearedRows += result.clearedRows;
             gainedScore += result.gainedScore;
-            chain++;
         }
+        this.awardBomb(clearedRows);
+        this.claimComboBomb();
         return { clearedRows, gainedScore };
+    }
+
+    /** 每段连续操作首次达到 Great 时额外发一枚，不与双排奖励互相覆盖。 */
+    public claimComboBomb(): BoardPiece {
+        if (!this.pendingComboBomb) return null;
+        this.pendingComboBomb = false;
+        return this.awardBomb(2);
+    }
+
+    /** 一次操作累计清掉两排及以上时奖励一枚；稳定后发放，避免刚生成就被连消带走。 */
+    public awardBomb(clearedRows: number): BoardPiece {
+        if (clearedRows < 2) return null;
+        let target = this.pieces.filter((piece) => !piece.bomb)
+            .sort((a, b) => b.row - a.row || a.col - b.col || a.id - b.id)[0];
+        if (!target) {
+            // 全清或现存块都带炸弹时，在最低的空格生成普通单格，保证奖励不会丢失。
+            for (let row = BOARD_ROWS - 1; row >= 0 && !target; row--) {
+                for (let col = 0; col < BOARD_COLS && !target; col++) {
+                    if (this.pieces.some((piece) => piece.row === row && col >= piece.col && col < piece.col + piece.size)) continue;
+                    target = this.createPiece(row, col, 1, 1, 0);
+                    this.pieces.push(target);
+                }
+            }
+        }
+        if (!target) return null;
+        target.bomb = true;
+        return target;
+    }
+
+    /** 点击引爆自身及中心周围 3×3 内相交的整块；爆破收集表情豆，后续满行照常计分。 */
+    public detonateBomb(id: number): EliminateResult {
+        const bomb = this.getPiece(id);
+        if (!bomb || !bomb.bomb) return null;
+        this.beginPlayerAction();
+        const centerCol = bomb.col + bomb.size / 2;
+        const removed = this.pieces.filter((piece) => piece.id === id || (
+            Math.abs(piece.row - bomb.row) <= 1
+            && piece.col < centerCol + 1.5 && piece.col + piece.size > centerCol - 1.5
+        ));
+        const removedPieceIds = removed.map((piece) => piece.id);
+        const collectedMoodTypes = removed.filter((piece) => piece.stampMood > 0).map((piece) => piece.stampMood);
+        this.pieces = this.pieces.filter((piece) => removedPieceIds.indexOf(piece.id) < 0);
+        this.roundCollectedMoodBeans += collectedMoodTypes.length;
+        this.roundActions.push({ type: 'bomb', id });
+        return { clearedRows: 0, gainedScore: 0, removedPieceIds, clearedRowIndexes: [], collectedMoodTypes };
     }
 
     /** 执行一次完整重力结算，并返回需要播放掉落动画的色块。 */
@@ -508,7 +579,7 @@ export default class ZyxGameModule {
     }
 
     /** 只执行当前稳定棋盘上的一次满行消除，便于界面逐轮播放动画。 */
-    public eliminateFullRows(chain: number = 1): EliminateResult {
+    public eliminateFullRows(): EliminateResult {
         const fullRows = this.findFullRows();
         if (fullRows.length === 0) {
             return {
@@ -529,7 +600,13 @@ export default class ZyxGameModule {
             .map((piece) => piece.stampMood);
         this.pieces = this.pieces.filter((piece) => !rowSet[piece.row]);
 
-        const gainedScore = fullRows.length * 10 * chain;
+        if (!this.comboActionCleared) {
+            this.combo = Math.min(5, this.combo + 1);
+            this.comboActionCleared = true;
+            if (this.combo === 4) this.pendingComboBomb = true;
+        }
+        const combo = this.combo;
+        const gainedScore = fullRows.length * 10 * combo;
         this.score += gainedScore;
         this.roundClearedRows += fullRows.length;
         this.roundCollectedMoodBeans += collectedMoodTypes.length;
@@ -542,6 +619,7 @@ this.bestScore = this.score;
         return {
             clearedRows: fullRows.length,
             gainedScore,
+            combo,
             removedPieceIds,
             clearedRowIndexes: fullRows,
             collectedMoodTypes,

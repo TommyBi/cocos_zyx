@@ -164,13 +164,20 @@ export function drawMoodBlockMaterial(node: cc.Node, color: cc.Color, alpha: num
     graphics.fill();
 }
 
-/** 在色块左侧逻辑格内绘制线稿表情，不使用圆形徽章和腮红。 */
+/** 原有十款之外的二十款线稿表情，独立于颜色与豆奖励类型。 */
+export const EXTRA_FACE_NAMES = [
+    '眨眼', '偷笑', '大笑', '惊喜', '星星眼', '爱心眼', '害羞', '陶醉', '吹口哨', '鼓嘴',
+    '困困', '打盹', '好奇', '思考', '俏皮', '小得意', '专注', '无辜', '小委屈', '松口气',
+];
+
+/** 在色块逻辑格内绘制低对比度线稿。 */
 export function createMoodStamp(
     parent: cc.Node,
     moodIndex: number,
     cellSize: number,
     stampCell: number = 0,
     opacity: number = 128,
+    faceIndex: number = moodIndex,
 ): cc.Node {
     const node = new cc.Node('moodStamp');
     node.width = 38;
@@ -182,7 +189,7 @@ export function createMoodStamp(
     (node as any).moodIndex = moodIndex;
     parent.addChild(node);
 
-    const face = drawMoodFace(node, moodIndex, 31, new cc.Color(MOOD_COLORS.cocoa.r, MOOD_COLORS.cocoa.g, MOOD_COLORS.cocoa.b, 248));
+    const face = drawMoodFace(node, faceIndex, 31, new cc.Color(MOOD_COLORS.cocoa.r, MOOD_COLORS.cocoa.g, MOOD_COLORS.cocoa.b, 248));
     const idleDelay = (Math.abs(Math.round(node.x)) % 11) * 0.12 + moodIndex * 0.05;
     cc.tween(face)
         .delay(idleDelay)
@@ -438,6 +445,11 @@ export function drawMoodFace(parent: cc.Node, moodIndex: number, size: number, c
     g.lineCap = cc.Graphics.LineCap.ROUND;
     g.lineJoin = cc.Graphics.LineJoin.ROUND;
 
+    if (moodIndex > 10) {
+        drawExtraMoodFace(g, moodIndex, s);
+        return node;
+    }
+
     switch (moodIndex) {
         case 1: // 欢喜
             g.arc(lx, eyeY, 2.6 * s, 0.08 * Math.PI, 0.92 * Math.PI, false);
@@ -525,6 +537,86 @@ export function drawMoodFace(parent: cc.Node, moodIndex: number, size: number, c
             break;
     }
     return node;
+}
+
+function drawExtraMoodFace(g: cc.Graphics, index: number, s: number): void {
+    const line = (points: number[]): void => {
+        g.moveTo(points[0] * s, points[1] * s);
+        for (let i = 2; i < points.length; i += 2) g.lineTo(points[i] * s, points[i + 1] * s);
+        g.stroke();
+    };
+    const curve = (x: number, y: number, cx: number, cy: number, ex: number, ey: number): void => {
+        g.moveTo(x * s, y * s);
+        g.quadraticCurveTo(cx * s, cy * s, ex * s, ey * s);
+        g.stroke();
+    };
+    const dot = (x: number, y: number, r: number = 1.4): void => {
+        g.circle(x * s, y * s, r * s); g.fill();
+    };
+    const eyes = (): void => { dot(-5, 3); dot(5, 3); };
+    const smile = (): void => curve(-5, -4, 0, -9, 5, -4);
+    const closedEyes = (): void => { curve(-8, 4, -5, 0, -2, 4); curve(2, 4, 5, 0, 8, 4); };
+    const cheeks = (): void => {
+        line([-10, -1, -11, -3]); line([-7, -1, -8, -3]);
+        line([8, -1, 7, -3]); line([11, -1, 10, -3]);
+    };
+    const oval = (x: number, y: number, rx: number, ry: number): void => {
+        g.ellipse(x * s, y * s, rx * s, ry * s); g.stroke();
+    };
+    // 保持小尺寸下清晰；眉毛、腮边短线和小配饰都用同一暖棕线条。
+    g.lineWidth = Math.max(1.4, 1.75 * s);
+    switch (index) {
+        case 11: // 眨眼
+            dot(-5, 3); curve(2, 3, 5, 6, 8, 3); smile(); line([8, 7, 10, 8]); break;
+        case 12: // 偷笑
+            closedEyes(); curve(-4, -3, 0, -6, 4, -3); oval(3, -6, 3, 2); break;
+        case 13: // 大笑
+            closedEyes(); curve(-5, -3, 0, -13, 5, -3); line([-5, -3, 5, -3]); break;
+        case 14: // 惊喜
+            eyes(); oval(0, -5, 2.5, 3); curve(-8, 8, -5, 10, -2, 8); curve(2, 8, 5, 10, 8, 8); break;
+        case 15: // 星星眼
+            [-5, 5].forEach((x) => line([x, 7, x + 1.2, 4, x + 3, 3, x + 1.2, 2, x, -1, x - 1.2, 2, x - 3, 3, x - 1.2, 4, x, 7]));
+            smile(); break;
+        case 16: // 爱心眼
+            [-5, 5].forEach((x) => {
+                curve(x, 1, x - 6, 5, x - 2, 7); curve(x - 2, 7, x, 8, x, 5);
+                curve(x, 5, x + 3, 10, x + 3, 5); curve(x + 3, 5, x + 3, 3, x, 1);
+            }); smile(); break;
+        case 17: // 害羞
+            closedEyes(); smile(); cheeks(); break;
+        case 18: // 陶醉
+            curve(-8, 4, -5, 7, -2, 4); curve(2, 4, 5, 7, 8, 4);
+            curve(-4, -4, 0, -8, 4, -4); line([-10, -1, -11, -3]); line([10, -1, 11, -3]); break;
+        case 19: // 吹口哨
+            dot(-5, 4); dot(5, 4); oval(1, -4, 2, 1.6); line([8, -3, 10, -1, 10, 5, 13, 4]); dot(8, -3, 1); break;
+        case 20: // 鼓嘴
+            eyes(); line([-3, -4, 0, -3, 3, -4]); curve(-10, 0, -13, -4, -9, -6); curve(10, 0, 13, -4, 9, -6); break;
+        case 21: // 困困
+            line([-8, 3, -2, 3]); line([2, 3, 8, 3]); oval(0, -5, 2, 3); line([7, 9, 11, 9, 7, 6, 11, 6]); break;
+        case 22: // 打盹
+            closedEyes(); line([-3, -5, 3, -5]); oval(9, 5, 2, 3); line([-10, 9, -7, 9, -10, 6, -7, 6]); break;
+        case 23: // 好奇
+            dot(-5, 2); dot(5, 4, 1.8); curve(-8, 7, -5, 10, -2, 7); oval(0, -5, 1.8, 1.3); break;
+        case 24: // 思考
+            dot(-3, 3); dot(6, 3); line([-8, 8, -2, 9]); line([3, 8, 8, 7]);
+            curve(-4, -5, 0, -3, 4, -5); line([7, -7, 9, -3, 11, -4]); break;
+        case 25: // 俏皮
+            line([-8, 5, -3, 3, -8, 1]); dot(5, 3); curve(-5, -3, 0, -7, 6, -3);
+            curve(0, -6, 3, -11, 5, -5); break;
+        case 26: // 小得意
+            line([-8, 4, -2, 3]); line([2, 3, 8, 4]); curve(-4, -4, 2, -7, 7, -2);
+            line([-8, 8, -3, 9]); line([4, 9, 8, 8]); break;
+        case 27: // 专注
+            oval(-5, 3, 4, 3); oval(5, 3, 4, 3); line([-1, 3, 1, 3]); eyes(); line([-3, -5, 3, -5]); break;
+        case 28: // 无辜
+            oval(-5, 3, 2.5, 3); oval(5, 3, 2.5, 3); dot(-5, 2, 0.8); dot(5, 2, 0.8);
+            curve(-3, -5, 0, -3, 3, -5); break;
+        case 29: // 小委屈
+            curve(-8, 8, -5, 5, -2, 8); curve(2, 8, 5, 5, 8, 8); eyes();
+            curve(-4, -6, 0, -2, 4, -6); curve(10, 2, 7, -3, 10, -3); break;
+        case 30: // 松口气
+            closedEyes(); oval(0, -5, 2, 1.4); curve(7, -5, 14, -7, 11, -3); curve(8, -8, 15, -10, 13, -6); break;
+    }
 }
 
 function sizeBackgroundIllustration(node: cc.Node, frame: cc.SpriteFrame, width: number, height: number): void {
