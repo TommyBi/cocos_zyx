@@ -20,12 +20,16 @@ const REQUIRED_FILES = [
     'game/images/formal/combo_great_v1.png',
     'game/images/formal/combo_perfect_v1.png',
     'game/images/formal/score_digits_green_v1.png',
+    'game/images/formal/bean_hud_mascot_v1.png',
+    'game/images/formal/hud_glyphs_v1.png',
+    'game/images/formal/hud_round_v1.fnt',
     'game/spine/get_1.json',
     'game/spine/get_1.atlas',
     'game/spine/get_1.png',
     'game/sound/sound_break.mp3',
     'game/sound/sound_move.mp3',
     'game/sound/sound_tool1.mp3',
+    'game/sound/sound_bomb_v1.wav',
     'game/sound/sound_tool2.mp3',
     'home/images/home_studio_bg_v3.jpg',
     'home/images/home_title_logo_v1.png',
@@ -211,7 +215,7 @@ function validateAssetPathManifest() {
     if (manifest.size === 0) fail('ASSET_PATHS 解析结果为空，清单格式变化后需同步更新本校验');
 
     // 正向：代码引用的每个资源都必须真实存在，且显式登记进 REQUIRED_FILES。
-    const CANDIDATE_EXTS = ['.png', '.jpg', '.mp3', '.json', '.effect', '.atlas'];
+    const CANDIDATE_EXTS = ['.png', '.jpg', '.mp3', '.wav', '.json', '.effect', '.atlas', '.fnt'];
     manifest.forEach((_value, key) => {
         const found = CANDIDATE_EXTS.find((ext) => fs.existsSync(path.join(bundlesRoot, `${key}${ext}`)));
         if (!found) fail(`ASSET_PATHS 引用的资源不存在：assets/bundles/${key}.*`);
@@ -222,7 +226,7 @@ function validateAssetPathManifest() {
 
     // 反向：REQUIRED_FILES 每项都必须被代码引用（spine 的 .atlas/.png 伴随文件按主路径折算）。
     REQUIRED_FILES.forEach((relativePath) => {
-        const base = relativePath.replace(/\.(png|jpe?g|mp3|json|effect|atlas)$/, '');
+        const base = relativePath.replace(/\.(png|jpe?g|mp3|wav|json|effect|atlas|fnt)$/, '');
         if (!manifest.has(base)) fail(`REQUIRED_FILES 登记的 ${relativePath} 没有被 ASSET_PATHS 引用`);
     });
 

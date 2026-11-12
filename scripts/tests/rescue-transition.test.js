@@ -17,7 +17,7 @@ test.before(() => {
     responsiveLayout = require(path.join(out, 'manager/ResponsiveLayout.js'));
 });
 
-function harness() {
+function harness(deps = {}, storage = {}) {
     const tweens = [];
     const events = [];
     const explanation = { isValid: true, destroy() { this.isValid = false; events.push('explanation'); } };
@@ -32,6 +32,7 @@ function harness() {
     vm.runInNewContext(gameSource, {
         exports: exported,
         cc: {
+            sys: { localStorage: storage },
             _decorator: { ccclass: (value) => value }, Color: class {}, Component: class {},
             isValid: (node) => node.isValid !== false,
             Tween: { stopAllByTarget() {} },
@@ -40,7 +41,7 @@ function harness() {
                 tweens.push(tween); return tween;
             },
         },
-        require: (name) => name.endsWith('ResponsiveLayout') ? responsiveLayout : {},
+        require: (name) => name.endsWith('ResponsiveLayout') ? responsiveLayout : deps[name] || {},
     });
     const game = new exported.default();
     game.node = { isValid: true, width: 750 };
@@ -99,9 +100,9 @@ test('窗口变化后棋盘、边框、下一排和危险光效同轴，追赶�
     const node = (x = 0, y = 0) => ({ x, y, setPosition(x, y) { Object.assign(this, { x, y }); } });
     game.layout = responsiveLayout.calculateGameLayout(1390, 760);
     const parts = {
-        boardShadow: node(42, game.layout.boardY - 6),
-        boardFrame: node(42, game.layout.boardY),
-        nextRow: node(42, game.layout.nextY),
+        boardShadow: node(game.layout.boardX, game.layout.boardY - 6),
+        boardFrame: node(game.layout.boardX, game.layout.boardY),
+        nextRow: node(game.layout.boardX, game.layout.nextY),
     };
     game.node = { width: 750, height: 1390, getChildByName: (name) => parts[name] || null };
     game.hudRoot = node();
@@ -114,7 +115,7 @@ test('窗口变化后棋盘、边框、下一排和危险光效同轴，追赶�
     for (const height of [1560, 1390, 1480]) {
         game.node.height = height;
         game.refreshLayout();
-        assert.equal(game.boardRoot.x, 42);
+        assert.equal(game.boardRoot.x, game.layout.boardX);
         assert.equal(parts.boardFrame.x, game.boardRoot.x);
         assert.equal(parts.boardShadow.x, game.boardRoot.x);
         assert.equal(parts.nextRow.x, game.boardRoot.x);
@@ -148,7 +149,7 @@ test('收展共用进度：棋盘和下一排居中/右移，中途反向不跳�
     game.rankExpansion.progress = 0.4;
     expand.moves[0].options.onUpdate();
     for (const part of [game.boardRoot, game.tutorialGuideRoot, game.boardDangerHalo, ...Object.values(parts)]) {
-        assert.equal(part.x, 42 * 0.4);
+        assert.equal(part.x, game.layout.boardX * 0.4);
     }
     assert.equal(reveals.at(-1)[0], 0.4);
     const before = game.boardRoot.x;
@@ -159,7 +160,7 @@ test('收展共用进度：棋盘和下一排居中/右移，中途反向不跳�
     game.rankExpansion.progress = 0;
     tweens[1].moves[0].options.onUpdate();
     assert.equal(game.boardRoot.x, 0);
-    assert.equal(reveals.at(-1)[1], -351);
+    assert.equal(reveals.at(-1)[1], -335);
     game.hudRoot = node(); game.footerRoot = node(); game.roundRescuePrompt = null;
     game.node.height = 1560;
     game.refreshLayout();
@@ -168,7 +169,7 @@ test('收展共用进度：棋盘和下一排居中/右移，中途反向不跳�
     game.setRankExpanded(true);
     game.rankExpansion.progress = 1;
     tweens[2].done();
-    assert.equal(game.boardRoot.x, 42);
+    assert.equal(game.boardRoot.x, game.layout.boardX);
     assert.equal(game.rankChase.x, game.layout.rankX);
 });
 
@@ -209,4 +210,35 @@ test('教学退场一开始同步展开，遮罩淡出与展开时长一致', ()
     assert.equal(tweens[0].target, game.tutorialDimMask);
     assert.equal(tweens[0].moves[0].duration, calls[0][1]);
     assert.equal(tweens[0].moves[0].properties.opacity, 0);
+});
+
+
+test('逻辑结算与爆炸尾部独立锁输入，掉落结束不能提前解除演出输入保护', () => {
+    const {game}=harness();
+    game.bombAnimationLocks=1;game.locked=false;
+    assert.equal(game.resolutionLocked,false);
+    assert.equal(game.locked,true);
+    game.bombAnimationLocks=0;assert.equal(game.locked,false);
+    game.locked=true;assert.equal(game.locked,true);
+});
+
+
+test('补给写入幂等ID失败时不发请求、不冻结棋盘', async () => {
+    const messages=[];const {game}=harness({'../manager/UIManager':{uimanager:{showToast:s=>messages.push(s)}}},
+        {getItem(){throw new Error('quota');}});
+    game.locked=true;await game.confirmRewardedTool('hammer');
+    assert.equal(game.locked,false);assert.deepEqual(messages,['存储空间不足，清理后再领取']);
+});
+
+test('道具永久业务错误取消选择并解锁，不陷入只能重复确认的死循环', async () => {
+    for(const businessCode of ['TOOL_PAYLOAD_CONFLICT','TOOL_REQUEST_INVALID','ROUND_NOT_ACTIVE']) {
+        let retries=0;const messages=[];const {game}=harness({
+            '../dataModule/ZyxGameModule':{zyxGameModule:{cloudRoundId:'qa_round',roundActions:[]}},
+            '../manager/CloudService':{cloudService:{useTool:async()=>{throw Object.assign(new Error('状态已变化'),{businessCode});}}},
+            '../manager/UIManager':{uimanager:{showToast:s=>messages.push(s)}}
+        });
+        game.locked=true;game.setToolSelectionMode=()=>{};
+        assert.equal(await game.confirmToolUse('hammer',1,()=>retries++),null);
+        assert.equal(game.locked,false);assert.equal(retries,0);assert.equal(messages.length,1);
+    }
 });

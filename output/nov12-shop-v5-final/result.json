@@ -1,0 +1,146 @@
+{
+  "beans": 0,
+  "hammer": 1,
+  "magicWand": 0,
+  "actions": [
+    {
+      "type": "rules",
+      "version": 5
+    },
+    {
+      "type": "move",
+      "id": 1,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 3,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 2,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "hammer",
+      "id": 11
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "purify",
+      "color": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "receipts": {
+    "round_1794414182528_77vdxh": {
+      "accepted": true,
+      "roundId": "round_1794414182528_77vdxh",
+      "settlement": {
+        "score": 100,
+        "baseMoodBeans": 0,
+        "bonusMoodBeans": 0,
+        "awardedMoodBeans": 0,
+        "gainedExperience": 10,
+        "profile": {
+          "playerId": "guest_3e1d59103b7a37943623e61d4e127b574578",
+          "nickname": "温柔的柴犬",
+          "avatarUrl": "",
+          "registeredAt": "2026-11-11T16:22:57.365Z",
+          "level": 1,
+          "experience": 10,
+          "moodBeanBalance": 0,
+          "assetRevision": 14,
+          "inventory": {
+            "hammer": 1,
+            "magicWand": 0
+          },
+          "totalMoodBeans": 60,
+          "highestSingleGameScore": 100,
+          "gameCount": 1,
+          "stamina": {
+            "current": 10,
+            "updatedAt": 1794414193289,
+            "max": 10,
+            "regenSeconds": 300,
+            "nextRecoveryAt": null,
+            "serverTime": "2026-11-11T16:23:13.289Z",
+            "shareAvailableToday": true
+          }
+        }
+      }
+    }
+  },
+  "exchangeCount": 5,
+  "errors": []
+}

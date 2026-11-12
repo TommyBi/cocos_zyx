@@ -33,7 +33,7 @@ test('手机、平板和横屏舞台始终保留完整的设计高度与操作�
   assert.deepEqual(layout.calculateStageLayout({ x: 0, y: 0, width: 1778, height: 1334 }, false),
     { x: 0, y: 0, width: 900, height: 1334, scale: 1 });
   assert.deepEqual(layout.calculateStageLayout({ x: 0, y: 0, width: 1778, height: 1334 }, true),
-    { x: 0, y: 0, width: 750, height: 1390, scale: 1334 / 1390 });
+    { x: 0, y: 0, width: 750, height: 1444, scale: 1334 / 1444 });
 });
 
 test('双屏优先把主舞台放在单个分区内，不跨铰链', () => {
@@ -70,7 +70,7 @@ test('刘海屏、胶囊、平板和折叠分区：所有局内区域有间隔�
     const stage = layout.calculateStageLayout(region, true);
     const pos = layout.calculateGameLayout(stage.height, 800);
     const boxes = [
-      [pos.hudY - 53, pos.hudY + 53], [pos.boardY - 412, pos.boardY + 412],
+      [pos.hudY - 80, pos.hudY + 80], [pos.boardY - 412, pos.boardY + 412],
       [pos.nextY - 60, pos.nextY + 60], [pos.toolY - 74, pos.toolY + 74],
       [pos.footerY - 40, pos.footerY + 40],
     ];
@@ -94,6 +94,24 @@ test('棋盘右移后为追赶底板留出空间，下一排仍完整位于画�
     assert.ok(pos.boardX > 0);
     assert.ok(rankLeft >= -layout.DESIGN_WIDTH / 2 + 8);
     assert.ok(boardLeft - rankRight >= 8);
-    assert.ok(pos.boardX + (boardWidth + 52) / 2 <= layout.DESIGN_WIDTH / 2);
+    assert.ok(pos.boardX + (boardWidth + 32) / 2 <= layout.DESIGN_WIDTH / 2);
+  }
+});
+
+test('顶部随排行共享中轴与外边界，收起/展开/中途均比游戏区域左右各宽8px', () => {
+  const boardWidth = 608;
+  const pos = layout.calculateGameLayout(1444, 760);
+  for (const progress of [0, 0.25, 0.5, 0.75, 1]) {
+    const hud = layout.calculateGameHudLayout(750, boardWidth, progress);
+    const right = pos.boardX * progress + (boardWidth + 18) / 2;
+    assert.equal(hud.x + hud.width / 2 - right, 8);
+    assert.ok(hud.x - hud.width / 2 >= -375 + 8);
+    assert.ok(hud.x + hud.width / 2 <= 375 - 4);
+    if (progress === 0) assert.equal(hud.x, 0);
+    if (progress === 1) {
+      const left = pos.rankX - layout.GAME_RANK_PANEL_WIDTH / 2;
+      assert.equal(left - (hud.x - hud.width / 2), 8);
+      assert.equal(hud.x, (left + right) / 2);
+    }
   }
 });

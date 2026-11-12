@@ -1,0 +1,962 @@
+{
+  "seed": 2654435761,
+  "actions": [
+    {
+      "type": "bomb",
+      "state": {
+        "combo": 4,
+        "score": 100,
+        "moveCount": 3,
+        "bombs": 0,
+        "rows": 4,
+        "cascade": 0
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 150,
+        "moveCount": 4,
+        "bombs": 0,
+        "rows": 5,
+        "cascade": 1
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 250,
+        "moveCount": 5,
+        "bombs": 1,
+        "rows": 7,
+        "cascade": 2
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 350,
+        "moveCount": 6,
+        "bombs": 1,
+        "rows": 9,
+        "cascade": 2
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 450,
+        "moveCount": 7,
+        "bombs": 2,
+        "rows": 11,
+        "cascade": 2
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 550,
+        "moveCount": 8,
+        "bombs": 1,
+        "rows": 13,
+        "cascade": 2
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 650,
+        "moveCount": 9,
+        "bombs": 1,
+        "rows": 15,
+        "cascade": 1
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 750,
+        "moveCount": 10,
+        "bombs": 1,
+        "rows": 17,
+        "cascade": 2
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 800,
+        "moveCount": 11,
+        "bombs": 0,
+        "rows": 18,
+        "cascade": 1
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 850,
+        "moveCount": 12,
+        "bombs": 0,
+        "rows": 19,
+        "cascade": 1
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 950,
+        "moveCount": 13,
+        "bombs": 1,
+        "rows": 21,
+        "cascade": 2
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1100,
+        "moveCount": 14,
+        "bombs": 2,
+        "rows": 24,
+        "cascade": 3
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1150,
+        "moveCount": 15,
+        "bombs": 2,
+        "rows": 25,
+        "cascade": 1
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1200,
+        "moveCount": 16,
+        "bombs": 0,
+        "rows": 26,
+        "cascade": 1
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1250,
+        "moveCount": 17,
+        "bombs": 0,
+        "rows": 27,
+        "cascade": 1
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1300,
+        "moveCount": 18,
+        "bombs": 0,
+        "rows": 28,
+        "cascade": 1
+      }
+    },
+    {
+      "type": "setup",
+      "state": {
+        "combo": 5,
+        "score": 1350,
+        "moveCount": 19,
+        "bombs": 0,
+        "rows": 29,
+        "cascade": 1
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1400,
+        "moveCount": 20,
+        "bombs": 0,
+        "rows": 30,
+        "cascade": 1
+      }
+    }
+  ],
+  "score": 1400,
+  "collectedBlocks": 68,
+  "replayActions": [
+    {
+      "type": "rules",
+      "version": 2
+    },
+    {
+      "type": "move",
+      "id": 1,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 3,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 2,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "bomb",
+      "id": 11
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 13,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 31,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 14,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 44,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 66,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 72,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 89,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 45,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 92,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 91,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 43,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 105,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 123,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 137,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 138,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 107,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 151,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "eliminations": [
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 1
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 2
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 3
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 4
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 2,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 3,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    }
+  ],
+  "detonations": [
+    1,
+    1,
+    2,
+    1,
+    1,
+    1,
+    2
+  ],
+  "generationTimes": [
+    2,
+    1.4000000059604645,
+    1,
+    1.9000000059604645,
+    1.100000023841858,
+    1.5,
+    0.9000000059604645,
+    1.0999999940395355,
+    0.699999988079071,
+    1.2999999821186066,
+    2.5,
+    5.9000000059604645,
+    0.5999999940395355,
+    2.699999988079071,
+    1,
+    2.4000000059604645,
+    1.0999999940395355,
+    2.5,
+    3.2999999821186066,
+    0.9000000059604645,
+    4.0999999940395355,
+    1.5999999940395355,
+    1.2999999821186066,
+    0.3999999761581421,
+    1.2999999821186066,
+    1,
+    2.2000000178813934,
+    4.5,
+    1.0999999940395355,
+    1.100000023841858,
+    3.699999988079071,
+    1.800000011920929,
+    0.7999999821186066,
+    2.600000023841858,
+    1.5999999940395355,
+    0.5,
+    1.5,
+    2.2999999821186066,
+    2
+  ],
+  "replay": {
+    "score": 1400,
+    "collectedMoodBeans": 68,
+    "valid": true
+  },
+  "errors": []
+}

@@ -58,8 +58,17 @@ export default class ZyxGridCom extends cc.Component {
     }
 
     private onTouchMove(event: cc.Event.EventTouch): void {
-        if (!this.touching) return;
+        if (!this.canContinueTouch()) return;
         this.updateDragPosition(event);
+    }
+
+    /** 多指操作中另一根手指引爆时，已开始的拖动也立即失效；不覆盖正在播放的节点位置。 */
+    private canContinueTouch(): boolean {
+        if (!this.touching) return false;
+        if (this.callbacks && this.callbacks.canInteract()) return true;
+        this.touching = false;
+        this.node.zIndex = 10;
+        return false;
     }
 
     /** 连续跟随手指，同时缓存松手时要吸附到的最近合法格。 */
@@ -76,7 +85,7 @@ export default class ZyxGridCom extends cc.Component {
     }
 
     private onTouchEnd(event: cc.Event.EventTouch): void {
-        if (!this.touching) return;
+        if (!this.canContinueTouch()) return;
         this.updateDragPosition(event);
         this.finishTouch(this.offset !== 0, this.offset === 0);
     }
@@ -95,7 +104,7 @@ export default class ZyxGridCom extends cc.Component {
 
     /** Cocos 在节点外松手也会派发 CANCEL；已有合法横移时仍应完成吸附。 */
     private onTouchCancel(event: cc.Event.EventTouch): void {
-        if (!this.touching) return;
+        if (!this.canContinueTouch()) return;
         this.updateDragPosition(event);
         this.finishTouch(this.offset !== 0, false);
     }

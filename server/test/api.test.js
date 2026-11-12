@@ -1,3 +1,5 @@
+// 显式开启历史协议兼容性夹具；正式服务默认只允许当前规则新开局。
+process.env.ALLOW_LEGACY_ROUND_STARTS = '1';
 /** 服务端体力、结算幂等与秘境下线集成测试。只使用临时数据库。 */
 process.env.ENABLE_GM_ROUTES = '1';
 
@@ -324,4 +326,207 @@ test('旧秘境路由与新库拼画表不再存在', async () => {
   assert.equal(contribute.status, 404);
   const tables = await readDisk("SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'official_art_%'");
   assert.equal(tables.length, 0);
+});
+
+test('进度规则锁定到服务端开局；真实表情推进进度但未满一颗不发豆，逐局清零', async () => {
+  const { token } = await newPlayer();
+  for (const roundId of ['progress_round_a', 'progress_round_b']) {
+    const start = await api('/games/start', { method: 'POST', token,
+      body: { roundId, collectionRule: 'progress_v1' } });
+    assert.equal(start.status, 200);
+    assert.equal(start.payload.data.collectionRule, 'progress_v1');
+    const retry = await api('/games/start', { method: 'POST', token,
+      body: { roundId, collectionRule: 'progress_v1' } });
+    assert.equal(retry.payload.data.stamina.current, start.payload.data.stamina.current);
+    const conflict = await startRound(token, roundId);
+    assert.equal(conflict.status, 409);
+    assert.equal(conflict.payload.errorCode, 'ROUND_COLLECTION_RULE_CONFLICT');
+    clock += 10000;
+    const forged = await settle(token, settlementBody(roundId, 30000, 10));
+    assert.equal(forged.status, 400);
+    assert.equal(forged.payload.errorCode, 'REPLAY_INVALID');
+    const actions = [{ type: 'move', id: 1, offset: -1 }];
+    const replay = require('../src/gameEngine').replayRound(start.payload.data.seed, true, actions);
+    const body = { ...settlementBody(roundId, replay.collectedMoodBeans, replay.score), actions, awardedMoodBeans: 999 };
+    const settled = await settle(token, body);
+    assert.equal(settled.status, 200);
+    assert.equal(settled.payload.data.settlement.awardedMoodBeans, 0);
+    assert.equal(settled.payload.data.settlement.gainedExperience, replay.collectedMoodBeans);
+    assert.equal(settled.payload.data.settlement.profile.moodBeanBalance, 0);
+    const repeated = await settle(token, body);
+    assert.equal(repeated.payload.data.duplicate, true);
+    assert.deepEqual(repeated.payload.data.settlement, settled.payload.data.settlement);
+  }
+});
+
+test('长局真实重放超过两万表情块，发多颗整豆且保留原资产，重试不重复奖励', async () => {
+  const { token } = await newPlayer();
+  await api('/debug/profile', { method: 'POST', token, body: { moodBeanBalance: 17 } });
+  const roundId = 'progress_long_round';
+  const begun = await api('/games/start', { method: 'POST', token, body: { roundId, collectionRule: 'progress_v1' } });
+  assert.equal(begun.status, 200);
+  // 使用真实重放操作而非伪造计数；多次清台模拟长局救场，不计入收集奖励。
+  const actions = [{ type: 'clear' }];
+  for (let batch = 0; batch < 9999; batch++) {
+    for (let i = 0; i < 9; i++) actions.push({ type: 'append' });
+    actions.push({ type: 'clear' });
+  }
+  const replay = require('../src/gameEngine').replayRound(begun.payload.data.seed, true, actions);
+  assert.equal(replay.valid, true);
+  assert.ok(replay.collectedMoodBeans >= 20000);
+  const beans = Math.floor(replay.collectedMoodBeans / 10000);
+  clock += 10000;
+  const body = { ...settlementBody(roundId, replay.collectedMoodBeans, replay.score), actions };
+  assert.ok(JSON.stringify(body).length > 32768, '覆盖旧请求大小上限');
+  const result = await settle(token, body);
+  assert.equal(result.status, 200);
+  assert.equal(result.payload.data.settlement.awardedMoodBeans, beans);
+  assert.equal(result.payload.data.settlement.gainedExperience, replay.collectedMoodBeans);
+  assert.equal(result.payload.data.settlement.profile.moodBeanBalance, 17 + beans);
+  const duplicate = await settle(token, body);
+  assert.equal(duplicate.payload.data.duplicate, true);
+  assert.deepEqual(duplicate.payload.data.settlement, result.payload.data.settlement);
+  const disk = await readDisk('SELECT mood_token_count, awarded_mood_beans FROM round_settlements WHERE round_id = ?', [roundId]);
+  assert.equal(disk[0].mood_token_count, replay.collectedMoodBeans);
+  assert.equal(disk[0].awarded_mood_beans, beans);
+});
+
+test('V2 新局绑定共享棋盘版本，真实连消炸弹完整结算，重复开局不能切换规则', async () => {
+  const { token } = await newPlayer();
+  const roundId = 'adaptive_combo_v2';
+  const begun = await api('/games/start', { method: 'POST', token,
+    body: { roundId, collectionRule: 'progress_v1', rulesVersion: 2 } });
+  assert.equal(begun.status, 200);
+  assert.equal(begun.payload.data.rulesVersion, 2);
+  const conflict = await api('/games/start', { method: 'POST', token,
+    body: { roundId, collectionRule: 'progress_v1', rulesVersion: 1 } });
+  assert.equal(conflict.status, 409);
+  assert.equal(conflict.payload.errorCode, 'BOARD_RULES_UNSUPPORTED');
+  const { default: BoardEngine, MAX_ACTION_APPENDS } = require('../src/boardEngine');
+  const board = new BoardEngine();
+  board.resetBoard(begun.payload.data.seed, true, begun.payload.data.rulesVersion);
+  for (let step = 0; step < 3; step++) {
+    const move = board.getTutorialMove(step);
+    board.movePiece(move.id, move.offset); board.resolveBoard(); board.finishPlayerAction();
+  }
+  for (let row = 0; row < 3; row++) board.appendNextRow();
+  board.resolveBoard(); board.finishPlayerAction();
+  const bomb = board.pieces.find(piece => piece.bomb);
+  assert.ok(bomb);
+  board.detonateBomb(bomb.id); board.resolveBoard();
+  while (board.getOccupiedRowCount() < 3 && board.actionAppends < MAX_ACTION_APPENDS) {
+    board.appendTurnRows(); board.resolveBoard();
+  }
+  board.finishPlayerAction();
+  clock += 60000;
+  const forged = await settle(token, { ...settlementBody(roundId, 0, 999999), actions: [] });
+  assert.equal(forged.status, 400);
+  assert.equal(forged.payload.errorCode, 'REPLAY_INVALID');
+  const body = { ...settlementBody(roundId, board.roundCollectedMoodBeans, board.score), actions: board.roundActions };
+  const settled = await settle(token, body);
+  assert.equal(settled.status, 200);
+  assert.equal(settled.payload.data.settlement.score, board.score);
+  assert.equal(settled.payload.data.settlement.gainedExperience, board.roundCollectedMoodBeans);
+  assert.equal(settled.payload.data.settlement.awardedMoodBeans, Math.floor(board.roundCollectedMoodBeans / 10000));
+});
+
+test('1% 收集规则每100表情发一豆，旧局保留原折算且结算参数不能提倍率', async () => {
+  const { token } = await newPlayer();
+  const { default: BoardEngine, MAX_ACTION_APPENDS } = require('../src/boardEngine');
+  for (const rule of ['progress_v2', 'progress_v1']) {
+    const roundId = `one_percent_${rule}`;
+    // 固定棋盘种子，避免经济边界用例依赖随机局面是否提前失败。
+    const crypto = require('node:crypto');
+    const originalRandomBytes = crypto.randomBytes;
+    const seedBytes = Buffer.alloc(4); seedBytes.writeUInt32BE(2654435761);
+    let begun;
+    try {
+      crypto.randomBytes = (size, ...args) => size === 4 ? Buffer.from(seedBytes) : originalRandomBytes(size, ...args);
+      begun = await api('/games/start', { method: 'POST', token,
+        body: { roundId, collectionRule: rule, rulesVersion: 2 } });
+    } finally { crypto.randomBytes = originalRandomBytes; }
+    assert.equal(begun.status, 200);
+    assert.equal(begun.payload.data.collectionRule, rule);
+    const board = new BoardEngine();
+    board.resetBoard(begun.payload.data.seed, begun.payload.data.isTutorial, begun.payload.data.rulesVersion);
+    if (board.isTutorialRound()) {
+      for (let step = 0; step < 3; step++) {
+        const move = board.getTutorialMove(step);
+        board.movePiece(move.id, move.offset); board.resolveBoard(); board.finishPlayerAction();
+      }
+      for (let row = 0; row < 3; row++) board.appendNextRow();
+      board.resolveBoard(); board.finishPlayerAction();
+    }
+    for (let action = 0; action < 100 && board.roundCollectedMoodBeans < 125; action++) {
+      const hint = board.findEliminationHint();
+      const bomb = board.pieces.find(piece => piece.bomb);
+      if (hint) board.movePiece(hint.id, hint.offset);
+      else if (bomb) board.detonateBomb(bomb.id);
+      else {
+        const piece = board.pieces.find(piece => { const range = board.getMoveRange(piece.id); return range.min || range.max; });
+        assert.ok(piece);
+        const range = board.getMoveRange(piece.id);
+        board.movePiece(piece.id, range.min || range.max);
+      }
+      board.resolveBoard();
+      assert.equal(board.appendTurnRows(), true);
+      board.resolveBoard();
+      while (board.getOccupiedRowCount() < board.getRefillRowTarget() && board.actionAppends < MAX_ACTION_APPENDS) {
+        assert.equal(board.appendNextRow(), true); board.resolveBoard();
+      }
+      board.finishPlayerAction();
+    }
+    assert.ok(board.roundCollectedMoodBeans >= 125 && board.roundCollectedMoodBeans < 10000);
+    clock += 60000;
+    const body = { ...settlementBody(roundId, board.roundCollectedMoodBeans, board.score),
+      actions: board.roundActions, collectionRule: 'progress_v2', awardedMoodBeans: 99999 };
+    const result = await settle(token, body);
+    assert.equal(result.status, 200);
+    const expected = rule === 'progress_v2' ? Math.floor(board.roundCollectedMoodBeans / 100) : 0;
+    assert.equal(result.payload.data.settlement.awardedMoodBeans, expected);
+    assert.equal(result.payload.data.settlement.gainedExperience, board.roundCollectedMoodBeans);
+    const duplicate = await settle(token, body);
+    assert.equal(duplicate.payload.data.duplicate, true);
+    assert.equal(duplicate.payload.data.settlement.awardedMoodBeans, expected);
+  }
+});
+
+
+test('微信绑定账号不能仅凭deviceId省略登录凭证取回token', async () => {
+  const first=await wechatPlayer('protected_bound_device','openid_protected_bound');
+  const attempt=await api('/players/bootstrap',{method:'POST',body:{deviceId:'protected_bound_device'}});
+  assert.equal(attempt.status,401);assert.equal(attempt.payload.errorCode,'WECHAT_LOGIN_REQUIRED');
+  const login=await wechatPlayer('protected_bound_device','openid_protected_bound');
+  assert.equal(login.profile.playerId,first.profile.playerId);
+});
+
+test('排行榜同分并列名次与self名次一致，不发生列表第二而自己显示第一', async () => {
+  const a=await newPlayer(),b=await newPlayer();
+  for(const p of [a,b]) await api('/debug/profile',{method:'POST',token:p.token,body:{moodBeanBalance:0,totalMoodBeans:0,highestSingleGameScore:88888}});
+  for(const p of [a,b]) {
+    const result=await api('/leaderboards?type=power',{token:p.token});
+    const data=result.payload.data;
+    assert.equal(data.entries.find(e=>e.playerId===p.profile.playerId).rank,data.self.rank);
+    assert.equal(data.entries.find(e=>e.playerId===a.profile.playerId).rank,data.entries.find(e=>e.playerId===b.profile.playerId).rank);
+  }
+});
+
+test('非法JSON主体返回400，不能抛500或更改资产', async () => {
+  for(const body of [[],null]) {
+    const response=await fetch(`${baseUrl}/v1/cocos-zyx/shop/exchanges`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    assert.equal(response.status,400);
+  }
+});
+
+test('领取响应丢失后跨北京时间日期重试同ID，不500、不重复发体力且不占新一天次数', async () => {
+  const {token}=await newPlayer();const claimId='share_cross_day_retry_1';
+  const first=await api('/stamina/share-claim',{method:'POST',token,body:{claimId}});
+  assert.equal(first.status,200);assert.equal(first.payload.data.stamina.current,15);
+  clock+=24*60*60*1000;
+  const retry=await api('/stamina/share-claim',{method:'POST',token,body:{claimId}});
+  assert.equal(retry.status,200);assert.equal(retry.payload.data.duplicate,true);
+  assert.equal(retry.payload.data.previousDay,true);assert.equal(retry.payload.data.awarded,0);
+  assert.equal(retry.payload.data.stamina.current,15);assert.equal(retry.payload.data.stamina.shareAvailableToday,true);
+  const today=await api('/stamina/share-claim',{method:'POST',token,body:{claimId:'share_cross_day_new_today'}});
+  assert.equal(today.status,200);assert.equal(today.payload.data.stamina.current,20);
 });

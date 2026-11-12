@@ -29,10 +29,14 @@ export const ASSET_PATHS = {
         comboGreat: 'images/formal/combo_great_v1',
         comboPerfect: 'images/formal/combo_perfect_v1',
         scoreDigits: 'images/formal/score_digits_green_v1',
+        hudMascot: 'images/formal/bean_hud_mascot_v1',
+        hudGlyphs: 'images/formal/hud_glyphs_v1',
+        hudFont: 'images/formal/hud_round_v1',
         rewardSpine: 'spine/get_1',
         breakSound: 'sound/sound_break',
         moveSound: 'sound/sound_move',
         hammerSound: 'sound/sound_tool1',
+        bombSound: 'sound/sound_bomb_v1',
         magicWandSound: 'sound/sound_tool2',
     },
     home: {
@@ -129,10 +133,14 @@ function featureSpecs(feature: FeatureName): AssetSpec[] {
             { path: ASSET_PATHS.game.comboGreat, type: cc.SpriteFrame },
             { path: ASSET_PATHS.game.comboPerfect, type: cc.SpriteFrame },
             { path: ASSET_PATHS.game.scoreDigits, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.game.hudMascot, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.game.hudGlyphs, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.game.hudFont, type: cc.BitmapFont },
             { path: ASSET_PATHS.game.rewardSpine, type: sp.SkeletonData },
             { path: ASSET_PATHS.game.breakSound, type: cc.AudioClip },
             { path: ASSET_PATHS.game.moveSound, type: cc.AudioClip },
             { path: ASSET_PATHS.game.hammerSound, type: cc.AudioClip },
+            { path: ASSET_PATHS.game.bombSound, type: cc.AudioClip },
             { path: ASSET_PATHS.game.magicWandSound, type: cc.AudioClip },
         ];
     }
@@ -151,7 +159,11 @@ export function prepareFeature(feature: FeatureName): Promise<void> {
     if (readyFeatures[feature]) return Promise.resolve();
     if (featurePromises[feature]) return featurePromises[feature];
 
-    featurePromises[feature] = loadSpecs(feature, featureSpecs(feature))
+    // 默认头像和钱包图标属于主包，首页也预载同一角色，不复制一套到分包。
+    const shared = feature === 'home'
+        ? loadSpecs('game', [ASSET_PATHS.game.hudMascot, ASSET_PATHS.game.hammer, ASSET_PATHS.game.magicWand].map(path => ({ path, type: cc.SpriteFrame })))
+        : Promise.resolve();
+    featurePromises[feature] = Promise.all([shared, loadSpecs(feature, featureSpecs(feature))])
         .then(() => {
             readyFeatures[feature] = true;
         })
@@ -177,6 +189,10 @@ function getLoadedAsset<T extends cc.Asset>(bundleName: BundleName, path: string
 
 export function getSpriteFrame(bundleName: BundleName, path: string): cc.SpriteFrame {
     return getLoadedAsset<cc.SpriteFrame>(bundleName, path, cc.SpriteFrame);
+}
+
+export function getBitmapFont(bundleName: BundleName, path: string): cc.BitmapFont {
+    return getLoadedAsset<cc.BitmapFont>(bundleName, path, cc.BitmapFont);
 }
 
 export function getSkeletonData(bundleName: BundleName, path: string): sp.SkeletonData {

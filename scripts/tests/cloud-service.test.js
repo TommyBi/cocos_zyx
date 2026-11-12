@@ -14,10 +14,25 @@ test.before(() => {
     } catch (_) { /* Cocos 类型在独立编译时不可见，检查 JS 产物。 */ }
     store = new Map();
     global.cc = { sys: { localStorage: { getItem: (k) => store.get(k), setItem: (k, v) => store.set(k, v) } } };
-    cloud = require(path.join(out, 'CloudService.js'));
-    platform = require(path.join(out, 'PlatformAdapter.js'));
+    cloud = require(path.join(out, 'manager', 'CloudService.js'));
+    platform = require(path.join(out, 'manager', 'PlatformAdapter.js'));
 });
-test.afterEach(() => { delete global.wx; store.clear(); });
+test.afterEach(() => { delete global.wx; delete global.location; delete global.CC_DEBUG; store.clear(); });
+
+test('Web 请求超时会取消，允许商城用原ID继续确认而非永久卡在确认中', async () => {
+    const originalFetch = global.fetch;
+    const originalSetTimeout = global.setTimeout;
+    let signal;
+    global.setTimeout = callback => originalSetTimeout(callback, 5);
+    global.fetch = (_url, options) => {
+        signal = options.signal;
+        return new Promise((_resolve, reject) => signal.addEventListener('abort', () => reject(new Error('request timed out'))));
+    };
+    try {
+        await assert.rejects(cloud.cloudService.exchangeTool('timeout_same_id', 'hammer'), /timed out/);
+        assert.equal(signal.aborted, true);
+    } finally { global.fetch = originalFetch; global.setTimeout = originalSetTimeout; }
+});
 
 // ── 浏览器环境：统一走 Staging ──
 
@@ -33,6 +48,54 @@ test('浏览器忽略残留 localStorage override，仍走 Staging', () => {
     assert.equal(cloud.getEnvName(), 'staging');
 });
 
+test('只有 Debug 本机页面显式 localApi=1 才可联调本机，远程/正式环境忽略', () => {
+    global.CC_DEBUG = true;
+    global.location = { hostname: 'localhost', search: '?localApi=1' };
+    assert.equal(cloud.getApiBase(), 'http://127.0.0.1:8080/v1/cocos-zyx');
+    global.location.hostname = 'example.com';
+    assert.equal(cloud.getApiBase(), 'https://staging-api.tcjstory.cn/v1/cocos-zyx');
+    global.location.hostname = '127.0.0.1';
+    global.CC_DEBUG = false;
+    assert.equal(cloud.getApiBase(), 'https://staging-api.tcjstory.cn/v1/cocos-zyx');
+});
+
+test('后端未支持进度规则时在扣体力前停止开局', async () => {
+    const requests = [];
+    global.wx = {
+        getAccountInfoSync: () => ({ miniProgram: { envVersion: 'trial' } }),
+        request: (options) => {
+            requests.push(options.url);
+            options.success({ statusCode: 200, data: { code: 0, data: { capabilities: [] } } });
+        },
+    };
+    await assert.rejects(cloud.cloudService.startRound('incompatible'), /游戏服务更新中/);
+    assert.equal(requests.length, 1);
+    assert.ok(requests[0].endsWith('/health'));
+});
+
+test('服务端缺少双倍升难能力时不扣体力开局', async () => {
+    const requests = [];
+    global.wx = { request(options) {
+        requests.push(options.url);
+        options.success({ statusCode: 200, data: { code: 0, data: { capabilities:
+            ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop'] } } });
+    } };
+    await assert.rejects(cloud.cloudService.startRound('unsupported_fast_ramp'), /游戏服务更新中/);
+    assert.equal(requests.length, 1);
+    assert.ok(requests[0].endsWith('/health'));
+});
+
+test('服务端仍是V3时在扣体力前拦截V4新开局', async () => {
+    const requests = [];
+    global.wx = { request(options) {
+        requests.push(options.url);
+        options.success({ statusCode: 200, data: { code: 0, data: { capabilities:
+            ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x'] } } });
+    } };
+    await assert.rejects(cloud.cloudService.startRound('unsupported_pressure'), /游戏服务更新中/);
+    assert.equal(requests.length, 1);
+});
+
 // ── 微信环境 ──
 
 test('微信正式版（release）使用 Production API', async () => {
@@ -40,9 +103,10 @@ test('微信正式版（release）使用 Production API', async () => {
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'release' } }),
         request: (options) => {
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5'] } } }); return; }
             assert.equal(options.url, 'https://api.tcjstory.cn/v1/cocos-zyx/games/start');
             assert.equal(options.header.Authorization, 'Bearer test-token');
-            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', stamina: { current: 29 } } } });
+            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 5, stamina: { current: 29 } } } });
         },
     };
     assert.equal(cloud.getEnvName(), 'production');
@@ -55,8 +119,9 @@ test('微信体验版（trial）使用 Staging API', async () => {
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'trial' } }),
         request: (options) => {
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5'] } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/games/start');
-            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', stamina: { current: 29 } } } });
+            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 5, stamina: { current: 29 } } } });
         },
     };
     assert.equal(cloud.getEnvName(), 'staging');
@@ -69,8 +134,9 @@ test('微信开发版（develop）使用 Staging API', async () => {
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'develop' } }),
         request: (options) => {
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5'] } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/games/start');
-            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', stamina: { current: 29 } } } });
+            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 5, stamina: { current: 29 } } } });
         },
     };
     assert.equal(cloud.getEnvName(), 'staging');
@@ -88,6 +154,7 @@ test('资料更新只走独立接口并携带微信昵称头像', async () => {
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'trial' } }),
         request: (options) => {
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5'] } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/players/profile');
             assert.deepEqual(options.data, { nickname: '微信玩家', avatarUrl: 'https://thirdwx.qlogo.cn/avatar.png' });
             options.success({ statusCode: 200, data: { code: 0, data: { profile: { nickname: '微信玩家' } } } });
@@ -104,6 +171,7 @@ test('微信建档携带一次性 loginCode，清缓存后 deviceId 改变仍提
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'develop' } }),
         login: (options) => options.success({ code: `login_code_${++loginSeq}` }),
         request: (options) => {
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5'] } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/players/bootstrap');
             bodies.push(options.data);
             options.success({ statusCode: 200, data: { code: 0, data: { token: `token_${loginSeq}`, profile: { playerId: 'stable_player' } } } });
@@ -211,4 +279,19 @@ test('Web 与无效微信昵称不会伪装授权成功', async () => {
     await assert.rejects(platform.requestWeChatUserProfile(), /不支持/);
     global.wx = { getUserProfile: (options) => options.success({ userInfo: { nickName: ' ', avatarUrl: '' } }) };
     await assert.rejects(platform.requestWeChatUserProfile(), /有效的微信昵称/);
+});
+
+test('账号切换后旧请求的成功回执和401均不能覆盖新账号或替新账号重试旧操作', async () => {
+    for (const statusCode of [200,401]) {
+        store.set('zyx_cloud_token','account-a-token');
+        let finish;
+        let count=0;
+        global.wx={request(options){count++;finish=()=>options.success({statusCode,data:statusCode===200?{code:0,data:{profile:{playerId:'account-a'}}}:{code:401,message:'expired'}});}};
+        const request=cloud.cloudService.exchangeTool('old_account_pending','hammer');
+        store.set('zyx_cloud_token','account-b-token');
+        finish();
+        await assert.rejects(request,error=>error.businessCode==='ACCOUNT_CHANGED');
+        assert.equal(count,1);
+        assert.equal(store.get('zyx_cloud_token'),'account-b-token');
+    }
 });

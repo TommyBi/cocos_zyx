@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "raw": 203,
+    "beans": 2
+  },
+  "errors": [],
+  "zeroRewardReturn": true,
+  "delayedRewardReturn": true
+}

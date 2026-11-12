@@ -1,0 +1,17 @@
+[
+  {
+    "key": "scorePanel",
+    "name": "bean_hud_score_panel_v1.png",
+    "prompt": "Use case: ui-mockup production game asset. Input image is style and material reference from an approved mobile puzzle HUD. Match its soft cream and honey color palette, subtle warm cocoa edging, creamy illustrated jelly finish and gentle pillow bevel. Output a SINGLE isolated UI asset with a truly transparent background. Straight-on orthographic screen-facing, no perspective, no room, no puzzle board, no words, no letters, no numbers, no icons, no additional components. Keep sharp professional game-ready silhouette, restrained material shading, no strong dramatic light or floor, no checkerboard pattern. Object must fill almost the entire canvas with only a small transparent margin for a subtle shadow. Do not include a mockup or explanation sheet. Produce ONE pale ivory cream rounded score card, aspect ratio about 1.13:1, intended body dimensions166x148. Smooth radius22 corners, fine warm-white edge highlight, a delicate cream/cocoa lower lip and very soft tiny warm shadow extending no more than5% of height. Clean nearly uniform cream center so brown text remains very readable. Match the left score panel in reference."
+  },
+  {
+    "key": "collectionPanel",
+    "name": "bean_hud_collection_panel_v1.png",
+    "prompt": "Use case: ui-mockup production game asset. Input image is style and material reference from an approved mobile puzzle HUD. Match its soft cream and honey color palette, subtle warm cocoa edging, creamy illustrated jelly finish and gentle pillow bevel. Output a SINGLE isolated UI asset with a truly transparent background. Straight-on orthographic screen-facing, no perspective, no room, no puzzle board, no words, no letters, no numbers, no icons, no additional components. Keep sharp professional game-ready silhouette, restrained material shading, no strong dramatic light or floor, no checkerboard pattern. Object must fill almost the entire canvas with only a small transparent margin for a subtle shadow. Do not include a mockup or explanation sheet. Produce ONE wide pale golden cream rounded collection HUD panel, aspect ratio exactly3:1, intended body dimensions442x148. Radius26 corners. Refined thin ivory edge highlight, very slight darker honey lower edge, soft translucent oval white jelly glints near the upper left and upper right corners, broad flat pale yellow cream empty center for dark green percentage text. Small soft brown-gold shadow below, no ring, no bean, no text. Match the right collection panel in reference closely."
+  },
+  {
+    "key": "mascot",
+    "name": "bean_hud_mascot_v1.png",
+    "prompt": "Use case: ui-mockup production game asset. Input image is the exact visual reference. Create ONLY the little yellow happy bean mascot from inside the progress ring, isolated on a truly transparent background, square canvas. Round golden yellow squishy bean/seed body, small two-leaf fresh green sprout on top, cocoa dark dot eyes, tiny warm smiling curved mouth, small rosy peach cheeks, little subtle side lobes, honey brown fine outline, creamy gloss at upper left, gentle hand-painted soft jelly volume. Front-facing centered, warm and cute but extremely clean readable at small icon size. Preserve the approved mascot's facial character and silhouette. No progress ring, no labels, no badge, no other objects, no backdrop, no ground, no text, no numbers. Body and sprout fill approximately90% of image. 512x512 PNG transparency."
+  }
+]

@@ -1,6 +1,7 @@
 export const DESIGN_WIDTH = 750;
 export const DESIGN_HEIGHT = 1334;
-export const GAME_MIN_HEIGHT = 1390;
+export const GAME_MIN_HEIGHT = 1444;
+export const GAME_HUD_HEIGHT = 148;
 export const GAME_RANK_PANEL_WIDTH = 88;
 
 export type ViewportRect = { x: number; y: number; width: number; height: number };
@@ -54,17 +55,28 @@ export function calculateStageLayout(region: ViewportRect, game: boolean): Stage
 export function calculateGameLayout(height: number, boardHeight: number) {
     const extraGap = Math.max(0, height - GAME_MIN_HEIGHT) / 4;
     const top = height / 2 - 16;
-    const hudY = top - 53;
-    const boardTop = top - 106 - 18 - extraGap;
+    const hudY = top - (GAME_HUD_HEIGHT + 12) / 2;
+    const boardTop = top - GAME_HUD_HEIGHT - 12 - 18 - extraGap;
     const boardY = boardTop - (boardHeight + 24) / 2;
     const nextTop = boardTop - boardHeight - 24 - 18 - extraGap;
     const nextY = nextTop - 60;
     const toolY = nextTop - 120 - 22 - 74 - extraGap;
     const footerY = -height / 2 + 20 + 40;
     // 给左侧追赶底板留出独立空间，棋盘与下一排共用同一中轴。
-    const boardX = 42;
-    const rankX = -DESIGN_WIDTH / 2 + 8 + GAME_RANK_PANEL_WIDTH / 2;
+    const boardX = 50;
+    const rankX = -DESIGN_WIDTH / 2 + 16 + GAME_RANK_PANEL_WIDTH / 2;
     return { hudY, boardX, rankX, boardY, nextY, toolY, footerY };
+}
+
+/** 顶部比棋盘/展开排行的整体轮廓各宽 8px，并始终共用同一中轴。 */
+export function calculateGameHudLayout(stageWidth: number, boardWidth: number, expansion: number) {
+    const progress = Math.max(0, Math.min(1, expansion));
+    const boardHalf = (boardWidth + 18) / 2;
+    const closedLeft = -boardHalf - 8;
+    const expandedLeft = -stageWidth / 2 + 16 - 8;
+    const left = closedLeft + (expandedLeft - closedLeft) * progress;
+    const right = boardHalf + 50 * progress + 8;
+    return { x: (left + right) / 2, width: right - left };
 }
 
 /** 将全局安全边界与分屏区域相交；胶囊占用整条顶部导航区域。 */

@@ -1,0 +1,100 @@
+[
+  {
+    "tutorial": true,
+    "samples": 100,
+    "policy": "hint",
+    "limit": 200,
+    "played": 20892,
+    "cleared": 16640,
+    "multiRows": 4212,
+    "cascade": 3445,
+    "bombsUsed": 1476,
+    "bombsEarned": 5828,
+    "perfectRounds": 100,
+    "aliveAt36": 95,
+    "directAtOpening": 82,
+    "replayMismatch": 0,
+    "stages": [
+      {
+        "actions": 3374,
+        "cleared": 3275,
+        "multiRows": 1094,
+        "heightTotal": 13399
+      },
+      {
+        "actions": 2381,
+        "cleared": 2197,
+        "multiRows": 599,
+        "heightTotal": 9774
+      },
+      {
+        "actions": 2586,
+        "cleared": 2061,
+        "multiRows": 505,
+        "heightTotal": 11156
+      },
+      {
+        "actions": 12551,
+        "cleared": 9107,
+        "multiRows": 2014,
+        "heightTotal": 58879
+      }
+    ],
+    "firstTen": {
+      "played": 1000,
+      "cleared": 990,
+      "multiRows": 355
+    },
+    "averageRoundMs": 354,
+    "noMissBefore15": 87
+  },
+  {
+    "tutorial": false,
+    "samples": 100,
+    "policy": "hint",
+    "limit": 200,
+    "played": 21224,
+    "cleared": 16977,
+    "multiRows": 4326,
+    "cascade": 3563,
+    "bombsUsed": 1486,
+    "bombsEarned": 5921,
+    "perfectRounds": 100,
+    "aliveAt36": 94,
+    "directAtOpening": 100,
+    "replayMismatch": 0,
+    "stages": [
+      {
+        "actions": 3640,
+        "cleared": 3587,
+        "multiRows": 1179,
+        "heightTotal": 14085
+      },
+      {
+        "actions": 2408,
+        "cleared": 2208,
+        "multiRows": 641,
+        "heightTotal": 9895
+      },
+      {
+        "actions": 2592,
+        "cleared": 2067,
+        "multiRows": 458,
+        "heightTotal": 11292
+      },
+      {
+        "actions": 12584,
+        "cleared": 9115,
+        "multiRows": 2048,
+        "heightTotal": 59052
+      }
+    ],
+    "firstTen": {
+      "played": 1000,
+      "cleared": 1000,
+      "multiRows": 279
+    },
+    "averageRoundMs": 379,
+    "noMissBefore15": 97
+  }
+]

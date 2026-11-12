@@ -1,0 +1,2753 @@
+{
+  "seed": 2654435761,
+  "actions": [
+    {
+      "type": "bomb",
+      "state": {
+        "combo": 4,
+        "score": 100,
+        "moveCount": 3,
+        "bombs": 1,
+        "rows": 4,
+        "cascade": 0,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 150,
+        "moveCount": 4,
+        "bombs": 2,
+        "rows": 5,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 250,
+        "moveCount": 5,
+        "bombs": 2,
+        "rows": 7,
+        "cascade": 2,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 350,
+        "moveCount": 6,
+        "bombs": 2,
+        "rows": 9,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 400,
+        "moveCount": 7,
+        "bombs": 3,
+        "rows": 10,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 450,
+        "moveCount": 8,
+        "bombs": 2,
+        "rows": 11,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 500,
+        "moveCount": 9,
+        "bombs": 3,
+        "rows": 12,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 550,
+        "moveCount": 10,
+        "bombs": 3,
+        "rows": 13,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 600,
+        "moveCount": 11,
+        "bombs": 3,
+        "rows": 14,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 650,
+        "moveCount": 12,
+        "bombs": 2,
+        "rows": 15,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 750,
+        "moveCount": 13,
+        "bombs": 3,
+        "rows": 17,
+        "cascade": 2,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 900,
+        "moveCount": 14,
+        "bombs": 3,
+        "rows": 20,
+        "cascade": 3,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 950,
+        "moveCount": 15,
+        "bombs": 2,
+        "rows": 21,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1200,
+        "moveCount": 16,
+        "bombs": 2,
+        "rows": 26,
+        "cascade": 5,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1300,
+        "moveCount": 17,
+        "bombs": 3,
+        "rows": 28,
+        "cascade": 2,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1350,
+        "moveCount": 18,
+        "bombs": 2,
+        "rows": 29,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1450,
+        "moveCount": 19,
+        "bombs": 3,
+        "rows": 31,
+        "cascade": 2,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1550,
+        "moveCount": 20,
+        "bombs": 3,
+        "rows": 33,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1600,
+        "moveCount": 21,
+        "bombs": 2,
+        "rows": 34,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1650,
+        "moveCount": 22,
+        "bombs": 2,
+        "rows": 35,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1700,
+        "moveCount": 23,
+        "bombs": 2,
+        "rows": 36,
+        "cascade": 1,
+        "stage": 0,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1800,
+        "moveCount": 24,
+        "bombs": 2,
+        "rows": 38,
+        "cascade": 1,
+        "stage": 1,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 1850,
+        "moveCount": 25,
+        "bombs": 3,
+        "rows": 39,
+        "cascade": 1,
+        "stage": 1,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2000,
+        "moveCount": 26,
+        "bombs": 3,
+        "rows": 42,
+        "cascade": 3,
+        "stage": 1,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "bomb",
+      "state": {
+        "combo": 5,
+        "score": 2000,
+        "moveCount": 26,
+        "bombs": 2,
+        "rows": 42,
+        "cascade": 0,
+        "stage": 1,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2050,
+        "moveCount": 27,
+        "bombs": 2,
+        "rows": 43,
+        "cascade": 1,
+        "stage": 1,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2150,
+        "moveCount": 28,
+        "bombs": 2,
+        "rows": 45,
+        "cascade": 2,
+        "stage": 1,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2200,
+        "moveCount": 29,
+        "bombs": 3,
+        "rows": 46,
+        "cascade": 1,
+        "stage": 1,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2250,
+        "moveCount": 30,
+        "bombs": 1,
+        "rows": 47,
+        "cascade": 1,
+        "stage": 1,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2350,
+        "moveCount": 31,
+        "bombs": 2,
+        "rows": 49,
+        "cascade": 2,
+        "stage": 1,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2400,
+        "moveCount": 32,
+        "bombs": 1,
+        "rows": 50,
+        "cascade": 1,
+        "stage": 1,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2550,
+        "moveCount": 33,
+        "bombs": 2,
+        "rows": 53,
+        "cascade": 2,
+        "stage": 1,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2600,
+        "moveCount": 34,
+        "bombs": 1,
+        "rows": 54,
+        "cascade": 1,
+        "stage": 1,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2650,
+        "moveCount": 35,
+        "bombs": 2,
+        "rows": 55,
+        "cascade": 1,
+        "stage": 1,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "bomb",
+      "state": {
+        "combo": 5,
+        "score": 2650,
+        "moveCount": 35,
+        "bombs": 1,
+        "rows": 55,
+        "cascade": 0,
+        "stage": 1,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2700,
+        "moveCount": 36,
+        "bombs": 1,
+        "rows": 56,
+        "cascade": 1,
+        "stage": 2,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2750,
+        "moveCount": 37,
+        "bombs": 2,
+        "rows": 57,
+        "cascade": 1,
+        "stage": 2,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2800,
+        "moveCount": 38,
+        "bombs": 1,
+        "rows": 58,
+        "cascade": 1,
+        "stage": 2,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2850,
+        "moveCount": 39,
+        "bombs": 2,
+        "rows": 59,
+        "cascade": 1,
+        "stage": 2,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "bomb",
+      "state": {
+        "combo": 5,
+        "score": 2850,
+        "moveCount": 39,
+        "bombs": 1,
+        "rows": 59,
+        "cascade": 0,
+        "stage": 2,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "bomb",
+      "state": {
+        "combo": 5,
+        "score": 2850,
+        "moveCount": 39,
+        "bombs": 0,
+        "rows": 59,
+        "cascade": 0,
+        "stage": 2,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2900,
+        "moveCount": 40,
+        "bombs": 1,
+        "rows": 60,
+        "cascade": 1,
+        "stage": 2,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 2950,
+        "moveCount": 41,
+        "bombs": 1,
+        "rows": 61,
+        "cascade": 1,
+        "stage": 2,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "bomb",
+      "state": {
+        "combo": 5,
+        "score": 2950,
+        "moveCount": 41,
+        "bombs": 0,
+        "rows": 61,
+        "cascade": 0,
+        "stage": 2,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 3000,
+        "moveCount": 42,
+        "bombs": 1,
+        "rows": 62,
+        "cascade": 1,
+        "stage": 2,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 3050,
+        "moveCount": 43,
+        "bombs": 1,
+        "rows": 63,
+        "cascade": 1,
+        "stage": 2,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 3150,
+        "moveCount": 44,
+        "bombs": 2,
+        "rows": 65,
+        "cascade": 2,
+        "stage": 2,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "bomb",
+      "state": {
+        "combo": 5,
+        "score": 3200,
+        "moveCount": 44,
+        "bombs": 1,
+        "rows": 66,
+        "cascade": 1,
+        "stage": 2,
+        "riseRows": 1,
+        "gameOver": false,
+        "preview": "下一排"
+      }
+    },
+    {
+      "type": "bomb",
+      "state": {
+        "combo": 5,
+        "score": 3200,
+        "moveCount": 44,
+        "bombs": 0,
+        "rows": 66,
+        "cascade": 0,
+        "stage": 2,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "setup",
+      "state": {
+        "combo": 0,
+        "score": 3200,
+        "moveCount": 45,
+        "bombs": 0,
+        "rows": 66,
+        "cascade": 0,
+        "stage": 2,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 1,
+        "score": 3210,
+        "moveCount": 46,
+        "bombs": 0,
+        "rows": 67,
+        "cascade": 1,
+        "stage": 3,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "setup",
+      "state": {
+        "combo": 0,
+        "score": 3210,
+        "moveCount": 47,
+        "bombs": 0,
+        "rows": 67,
+        "cascade": 0,
+        "stage": 3,
+        "riseRows": 2,
+        "gameOver": false,
+        "preview": "下两排 ↑↑"
+      }
+    },
+    {
+      "type": "setup",
+      "state": {
+        "combo": 0,
+        "score": 3210,
+        "moveCount": 48,
+        "bombs": 0,
+        "rows": 67,
+        "cascade": 0,
+        "stage": 3,
+        "riseRows": 2,
+        "gameOver": true,
+        "preview": "下两排 ↑↑"
+      }
+    }
+  ],
+  "score": 3210,
+  "collectedBlocks": 196,
+  "collection": {
+    "percent": "96%",
+    "count": "本局 +1"
+  },
+  "replayActions": [
+    {
+      "type": "rules",
+      "version": 5
+    },
+    {
+      "type": "move",
+      "id": 1,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 3,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 2,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "bomb",
+      "id": 11
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 13,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 14,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 40,
+      "offset": -2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 34,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 53,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 59,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 67,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 66,
+      "offset": -2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 83,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 91,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 94,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 78,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 113,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 116,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 148,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 157,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 178,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 158,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 184,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 189,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 203,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 206,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 220,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "bomb",
+      "id": 221
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 238,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 245,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 255,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 252,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 266,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 283,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 286,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 292,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 294,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "bomb",
+      "id": 308
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 314,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 316,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 326,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 310,
+      "offset": -2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "bomb",
+      "id": 335
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "bomb",
+      "id": 338
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 343,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 337,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "bomb",
+      "id": 356
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 339,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 361,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 373,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "bomb",
+      "id": 346
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "bomb",
+      "id": 383
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 264,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 378,
+      "offset": -4
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 264,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 264,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    }
+  ],
+  "eliminations": [
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 1
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 2
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 3
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 4
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 2,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 3,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 3,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 4,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 5,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 2,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 2,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 3,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 2,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 1
+    }
+  ],
+  "detonations": [
+    1,
+    2,
+    2,
+    2,
+    1,
+    2,
+    1,
+    2,
+    2,
+    2,
+    1,
+    2,
+    1,
+    1,
+    2,
+    2,
+    1,
+    1,
+    2,
+    3,
+    1,
+    2,
+    1,
+    2,
+    1,
+    1,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    1
+  ],
+  "generationTimes": [
+    1.7999999821186066,
+    1,
+    0.9000000059604645,
+    1.800000011920929,
+    1.0999999940395355,
+    1.800000011920929,
+    0.5999999940395355,
+    1,
+    1.699999988079071,
+    0.800000011920929,
+    1.100000023841858,
+    3.7000000178813934,
+    0.30000001192092896,
+    1.100000023841858,
+    1.0999999940395355,
+    2.199999988079071,
+    2.5999999940395355,
+    1.800000011920929,
+    1.0999999940395355,
+    0.4000000059604645,
+    1.300000011920929,
+    1.4000000059604645,
+    0.29999998211860657,
+    2.0999999940395355,
+    2.0999999940395355,
+    1.800000011920929,
+    2.899999976158142,
+    0.7000000178813934,
+    0.5,
+    0.699999988079071,
+    2.699999988079071,
+    1.399999976158142,
+    0.5999999940395355,
+    1.300000011920929,
+    0.30000001192092896,
+    1,
+    0.9000000059604645,
+    0.5999999940395355,
+    1,
+    1.300000011920929,
+    0.30000001192092896,
+    1.699999988079071,
+    3.600000023841858,
+    1.199999988079071,
+    2.0999999940395355,
+    4.799999982118607,
+    1.0999999940395355,
+    3,
+    1.2000000178813934,
+    4,
+    1.199999988079071,
+    3.5,
+    1.199999988079071,
+    2.5,
+    1.5999999940395355,
+    2.4000000059604645,
+    7.800000011920929,
+    2.199999988079071,
+    4,
+    0.5999999940395355,
+    1.300000011920929,
+    0.19999998807907104,
+    1.5,
+    1.600000023841858,
+    4.299999982118607,
+    1.5999999940395355,
+    2.300000011920929,
+    1.5,
+    0.9000000059604645,
+    1.5,
+    2.199999988079071,
+    0.3999999761581421,
+    0.29999998211860657,
+    0.800000011920929,
+    0.5,
+    3,
+    1.399999976158142,
+    0.800000011920929,
+    0.8999999761581421,
+    0.5,
+    0.5999999940395355,
+    0.5,
+    1,
+    0.7000000178813934,
+    0.7999999821186066,
+    1.7999999821186066,
+    0.7000000178813934,
+    2.399999976158142,
+    2.399999976158142,
+    6.299999982118607,
+    4.5,
+    2.600000023841858,
+    0.9000000059604645,
+    0.699999988079071,
+    0.4000000059604645,
+    0.699999988079071,
+    3.0999999940395355,
+    5.699999988079071,
+    1.5,
+    1.2999999821186066,
+    3.800000011920929,
+    6.0999999940395355,
+    1.5,
+    5.9000000059604645,
+    1.0999999940395355,
+    8,
+    0.5,
+    1,
+    0.4000000059604645,
+    0.5,
+    1.9000000059604645,
+    0.9000000059604645,
+    1,
+    1.5999999940395355,
+    1.0999999940395355,
+    2,
+    1.9000000059604645,
+    0
+  ],
+  "replay": {
+    "score": 3210,
+    "collectedMoodBeans": 196,
+    "valid": true
+  },
+  "errors": []
+}

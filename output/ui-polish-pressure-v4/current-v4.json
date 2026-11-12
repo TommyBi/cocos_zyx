@@ -1,0 +1,118 @@
+[
+  {
+    "tutorial": true,
+    "samples": 64,
+    "policy": "hint",
+    "limit": 60,
+    "rulesVersion": 4,
+    "played": 3303,
+    "cleared": 2133,
+    "multiRows": 523,
+    "cascade": 424,
+    "bombsUsed": 301,
+    "bombsEarned": 801,
+    "perfectRounds": 64,
+    "aliveAt36": 31,
+    "aliveAtLimit": 31,
+    "directAtOpening": 52,
+    "replayMismatch": 0,
+    "reached3000": 0,
+    "stages": [
+      {
+        "actions": 372,
+        "cleared": 360,
+        "multiRows": 146,
+        "heightTotal": 1359
+      },
+      {
+        "actions": 320,
+        "cleared": 286,
+        "multiRows": 90,
+        "heightTotal": 1321
+      },
+      {
+        "actions": 384,
+        "cleared": 263,
+        "multiRows": 50,
+        "heightTotal": 1748
+      },
+      {
+        "actions": 2227,
+        "cleared": 1224,
+        "multiRows": 237,
+        "heightTotal": 12925
+      }
+    ],
+    "firstTen": {
+      "played": 640,
+      "cleared": 618,
+      "multiRows": 226
+    },
+    "firstProtected": {
+      "played": 372,
+      "cleared": 360,
+      "multiRows": 146
+    },
+    "averageRoundMs": 102,
+    "averageScoreAtEnd": 1540,
+    "noMissBefore15": 40
+  },
+  {
+    "tutorial": false,
+    "samples": 64,
+    "policy": "hint",
+    "limit": 60,
+    "rulesVersion": 4,
+    "played": 3700,
+    "cleared": 2508,
+    "multiRows": 607,
+    "cascade": 501,
+    "bombsUsed": 300,
+    "bombsEarned": 905,
+    "perfectRounds": 64,
+    "aliveAt36": 41,
+    "aliveAtLimit": 41,
+    "directAtOpening": 64,
+    "replayMismatch": 0,
+    "reached3000": 0,
+    "stages": [
+      {
+        "actions": 576,
+        "cleared": 572,
+        "multiRows": 161,
+        "heightTotal": 1985
+      },
+      {
+        "actions": 320,
+        "cleared": 286,
+        "multiRows": 94,
+        "heightTotal": 1308
+      },
+      {
+        "actions": 384,
+        "cleared": 275,
+        "multiRows": 62,
+        "heightTotal": 1712
+      },
+      {
+        "actions": 2420,
+        "cleared": 1375,
+        "multiRows": 290,
+        "heightTotal": 13662
+      }
+    ],
+    "firstTen": {
+      "played": 640,
+      "cleared": 640,
+      "multiRows": 183
+    },
+    "firstProtected": {
+      "played": 576,
+      "cleared": 572,
+      "multiRows": 161
+    },
+    "averageRoundMs": 106,
+    "averageScoreAtEnd": 1667,
+    "noMissBefore15": 39
+  }
+]

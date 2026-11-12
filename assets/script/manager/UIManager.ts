@@ -12,6 +12,12 @@ export type ModalAction = {
 
 export type ModalDecoration = (panel: cc.Node, centerY: number) => void;
 
+export type ModalDismissOptions = {
+    /** 仅遮罩、空白和关闭钮触发；操作按钮继续使用各自的 onClick。 */
+    onDismiss?: () => void;
+    closeOnBlank?: boolean;
+};
+
 export type SafeAreaMetrics = {
     top: number;
     bottom: number;
@@ -282,10 +288,12 @@ export default class UIManager {
         label.enableBold = true;
 
         button.on(cc.Node.EventType.TOUCH_START, () => {
+            if (!button.getComponent(cc.Button).interactable) return;
             cc.tween(button).stop();
             cc.tween(button).to(0.07, { scale: 0.95 }).start();
         });
         button.on(cc.Node.EventType.TOUCH_END, () => {
+            if (!button.getComponent(cc.Button).interactable) return;
             cc.tween(button).stop();
             cc.tween(button).to(0.1, { scale: 1 }).start();
             onClick();
@@ -426,8 +434,14 @@ export default class UIManager {
         horizontalActions: boolean = false,
         dismissible: boolean = false,
         panelWidth: number = 560,
+        dismissOptions: ModalDismissOptions = {},
     ): cc.Node {
         if (!this.scene) return null;
+        if (this.toast && this.toast.isValid) {
+            cc.Tween.stopAllByTarget(this.toast);
+            this.toast.destroy();
+            this.toast = null;
+        }
         this.closeModal();
 
         const root = new cc.Node('modal');
@@ -448,13 +462,19 @@ export default class UIManager {
         const panelHeight = 300 + actionRows * 92 + contentHeight;
         const panel = this.createRect(root, 'panel', panelWidth, panelHeight, new cc.Color(211, 164, 98), 255, 26, 0, 0);
         if (dismissible) {
-            mask.on(cc.Node.EventType.TOUCH_END, () => {
-                if (this.modal === root) this.closeModal();
-            }, this);
+            const dismiss = (): void => {
+                if (this.modal !== root) return;
+                this.closeModal();
+                if (dismissOptions.onDismiss) dismissOptions.onDismiss();
+            };
+            mask.on(cc.Node.EventType.TOUCH_END, dismiss, this);
             panel.addComponent(cc.BlockInputEvents);
-            this.createModalCloseButton(panel, panelHeight, () => {
-                if (this.modal === root) this.closeModal();
-            });
+            this.createModalCloseButton(panel, panelHeight, dismiss);
+            if (dismissOptions.closeOnBlank) {
+                panel.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
+                    if (event.target === panel) dismiss();
+                }, this);
+            }
         }
         this.createRect(panel, 'panelInner', panelWidth - 20, panelHeight - 20, new cc.Color(255, 244, 220), 255, 22);
         this.createModalTitlePlate(panel, title, panelHeight);

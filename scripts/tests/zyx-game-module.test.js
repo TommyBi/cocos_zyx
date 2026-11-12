@@ -58,9 +58,24 @@ test.before(() => {
   ensureDataGeneration = moduleExports.ensureDataGeneration;
 });
 
+test('乱序结算回执不能覆盖兑换后的余额和库存，开局和刷新也不返还已用道具', () => {
+  const store = installCcStub();
+  const module = createModule(store);
+  const base = { playerId: 'shop-player', level: 1, experience: 0, highestSingleGameScore: 100 };
+  module.applyCloudProfile({ ...base, assetRevision: 4, moodBeanBalance: 40, inventory: { hammer: 0, magicWand: 0 } });
+  module.applyCloudProfile({ ...base, assetRevision: 5, moodBeanBalance: 20, inventory: { hammer: 1, magicWand: 0 } });
+  assert.equal(module.applyCloudProfile({ ...base, assetRevision: 4, moodBeanBalance: 40, inventory: { hammer: 0, magicWand: 0 } }), false);
+  assert.equal(module.moodBeanBalance, 20); assert.equal(module.hammerCount, 1);
+  assert.equal(module.applyCloudProfile({ ...base, moodBeanBalance: 999 }), false, '迁移前无版本回执也应忽略');
+  module.resetRound(); assert.equal(module.hammerCount, 1);
+  module.applyCloudProfile({ ...base, assetRevision: 6, moodBeanBalance: 20, inventory: { hammer: 0, magicWand: 0 } });
+  module.resetRound(); assert.equal(module.hammerCount, 0);
+  assert.equal(store.get('zyx_hammer_inventory'), '0');
+});
+
 function createModule(store) {
   store.clear();
-  store.set('zyx_data_generation', 'mood_bean_v1');
+  store.set('zyx_data_generation', 'mood_bean_v5_20261112');
   return new ZyxGameModuleClass();
 }
 
@@ -74,6 +89,10 @@ test('数据代际不匹配时一次性清空全部旧键，不做任何折算',
   store.set('zyx_pending_realm_unlocks', '[]');
   store.set('zyx_daily_moods', '200');
   store.set('zyx_level', '8');
+  store.set('zyx_pending_tool_exchange', '{"actionId":"old_purchase"}');
+  store.set('zyx_tool_reward_hammer', 'old_claim');
+  store.set('zyx_pending_stamina_share_id', 'old_share');
+  store.set('zyx_data_generation','mood_bean_v1');
   const reset = ensureDataGeneration();
   assert.strictEqual(reset, true);
   assert.ok(!store.has('zyx_happy_bottle_count'));
@@ -82,7 +101,8 @@ test('数据代际不匹配时一次性清空全部旧键，不做任何折算',
   assert.ok(!store.has('zyx_unlocked_album_arts'));
   assert.ok(!store.has('zyx_daily_moods'));
   assert.ok(!store.has('zyx_level'));
-  assert.strictEqual(store.get('zyx_data_generation'), 'mood_bean_v1');
+  for(const key of ['zyx_pending_tool_exchange','zyx_tool_reward_hammer','zyx_pending_stamina_share_id']) assert.ok(!store.has(key));
+  assert.strictEqual(store.get('zyx_data_generation'), 'mood_bean_v5_20261112');
 
   // 清空后首次启动是完整新档。
   const module = new ZyxGameModuleClass();
@@ -92,7 +112,7 @@ test('数据代际不匹配时一次性清空全部旧键，不做任何折算',
   assert.strictEqual(module.experience, 0);
 });
 
-test('写入 mood_bean_v1 标记后，正常重启不会再次清空新档', () => {
+test('写入当前代际标记后，正常重启不会再次清空新档', () => {
   const store = installCcStub();
   const module = createModule(store);
   store.set('zyx_mood_bean_balance', '500');
@@ -123,7 +143,7 @@ test('缺键时使用默认值，非法字符串回退到安全默认', () => {
   assert.strictEqual(module.moodBeanBalance, 0);
 });
 
-test('一块一豆：本局收集 10 颗，未获服务端确认前不计入可兑换余额', () => {
+test('消除 10 个表情块未满一颗，经验独立累计且不预支云端资产', () => {
   const store = installCcStub();
   const module = createModule(store);
   module.resetRound();
@@ -131,7 +151,7 @@ test('一块一豆：本局收集 10 颗，未获服务端确认前不计入可�
   const settlement = module.finishRound();
   assert.strictEqual(settlement.roundCollectedMoodBeans, 10);
   assert.strictEqual(settlement.roundBonusMoodBeans, 0);
-  assert.strictEqual(settlement.roundEarnedMoodBeans, 10);
+  assert.strictEqual(settlement.roundEarnedMoodBeans, 0);
   assert.strictEqual(settlement.gainedExperience, 10);
   // 结算由服务端确认，本局预览不能提前增加开心豆余额。
   assert.strictEqual(settlement.moodBeanBalanceBefore, 0);
@@ -159,6 +179,23 @@ test('重复 finishRound() 返回零增量，不重复入账', () => {
   assert.strictEqual(again.roundEarnedMoodBeans, 0);
   assert.strictEqual(again.gainedExperience, 0);
   assert.strictEqual(module.moodBeanBalance, 0, 'R2：基准不 immediate 入账');
+});
+
+test('整颗奖励与表情经验分离，多颗与余量均正确，每局从零开始', () => {
+  const module = createModule(installCcStub());
+  const economy = require('../../server/src/economyConfig');
+  for (const [blocks, expected] of [[99,0],[100,1],[9999,99],[10000,100],[10001,100],[33726,337],[999999,9999]]) {
+    module.resetRound();
+    assert.equal(module.roundCollectedMoodBeans, 0);
+    module.roundCollectedMoodBeans = blocks;
+    const result = module.finishRound();
+    assert.equal(result.roundEarnedMoodBeans, expected);
+    assert.equal(economy.collectedBlocksToBeans(blocks), expected);
+    assert.equal(result.gainedExperience, blocks);
+    assert.equal(module.getDisplayMoodBeanBalance(), 0, '服务端确认前不预支余额');
+  }
+  module.resetRound();
+  assert.equal(module.roundCollectedMoodBeans, 0, '上一局未满进度不得带入新局');
 });
 
 test('待提交结算队列：入队去重，成功后只删除对应 roundId', () => {
@@ -447,21 +484,22 @@ test('同一次操作的自动补排不打断也不重复增加 combo', () => {
   }
 });
 
-test('达到 Great 额外奖励一次炸弹，与双排奖励叠加，Perfect 不重复发放', () => {
+test('Good 三连在整次操作结束后奖励，与双排叠加且重复 finish 不再领取', () => {
   const module = createModule(installCcStub());
   module.resetRound();
   for (let action = 1; action <= 6; action++) {
     module.beginPlayerAction();
     module.pieces = [boardPiece(100 + action, 9, 0, 8)];
-    if (action === 4) module.pieces.push(boardPiece(200, 8, 0, 8));
+    if (action === 3) module.pieces.push(boardPiece(200, 8, 0, 8));
     module.resolveBoard();
-    module.finishPlayerAction();
-    assert.strictEqual(module.pieces.filter(p => p.bomb).length, action === 4 ? 2 : 0);
-    assert.strictEqual(module.claimComboBomb(), null, '同一 Great 奖励不可重复领取');
+    assert.strictEqual(module.pieces.filter(p => p.bomb).length, 0, '尚未完成操作不得生成次生道具');
+    const rewards = module.finishPlayerAction();
+    assert.strictEqual(rewards.length, action === 3 ? 2 : action > 3 ? 1 : 0);
+    assert.deepStrictEqual(module.finishPlayerAction(), []);
   }
 });
 
-test('真实种子连续四次成功移动到 Great，额外炸弹可引爆且服务端重放一致', () => {
+test('真实教学第三次成功给炸弹，主动引爆续连且与服务端事件重放一致', () => {
   const module = createModule(installCcStub());
   module.setRoundSeed(4, true);
   module.resetRound();
@@ -471,18 +509,13 @@ test('真实种子连续四次成功移动到 Great，额外炸弹可引爆且�
     module.resolveBoard();
     module.finishPlayerAction();
   }
-  for (let index = 0; index < 3; index++) module.appendNextRow();
-  module.resolveBoard();
-  module.finishPlayerAction();
-  assert.strictEqual(module.movePiece(19, 1), true);
-  module.resolveBoard();
-  assert.strictEqual(module.combo, 4);
+  assert.strictEqual(module.combo, 3);
   const bomb = module.pieces.find(p => p.bomb);
-  assert.ok(bomb, '第四次仅清一排，也必须奖励 Great 炸弹');
-  assert.strictEqual(module.roundClearedRows, 4);
-  assert.strictEqual(module.score, 100);
+  assert.ok(bomb);
   module.detonateBomb(bomb.id);
   module.resolveBoard();
+  module.finishPlayerAction();
+  assert.strictEqual(module.combo, 3, '仅爆破也保留已有 combo，但不升级');
   const { replayRound } = require(path.join(repoRoot, 'server', 'src', 'gameEngine.js'));
   const replay = replayRound(4, true, module.roundActions);
   assert.strictEqual(replay.valid, true);
@@ -506,6 +539,7 @@ test('同次操作两轮掉落消除累计两排，稳定后只发一枚炸弹�
   const result = module.resolveBoard();
   assert.strictEqual(result.clearedRows, 2);
   assert.strictEqual(result.gainedScore, 20);
+  module.finishPlayerAction();
   assert.strictEqual(module.pieces.length, 1);
   assert.strictEqual(module.pieces[0].bomb, true);
   assert.strictEqual(module.pieces[0].row, 9);
@@ -523,6 +557,7 @@ test('同时清两排为基础分 20，炸弹附着在幸存普通横块，随�
   const result = module.resolveBoard();
   assert.strictEqual(result.clearedRows, 2);
   assert.strictEqual(result.gainedScore, 20);
+  module.finishPlayerAction();
   const bomb = module.getPiece(102);
   assert.strictEqual(bomb.bomb, true);
   assert.strictEqual(bomb.size, 2);
@@ -548,7 +583,7 @@ test('炸弹按横块中心的 3×3 范围移除相交整块，收豆一次且�
   assert.strictEqual(module.roundCollectedMoodBeans - before, 3);
   assert.strictEqual(module.detonateBomb(100), null);
   assert.strictEqual(module.detonateBomb(103), null, '普通块不可冒充炸弹');
-  assert.deepStrictEqual(module.roundActions, [{ type: 'bomb', id: 100 }]);
+  assert.deepStrictEqual(module.roundActions, [{ type: 'rules', version: 5 }, { type: 'bomb', id: 100 }]);
 });
 
 test('多种种子的真实移动、连消、奖励炸弹与爆破，客户端和服务端重放一致', () => {
@@ -563,8 +598,9 @@ test('多种种子的真实移动、连消、奖励炸弹与爆破，客户端�
       const hint = module.findEliminationHint();
       if (bomb) { module.detonateBomb(bomb.id); detonated++; module.resolveBoard(); }
       else if (hint && turn % 3 !== 0) { module.movePiece(hint.id, hint.offset); module.resolveBoard(); }
-      if (!module.appendNextRow()) break;
+      if (!module.appendTurnRows()) break;
       module.resolveBoard();
+      module.finishPlayerAction();
       const replay = replayRound(seed, false, module.roundActions);
       assert.strictEqual(replay.valid, true, `seed=${seed}, turn=${turn}`);
       assert.strictEqual(replay.score, module.score, `score seed=${seed}, turn=${turn}`);

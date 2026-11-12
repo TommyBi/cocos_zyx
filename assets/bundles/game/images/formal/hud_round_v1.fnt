@@ -1,0 +1,41 @@
+info face="ZyxHudRounded" size=96 bold=1 italic=0 charset="" unicode=1 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=0,0
+common lineHeight=96 base=96 scaleW=1024 scaleH=640 pages=1 packed=0
+page id=0 file="hud_glyphs_v1.png"
+chars count=37
+char id=48 x=0 y=0 width=65 height=96 xoffset=-4 yoffset=0 xadvance=57 page=0 chnl=15
+char id=49 x=128 y=0 width=65 height=96 xoffset=-4 yoffset=0 xadvance=57 page=0 chnl=15
+char id=50 x=256 y=0 width=65 height=96 xoffset=-4 yoffset=0 xadvance=57 page=0 chnl=15
+char id=51 x=384 y=0 width=65 height=96 xoffset=-4 yoffset=0 xadvance=57 page=0 chnl=15
+char id=52 x=512 y=0 width=65 height=96 xoffset=-4 yoffset=0 xadvance=57 page=0 chnl=15
+char id=53 x=640 y=0 width=65 height=96 xoffset=-4 yoffset=0 xadvance=57 page=0 chnl=15
+char id=54 x=768 y=0 width=65 height=96 xoffset=-4 yoffset=0 xadvance=57 page=0 chnl=15
+char id=55 x=896 y=0 width=65 height=96 xoffset=-4 yoffset=0 xadvance=57 page=0 chnl=15
+char id=56 x=0 y=128 width=65 height=96 xoffset=-4 yoffset=0 xadvance=57 page=0 chnl=15
+char id=57 x=128 y=128 width=65 height=96 xoffset=-4 yoffset=0 xadvance=57 page=0 chnl=15
+char id=46 x=256 y=128 width=38 height=96 xoffset=-4 yoffset=0 xadvance=30 page=0 chnl=15
+char id=37 x=384 y=128 width=90 height=96 xoffset=-4 yoffset=0 xadvance=82 page=0 chnl=15
+char id=43 x=512 y=128 width=64 height=96 xoffset=-4 yoffset=0 xadvance=56 page=0 chnl=15
+char id=32 x=640 y=128 width=32 height=96 xoffset=-4 yoffset=0 xadvance=24 page=0 chnl=15
+char id=26412 x=768 y=128 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=23616 x=896 y=128 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=24471 x=0 y=256 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=20998 x=128 y=256 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=26368 x=256 y=256 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=39640 x=384 y=256 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=24403 x=512 y=256 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=21069 x=640 y=256 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=36827 x=768 y=256 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=24230 x=896 y=256 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=38598 x=0 y=384 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=28385 x=128 y=384 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=20877 x=256 y=384 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=39063 x=384 y=384 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=24320 x=512 y=384 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=24515 x=640 y=384 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=35910 x=768 y=384 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=26032 x=896 y=384 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=32426 x=0 y=512 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=24405 x=128 y=512 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=19975 x=256 y=512 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=20159 x=384 y=512 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15
+char id=25910 x=512 y=512 width=106 height=96 xoffset=-4 yoffset=0 xadvance=96 page=0 chnl=15

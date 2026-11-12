@@ -1,5 +1,6 @@
 /** 对指定环境的 HTTPS 接口执行客户端协议验收。仅创建独立零积分、零豆测试档案。 */
 const assert = require('node:assert/strict');
+const { default: BoardEngine, BOARD_RULES_VERSION } = require('../server/src/boardEngine');
 
 const ENV_MAP = {
     production: 'https://api.tcjstory.cn/v1/cocos-zyx',
@@ -23,39 +24,45 @@ async function request(path, body, expected = 200) {
 }
 (async () => {
     const health = (await request('/health')).data;
-    assert.equal(health.apiVersion, 3);
+    assert.equal(health.apiVersion, 8);
+    assert.ok(health.capabilities.includes('bean-collection-1pct'));
+    assert.ok(health.capabilities.includes('rising-rows-v5'));
     const boot = (await request('/players/bootstrap', { deviceId: id, nickname: '发布网络验收', avatarUrl: '' })).data;
     token = boot.token;
     assert.equal(boot.profile.stamina.current, 10);
+    for (const item of ['hammer','magicWand','stamina']) {
+        const rejected = await request('/shop/exchanges', { actionId:`${id}_${item}`, item }, 409);
+        assert.equal(rejected.errorCode,'BEANS_INSUFFICIENT');
+    }
     const startedAt = Date.now();
     const roundId = `${id}_0`;
-    const firstStart = (await request('/games/start', { roundId })).data;
+    const firstStart = (await request('/games/start', { roundId, collectionRule: 'progress_v2', rulesVersion: BOARD_RULES_VERSION })).data;
     assert.equal(firstStart.stamina.current, 9);
     assert.equal(firstStart.isTutorial, true);
-    const retryStart = (await request('/games/start', { roundId })).data;
+    const retryStart = (await request('/games/start', { roundId, collectionRule: 'progress_v2', rulesVersion: BOARD_RULES_VERSION })).data;
     assert.equal(retryStart.stamina.current, 9);
     assert.equal(retryStart.seed, firstStart.seed);
     assert.equal(retryStart.isTutorial, firstStart.isTutorial);
-    for (let i = 1; i < 10; i++) await request('/games/start', { roundId: `${id}_${i}` });
-    assert.equal((await request('/games/start', { roundId: `${id}_empty` }, 429)).errorCode, 'STAMINA_EMPTY');
+    for (let i = 1; i < 10; i++) await request('/games/start', { roundId: `${id}_${i}`, collectionRule: 'progress_v2', rulesVersion: BOARD_RULES_VERSION });
+    assert.equal((await request('/games/start', { roundId: `${id}_empty`, collectionRule: 'progress_v2', rulesVersion: BOARD_RULES_VERSION }, 429)).errorCode, 'STAMINA_EMPTY');
     const claimId = `share_${id}`;
     assert.equal((await request('/stamina/share-claim', { claimId })).data.stamina.current, 5);
     assert.equal((await request('/stamina/share-claim', { claimId })).data.stamina.current, 5);
     assert.equal((await request('/stamina/share-claim', { claimId: `${claimId}_again` }, 429)).errorCode, 'STAMINA_SHARE_DAILY_LIMIT');
     await new Promise((resolve) => setTimeout(resolve, Math.max(0, 5100 - (Date.now() - startedAt))));
+    const board = new BoardEngine();
+    board.resetBoard(firstStart.seed, firstStart.isTutorial);
     const settlement = {
-        roundId,
-        startedAt,
-        endedAt: Date.now(),
-        score: 10,
-        collectedMoodBeanCount: 3,
-        actions: [{ type: 'move', id: 1, offset: -1 }],
+        roundId, startedAt, endedAt: Date.now(), score: board.score,
+        collectedMoodBeanCount: board.roundCollectedMoodBeans, actions: board.roundActions,
     };
     assert.equal((await request('/games/settlements', settlement)).data.accepted, true);
     assert.equal((await request('/games/settlements', settlement)).data.duplicate, true);
     const leaderboard = (await request('/leaderboards?type=power')).data;
     assert.equal(Array.isArray(leaderboard.entries), true);
-    assert.equal(leaderboard.self.bestScore, 10);
+    assert.equal(leaderboard.self.bestScore, 0);
+    assert.equal(leaderboard.self.rank, null);
+    assert.equal(leaderboard.entries.some(entry => entry.playerId === boot.profile.playerId), false);
     await request('/realm/state', null, 404);
     await request('/rewards', null, 404);
     // GM 调试路由：Production 必须 404（隔离），Staging/Local 允许存在

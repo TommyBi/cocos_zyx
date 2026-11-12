@@ -8,6 +8,14 @@ const { execFileSync } = require('node:child_process');
 const repoRoot = path.resolve(__dirname, '..', '..');
 let shareReward;
 let videoReward;
+let shareCards;
+let compiledSharePath;
+
+function freshShareModule(suffix) {
+    const target = compiledSharePath.replace('.js', `.${suffix}.js`);
+    fs.copyFileSync(compiledSharePath, target);
+    return require(target);
+}
 
 test.before(() => {
     const out = fs.mkdtempSync(path.join(os.tmpdir(), 'zyx-reward-offer-'));
@@ -24,7 +32,9 @@ test.before(() => {
     } catch (_) { /* 独立编译不载入 Cocos 类型，检查生成的 JS 行为。 */ }
 
     shareReward = require(path.join(out, 'ShareReward.js'));
+    shareCards = require(path.join(out, 'ShareConfig.js')).SHARE_CARDS;
     const compiledPath = path.join(out, 'ShareReward.js');
+    compiledSharePath = compiledPath;
     const enabledPath = path.join(out, 'ShareReward.enabled.js');
     const enabledSource = fs.readFileSync(compiledPath, 'utf8')
         .replace('exports.REWARDED_VIDEO_ENABLED = false;', 'exports.REWARDED_VIDEO_ENABLED = true;')
@@ -37,7 +47,7 @@ test.afterEach(() => {
     delete global.wx;
 });
 
-test('默认关闭激励视频，所有奖励仍走分享且分享图标与文案不变', () => {
+test('默认关闭激励视频，每次奖励分享随机选择匹配的 CDN 图片和原图文案', () => {
     assert.equal(shareReward.REWARDED_VIDEO_ENABLED, false);
     assert.equal(shareReward.REWARDED_VIDEO_AD_UNIT_ID, '');
     assert.equal(shareReward.getRewardOfferIcon(), 'share');
@@ -49,22 +59,151 @@ test('默认关闭激励视频，所有奖励仍走分享且分享图标与文�
     const results = [];
     const realNow = Date.now;
     let now = realNow();
+    const realRandom = Math.random;
+    const messages = [];
     Date.now = () => now;
     global.wx = {
-        shareAppMessage: () => { shareCount++; },
+        shareAppMessage: (message) => { shareCount++; messages.push(message); },
         createRewardedVideoAd: () => { adCount++; },
         onShow: (callback) => { onShow = callback; },
     };
     try {
-        shareReward.requestRewardOffer((rewarded) => results.push(rewarded));
-        now += 3001;
-        onShow();
+        for (let index = 0; index < 3; index++) {
+            Math.random = () => (index + 0.1) / 3;
+            shareReward.requestRewardOffer((rewarded) => results.push(rewarded));
+            now += 3001;
+            onShow();
+        }
     } finally {
         Date.now = realNow;
+        Math.random = realRandom;
     }
-    assert.equal(shareCount, 1);
+    assert.equal(shareCount, 3);
     assert.equal(adCount, 0);
-    assert.deepEqual(results, [true]);
+    assert.deepEqual(results, [true, true, true]);
+    assert.deepEqual(messages, shareCards.map(card => ({ ...card, query: 'from=share_reward' })));
+});
+
+test('原生转发菜单每次调用重新随机，注册一次且不触发奖励', () => {
+    let listener;
+    let registrationCount = 0;
+    const realRandom = Math.random;
+    global.wx = {
+        showShareMenu: options => assert.deepEqual(options.menus, ['shareAppMessage']),
+        onShareAppMessage: callback => { listener = callback; registrationCount++; },
+    };
+    try {
+        shareReward.registerSystemShare();
+        shareReward.registerSystemShare();
+        assert.equal(registrationCount, 1);
+        for (let index = 0; index < 3; index++) {
+            Math.random = () => (index + 0.9) / 3;
+            assert.deepEqual(listener(), { ...shareCards[index], query: 'from=system_share' });
+        }
+    } finally { Math.random = realRandom; }
+});
+
+test('三张分享图与原文、清单和 CDN URL 对应，图片始终留在 assets 外', () => {
+    const manifest = JSON.parse(fs.readFileSync(path.join(repoRoot, 'share-assets/20261112/manifest.json')));
+    const crypto = require('node:crypto');
+    assert.equal(shareCards.length, 3);
+    assert.deepEqual(shareCards.map(card => card.title), ['这一拖，爽翻了！', '快满了？一拖翻盘！', '边消边冲榜，下一名被我超了！']);
+    manifest.forEach((card, index) => {
+        assert.equal(card.width / card.height, 5 / 4);
+        assert.ok(card.bytes <= 96 * 1024);
+        assert.deepEqual(shareCards[index], { title: card.title, imageUrl: card.imageUrl });
+        assert.equal(card.imageUrl, `https://cdn.tcjstory.cn/cocos-zyx/share/20261112/${card.file}`);
+        const bytes = fs.readFileSync(path.join(repoRoot, 'share-assets/20261112', card.file));
+        assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), card.sha256);
+    });
+    const resources = fs.readdirSync(path.join(repoRoot, 'assets'), { recursive: true });
+    for (const card of manifest) assert.ok(!resources.some(name => name.endsWith(card.file)));
+});
+
+test('图片下载时间不计入奖励停留时间，缓存后直接复用临时文件', async () => {
+    const reward = freshShareModule('cache');
+    const realNow = Date.now, realRandom = Math.random;
+    const downloads = [], messages = [], results = [];
+    let onShow, now = 10000;
+    Date.now = () => now;
+    Math.random = () => 0;
+    global.wx = {
+        downloadFile: options => downloads.push(options),
+        shareAppMessage: message => messages.push(message),
+        onShow: callback => { onShow = callback; },
+    };
+    try {
+        reward.requestRewardOffer(value => results.push(value));
+        assert.equal(downloads[0].url, shareCards[0].imageUrl);
+        assert.equal(downloads[0].timeout, 2500);
+        now += 5000; onShow();
+        assert.deepEqual(results, []);
+        downloads[0].success({ statusCode: 200, tempFilePath: 'wxfile://tmp/burst.jpg' });
+        await new Promise(resolve => setImmediate(resolve));
+        assert.equal(messages[0].imageUrl, 'wxfile://tmp/burst.jpg');
+        now += 2999; onShow();
+        assert.deepEqual(results, [false]);
+        reward.requestRewardOffer(value => results.push(value));
+        assert.equal(downloads.length, 1);
+        assert.equal(messages.length, 2);
+        now += 3001; onShow();
+        assert.deepEqual(results, [false, true]);
+    } finally { Date.now = realNow; Math.random = realRandom; }
+});
+
+test('菜单预取三张 CDN 图片，共享下载并异步补齐本地路径', async () => {
+    const reward = freshShareModule('prefetch');
+    const downloads = [];
+    const realRandom = Math.random;
+    let listener;
+    global.wx = {
+        downloadFile: options => downloads.push(options),
+        onShareAppMessage: callback => { listener = callback; },
+        showShareMenu: () => undefined,
+    };
+    try {
+        reward.registerSystemShare(); reward.registerSystemShare();
+        assert.equal(downloads.length, 3);
+        Math.random = () => 0;
+        const waiting = listener();
+        assert.ok(waiting.promise);
+        assert.equal(downloads.length, 3);
+        downloads.forEach((download, index) => download.success({ statusCode: 200, tempFilePath: `wxfile://tmp/card-${index}.jpg` }));
+        const prepared = await waiting.promise;
+        assert.deepEqual(prepared, { title: shareCards[0].title, imageUrl: 'wxfile://tmp/card-0.jpg', query: 'from=system_share' });
+        for (let index = 0; index < 3; index++) {
+            Math.random = () => (index + .5) / 3;
+            assert.deepEqual(listener(), { title: shareCards[index].title, imageUrl: `wxfile://tmp/card-${index}.jpg`, query: 'from=system_share' });
+        }
+    } finally { Math.random = realRandom; }
+});
+
+test('下载失败不发奖励、不拉起无图分享，下次允许重新下载', async () => {
+    const reward = freshShareModule('retry');
+    const downloads = [], messages = [], results = [];
+    const realNow = Date.now, realRandom = Math.random;
+    let onShow, now = 10000;
+    Date.now = () => now;
+    Math.random = () => 0;
+    global.wx = {
+        downloadFile: options => downloads.push(options),
+        shareAppMessage: message => messages.push(message),
+        onShow: callback => { onShow = callback; },
+    };
+    try {
+        reward.requestRewardOffer(value => results.push(value));
+        downloads[0].fail(new Error('offline'));
+        await new Promise(resolve => setImmediate(resolve));
+        assert.deepEqual(results, [false]);
+        assert.deepEqual(messages, []);
+        reward.requestRewardOffer(value => results.push(value));
+        assert.equal(downloads.length, 2);
+        downloads[1].success({ statusCode: 200, tempFilePath: 'wxfile://tmp/retry.jpg' });
+        await new Promise(resolve => setImmediate(resolve));
+        assert.equal(messages[0].imageUrl, 'wxfile://tmp/retry.jpg');
+        now += 3001; onShow();
+        assert.deepEqual(results, [false, true]);
+    } finally { Date.now = realNow; Math.random = realRandom; }
 });
 
 test('开启后使用集中配置的广告位，完整观看只发放一次奖励', () => {
@@ -164,8 +303,8 @@ test('救场从右侧入场后压暗并启动倒计时，确认后先收回再�
     const close = game.slice(game.indexOf('private dismissRoundRescuePrompt('), game.indexOf('private updateBoardDangerState()'));
     assert.ok(close.indexOf('cc.tween(drawer)') < close.indexOf('cc.tween(mask)'));
     assert.ok(close.indexOf('prompt.destroy();', close.indexOf('cc.tween(mask)')) < close.indexOf('onComplete();'));
-    assert.match(game, /this\.idleSeconds >= 2/);
+    assert.match(game, /this\.idleSeconds >= zyxGameModule\.getHintDelay\(\)/);
     const eliminate = game.slice(game.indexOf('private animateElimination('), game.indexOf('private playMoodCollect('));
     assert.doesNotMatch(eliminate, /showToast/);
-    assert.match(eliminate, /this\.playMoodCollect\(result\.removedPieceIds\)/);
+    assert.match(eliminate, /this\.animateRowShatter\(result\.removedPieceIds, result\.detonatedBombs\)/);
 });

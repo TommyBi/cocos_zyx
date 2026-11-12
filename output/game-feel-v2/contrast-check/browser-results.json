@@ -1,0 +1,405 @@
+{
+  "seed": 2654435761,
+  "actions": [
+    {
+      "type": "bomb",
+      "state": {
+        "combo": 4,
+        "score": 100,
+        "moveCount": 3,
+        "bombs": 0,
+        "rows": 4,
+        "cascade": 0
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 150,
+        "moveCount": 4,
+        "bombs": 0,
+        "rows": 5,
+        "cascade": 1
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 250,
+        "moveCount": 5,
+        "bombs": 1,
+        "rows": 7,
+        "cascade": 2
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 350,
+        "moveCount": 6,
+        "bombs": 1,
+        "rows": 9,
+        "cascade": 2
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 450,
+        "moveCount": 7,
+        "bombs": 2,
+        "rows": 11,
+        "cascade": 2
+      }
+    },
+    {
+      "type": "move",
+      "state": {
+        "combo": 5,
+        "score": 550,
+        "moveCount": 8,
+        "bombs": 1,
+        "rows": 13,
+        "cascade": 2
+      }
+    }
+  ],
+  "score": 550,
+  "collectedBlocks": 27,
+  "replayActions": [
+    {
+      "type": "rules",
+      "version": 2
+    },
+    {
+      "type": "move",
+      "id": 1,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 3,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 2,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "bomb",
+      "id": 11
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 13,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 31,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 14,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 44,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 66,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "eliminations": [
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 1
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 2
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 3
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 4
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 1,
+      "combo": 5
+    },
+    {
+      "rows": 1,
+      "cascade": 2,
+      "combo": 5
+    }
+  ],
+  "detonations": [
+    1,
+    1,
+    2
+  ],
+  "generationTimes": [
+    2.0999999940395355,
+    1,
+    0.7000000178813934,
+    1.5999999940395355,
+    0.9000000059604645,
+    1.4000000059604645,
+    1,
+    1,
+    0.7000000178813934,
+    1.0999999940395355,
+    2.5,
+    5.199999988079071,
+    0.5999999940395355,
+    2.699999988079071,
+    1.0999999940395355,
+    2.2999999821186066
+  ],
+  "replay": {
+    "score": 550,
+    "collectedMoodBeans": 27,
+    "valid": true
+  },
+  "errors": []
+}

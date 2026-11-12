@@ -1,3 +1,5 @@
+// 显式开启历史协议兼容性夹具；正式服务默认只允许当前规则新开局。
+process.env.ALLOW_LEGACY_ROUND_STARTS = '1';
 /** 旧数据库升级：保留核心资产，清理退役功能，新增体力。 */
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -113,7 +115,7 @@ test('历史贬义随机昵称只替换前缀，正常昵称不变且迁移可�
   assert.deepEqual(disk.exec(sql)[0].values, expected);
   assert.equal(disk.exec("SELECT COUNT(*) FROM players WHERE substr(nickname, 1, 3) IN ('狡猾的', '慵懒的')")[0].values[0][0], 0);
   assert.equal(disk.exec("SELECT nickname FROM players WHERE player_id = 'legacy_player'")[0].values[0][0], '旧玩家');
-  assert.equal(disk.exec('PRAGMA user_version')[0].values[0][0], 5);
+  assert.equal(disk.exec('PRAGMA user_version')[0].values[0][0], 8);
   disk.close();
 });
 

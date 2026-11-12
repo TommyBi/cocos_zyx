@@ -1,0 +1,36 @@
+{
+  "productArt": [
+    {
+      "item": "hammer",
+      "displayed": 0.7736486486486488,
+      "source": 0.7736486486486487
+    },
+    {
+      "item": "magicWand",
+      "displayed": 0.7774193548387096,
+      "source": 0.7774193548387097
+    }
+  ],
+  "priceStates": [
+    {
+      "amount": 2,
+      "markup": "<b><color=#65463A>兑换 [</color><color=#BD4035>2</color><color=#65463A>/</color><color=#287638>20</color><color=#65463A>]</color></b>",
+      "enabled": true
+    },
+    {
+      "amount": 19,
+      "markup": "<b><color=#65463A>兑换 [</color><color=#BD4035>19</color><color=#65463A>/</color><color=#287638>20</color><color=#65463A>]</color></b>",
+      "enabled": true
+    },
+    {
+      "amount": 20,
+      "markup": "<b><color=#65463A>兑换 [</color><color=#287638>20</color><color=#65463A>/</color><color=#287638>20</color><color=#65463A>]</color></b>",
+      "enabled": true
+    },
+    {
+      "amount": 60,
+      "markup": "<b><color=#65463A>兑换 [</color><color=#287638>60</color><color=#65463A>/</color><color=#287638>20</color><color=#65463A>]</color></b>",
+      "enabled": true
+    }
+  ]
+}

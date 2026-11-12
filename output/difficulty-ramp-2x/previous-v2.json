@@ -1,0 +1,104 @@
+[
+  {
+    "tutorial": true,
+    "samples": 64,
+    "policy": "hint",
+    "limit": 60,
+    "rulesVersion": 2,
+    "played": 3745,
+    "cleared": 3565,
+    "multiRows": 1143,
+    "cascade": 934,
+    "bombsUsed": 97,
+    "bombsEarned": 1288,
+    "perfectRounds": 64,
+    "aliveAt36": 64,
+    "aliveAtLimit": 64,
+    "directAtOpening": 52,
+    "replayMismatch": 0,
+    "stages": [
+      {
+        "actions": 2162,
+        "cleared": 2098,
+        "multiRows": 730,
+        "heightTotal": 8587
+      },
+      {
+        "actions": 1519,
+        "cleared": 1406,
+        "multiRows": 392,
+        "heightTotal": 6234
+      },
+      {
+        "actions": 64,
+        "cleared": 61,
+        "multiRows": 21,
+        "heightTotal": 264
+      },
+      {
+        "actions": 0,
+        "cleared": 0,
+        "multiRows": 0,
+        "heightTotal": 0
+      }
+    ],
+    "firstTen": {
+      "played": 640,
+      "cleared": 634,
+      "multiRows": 243
+    },
+    "averageRoundMs": 158,
+    "noMissBefore15": 56
+  },
+  {
+    "tutorial": false,
+    "samples": 64,
+    "policy": "hint",
+    "limit": 60,
+    "rulesVersion": 2,
+    "played": 3923,
+    "cleared": 3778,
+    "multiRows": 1205,
+    "cascade": 1009,
+    "bombsUsed": 83,
+    "bombsEarned": 1323,
+    "perfectRounds": 64,
+    "aliveAt36": 64,
+    "aliveAtLimit": 64,
+    "directAtOpening": 64,
+    "replayMismatch": 0,
+    "stages": [
+      {
+        "actions": 2329,
+        "cleared": 2297,
+        "multiRows": 763,
+        "heightTotal": 9011
+      },
+      {
+        "actions": 1530,
+        "cleared": 1424,
+        "multiRows": 428,
+        "heightTotal": 6258
+      },
+      {
+        "actions": 64,
+        "cleared": 57,
+        "multiRows": 14,
+        "heightTotal": 275
+      },
+      {
+        "actions": 0,
+        "cleared": 0,
+        "multiRows": 0,
+        "heightTotal": 0
+      }
+    ],
+    "firstTen": {
+      "played": 640,
+      "cleared": 640,
+      "multiRows": 183
+    },
+    "averageRoundMs": 163,
+    "noMissBefore15": 62
+  }
+]

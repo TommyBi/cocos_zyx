@@ -1,0 +1,66 @@
+{
+  "cdn": [
+    {
+      "url": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/rank.a5408140d36d.jpg",
+      "bytes": 82000,
+      "sha256": "a5408140d36d0bd044a2327153a1987ce233d67a9cdacb299f83d6bf2b33e8bd",
+      "type": "image/jpeg"
+    },
+    {
+      "url": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/burst.114f9e07f6f2.jpg",
+      "bytes": 82443,
+      "sha256": "114f9e07f6f2ec1be2e3710a41fcb899aa5331dc7466331f7e72419de94adeaa",
+      "type": "image/jpeg"
+    },
+    {
+      "url": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/comeback.802a89bfbfe6.jpg",
+      "bytes": 85176,
+      "sha256": "802a89bfbfe65f454ad691b137741e6db32b992c89c66177ddf7c17679998d2b",
+      "type": "image/jpeg"
+    }
+  ],
+  "menu": [
+    {
+      "title": "这一拖，爽翻了！",
+      "imageUrl": "wxfile://tmp/burst.114f9e07f6f2.jpg",
+      "query": "from=system_share"
+    },
+    {
+      "title": "快满了？一拖翻盘！",
+      "imageUrl": "wxfile://tmp/comeback.802a89bfbfe6.jpg",
+      "query": "from=system_share"
+    },
+    {
+      "title": "边消边冲榜，下一名被我超了！",
+      "imageUrl": "wxfile://tmp/rank.a5408140d36d.jpg",
+      "query": "from=system_share"
+    }
+  ],
+  "messages": [
+    {
+      "title": "这一拖，爽翻了！",
+      "imageUrl": "wxfile://tmp/burst.114f9e07f6f2.jpg",
+      "query": "from=share_reward"
+    },
+    {
+      "title": "快满了？一拖翻盘！",
+      "imageUrl": "wxfile://tmp/comeback.802a89bfbfe6.jpg",
+      "query": "from=share_reward"
+    },
+    {
+      "title": "边消边冲榜，下一名被我超了！",
+      "imageUrl": "wxfile://tmp/rank.a5408140d36d.jpg",
+      "query": "from=share_reward"
+    }
+  ],
+  "results": [
+    true,
+    true,
+    true
+  ],
+  "imageDownloads": 3,
+  "packageFiles": 77,
+  "shareImagesPacked": 0,
+  "originalPostersPacked": 0,
+  "settingsPolishPreserved": true
+}

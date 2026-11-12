@@ -1,11 +1,20 @@
 /** 开心豆与对局结算的集中配置。 */
 
-/** 1 个带心情符号的色块被消除，产生 1 颗开心豆。 */
-export const MOOD_BEANS_PER_MOOD_BLOCK = 1;
+/** 每个带表情块推进 1%；每局独立累计，每满 100% 获得一颗。 */
+export const MOOD_BLOCKS_PER_PERCENT = 1;
+export const MOOD_BLOCKS_PER_BEAN = MOOD_BLOCKS_PER_PERCENT * 100;
+export const MOOD_COLLECTION_RULE = 'progress_v2';
 
-// 本地存档键。保留当前数据代际，避免删除秘境时重置玩家的消除进度。
+export function getMoodCollection(collectedBlocks: number): { beans: number; progress: number; percent: string } {
+    const blocks = Math.max(0, Math.floor(collectedBlocks || 0));
+    const progress = blocks % MOOD_BLOCKS_PER_BEAN;
+    return { beans: Math.floor(blocks / MOOD_BLOCKS_PER_BEAN), progress,
+        percent: String(progress / MOOD_BLOCKS_PER_PERCENT) + '%' };
+}
+
+// 本次发布明确全量重置；只在跨代首次启动清理，之后正常保留新档。
 export const DATA_GENERATION_KEY = 'zyx_data_generation';
-export const DATA_GENERATION = 'mood_bean_v1';
+export const DATA_GENERATION = 'mood_bean_v5_20261112';
 export const MOOD_BEAN_BALANCE_KEY = 'zyx_mood_bean_balance';
 export const PENDING_ROUND_SETTLEMENTS_KEY = 'zyx_pending_round_settlements';
 export const DEAD_ROUND_SETTLEMENTS_KEY = 'zyx_dead_round_settlements';

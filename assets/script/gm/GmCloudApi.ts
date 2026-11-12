@@ -5,7 +5,7 @@
  * 微信产物中不包含任何调试接口路径与相关文案。
  * 仅在指向本地开发服务（zyx_api_base_override 生效）时允许调用，生产地址一律不同步。
  */
-import { cloudService, isLocalApiOverrideActive } from '../manager/CloudService';
+import { cloudService, getApiBase, isLocalApiOverrideActive } from '../manager/CloudService';
 import { zyxGameModule } from '../dataModule/ZyxGameModule';
 import { uimanager } from '../manager/UIManager';
 
@@ -30,6 +30,8 @@ export async function pushDebugProfileToCloud(hooks: GmCloudHooks): Promise<void
             level: zyxGameModule.level,
             experience: zyxGameModule.experience,
             highestSingleGameScore: zyxGameModule.bestScore,
+            hammerCount: zyxGameModule.hammerCount,
+            magicWandCount: zyxGameModule.colorPurifierCount,
         });
         hooks.applyServerProfile(data.profile);
     } catch (error) {
@@ -40,19 +42,24 @@ export async function pushDebugProfileToCloud(hooks: GmCloudHooks): Promise<void
 /** GM：清空本地账号进度；仅指向本地开发服务时同步重置云端，生产地址只重置本地。 */
 export async function resetCloudAccount(
     hooks: GmCloudHooks & { refreshInventoryDisplays: () => void },
-): Promise<void> {
-    zyxGameModule.resetLocalAccount();
-    hooks.refreshInventoryDisplays();
-    if (!isLocalApiOverrideActive()) {
-        uimanager.showToast('本地已重置（仅本地调试，未同步云端）');
-        return;
+): Promise<boolean> {
+    if (!/^http:\/\/(localhost|127\.0\.0\.1):\d+\//.test(getApiBase())) {
+        uimanager.showToast('请在本地预览中重置试玩账号');
+        return false;
     }
     try {
         await hooks.ensureCloudProfileReady();
         const data = await cloudService.postAuthenticated('/debug/reset', {});
+        // 云端成功后再清除本地；失败时保留原存档与待同步记录。
+        zyxGameModule.resetLocalAccount();
+        ['zyx_pending_start_round_id', 'zyx_pending_stamina_share_id', 'zyx_pending_tool_exchange',
+            'zyx_tool_reward_hammer', 'zyx_tool_reward_magicWand'].forEach(key => cc.sys.localStorage.removeItem(key));
         hooks.applyServerProfile(data.profile);
+        hooks.refreshInventoryDisplays();
         uimanager.showToast('账号已重置');
+        return true;
     } catch (error) {
-        uimanager.showToast('本地已重置，云端同步失败');
+        uimanager.showToast('重置未确认，原存档已保留，请联网重试');
+        return false;
     }
 }

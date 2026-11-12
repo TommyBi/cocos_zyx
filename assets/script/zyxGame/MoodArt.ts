@@ -204,7 +204,7 @@ export function createMoodStamp(
     return node;
 }
 
-/** 开心豆是柔软的豆形小伙伴；颜色继承来源心情块，收集后统一露出笑脸。 */
+/** 所有开心豆共用同一张正式角色图；moodIndex 仅保留来源信息，不再改变货币外观。 */
 export function createMoodBean(
     parent: cc.Node,
     moodIndex: number,
@@ -214,92 +214,20 @@ export function createMoodBean(
     opacity: number = 255,
 ): cc.Node {
     const node = new cc.Node(`moodBean_${moodIndex}`);
-    node.width = size;
-    node.height = size;
     node.opacity = opacity;
     node.setAnchorPoint(0.5, 0.5);
     node.setPosition(x, y);
     node.zIndex = 80;
     (node as any).moodIndex = moodIndex;
     parent.addChild(node);
-
-    const color = getMoodColor(moodIndex);
-    const dark = new cc.Color(
-        Math.round(color.r * 0.72),
-        Math.round(color.g * 0.72),
-        Math.round(color.b * 0.72),
-    );
-    const g = node.addComponent(cc.Graphics);
-    const s = size;
-
-    g.fillColor = new cc.Color(78, 52, 48, 38);
-    g.ellipse(s * 0.02, -s * 0.42, s * 0.33, s * 0.07);
-    g.fill();
-
-    // 小叶芽从身体后探出来，和游戏中的植物场景呼应。
-    g.fillColor = new cc.Color(112, 174, 122);
-    g.moveTo(-s * 0.02, s * 0.31);
-    g.quadraticCurveTo(-s * 0.20, s * 0.52, -s * 0.27, s * 0.41);
-    g.quadraticCurveTo(-s * 0.20, s * 0.29, -s * 0.02, s * 0.31);
-    g.fill();
-    g.fillColor = new cc.Color(153, 205, 139);
-    g.moveTo(0, s * 0.31);
-    g.quadraticCurveTo(s * 0.12, s * 0.55, s * 0.25, s * 0.46);
-    g.quadraticCurveTo(s * 0.24, s * 0.34, 0, s * 0.31);
-    g.fill();
-
-    // 两只小脚和挥起的手在轮廓外，身体落在最上层。
-    g.fillColor = dark;
-    g.ellipse(-s * 0.18, -s * 0.34, s * 0.10, s * 0.07);
-    g.ellipse(s * 0.19, -s * 0.34, s * 0.10, s * 0.07);
-    g.fill();
-    g.strokeColor = new cc.Color(125, 88, 68, 170);
-    g.lineWidth = Math.max(1.2, s * 0.055);
-    g.moveTo(-s * 0.33, -s * 0.04);
-    g.quadraticCurveTo(-s * 0.50, s * 0.02, -s * 0.48, s * 0.15);
-    g.moveTo(s * 0.33, -s * 0.05);
-    g.quadraticCurveTo(s * 0.49, s * 0.02, s * 0.46, s * 0.14);
-    g.stroke();
-
-    // 轻微不对称的软豆外形，保留项目原有的左上高光与暖色描边。
-    g.fillColor = color;
-    g.strokeColor = new cc.Color(119, 83, 67, 205);
-    g.lineWidth = Math.max(1.3, s * 0.045);
-    g.moveTo(-s * 0.23, -s * 0.35);
-    g.quadraticCurveTo(-s * 0.43, -s * 0.25, -s * 0.39, s * 0.05);
-    g.quadraticCurveTo(-s * 0.36, s * 0.36, -s * 0.10, s * 0.39);
-    g.quadraticCurveTo(s * 0.03, s * 0.41, s * 0.15, s * 0.32);
-    g.quadraticCurveTo(s * 0.39, s * 0.30, s * 0.40, s * 0.02);
-    g.quadraticCurveTo(s * 0.43, -s * 0.28, s * 0.19, -s * 0.38);
-    g.quadraticCurveTo(-s * 0.02, -s * 0.43, -s * 0.23, -s * 0.35);
-    g.close();
-    g.fill();
-    g.stroke();
-
-    g.fillColor = new cc.Color(255, 250, 229, 145);
-    g.ellipse(-s * 0.18, s * 0.22, s * 0.12, s * 0.07);
-    g.fill();
-    g.fillColor = new cc.Color(255, 255, 255, 58);
-    g.ellipse(-s * 0.25, s * 0.08, s * 0.05, s * 0.12);
-    g.fill();
-
-    g.fillColor = MOOD_COLORS.cocoa;
-    g.circle(-s * 0.13, s * 0.035, Math.max(1.1, s * 0.027));
-    g.circle(s * 0.13, s * 0.035, Math.max(1.1, s * 0.027));
-    g.fill();
-    g.fillColor = new cc.Color(238, 132, 111, 170);
-    g.ellipse(-s * 0.25, -s * 0.07, s * 0.07, s * 0.038);
-    g.ellipse(s * 0.25, -s * 0.07, s * 0.07, s * 0.038);
-    g.fill();
-    g.strokeColor = MOOD_COLORS.cocoa;
-    g.lineWidth = Math.max(1.2, s * 0.04);
-    g.moveTo(-s * 0.12, -s * 0.11);
-    g.quadraticCurveTo(0, -s * 0.25, s * 0.13, -s * 0.10);
-    g.stroke();
+    const sprite = node.addComponent(cc.Sprite);
+    sprite.spriteFrame = getSpriteFrame('game', ASSET_PATHS.game.hudMascot);
+    sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+    node.setContentSize(size, size);
     return node;
 }
 
-/** 首页、局内与结算统一使用同一个开心豆主角。 */
+/** 首页、头像、局内收集与结算都通过同一入口创建角色。 */
 export function createMoodBeanMascot(
     parent: cc.Node,
     x: number,
@@ -307,19 +235,12 @@ export function createMoodBeanMascot(
     size: number = 48,
     opacity: number = 255,
 ): cc.Node {
-    const mascot = new cc.Node('moodBeanMascot');
-    mascot.width = size;
-    mascot.height = size;
-    mascot.opacity = opacity;
-    mascot.setAnchorPoint(0.5, 0.5);
-    mascot.setPosition(x, y);
-    mascot.zIndex = 80;
-    parent.addChild(mascot);
-    createMoodBean(mascot, 1, 0, 0, size * 0.91);
+    const mascot = createMoodBean(parent, 1, x, y, size, opacity);
+    mascot.name = 'moodBeanMascot';
     return mascot;
 }
 
-/** 豆叶形的绿色体力闪电，与开心豆共用柔和描边和笑脸细节。 */
+/** 暖金色软糖闪电：五官收在完整的中腰内，不跨越右侧折口。 */
 export function createStaminaBolt(parent: cc.Node, x: number, y: number, size: number = 42): cc.Node {
     const node = new cc.Node('staminaBolt');
     node.setContentSize(size, size);
@@ -329,45 +250,46 @@ export function createStaminaBolt(parent: cc.Node, x: number, y: number, size: n
     const g = node.addComponent(cc.Graphics);
     const unit = size / 42;
     const trace = (offsetX: number, offsetY: number): void => {
-        g.moveTo((-4 + offsetX) * unit, (19 + offsetY) * unit);
-        g.quadraticCurveTo((0 + offsetX) * unit, (22 + offsetY) * unit, (3 + offsetX) * unit, (19 + offsetY) * unit);
-        g.lineTo((12 + offsetX) * unit, (18 + offsetY) * unit);
-        g.quadraticCurveTo((15 + offsetX) * unit, (17 + offsetY) * unit, (13 + offsetX) * unit, (14 + offsetY) * unit);
-        g.lineTo((5 + offsetX) * unit, (3 + offsetY) * unit);
-        g.lineTo((14 + offsetX) * unit, (3 + offsetY) * unit);
-        g.quadraticCurveTo((18 + offsetX) * unit, (2 + offsetY) * unit, (15 + offsetX) * unit, (-2 + offsetY) * unit);
-        g.lineTo((-8 + offsetX) * unit, (-20 + offsetY) * unit);
-        g.quadraticCurveTo((-12 + offsetX) * unit, (-22 + offsetY) * unit, (-11 + offsetX) * unit, (-17 + offsetY) * unit);
-        g.lineTo((-5 + offsetX) * unit, (-3 + offsetY) * unit);
-        g.lineTo((-15 + offsetX) * unit, (-3 + offsetY) * unit);
-        g.quadraticCurveTo((-18 + offsetX) * unit, (-3 + offsetY) * unit, (-16 + offsetX) * unit, (1 + offsetY) * unit);
+        g.moveTo((-3 + offsetX) * unit, (18 + offsetY) * unit);
+        g.quadraticCurveTo((-1 + offsetX) * unit, (21 + offsetY) * unit, (3 + offsetX) * unit, (19 + offsetY) * unit);
+        g.lineTo((11 + offsetX) * unit, (18 + offsetY) * unit);
+        g.quadraticCurveTo((15 + offsetX) * unit, (18 + offsetY) * unit, (12 + offsetX) * unit, (14 + offsetY) * unit);
+        g.lineTo((6 + offsetX) * unit, (5 + offsetY) * unit);
+        g.lineTo((13 + offsetX) * unit, (5 + offsetY) * unit);
+        g.quadraticCurveTo((17 + offsetX) * unit, (5 + offsetY) * unit, (14 + offsetX) * unit, (0 + offsetY) * unit);
+        g.lineTo((-7 + offsetX) * unit, (-19 + offsetY) * unit);
+        g.quadraticCurveTo((-11 + offsetX) * unit, (-22 + offsetY) * unit, (-10 + offsetX) * unit, (-17 + offsetY) * unit);
+        g.lineTo((-5 + offsetX) * unit, (-5 + offsetY) * unit);
+        g.lineTo((-13 + offsetX) * unit, (-5 + offsetY) * unit);
+        g.quadraticCurveTo((-17 + offsetX) * unit, (-5 + offsetY) * unit, (-15 + offsetX) * unit, (-1 + offsetY) * unit);
         g.close();
     };
-    g.fillColor = new cc.Color(75, 118, 83, 65);
-    trace(1.5, -2.5);
+    g.fillColor = new cc.Color(141, 93, 40, 55);
+    trace(1.2, -2);
     g.fill();
-    g.fillColor = new cc.Color(124, 199, 143);
-    g.strokeColor = new cc.Color(77, 136, 99);
-    g.lineWidth = Math.max(1.4, size * 0.055);
+    g.fillColor = new cc.Color(248, 199, 87);
+    g.strokeColor = new cc.Color(177, 122, 54);
+    g.lineWidth = Math.max(1.4, size * 0.05);
+    g.lineJoin = cc.Graphics.LineJoin.ROUND;
     trace(0, 0);
-    g.fill();
-    g.stroke();
-    g.fillColor = new cc.Color(249, 255, 232, 174);
-    g.ellipse(-5 * unit, 12 * unit, 4 * unit, 2.5 * unit);
-    g.fill();
+    g.fill(); g.stroke();
+    g.fillColor = new cc.Color(255, 239, 171, 215);
+    g.moveTo(-12 * unit, -2 * unit); g.lineTo(-3 * unit, 16 * unit);
+    g.quadraticCurveTo(-2 * unit, 18 * unit, 0, 17 * unit);
+    g.lineTo(-8 * unit, -2 * unit); g.close(); g.fill();
+    g.fillColor = new cc.Color(255, 252, 229, 230);
+    g.ellipse(0, 15 * unit, 3.7 * unit, 1.8 * unit); g.fill();
     g.fillColor = MOOD_COLORS.cocoa;
-    g.circle(-2 * unit, 7 * unit, 1.6 * unit);
-    g.circle(5 * unit, 7 * unit, 1.6 * unit);
-    g.fill();
-    g.fillColor = new cc.Color(232, 156, 131, 175);
-    g.ellipse(-6 * unit, 3 * unit, 2.3 * unit, 1.2 * unit);
-    g.ellipse(8 * unit, 3 * unit, 2.3 * unit, 1.2 * unit);
-    g.fill();
+    g.circle(-5 * unit, 7 * unit, 1.25 * unit);
+    g.circle(1 * unit, 7 * unit, 1.25 * unit); g.fill();
+    g.fillColor = new cc.Color(226, 131, 89, 165);
+    g.ellipse(-7.5 * unit, 3.8 * unit, 1.7 * unit, 0.9 * unit);
+    g.ellipse(3.5 * unit, 3.8 * unit, 1.7 * unit, 0.9 * unit); g.fill();
     g.strokeColor = MOOD_COLORS.cocoa;
-    g.lineWidth = Math.max(1, size * 0.035);
-    g.moveTo(-1 * unit, 2 * unit);
-    g.quadraticCurveTo(2 * unit, -2 * unit, 5 * unit, 2 * unit);
-    g.stroke();
+    g.lineWidth = Math.max(1, size * 0.032);
+    g.lineCap = cc.Graphics.LineCap.ROUND;
+    g.moveTo(-4.5 * unit, 2.5 * unit);
+    g.quadraticCurveTo(-2 * unit, -0.5 * unit, 0.5 * unit, 2.5 * unit); g.stroke();
     return node;
 }
 

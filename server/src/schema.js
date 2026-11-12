@@ -49,12 +49,28 @@ function migrateSchema(db) {
         UNIQUE (player_id, round_id)
       );
       CREATE INDEX IF NOT EXISTS idx_players_high_score ON players(highest_single_game_score DESC);
+      CREATE TABLE IF NOT EXISTS release_resets (
+        generation TEXT PRIMARY KEY,
+        applied_at INTEGER NOT NULL,
+        player_count INTEGER NOT NULL
+      );
     `);
     // 原地升级保留玩家资产和已结算对局。
     const playerColumns = db.exec('PRAGMA table_info(players)')[0].values.map((row) => row[1]);
     if (!playerColumns.includes('stamina_current')) db.run('ALTER TABLE players ADD COLUMN stamina_current INTEGER NOT NULL DEFAULT 10');
     if (!playerColumns.includes('stamina_updated_at')) db.run('ALTER TABLE players ADD COLUMN stamina_updated_at INTEGER NOT NULL DEFAULT 0');
     if (!playerColumns.includes('wechat_openid')) db.run('ALTER TABLE players ADD COLUMN wechat_openid TEXT');
+    for (const column of ['hammer_count', 'wand_count', 'asset_revision']) {
+      if (!playerColumns.includes(column)) db.run(`ALTER TABLE players ADD COLUMN ${column} INTEGER NOT NULL DEFAULT 0`);
+    }
+    db.run(`CREATE TABLE IF NOT EXISTS tool_transactions (
+      player_id TEXT NOT NULL, action_id TEXT NOT NULL, kind TEXT NOT NULL,
+      item TEXT NOT NULL, round_id TEXT NOT NULL DEFAULT '', action_index INTEGER NOT NULL DEFAULT -1,
+      target INTEGER NOT NULL DEFAULT -1, created_at INTEGER NOT NULL,
+      PRIMARY KEY (player_id, action_id)
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_tool_round_action ON tool_transactions(player_id, round_id, action_index)
+      WHERE kind = 'use';`);
     db.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_players_wechat_openid ON players(wechat_openid) WHERE wechat_openid IS NOT NULL AND wechat_openid <> \'\'');
 
     // 历史随机昵称仅替换贬义前缀，保留动物名；正常昵称和玩家其他资料不变。
@@ -64,6 +80,12 @@ function migrateSchema(db) {
     const roundColumns = db.exec('PRAGMA table_info(game_rounds)')[0].values.map((row) => row[1]);
     if (!roundColumns.includes('seed')) db.run('ALTER TABLE game_rounds ADD COLUMN seed INTEGER NOT NULL DEFAULT 0');
     if (!roundColumns.includes('is_tutorial')) db.run('ALTER TABLE game_rounds ADD COLUMN is_tutorial INTEGER NOT NULL DEFAULT 0');
+    // 已开局和历史补传继续使用原规则，新客户端显式选择进度规则。
+    if (!roundColumns.includes('collection_rule')) db.run("ALTER TABLE game_rounds ADD COLUMN collection_rule TEXT NOT NULL DEFAULT 'legacy'");
+
+    if (!roundColumns.includes('rules_version')) db.run('ALTER TABLE game_rounds ADD COLUMN rules_version INTEGER NOT NULL DEFAULT 1');
+    // 在途旧局保持原道具校验协议，新局才强制服务端扣库存凭据。
+    if (!roundColumns.includes('tool_rules_version')) db.run('ALTER TABLE game_rounds ADD COLUMN tool_rules_version INTEGER NOT NULL DEFAULT 0');
 
     const settlementColumns = db.exec('PRAGMA table_info(round_settlements)')[0].values.map((row) => row[1]);
     // 最早的线上库以 round_id 单列为主键，尚无幂等快照；统一迁移到玩家作用域。
@@ -98,7 +120,7 @@ function migrateSchema(db) {
       DROP INDEX IF EXISTS idx_week_happiness;
       DROP INDEX IF EXISTS idx_week_power;
     `);
-    db.run('PRAGMA user_version = 5');
+    db.run('PRAGMA user_version = 8');
     db.run('COMMIT');
   } catch (error) {
     db.run('ROLLBACK');

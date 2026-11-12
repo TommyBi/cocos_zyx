@@ -1,0 +1,26 @@
+{
+  "guideAndTiming": {
+    "first": 5,
+    "repeated": 5,
+    "later": 0,
+    "badgeY": -1,
+    "count": 5
+  },
+  "cinema": {
+    "gravityAt": 2092.5999999940395,
+    "haptics": [
+      259.40000000596046,
+      459.2999999821186
+    ],
+    "sounds": [
+      "bomb",
+      "bomb"
+    ],
+    "callbacks": [
+      259.2999999821186,
+      459.2999999821186
+    ],
+    "shardsAtGravity": 0,
+    "shards": 0
+  }
+}

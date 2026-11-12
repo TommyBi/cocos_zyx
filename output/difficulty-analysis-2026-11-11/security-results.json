@@ -1,0 +1,71 @@
+{
+  "environment": "local temporary DB; NODE_ENV=production; no GM",
+  "tests": [
+    {
+      "rule": "legacy",
+      "startStatus": 200,
+      "settleStatus": 200,
+      "result": {
+        "score": 1000000,
+        "baseMoodBeans": 5000,
+        "bonusMoodBeans": 0,
+        "awardedMoodBeans": 5000,
+        "gainedExperience": 5000,
+        "profile": {
+          "playerId": "guest_611bef08102f891642feb86201d709677410",
+          "nickname": "美丽的兔子",
+          "avatarUrl": "",
+          "registeredAt": "2026-11-11T08:35:19.504Z",
+          "level": 17,
+          "experience": 1057,
+          "moodBeanBalance": 5000,
+          "totalMoodBeans": 5000,
+          "highestSingleGameScore": 1000000,
+          "gameCount": 1,
+          "stamina": {
+            "current": 9,
+            "updatedAt": 1794386119504,
+            "max": 10,
+            "regenSeconds": 300,
+            "nextRecoveryAt": "2026-11-11T08:40:19.504Z",
+            "serverTime": "2026-11-11T08:35:25.504Z",
+            "shareAvailableToday": true
+          }
+        }
+      }
+    },
+    {
+      "rule": "progress_v1",
+      "startStatus": 200,
+      "settleStatus": 200,
+      "result": {
+        "score": 1000000,
+        "baseMoodBeans": 0,
+        "bonusMoodBeans": 0,
+        "awardedMoodBeans": 0,
+        "gainedExperience": 0,
+        "profile": {
+          "playerId": "guest_611bef08102f891642feb86201d709677410",
+          "nickname": "美丽的兔子",
+          "avatarUrl": "",
+          "registeredAt": "2026-11-11T08:35:19.504Z",
+          "level": 17,
+          "experience": 1057,
+          "moodBeanBalance": 5000,
+          "totalMoodBeans": 5000,
+          "highestSingleGameScore": 1000000,
+          "gameCount": 2,
+          "stamina": {
+            "current": 8,
+            "updatedAt": 1794386119504,
+            "max": 10,
+            "regenSeconds": 300,
+            "nextRecoveryAt": "2026-11-11T08:40:19.504Z",
+            "serverTime": "2026-11-11T08:35:31.504Z",
+            "shareAvailableToday": true
+          }
+        }
+      }
+    }
+  ]
+}

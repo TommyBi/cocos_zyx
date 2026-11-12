@@ -1,0 +1,144 @@
+{
+  "beans": 0,
+  "hammer": 1,
+  "magicWand": 0,
+  "actions": [
+    {
+      "type": "rules",
+      "version": 4
+    },
+    {
+      "type": "move",
+      "id": 1,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 3,
+      "offset": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 2,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "hammer",
+      "id": 11
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "purify",
+      "color": 2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "receipts": {
+    "round_1794410010494_bezij5": {
+      "accepted": true,
+      "roundId": "round_1794410010494_bezij5",
+      "settlement": {
+        "score": 100,
+        "baseMoodBeans": 0,
+        "bonusMoodBeans": 0,
+        "awardedMoodBeans": 0,
+        "gainedExperience": 10,
+        "profile": {
+          "playerId": "guest_86df72acb8cbb15c64a924f8a6a2ee8b055e",
+          "nickname": "温柔的天鹅",
+          "avatarUrl": "",
+          "registeredAt": "2026-11-11T15:13:27.438Z",
+          "level": 1,
+          "experience": 10,
+          "moodBeanBalance": 0,
+          "assetRevision": 12,
+          "inventory": {
+            "hammer": 1,
+            "magicWand": 0
+          },
+          "totalMoodBeans": 60,
+          "highestSingleGameScore": 100,
+          "gameCount": 1,
+          "stamina": {
+            "current": 9,
+            "updatedAt": 1794410010502,
+            "max": 10,
+            "regenSeconds": 300,
+            "nextRecoveryAt": "2026-11-11T15:18:30.502Z",
+            "serverTime": "2026-11-11T15:13:41.028Z",
+            "shareAvailableToday": true
+          }
+        }
+      }
+    }
+  },
+  "exchangeCount": 4,
+  "errors": []
+}

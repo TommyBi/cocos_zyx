@@ -1,0 +1,69 @@
+{
+  "method": "Local isolated compiled variants. Only combo bomb threshold changes, no adaptive generator or bomb-preservation changes. Tutorial UI sequence, no paid tools; policies prioritize existing elimination hint or bomb. Fixed 1000 distributed seeds per scenario.",
+  "results": [
+    {
+      "threshold": 4,
+      "policy": "hint-first",
+      "seeds": 1000,
+      "maxFreeActions": 30,
+      "openingBombRounds": 0,
+      "openingOneCellClearRounds": 160,
+      "bombUses": 791,
+      "bombActionsWithoutFullRow": 752,
+      "bombActionsAwardedNewBomb": 6,
+      "playedFreeActions": 23466,
+      "freeActionsCleared": 10143,
+      "multiRowFreeActions": 894,
+      "roundsReachedPerfect": 178,
+      "roundsAliveAfter30": 438
+    },
+    {
+      "threshold": 4,
+      "policy": "bomb-first",
+      "seeds": 1000,
+      "maxFreeActions": 30,
+      "openingBombRounds": 0,
+      "openingOneCellClearRounds": 160,
+      "bombUses": 988,
+      "bombActionsWithoutFullRow": 934,
+      "bombActionsAwardedNewBomb": 4,
+      "playedFreeActions": 23463,
+      "freeActionsCleared": 9939,
+      "multiRowFreeActions": 889,
+      "roundsReachedPerfect": 29,
+      "roundsAliveAfter30": 426
+    },
+    {
+      "threshold": 3,
+      "policy": "hint-first",
+      "seeds": 1000,
+      "maxFreeActions": 30,
+      "openingBombRounds": 1000,
+      "openingOneCellClearRounds": 203,
+      "bombUses": 1780,
+      "bombActionsWithoutFullRow": 1709,
+      "bombActionsAwardedNewBomb": 5,
+      "playedFreeActions": 23210,
+      "freeActionsCleared": 9794,
+      "multiRowFreeActions": 810,
+      "roundsReachedPerfect": 213,
+      "roundsAliveAfter30": 438
+    },
+    {
+      "threshold": 3,
+      "policy": "bomb-first",
+      "seeds": 1000,
+      "maxFreeActions": 30,
+      "openingBombRounds": 1000,
+      "openingOneCellClearRounds": 203,
+      "bombUses": 2196,
+      "bombActionsWithoutFullRow": 2075,
+      "bombActionsAwardedNewBomb": 4,
+      "playedFreeActions": 22870,
+      "freeActionsCleared": 9234,
+      "multiRowFreeActions": 717,
+      "roundsReachedPerfect": 21,
+      "roundsAliveAfter30": 408
+    }
+  ]
+}

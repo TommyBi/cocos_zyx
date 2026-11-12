@@ -5,10 +5,12 @@ import {
     MOOD_BEAN_BALANCE_KEY,
     PENDING_ROUND_SETTLEMENTS_KEY,
     PENDING_ROUND_SETTLEMENTS_LIMIT,
+    getMoodCollection,
 } from './MoodBeanConfig';
 
-export const BOARD_ROWS = 10;
-export const BOARD_COLS = 8;
+import BoardEngine from './BoardEngine';
+export * from './BoardEngine';
+export { default as BoardEngine } from './BoardEngine';
 export const CELL_SIZE = 76;
 const TUTORIAL_CHALLENGE_COUNT_KEY = 'zyx_tutorial_challenge_count';
 
@@ -34,6 +36,10 @@ const KNOWN_STORAGE_KEYS = [
     'zyx_cloud_token',
     'zyx_cloud_device_id',
     'zyx_pending_start_round_id',
+    'zyx_pending_stamina_share_id',
+    'zyx_pending_tool_exchange',
+    'zyx_tool_reward_hammer',
+    'zyx_tool_reward_magicWand',
     'zyx_wechat_profile',
     'zyx_game_settings_v1',
     'zyx_gm_bubble_pos_v1',
@@ -48,7 +54,7 @@ const KNOWN_STORAGE_KEYS = [
 ];
 
 /**
- * 一次性数据代际清空：标记不是 mood_bean_v1 时删除全部 zyx_* 本地数据。
+ * 一次性数据代际清空：标记与当前发布代际不同时删除全部 zyx_* 本地数据。
  * 不迁移、不折算任何旧值；写入标记后正常重启不会再次清空新档。
  * 返回 true 表示本次启动执行了清空。
  */
@@ -73,57 +79,9 @@ export function ensureDataGeneration(): boolean {
     return true;
 }
 
-export type BoardPiece = {
-    id: number;
-    row: number;
-    col: number;
-    size: number;
-    color: number;
-    stampMood: number;
-    stampCell: number;
-    /** 未来收藏物预留：0 表示当前没有收藏物。 */
-    collectibleType: number;
-    collectibleCell: number;
-    /** 炸弹附着在普通横块中央；不参与随机出块。 */
-    bomb?: boolean;
-};
-
-export type NextPiece = {
-    col: number;
-    size: number;
-    color: number;
-    stampMood: number;
-    stampCell: number;
-    collectibleType: number;
-    collectibleCell: number;
-};
-
-export type MoveRange = {
-    min: number;
-    max: number;
-};
-
-export type ResolveResult = {
-    clearedRows: number;
-    gainedScore: number;
-};
-
-export type GravityMove = {
-    id: number;
-    fromRow: number;
-    toRow: number;
-};
-
-export type EliminateResult = ResolveResult & {
-    removedPieceIds: number[];
-    clearedRowIndexes: number[];
-    collectedMoodTypes: number[];
-    combo?: number;
-};
-
 export type RoundSettlement = {
     roundScore: number;
-    /** 本局实际消除并收集的带表情心情块数（一块一豆）。 */
+    /** 历史字段名：实际消除的带表情块原始数，用于重放和经验，不能直接作为豆子奖励。 */
     roundCollectedMoodBeans: number;
     /** 经服务端验证的结算额外奖励；未触发时为 0，结算中单列展示。 */
     roundBonusMoodBeans: number;
@@ -158,100 +116,34 @@ export type DeadRoundSettlement = {
     deadAt: number;
 };
 
-export type MoveHint = {
-    id: number;
-    offset: number;
-};
-
-export type TutorialMove = MoveHint & {
-    pieceSize: number;
-    targetRow: number;
-    targetCol: number;
-};
-
-export type AutoPurifyResult = {
-    color: number;
-    removedPieceIds: number[];
-};
-
-export type RowGenerationDebug = {
-    seed: number;
-    turn: number;
-    targetCells: number;
-    sizes: number[];
-    gaps: number[];
-    colors: number[];
-    stampCount: number;
-    movablePieces: number;
-    attempts: number;
-};
-
-type GeneratedRowCandidate = {
-    pieces: NextPiece[];
-    sizes: number[];
-    gaps: number[];
-    movablePieces: number;
-};
-
 /**
  * 左右消的唯一数据源。
  * UI 只负责展示和手势，棋盘碰撞、重力、消除与计分都集中在这里。
  */
-export default class ZyxGameModule {
-    public pieces: BoardPiece[] = [];
-    public nextPieces: NextPiece[] = [];
-    public score: number = 0;
-    /** 连续产生满行消除的玩家操作次数，最高显示/计分 5 倍。 */
-    public combo: number = 0;
-    private comboActionCleared: boolean = false;
-    private pendingComboBomb: boolean = false;
-    public bestScore: number = 0;
-    public hammerCount: number = 0;
-    public colorPurifierCount: number = 0;
-    public turn: number = 0;
-    public roundClearedRows: number = 0;
-    /** 本局实际消除并收集的带表情心情块数；结算时 1:1 入账为开心豆。 */
-    public roundCollectedMoodBeans: number = 0;
-    /** 开心豆长期余额；服务端是最终权威，本地仅作缓存与离线展示。 */
-    public moodBeanBalance: number = 0;
-    public level: number = 1;
-    public experience: number = 0;
-    public challengeCount: number = 0;
-    public startingBestScore: number = 0;
-    public roundSeed: number = 0;
-    /** 本局开始时间（resetRound 时刷新）；暂停重开放弃本局后，新局从重开时刻重新计时。 */
-    public roundStartedAt: number = 0;
-    public generationDebugLog: RowGenerationDebug[] = [];
-
-    private nextId: number = 1;
-    private roundSettled: boolean = false;
-    private seedOverride: number = 0;
-    /** 服务端开局配置在 resetRound 生成棋盘前一次性消费，禁止被本地随机配置覆盖。 */
-    private pendingServerSeed: number = 0;
+export default class ZyxGameModule extends BoardEngine {
+    public moodBeanBalance = 0;
+    public level = 1;
+    public experience = 0;
+    public challengeCount = 0;
+    public startingBestScore = 0;
+    public roundStartedAt = 0;
+    private roundSettled = false;
+    private seedOverride = 0;
+    private pendingServerSeed = 0;
     private pendingServerTutorial: boolean = null;
-    private currentRoundIsTutorial: boolean = false;
-    private randomState: number = 1;
-    private tutorialMoves: TutorialMove[] = [];
-    private loggedInGameCount: number = 0;
-    private sessionStartedRounds: number = 0;
-    private hasGameCountBaseline: boolean = false;
-    /** 本局操作序列：记录所有影响棋盘的操作，结算时提交给服务端重放校验。 */
-    public roundActions: any[] = [];
+    private loggedInGameCount = 0;
+    private sessionStartedRounds = 0;
+    private hasGameCountBaseline = false;
+    private cloudPlayerId = '';
+    public getPlayerId(): string { return this.cloudPlayerId; }
+    private assetRevision = -1;
+    public cloudRoundId = '';
 
     public resetRound(): void {
-        this.score = 0;
-        this.combo = 0;
-        this.comboActionCleared = false;
-        this.pendingComboBomb = false;
-        this.turn = 0;
-        this.roundClearedRows = 0;
-        this.roundCollectedMoodBeans = 0;
-        this.nextId = 1;
         this.hammerCount = Math.max(0, this.readNumber('zyx_hammer_inventory', 0));
         this.colorPurifierCount = Math.max(0, this.readNumber('zyx_magic_wand_inventory', 0));
         this.roundSettled = false;
         this.roundStartedAt = Date.now();
-        this.roundActions = [];
         this.bestScore = this.readNumber('zyx_best_score', 0);
         this.startingBestScore = this.bestScore;
         this.roundSeed = this.pendingServerSeed || this.seedOverride || this.createRandomSeed();
@@ -272,38 +164,12 @@ export default class ZyxGameModule {
         this.syncPersistentProgress();
         cc.log(`[棋盘调试] 本局随机种子 ${this.roundSeed}`);
 
-        if (this.isTutorialRound()) {
-            this.pieces = this.createTutorialBoard();
-            this.nextPieces = this.createTutorialNextRow();
-        } else {
-            this.tutorialMoves = [];
-            this.pieces = [
-                // 开局保留一个真实可消除机会：把倒数第二行的 2 格块左移，它会落下并填满底行。
-                this.createPiece(9, 0, 3, 8, 8),
-                this.createPiece(9, 5, 3, 6, 0),
-                this.createPiece(8, 0, 2, 2, 2, 0),
-                this.createPiece(8, 2, 1, 9, 0),
-                this.createPiece(8, 4, 2, 1, 1),
-                this.createPiece(7, 0, 1, 3, 3, 0),
-                this.createPiece(7, 4, 2, 7, 0),
-            ];
-            this.nextPieces = this.generateNextRow();
-        }
-    }
-
-    /** 开局后由服务端配置决定；离线或本地测试回退到已完成局数。 */
-    public isTutorialRound(): boolean {
-        return this.currentRoundIsTutorial;
+        this.resetBoard(this.roundSeed, this.currentRoundIsTutorial);
     }
 
     /** 首次启动分流：云端没有完成局数的新用户直接进入消除；无法联网时也优先保证可玩。 */
     public shouldEnterGameOnLaunch(): boolean {
         return !this.hasGameCountBaseline || this.loggedInGameCount === 0;
-    }
-
-    public getTutorialMove(step: number): TutorialMove {
-        const move = this.tutorialMoves[step];
-        return move ? { ...move } : null;
     }
 
     /** 调试复现：传入正整数后，后续每局都使用同一随机序列；传 0 恢复随机。 */
@@ -325,328 +191,6 @@ export default class ZyxGameModule {
         this.syncPersistentProgress();
         // 冷启动时 bestScore 仍是模块默认值，这里用存储值兜底；max 避免覆盖局内尚未落盘的更高分。
         this.bestScore = Math.max(this.bestScore, this.readNumber('zyx_best_score', 0));
-    }
-
-    public getPiece(id: number): BoardPiece {
-        return this.pieces.find((piece) => piece.id === id) || null;
-    }
-
-    public getMoveRange(id: number): MoveRange {
-        const piece = this.getPiece(id);
-        if (!piece) return { min: 0, max: 0 };
-
-        let minCol = 0;
-        let maxCol = BOARD_COLS - piece.size;
-        for (const other of this.pieces) {
-            if (other.id === id || other.row !== piece.row) continue;
-            if (other.col + other.size <= piece.col) {
-                minCol = Math.max(minCol, other.col + other.size);
-            } else if (other.col >= piece.col + piece.size) {
-                maxCol = Math.min(maxCol, other.col - piece.size);
-            }
-        }
-        return {
-            min: minCol - piece.col,
-            max: maxCol - piece.col,
-        };
-    }
-
-    public movePiece(id: number, offset: number): boolean {
-        const piece = this.getPiece(id);
-        if (!piece || offset === 0) return false;
-        const range = this.getMoveRange(id);
-        const safeOffset = Math.max(range.min, Math.min(range.max, offset));
-        if (safeOffset === 0) return false;
-        this.beginPlayerAction();
-        piece.col += safeOffset;
-        this.roundActions.push({ type: 'move', id, offset: safeOffset });
-        return true;
-    }
-
-    public useHammer(id: number): boolean {
-        if (this.hammerCount <= 0 || !this.getPiece(id)) return false;
-        this.beginPlayerAction();
-        this.hammerCount--;
-        this.saveToolInventory();
-        this.pieces = this.pieces.filter((piece) => piece.id !== id);
-        this.roundActions.push({ type: 'hammer', id });
-        return true;
-    }
-
-    /** 发放一次解压锤使用机会；库存跨局保留。 */
-    public grantRewardedHammer(): void {
-        this.hammerCount++;
-        this.saveToolInventory();
-    }
-
-    /** 消耗一次魔法棒机会，并移除棋盘上玩家选中的全部同色色块。 */
-    public useColorPurifier(color: number): number[] {
-        if (this.colorPurifierCount <= 0) return [];
-        const removedPieceIds = this.pieces
-            .filter((piece) => piece.color === color)
-            .map((piece) => piece.id);
-        if (removedPieceIds.length === 0) return [];
-
-        this.beginPlayerAction();
-        this.colorPurifierCount--;
-        this.saveToolInventory();
-        const removedSet: { [key: number]: boolean } = {};
-        removedPieceIds.forEach((id) => removedSet[id] = true);
-        this.pieces = this.pieces.filter((piece) => !removedSet[piece.id]);
-        this.roundActions.push({ type: 'purify', color });
-        return removedPieceIds;
-    }
-
-    /** 与解压锤一致：发放一次魔法棒使用机会。 */
-    public grantRewardedColorPurifier(): void {
-        this.colorPurifierCount++;
-        this.saveToolInventory();
-    }
-
-    /** 棋盘最高色块进入顶部预留区时，进入濒死救场状态。 */
-    public hasEnteredRescueZone(emptyRows: number = 2): boolean {
-        if (this.pieces.length === 0) return false;
-        const topmostRow = this.pieces.reduce(
-            (minimum, piece) => Math.min(minimum, piece.row),
-            BOARD_ROWS,
-        );
-        return topmostRow <= Math.max(0, emptyRows);
-    }
-
-    /** 当前棋盘实际占用的高度层数量；同一行有多个色块仍只计为一排。 */
-    public getOccupiedRowCount(): number {
-        const occupiedRows: { [row: number]: boolean } = {};
-        this.pieces.forEach((piece) => occupiedRows[piece.row] = true);
-        return Object.keys(occupiedRows).length;
-    }
-
-    /** 自动移除出现块数最多的颜色；并列时优先清除占格更多的颜色。 */
-    public removeMostCommonColor(): AutoPurifyResult {
-        const stats: { [key: number]: { count: number; cells: number } } = {};
-        for (const piece of this.pieces) {
-            if (!stats[piece.color]) stats[piece.color] = { count: 0, cells: 0 };
-            stats[piece.color].count++;
-            stats[piece.color].cells += piece.size;
-        }
-
-        const colors = Object.keys(stats).map((value) => Number(value));
-        if (colors.length === 0) return { color: 0, removedPieceIds: [] };
-        colors.sort((left, right) => {
-            const countDifference = stats[right].count - stats[left].count;
-            if (countDifference !== 0) return countDifference;
-            const cellDifference = stats[right].cells - stats[left].cells;
-            if (cellDifference !== 0) return cellDifference;
-            return left - right;
-        });
-
-        const color = colors[0];
-        const removedPieceIds = this.pieces
-            .filter((piece) => piece.color === color)
-            .map((piece) => piece.id);
-        const removedSet: { [key: number]: boolean } = {};
-        removedPieceIds.forEach((id) => removedSet[id] = true);
-        this.pieces = this.pieces.filter((piece) => !removedSet[piece.id]);
-        return { color, removedPieceIds };
-    }
-
-    /** 紧急分享救场：一次性清空当前棋盘，并返回需要播放退场动画的色块。 */
-    public removeAllPieces(): number[] {
-        this.beginPlayerAction();
-        const removedPieceIds = this.pieces.map((piece) => piece.id);
-        this.pieces = [];
-        this.roundActions.push({ type: 'clear' });
-        return removedPieceIds;
-    }
-
-    /** 复活时清理顶部指定行数；默认清掉 8 行，仅保留底部 2 行继续挑战。 */
-    public removeTopRowsForRevive(rowCount: number = 8): number[] {
-        const firstPreservedRow = Math.max(0, Math.min(BOARD_ROWS, Math.floor(rowCount)));
-        const removedPieceIds = this.pieces
-            .filter((piece) => piece.row < firstPreservedRow)
-            .map((piece) => piece.id);
-        if (removedPieceIds.length === 0) return [];
-
-        this.beginPlayerAction();
-        const removedSet: { [key: number]: boolean } = {};
-        removedPieceIds.forEach((id) => removedSet[id] = true);
-        this.pieces = this.pieces.filter((piece) => !removedSet[piece.id]);
-        this.roundActions.push({ type: 'revive', rowCount });
-        return removedPieceIds;
-    }
-
-    /** 找到一次移动经重力结算后能产生满行的最短操作，用于 8 秒无操作提示。 */
-    public findEliminationHint(): MoveHint {
-        const ordered = this.pieces.slice().sort((a, b) => b.row - a.row);
-        for (const piece of ordered) {
-            const range = this.getMoveRange(piece.id);
-            const offsets: number[] = [];
-            for (let value = range.min; value <= range.max; value++) {
-                if (value !== 0) offsets.push(value);
-            }
-            offsets.sort((a, b) => Math.abs(a) - Math.abs(b));
-            for (const offset of offsets) {
-                if (this.wouldCreateFullRow(piece, offset)) return { id: piece.id, offset };
-            }
-        }
-        return null;
-    }
-
-    /** 只有成功移动/使用道具才开启操作；无效拖动、点击与自动补排不打断连消。 */
-    public beginPlayerAction(): void {
-        if (!this.comboActionCleared) this.combo = 0;
-        this.comboActionCleared = false;
-    }
-
-    /** 包含自动补排在内的一次操作结算完毕；没有满行消除才归零。 */
-    public finishPlayerAction(): void {
-        if (!this.comboActionCleared) this.combo = 0;
-    }
-
-    public resolveBoard(): ResolveResult {
-        let clearedRows = 0;
-        let gainedScore = 0;
-
-        while (true) {
-            this.applyGravity();
-            const result = this.eliminateFullRows();
-            if (result.clearedRows === 0) break;
-
-            clearedRows += result.clearedRows;
-            gainedScore += result.gainedScore;
-        }
-        this.awardBomb(clearedRows);
-        this.claimComboBomb();
-        return { clearedRows, gainedScore };
-    }
-
-    /** 每段连续操作首次达到 Great 时额外发一枚，不与双排奖励互相覆盖。 */
-    public claimComboBomb(): BoardPiece {
-        if (!this.pendingComboBomb) return null;
-        this.pendingComboBomb = false;
-        return this.awardBomb(2);
-    }
-
-    /** 一次操作累计清掉两排及以上时奖励一枚；稳定后发放，避免刚生成就被连消带走。 */
-    public awardBomb(clearedRows: number): BoardPiece {
-        if (clearedRows < 2) return null;
-        let target = this.pieces.filter((piece) => !piece.bomb)
-            .sort((a, b) => b.row - a.row || a.col - b.col || a.id - b.id)[0];
-        if (!target) {
-            // 全清或现存块都带炸弹时，在最低的空格生成普通单格，保证奖励不会丢失。
-            for (let row = BOARD_ROWS - 1; row >= 0 && !target; row--) {
-                for (let col = 0; col < BOARD_COLS && !target; col++) {
-                    if (this.pieces.some((piece) => piece.row === row && col >= piece.col && col < piece.col + piece.size)) continue;
-                    target = this.createPiece(row, col, 1, 1, 0);
-                    this.pieces.push(target);
-                }
-            }
-        }
-        if (!target) return null;
-        target.bomb = true;
-        return target;
-    }
-
-    /** 点击引爆自身及中心周围 3×3 内相交的整块；爆破收集表情豆，后续满行照常计分。 */
-    public detonateBomb(id: number): EliminateResult {
-        const bomb = this.getPiece(id);
-        if (!bomb || !bomb.bomb) return null;
-        this.beginPlayerAction();
-        const centerCol = bomb.col + bomb.size / 2;
-        const removed = this.pieces.filter((piece) => piece.id === id || (
-            Math.abs(piece.row - bomb.row) <= 1
-            && piece.col < centerCol + 1.5 && piece.col + piece.size > centerCol - 1.5
-        ));
-        const removedPieceIds = removed.map((piece) => piece.id);
-        const collectedMoodTypes = removed.filter((piece) => piece.stampMood > 0).map((piece) => piece.stampMood);
-        this.pieces = this.pieces.filter((piece) => removedPieceIds.indexOf(piece.id) < 0);
-        this.roundCollectedMoodBeans += collectedMoodTypes.length;
-        this.roundActions.push({ type: 'bomb', id });
-        return { clearedRows: 0, gainedScore: 0, removedPieceIds, clearedRowIndexes: [], collectedMoodTypes };
-    }
-
-    /** 执行一次完整重力结算，并返回需要播放掉落动画的色块。 */
-    public applyGravity(): GravityMove[] {
-        const moves: GravityMove[] = [];
-        const ordered = this.pieces.slice().sort((a, b) => b.row - a.row);
-        for (const piece of ordered) {
-            const fromRow = piece.row;
-            while (piece.row < BOARD_ROWS - 1 && this.canOccupy(piece, piece.row + 1)) {
-                piece.row++;
-            }
-            if (piece.row !== fromRow) moves.push({ id: piece.id, fromRow, toRow: piece.row });
-        }
-        return moves;
-    }
-
-    /** 只执行当前稳定棋盘上的一次满行消除，便于界面逐轮播放动画。 */
-    public eliminateFullRows(): EliminateResult {
-        const fullRows = this.findFullRows();
-        if (fullRows.length === 0) {
-            return {
-                clearedRows: 0,
-                gainedScore: 0,
-                removedPieceIds: [],
-                clearedRowIndexes: [],
-                collectedMoodTypes: [],
-            };
-        }
-
-        const rowSet: { [key: number]: boolean } = {};
-        fullRows.forEach((row) => rowSet[row] = true);
-        const removedPieces = this.pieces.filter((piece) => rowSet[piece.row]);
-        const removedPieceIds = removedPieces.map((piece) => piece.id);
-        const collectedMoodTypes = removedPieces
-            .filter((piece) => piece.stampMood > 0)
-            .map((piece) => piece.stampMood);
-        this.pieces = this.pieces.filter((piece) => !rowSet[piece.row]);
-
-        if (!this.comboActionCleared) {
-            this.combo = Math.min(5, this.combo + 1);
-            this.comboActionCleared = true;
-            if (this.combo === 4) this.pendingComboBomb = true;
-        }
-        const combo = this.combo;
-        const gainedScore = fullRows.length * 10 * combo;
-        this.score += gainedScore;
-        this.roundClearedRows += fullRows.length;
-        this.roundCollectedMoodBeans += collectedMoodTypes.length;
-// 局内消除时只在内存刷新 HUD“可能达到的新纪录”展示，绝不落盘；
-// bestScore / zyx_best_score 只能在正式 finishRound() 结算时持久化。
-// 暂停重开会走 resetRound()，从 zyx_best_score 重新读取本局开始前的值。
-if (this.score > this.bestScore) {
-this.bestScore = this.score;
-}
-        return {
-            clearedRows: fullRows.length,
-            gainedScore,
-            combo,
-            removedPieceIds,
-            clearedRowIndexes: fullRows,
-            collectedMoodTypes,
-        };
-    }
-
-    /** 推进一行；顶部已有色块时无法推进，即本局结束。 */
-    public appendNextRow(): boolean {
-        if (this.pieces.some((piece) => piece.row === 0)) return false;
-
-        this.roundActions.push({ type: 'append' });
-        for (const piece of this.pieces) piece.row--;
-        for (const next of this.nextPieces) {
-            this.pieces.push(this.createPiece(
-                BOARD_ROWS - 1,
-                next.col,
-                next.size,
-                next.color,
-                next.stampMood,
-                next.stampCell,
-                next.collectibleType,
-                next.collectibleCell,
-            ));
-        }
-        this.turn++;
-        this.nextPieces = this.generateNextRow();
-        return true;
     }
 
     public finishRound(): RoundSettlement {
@@ -675,10 +219,10 @@ this.bestScore = this.score;
         if (this.score > this.bestScore) this.bestScore = this.score;
         cc.sys.localStorage.setItem('zyx_best_score', String(this.bestScore));
 
-        // 一块一豆是本局收集预览；服务端校验开局凭证后才正式入账。
+        // 原始表情块数用于重放；整颗豆奖励由服务端校验后正式入账，余量不跨局。
         const roundCollectedMoodBeans = this.roundCollectedMoodBeans;
         const roundBonusMoodBeans = 0;
-        const roundEarnedMoodBeans = roundCollectedMoodBeans + roundBonusMoodBeans;
+        const roundEarnedMoodBeans = getMoodCollection(roundCollectedMoodBeans).beans + roundBonusMoodBeans;
         const gainedExperience = roundCollectedMoodBeans;
         // 本局奖励不直接写入余额或等级；只有服务端回执才能更新可兑换余额。
         let levelAfter = displayLevelBefore.level;
@@ -713,13 +257,29 @@ this.bestScore = this.score;
      * 开心豆、等级和经验只保存服务端确认值；待提交记录不能提前计入开心豆余额。
      */
     public applyCloudProfile(profile: {
+        playerId?: string;
+        assetRevision?: number;
+        inventory?: { hammer: number; magicWand: number };
         level: number;
         experience: number;
         moodBeanBalance: number;
         totalMoodBeans?: number;
         highestSingleGameScore: number;
         gameCount?: number;
-    }): void {
+    }): boolean {
+        if (profile.playerId && profile.playerId !== this.cloudPlayerId) {
+            this.cloudPlayerId = profile.playerId;
+            this.assetRevision = -1;
+        }
+        if (typeof profile.assetRevision === 'number') {
+            if (profile.assetRevision < this.assetRevision) return false;
+            this.assetRevision = profile.assetRevision;
+        } else if (this.assetRevision >= 0) return false; // 迁移前的历史回执也不能覆盖当前资产。
+        if (profile.inventory) {
+            this.hammerCount = Math.max(0, Math.floor(profile.inventory.hammer || 0));
+            this.colorPurifierCount = Math.max(0, Math.floor(profile.inventory.magicWand || 0));
+            this.saveToolInventory();
+        }
         this.level = Math.max(1, profile.level || 1);
         this.experience = Math.max(0, profile.experience || 0);
         this.moodBeanBalance = Math.max(0, Math.floor(profile.moodBeanBalance || 0));
@@ -736,6 +296,7 @@ this.bestScore = this.score;
         }
         this.savePersistentProgress();
         cc.sys.localStorage.setItem('zyx_best_score', String(this.bestScore));
+        return true;
     }
 
     /** 只展示服务端确认的可兑换余额，待结算收集数留在本局展示。 */
@@ -792,6 +353,7 @@ this.bestScore = this.score;
         cc.sys.localStorage.setItem('zyx_best_score', '0');
         cc.sys.localStorage.setItem(PENDING_ROUND_SETTLEMENTS_KEY, '[]');
         cc.sys.localStorage.removeItem(DEAD_ROUND_SETTLEMENTS_KEY);
+        cc.sys.localStorage.removeItem('zyx_first_round_bomb_guides_' + this.cloudPlayerId);
     }
 
     // ---------- 离线结算待提交队列 ----------
@@ -860,260 +422,9 @@ this.bestScore = this.score;
         cc.sys.localStorage.setItem(PENDING_ROUND_SETTLEMENTS_KEY, JSON.stringify(queue));
     }
 
-    public isGameOver(): boolean {
-        return this.pieces.some((piece) => piece.row === 0);
-    }
-
-    private canOccupy(piece: BoardPiece, row: number): boolean {
-        return !this.pieces.some((other) => {
-            if (other.id === piece.id || other.row !== row) return false;
-            const pieceEnd = piece.col + piece.size;
-            const otherEnd = other.col + other.size;
-            return piece.col < otherEnd && pieceEnd > other.col;
-        });
-    }
-
-    private findFullRows(): number[] {
-        const fullRows: number[] = [];
-        for (let row = 0; row < BOARD_ROWS; row++) {
-            const occupied = new Array(BOARD_COLS).fill(false);
-            for (const piece of this.pieces) {
-                if (piece.row !== row) continue;
-                for (let col = piece.col; col < piece.col + piece.size; col++) occupied[col] = true;
-            }
-            if (occupied.every((value) => value)) fullRows.push(row);
-        }
-        return fullRows;
-    }
-
-    /**
-     * 生成下一排：先抽块长，再把空位撒到块前/块间/块后。
-     * 旧逻辑从左往右填，空格几乎总落在右侧；现在空位会铺开，并略偏向已堆高的一侧。
-     */
-    private generateNextRow(): NextPiece[] {
-        const targetCells = this.pickTargetCells();
-        let best: GeneratedRowCandidate = null;
-        let attempts = 0;
-        const minimumMovablePieces = 2;
-        while (attempts < 6) {
-            attempts++;
-            const candidate = this.createNextRowCandidate(targetCells);
-            if (!best || candidate.movablePieces > best.movablePieces) best = candidate;
-            if (candidate.movablePieces >= minimumMovablePieces) {
-                best = candidate;
-                break;
-            }
-        }
-
-        const debug: RowGenerationDebug = {
-            seed: this.roundSeed,
-            turn: this.turn,
-            targetCells,
-            sizes: best.sizes.slice(),
-            gaps: best.gaps.slice(),
-            colors: best.pieces.map((piece) => piece.color),
-            stampCount: best.pieces.filter((piece) => piece.stampMood > 0).length,
-            movablePieces: best.movablePieces,
-            attempts,
-        };
-        this.generationDebugLog.push(debug);
-        if (this.generationDebugLog.length > 120) this.generationDebugLog.shift();
-        cc.log(
-            `[棋盘生成] seed=${debug.seed} turn=${debug.turn} cells=${debug.targetCells}`
-            + ` sizes=${debug.sizes.join('-')} gaps=${debug.gaps.join('-')}`
-            + ` movable=${debug.movablePieces} attempts=${debug.attempts}`,
-        );
-        return best.pieces;
-    }
-
-    /**
-     * 教学局面完全沿用正式重力：3 格、2 格、1 格依次补满下面三行。
-     * 每个预设块都与下一层真实重叠支撑，教学过程不需要冻结重力，也不会出现悬空块。
-     */
-    private createTutorialBoard(): BoardPiece[] {
-        const threeCell = this.createPiece(6, 1, 3, 3, 3, 1);
-        const oneCell = this.createPiece(6, 4, 1, 1, 1);
-        const twoCell = this.createPiece(6, 5, 2, 5, 5);
-
-        this.tutorialMoves = [
-            { id: threeCell.id, offset: -1, pieceSize: 3, targetRow: 7, targetCol: 0 },
-            { id: twoCell.id, offset: 1, pieceSize: 2, targetRow: 8, targetCol: 6 },
-            { id: oneCell.id, offset: -1, pieceSize: 1, targetRow: 9, targetCol: 3 },
-        ];
-
-        return [
-            threeCell,
-            oneCell,
-            twoCell,
-            this.createPiece(7, 3, 2, 7, 7, 1),
-            this.createPiece(7, 5, 3, 9, 9, 1),
-            this.createPiece(8, 0, 3, 4, 0),
-            this.createPiece(8, 3, 3, 6, 6, 1),
-            this.createPiece(9, 0, 3, 10, 10, 1),
-            this.createPiece(9, 4, 2, 8, 0),
-            this.createPiece(9, 6, 2, 2, 2),
-        ];
-    }
-
-    /** 三步结束后补入的第一排也固定，避免刚脱离教学就遇到难读的随机局面。 */
-    private createTutorialNextRow(): NextPiece[] {
-        return [
-            { col: 0, size: 2, color: 2, stampMood: 2, stampCell: 0, collectibleType: 0, collectibleCell: 0 },
-            { col: 3, size: 1, color: 4, stampMood: 0, stampCell: 0, collectibleType: 0, collectibleCell: 0 },
-            { col: 5, size: 2, color: 6, stampMood: 6, stampCell: 1, collectibleType: 0, collectibleCell: 0 },
-        ];
-    }
-
-    /** 4→5→6 格使用概率坡度过渡，避免第 9/17 排突然阶跃。 */
-    private pickTargetCells(): number {
-        const fiveCellChance = Math.max(0, Math.min(1, (this.turn - 4) / 8));
-        const sixCellChance = Math.max(0, Math.min(1, (this.turn - 13) / 10));
-        if (sixCellChance > 0 && this.random() < sixCellChance) return 6;
-        if (fiveCellChance > 0 && this.random() < fiveCellChance) return 5;
-        return 4;
-    }
-
-    private createNextRowCandidate(targetCells: number): GeneratedRowCandidate {
-        const emptyCells = BOARD_COLS - targetCells;
-
-        const sizes: number[] = [];
-        let cellsLeft = targetCells;
-        while (cellsLeft > 0) {
-            const maxSize = Math.min(3, cellsLeft);
-            const size = 1 + Math.floor(this.random() * maxSize);
-            sizes.push(size);
-            cellsLeft -= size;
-        }
-
-        const gaps = new Array(sizes.length + 1).fill(0);
-        const heights = this.getColumnStackHeights();
-        let leftPressure = 0;
-        let rightPressure = 0;
-        for (let c = 0; c < BOARD_COLS; c++) {
-            if (c < BOARD_COLS / 2) leftPressure += heights[c];
-            else rightPressure += heights[c];
-        }
-
-        for (let i = 0; i < emptyCells; i++) {
-            const weights = gaps.map((_, slot) => {
-                const t = gaps.length <= 1 ? 0.5 : slot / (gaps.length - 1);
-                // 哪侧堆得更高，空位就更常落在哪侧，避免单边越堆越高。
-                return 1 + leftPressure * (1 - t) + rightPressure * t;
-            });
-            gaps[this.pickWeightedIndex(weights)]++;
-        }
-
-        const pieces: NextPiece[] = [];
-        let col = gaps[0];
-        for (let i = 0; i < sizes.length; i++) {
-            const size = sizes[i];
-            const color = this.pickMoodColor();
-            const hasStamp = this.random() < 0.5;
-            pieces.push({
-                col,
-                size,
-                color,
-                stampMood: hasStamp ? color : 0,
-                stampCell: 0,
-                collectibleType: 0,
-                collectibleCell: 0,
-            });
-            col += size + gaps[i + 1];
-        }
-        return {
-            pieces,
-            sizes,
-            gaps,
-            movablePieces: this.countMovableNextPieces(pieces),
-        };
-    }
-
-    /** 至少保留两个可横移块，避免所有空位挤在边缘时只剩单一操作。 */
-    private countMovableNextPieces(pieces: NextPiece[]): number {
-        let movable = 0;
-        for (let i = 0; i < pieces.length; i++) {
-            const piece = pieces[i];
-            const leftEdge = i > 0 ? pieces[i - 1].col + pieces[i - 1].size : 0;
-            const rightEdge = i < pieces.length - 1 ? pieces[i + 1].col : BOARD_COLS;
-            if (piece.col > leftEdge || piece.col + piece.size < rightEdge) movable++;
-        }
-        return movable;
-    }
-
-    /** 各列当前堆高（从底往上有块的行数），供下一排空位偏向使用。 */
-    private getColumnStackHeights(): number[] {
-        const heights = new Array(BOARD_COLS).fill(0);
-        for (const piece of this.pieces) {
-            const stack = BOARD_ROWS - piece.row;
-            for (let c = piece.col; c < piece.col + piece.size; c++) {
-                if (c >= 0 && c < BOARD_COLS) heights[c] = Math.max(heights[c], stack);
-            }
-        }
-        return heights;
-    }
-
-    private pickWeightedIndex(weights: number[]): number {
-        let total = 0;
-        for (const weight of weights) total += Math.max(0, weight);
-        if (total <= 0) return Math.floor(this.random() * weights.length);
-        let roll = this.random() * total;
-        for (let i = 0; i < weights.length; i++) {
-            roll -= Math.max(0, weights[i]);
-            if (roll <= 0) return i;
-        }
-        return weights.length - 1;
-    }
-
-    private createPiece(
-        row: number,
-        col: number,
-        size: number,
-        color: number,
-        stampMood: number = -1,
-        stampCell: number = 0,
-        collectibleType: number = 0,
-        collectibleCell: number = 0,
-    ): BoardPiece {
-        const resolvedStamp = stampMood < 0 ? (this.random() < 0.5 ? color : 0) : stampMood;
-        return {
-            id: this.nextId++,
-            row,
-            col,
-            size,
-            color,
-            stampMood: resolvedStamp,
-            stampCell: resolvedStamp > 0
-                ? Math.max(0, Math.min(size - 1, stampCell))
-                : 0,
-            collectibleType,
-            collectibleCell: collectibleType > 0
-                ? Math.max(0, Math.min(size - 1, collectibleCell))
-                : 0,
-        };
-    }
-
-    /** 消除越多，新进入的心情越趋向开心与平静色系。 */
-    private pickMoodColor(): number {
-        let pool = [1, 2, 3, 4, 5, 6, 1, 3, 5, 7, 8, 9, 10, 7, 9];
-        if (this.roundClearedRows >= 12) pool = [1, 2, 2, 3, 5, 5, 6, 6];
-        else if (this.roundClearedRows >= 7) pool = [1, 2, 3, 3, 4, 5, 5, 6, 7, 9];
-        else if (this.roundClearedRows >= 3) pool = [1, 2, 3, 4, 5, 6, 1, 3, 5, 7, 9];
-        return pool[Math.floor(this.random() * pool.length)];
-    }
-
     private createRandomSeed(): number {
         const seed = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
         return seed || 1;
-    }
-
-    /** xorshift32：轻量、可复现，足够用于棋盘生成而不改变游戏存档。 */
-    private random(): number {
-        let value = this.randomState | 0;
-        value ^= value << 13;
-        value ^= value >>> 17;
-        value ^= value << 5;
-        this.randomState = value >>> 0;
-        return this.randomState / 0x100000000;
     }
 
     private syncPersistentProgress(): void {
@@ -1128,41 +439,9 @@ this.bestScore = this.score;
         cc.sys.localStorage.setItem('zyx_experience', String(this.experience));
     }
 
-    private saveToolInventory(): void {
+    protected saveToolInventory(): void {
         cc.sys.localStorage.setItem('zyx_hammer_inventory', String(this.hammerCount));
         cc.sys.localStorage.setItem('zyx_magic_wand_inventory', String(this.colorPurifierCount));
-    }
-
-
-    private wouldCreateFullRow(piece: BoardPiece, offset: number): boolean {
-        const simulated = this.pieces.map((item) => ({ ...item }));
-        const moved = simulated.find((item) => item.id === piece.id);
-        if (!moved) return false;
-        moved.col += offset;
-
-        const ordered = simulated.slice().sort((a, b) => b.row - a.row);
-        for (const falling of ordered) {
-            while (falling.row < BOARD_ROWS - 1) {
-                const nextRow = falling.row + 1;
-                const blocked = simulated.some((other) => {
-                    if (other.id === falling.id || other.row !== nextRow) return false;
-                    return falling.col < other.col + other.size
-                        && falling.col + falling.size > other.col;
-                });
-                if (blocked) break;
-                falling.row = nextRow;
-            }
-        }
-
-        for (let row = 0; row < BOARD_ROWS; row++) {
-            const occupied = new Array(BOARD_COLS).fill(false);
-            for (const item of simulated) {
-                if (item.row !== row) continue;
-                for (let col = item.col; col < item.col + item.size; col++) occupied[col] = true;
-            }
-            if (occupied.every((value) => value)) return true;
-        }
-        return false;
     }
 
     private readNumber(key: string, fallback: number): number {

@@ -1,0 +1,193 @@
+process.env.ENABLE_GM_ROUTES = '1';
+delete process.env.ALLOW_LEGACY_ROUND_STARTS;
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const initSqlJs = require('sql.js');
+const { start } = require('../src/index');
+const { default: BoardEngine, BOARD_RULES_VERSION } = require('../src/boardEngine');
+let server, base, dbPath, clock, realNow;
+let seq = 0;
+test.before(async () => {
+  realNow = Date.now; clock = realNow(); Date.now = () => clock;
+  dbPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'zyx-shop-test-')), 'shop.sqlite');
+  server = (await start(dbPath)).listen(0, '127.0.0.1');
+  await new Promise(resolve => server.once('listening', resolve));
+  base = `http://127.0.0.1:${server.address().port}/v1/cocos-zyx`;
+});
+test.after(async () => { Date.now = realNow; await new Promise(resolve => server.close(resolve)); });
+async function api(route, token, body) {
+  const response = await fetch(base + route, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token || ''}` }, body: JSON.stringify(body) });
+  return { status: response.status, ...(await response.json()) };
+}
+async function player(balance = 40) {
+  const deviceId = `shop_test_${++seq}`;
+  const boot = await api('/players/bootstrap', '', { deviceId });
+  const token = boot.data.token;
+  await api('/debug/profile', token, { moodBeanBalance: balance, totalMoodBeans: balance });
+  return { token, deviceId };
+}
+function exchange(token, actionId, item = 'hammer', extra = {}) {
+  return api('/shop/exchanges', token, { actionId, item, ...extra });
+}
+test('固定20:1、扣款发货原子、同请求重复提交仅兑换一件、两种道具均持久保存', async () => {
+  const { token, deviceId } = await player();
+  const pair = await Promise.all([exchange(token, 'shop_duplicate'), exchange(token, 'shop_duplicate')]);
+  assert.ok(pair.every(result => result.status === 200));
+  assert.equal(pair.filter(result => result.data.duplicate === true).length, 1);
+  assert.equal(pair[1].data.profile.moodBeanBalance, 20);
+  assert.equal(pair[1].data.profile.inventory.hammer, 1);
+  const wand = await exchange(token, 'shop_wand_1', 'magicWand', { price: 0, quantity: 999999 });
+  assert.equal(wand.data.price, 20);
+  assert.deepEqual(wand.data.profile.inventory, { hammer: 1, magicWand: 1 });
+  assert.equal(wand.data.profile.moodBeanBalance, 0);
+  assert.equal(wand.data.profile.totalMoodBeans, 40, '消费不修改累计获得数');
+  const oldRetry = await exchange(token, 'shop_duplicate');
+  assert.equal(oldRetry.data.profile.moodBeanBalance, 0, '重试返回当前余额，不返回兑换前的旧快照');
+  assert.equal(oldRetry.data.profile.assetRevision, wand.data.profile.assetRevision);
+  const boot = await api('/players/bootstrap', '', { deviceId });
+  assert.deepEqual(boot.data.profile.inventory, { hammer: 1, magicWand: 1 });
+  const SQL = await initSqlJs(); const disk = new SQL.Database(fs.readFileSync(dbPath));
+  const row = disk.exec(`SELECT mood_bean_balance, hammer_count, wand_count FROM players WHERE player_id = '${boot.data.profile.playerId}'`)[0].values[0];
+  assert.deepEqual(row, [0, 1, 1]); disk.close();
+});
+test('余额不足、并发透支、未知商品和同ID换商品均不会错误扣款', async () => {
+  const { token } = await player(20);
+  const results = await Promise.all([exchange(token, 'race_purchase_1'), exchange(token, 'race_purchase_2', 'magicWand')]);
+  assert.deepEqual(results.map(result => result.status).sort(), [200, 409]);
+  assert.equal(results.find(result => result.status === 409).errorCode, 'BEANS_INSUFFICIENT');
+  const winner = results.findIndex(result => result.status === 200);
+  const conflict = await exchange(token, winner === 0 ? 'race_purchase_1' : 'race_purchase_2', winner === 0 ? 'magicWand' : 'hammer');
+  assert.equal(conflict.errorCode, 'TOOL_PAYLOAD_CONFLICT');
+  assert.equal((await exchange(token, 'invalid_item', '__proto__')).errorCode, 'TOOL_REQUEST_INVALID');
+  assert.equal((await exchange('', 'no_auth_id')).status, 401);
+});
+test('落盘失败后用原ID重试，只扣20豆并只入库一件', async () => {
+  const { token } = await player(20);
+  const realOpen = fs.openSync;
+  fs.openSync = (target, ...args) => { if (String(target) === `${dbPath}.tmp`) throw new Error('shop persist fault'); return realOpen(target, ...args); };
+  try { assert.equal((await exchange(token, 'persist_purchase')).status, 500); }
+  finally { fs.openSync = realOpen; }
+  const retry = await exchange(token, 'persist_purchase');
+  assert.equal(retry.status, 200); assert.equal(retry.data.duplicate, true);
+  assert.equal(retry.data.profile.moodBeanBalance, 0);
+  assert.equal(retry.data.profile.inventory.hammer, 1);
+});
+test('当前规则禁止伪造道具动作；合法使用只扣一次，刷新/结算不返还已用道具', async () => {
+  const { token, deviceId } = await player(40);
+  await exchange(token, 'paid_hammer_1');
+  const roundId = 'shop_tool_round';
+  const begun = await api('/games/start', token, { roundId, rulesVersion: BOARD_RULES_VERSION, collectionRule: 'progress_v2' });
+  const board = new BoardEngine(); board.resetBoard(begun.data.seed, true);
+  for (let i = 0; i < 3; i++) { const move = board.getTutorialMove(i); board.movePiece(move.id, move.offset); board.resolveBoard(); board.finishPlayerAction(); }
+  for (let i = 0; i < 3; i++) board.appendNextRow();
+  board.resolveBoard(); board.finishPlayerAction();
+  const actionIndex = board.roundActions.length;
+  const id = board.pieces[0].id;
+  board.hammerCount = 1; board.useHammer(id); board.resolveBoard(); board.finishPlayerAction();
+  clock += 10000;
+  const payload = { roundId, startedAt: clock - 10000, endedAt: clock, score: board.score, collectedMoodBeanCount: board.roundCollectedMoodBeans, actions: board.roundActions };
+  const forged = await api('/games/settlements', token, payload);
+  assert.equal(forged.errorCode, 'REPLAY_INVALID');
+  const body = { roundId, item: 'hammer', actionId: `${roundId}:use:${actionIndex}`, actionIndex, target: id };
+  assert.equal((await api('/games/tools/use', token, body)).data.profile.inventory.hammer, 0);
+  const retry = await api('/games/tools/use', token, body);
+  assert.equal(retry.data.duplicate, true); assert.equal(retry.data.profile.inventory.hammer, 0);
+  assert.equal((await api('/games/settlements', token, payload)).status, 200);
+  await exchange(token, 'after_settle_wand', 'magicWand');
+  const duplicate = await api('/games/settlements', token, payload);
+  const fresh = await api('/players/bootstrap', '', { deviceId });
+  assert.ok(fresh.data.profile.assetRevision > duplicate.data.settlement.profile.assetRevision);
+  assert.deepEqual(fresh.data.profile.inventory, { hammer: 0, magicWand: 1 });
+});
+test('新开局不再支持旧免重放奖励协议；补给有幂等和每局上限', async () => {
+  const { token } = await player(0);
+  assert.equal((await api('/games/start', token, { roundId: 'legacy_new_round' })).errorCode, 'COLLECTION_RULE_UNSUPPORTED');
+  const roundId = 'reward_limited_round';
+  await api('/games/start', token, { roundId, rulesVersion: BOARD_RULES_VERSION, collectionRule: 'progress_v2' });
+  for (let i = 0; i < 3; i++) {
+    const body = { roundId, item: 'hammer', actionId: `reward_claim_${i}` };
+    assert.equal((await api('/games/tools/reward', token, body)).status, 200);
+    assert.equal((await api('/games/tools/reward', token, body)).data.duplicate, true);
+  }
+  const limit = await api('/games/tools/reward', token, { roundId, item: 'hammer', actionId: 'reward_claim_overflow' });
+  assert.equal(limit.errorCode, 'TOOL_REWARD_LIMIT');
+});
+
+test('GM重置清空资产/道具/对局记录，恢复10体力，新开局重新进入教学', async () => {
+  const { token, deviceId } = await player(40);
+  await exchange(token, 'before_reset_hammer');
+  const roundId = 'before_reset_round';
+  await api('/games/start', token, { roundId, rulesVersion: BOARD_RULES_VERSION, collectionRule: 'progress_v2' });
+  const reset = await api('/debug/reset', token, {});
+  assert.equal(reset.status, 200);
+  assert.equal(reset.data.profile.moodBeanBalance, 0);
+  assert.deepEqual(reset.data.profile.inventory, { hammer: 0, magicWand: 0 });
+  assert.equal(reset.data.profile.stamina.current, 10);
+  assert.equal(reset.data.profile.gameCount, 0);
+  assert.equal(reset.data.profile.level, 1);
+  const boot = await api('/players/bootstrap', '', { deviceId });
+  assert.equal(boot.data.profile.playerId, reset.data.profile.playerId);
+  const begun = await api('/games/start', token, { roundId: 'after_reset_round', rulesVersion: BOARD_RULES_VERSION, collectionRule: 'progress_v2' });
+  assert.equal(begun.data.isTutorial, true);
+  assert.equal(begun.data.stamina.current, 9);
+});
+
+
+test('体力5:1兑换、与自然恢复累加、保留恢复时钟，幂等重试不能重复加体力', async () => {
+  const { token } = await player(15);
+  await api('/games/start', token, { roundId:'stamina_shop_round', rulesVersion:BOARD_RULES_VERSION, collectionRule:'progress_v2' });
+  clock += 61000;
+  const pair = await Promise.all([exchange(token,'stamina_same_id','stamina',{ price:0,quantity:999 }), exchange(token,'stamina_same_id','stamina')]);
+  assert.ok(pair.every(r=>r.status===200));
+  assert.equal(pair.filter(r=>r.data.duplicate).length,1);
+  assert.equal(pair[1].data.price,5);
+  assert.equal(pair[1].data.profile.moodBeanBalance,10);
+  assert.equal(pair[1].data.profile.stamina.current,10);
+  assert.deepEqual(pair[1].data.profile.inventory,{hammer:0,magicWand:0});
+  const extra = await exchange(token,'stamina_over_max','stamina');
+  assert.equal(extra.data.profile.stamina.current,11);
+  assert.equal(extra.data.profile.moodBeanBalance,5);
+  assert.equal(extra.data.profile.totalMoodBeans,15);
+  assert.equal((await exchange(token,'stamina_same_id','stamina')).data.profile.stamina.current,11);
+  for(const route of ['/games/tools/use','/games/tools/reward']) {
+    assert.equal((await api(route,token,{actionId:'bad_stamina_tool',item:'stamina',roundId:'stamina_shop_round',actionIndex:1,target:1})).errorCode,'TOOL_REQUEST_INVALID');
+  }
+});
+
+test('体力兑换不重置未满时的自然恢复倒计时；余额不足与并发不透支', async () => {
+  const { token } = await player(5);
+  for(let i=0;i<3;i++) await api('/games/start',token,{roundId:`stamina_clock_${i}`,rulesVersion:BOARD_RULES_VERSION,collectionRule:'progress_v2'});
+  clock += 61000;
+  const results=await Promise.all([exchange(token,'stamina_race_one','stamina'),exchange(token,'stamina_race_two','stamina')]);
+  assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);
+  const profile=results.find(r=>r.status===200).data.profile;
+  assert.equal(profile.stamina.current,8);
+  assert.equal(Date.parse(profile.stamina.nextRecoveryAt)-clock,239000);
+  assert.equal(profile.moodBeanBalance,0);
+  assert.equal(results.find(r=>r.status===409).errorCode,'BEANS_INSUFFICIENT');
+});
+
+
+test('当前规则拒绝重复复活、超过8排复活和短时间重复清屏，不能伪造救场绕过上升', async () => {
+  const {token}=await player(0);const roundId='bounded_rescue_round';
+  const start=await api('/games/start',token,{roundId,rulesVersion:BOARD_RULES_VERSION,collectionRule:'progress_v2'});
+  clock+=10000;
+  for(const illegal of [[{type:'revive',rowCount:10}],[{type:'revive',rowCount:8},{type:'revive',rowCount:8}],[{type:'clear'},{type:'clear'}]]) {
+    const result=await api('/games/settlements',token,{roundId,startedAt:clock-10000,endedAt:clock,score:0,collectedMoodBeanCount:0,
+      actions:[{type:'rules',version:BOARD_RULES_VERSION},...illegal]});
+    assert.equal(result.errorCode,'REPLAY_INVALID');
+  }
+});
+
+test('过期未结算对局不能继续扣道具或领取补给', async () => {
+  const {token}=await player(20);await exchange(token,'expired_round_hammer');
+  const roundId='expired_tool_round';await api('/games/start',token,{roundId,rulesVersion:BOARD_RULES_VERSION,collectionRule:'progress_v2'});
+  clock+=8*24*60*60*1000;
+  for(const route of ['/games/tools/use','/games/tools/reward']) {
+    const result=await api(route,token,{roundId,item:'hammer',actionId:'expired_request_id',actionIndex:1,target:1});
+    assert.equal(result.errorCode,'ROUND_NOT_ACTIVE');
+  }
+});

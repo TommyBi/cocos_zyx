@@ -2,7 +2,7 @@
   "name": "left-right-clear",
   "private": true,
   "scripts": {
-    "test": "npm run test:module && npm --prefix server test",
+    "test": "npm run check:engine && npm run test:module && npm --prefix server test",
     "test:module": "node --test scripts/tests/*.test.js",
     "validate:assets": "node scripts/validate-assets.js",
     "build:web": "node scripts/clean-build.js web-mobile && npm run validate:assets && env -u ELECTRON_RUN_AS_NODE /Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/MacOS/CocosCreator --path . --build \"platform=web-mobile;debug=true;md5Cache=false\" --nologin --force",
@@ -13,7 +13,10 @@
     "publish:remote": "node scripts/publish-remote.js",
     "open:wechat": "/Applications/wechatwebdevtools.app/Contents/MacOS/cli open --project \"$PWD/build/wechatgame\" --lang zh",
     "check:cloud": "node scripts/check-cloud.js production",
-    "check:cloud:staging": "node scripts/check-cloud.js staging"
+    "check:cloud:staging": "node scripts/check-cloud.js staging",
+    "sync:engine": "node scripts/sync-board-engine.js",
+    "check:engine": "node scripts/sync-board-engine.js --check",
+    "simulate:feel": "node scripts/simulate-game-feel.js"
   },
   "devDependencies": {
     "miniprogram-ci": "^2.1.31"

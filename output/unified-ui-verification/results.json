@@ -1,0 +1,655 @@
+[
+  {
+    "realElimination": {
+      "percent": "0.03%",
+      "beans": "本局 +0",
+      "score": "10"
+    }
+  },
+  {
+    "animation": {
+      "seen": [
+        {
+          "percent": "99.99%",
+          "count": "本局 +0"
+        },
+        {
+          "percent": "99.99%",
+          "count": "本局 +0"
+        },
+        {
+          "percent": "99.99%",
+          "count": "本局 +0"
+        },
+        {
+          "percent": "99.99%",
+          "count": "本局 +0"
+        },
+        {
+          "percent": "99.99%",
+          "count": "本局 +0"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "32.52%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "50.64%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "83.59%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "97.21%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.00%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.00%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.00%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.00%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        }
+      ],
+      "percent": "0.01%",
+      "count": "本局 +2"
+    }
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "visible": {
+      "width": 750,
+      "height": 1623.076923076923
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 844
+    },
+    "clip": {
+      "x": 0,
+      "y": 22.639999999999986,
+      "width": 392.08000000000004,
+      "height": 87.36
+    },
+    "percent": "37.26%",
+    "count": "本局 +3",
+    "font": "hud_round_v1",
+    "header": {
+      "left": 8,
+      "right": 746,
+      "bottom": 1421.5384615384614,
+      "top": 1569.5384615384614
+    },
+    "board": {
+      "left": 112,
+      "right": 738,
+      "bottom": 587.5384615384615,
+      "top": 1365.5384615384614
+    },
+    "rank": {
+      "left": 16,
+      "right": 104,
+      "bottom": 766.5384615384615,
+      "top": 1186.5384615384614
+    },
+    "beanUuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8",
+    "mascots": [
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      }
+    ],
+    "sharedPanel": true,
+    "bounds": [
+      {
+        "text": "37.26%",
+        "width": 348,
+        "parentWidth": 546,
+        "x": 75,
+        "fontSize": 64,
+        "renderedFontSize": 64,
+        "bitmapFont": true
+      },
+      {
+        "text": "本局 +3",
+        "width": 120,
+        "parentWidth": 132,
+        "x": 0,
+        "fontSize": 24,
+        "renderedFontSize": 24,
+        "bitmapFont": true
+      },
+      {
+        "text": "2400",
+        "width": 148,
+        "parentWidth": 180,
+        "x": 0,
+        "fontSize": 46,
+        "renderedFontSize": 46,
+        "bitmapFont": true
+      },
+      {
+        "text": "最高 4800",
+        "width": 160,
+        "parentWidth": 180,
+        "x": 0,
+        "fontSize": 20,
+        "renderedFontSize": 20,
+        "bitmapFont": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 320,
+      "height": 568
+    },
+    "visible": {
+      "width": 751.5492957746479,
+      "height": 1334
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 568
+    },
+    "clip": {
+      "x": 12.493074792243794,
+      "y": 4.720221606648238,
+      "width": 296.5872576177285,
+      "height": 66.08310249307476
+    },
+    "percent": "37.26%",
+    "count": "本局 +3",
+    "font": "hud_round_v1",
+    "header": {
+      "left": 36.73171159923538,
+      "right": 718.5128750341383,
+      "bottom": 1176.9501385041551,
+      "top": 1313.6759002770084
+    },
+    "board": {
+      "left": 132.80927392610516,
+      "right": 711.1222933166869,
+      "bottom": 433.2728531855956,
+      "top": 1152.0069252077562
+    },
+    "rank": {
+      "left": 44.122293316686864,
+      "right": 125.41869220865362,
+      "bottom": 598.6371191135734,
+      "top": 986.6426592797784
+    },
+    "beanUuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8",
+    "mascots": [
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      }
+    ],
+    "sharedPanel": true,
+    "bounds": [
+      {
+        "text": "37.26%",
+        "width": 348,
+        "parentWidth": 546,
+        "x": 75,
+        "fontSize": 64,
+        "renderedFontSize": 64,
+        "bitmapFont": true
+      },
+      {
+        "text": "本局 +3",
+        "width": 120,
+        "parentWidth": 132,
+        "x": 0,
+        "fontSize": 24,
+        "renderedFontSize": 24,
+        "bitmapFont": true
+      },
+      {
+        "text": "2400",
+        "width": 148,
+        "parentWidth": 180,
+        "x": 0,
+        "fontSize": 46,
+        "renderedFontSize": 46,
+        "bitmapFont": true
+      },
+      {
+        "text": "最高 4800",
+        "width": 160,
+        "parentWidth": 180,
+        "x": 0,
+        "fontSize": 20,
+        "renderedFontSize": 20,
+        "bitmapFont": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "visible": {
+      "width": 1000.5,
+      "height": 1334
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 768,
+      "height": 1024
+    },
+    "clip": {
+      "x": 118.07202216066484,
+      "y": 8.509695290858758,
+      "width": 534.6925207756232,
+      "height": 119.1357340720221
+    },
+    "percent": "37.26%",
+    "count": "本局 +3",
+    "font": "hud_round_v1",
+    "header": {
+      "left": 161.20706371191142,
+      "right": 842.9882271468143,
+      "bottom": 1176.9501385041551,
+      "top": 1313.6759002770084
+    },
+    "board": {
+      "left": 257.28462603878125,
+      "right": 835.597645429363,
+      "bottom": 433.2728531855956,
+      "top": 1152.0069252077562
+    },
+    "rank": {
+      "left": 168.5976454293629,
+      "right": 249.89404432132966,
+      "bottom": 598.6371191135734,
+      "top": 986.6426592797784
+    },
+    "beanUuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8",
+    "mascots": [
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      }
+    ],
+    "sharedPanel": true,
+    "bounds": [
+      {
+        "text": "37.26%",
+        "width": 348,
+        "parentWidth": 546,
+        "x": 75,
+        "fontSize": 64,
+        "renderedFontSize": 64,
+        "bitmapFont": true
+      },
+      {
+        "text": "本局 +3",
+        "width": 120,
+        "parentWidth": 132,
+        "x": 0,
+        "fontSize": 24,
+        "renderedFontSize": 24,
+        "bitmapFont": true
+      },
+      {
+        "text": "2400",
+        "width": 148,
+        "parentWidth": 180,
+        "x": 0,
+        "fontSize": 46,
+        "renderedFontSize": 46,
+        "bitmapFont": true
+      },
+      {
+        "text": "最高 4800",
+        "width": 160,
+        "parentWidth": 180,
+        "x": 0,
+        "fontSize": 20,
+        "renderedFontSize": 20,
+        "bitmapFont": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 540,
+      "height": 900
+    },
+    "visible": {
+      "width": 800.4,
+      "height": 1334
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 540,
+      "height": 900
+    },
+    "clip": {
+      "x": 36.27423822714684,
+      "y": 7.479224376731281,
+      "width": 469.9445983379502,
+      "height": 104.70914127423818
+    },
+    "percent": "37.26%",
+    "count": "本局 +3",
+    "font": "hud_round_v1",
+    "header": {
+      "left": 61.157063711911405,
+      "right": 742.9382271468144,
+      "bottom": 1176.9501385041551,
+      "top": 1313.6759002770084
+    },
+    "board": {
+      "left": 157.2346260387812,
+      "right": 735.5476454293628,
+      "bottom": 433.2728531855956,
+      "top": 1152.0069252077562
+    },
+    "rank": {
+      "left": 68.54764542936289,
+      "right": 149.84404432132965,
+      "bottom": 598.6371191135734,
+      "top": 986.6426592797784
+    },
+    "beanUuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8",
+    "mascots": [
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      }
+    ],
+    "sharedPanel": true,
+    "bounds": [
+      {
+        "text": "37.26%",
+        "width": 348,
+        "parentWidth": 546,
+        "x": 75,
+        "fontSize": 64,
+        "renderedFontSize": 64,
+        "bitmapFont": true
+      },
+      {
+        "text": "本局 +3",
+        "width": 120,
+        "parentWidth": 132,
+        "x": 0,
+        "fontSize": 24,
+        "renderedFontSize": 24,
+        "bitmapFont": true
+      },
+      {
+        "text": "2400",
+        "width": 148,
+        "parentWidth": 180,
+        "x": 0,
+        "fontSize": 46,
+        "renderedFontSize": 46,
+        "bitmapFont": true
+      },
+      {
+        "text": "最高 4800",
+        "width": 160,
+        "parentWidth": 180,
+        "x": 0,
+        "fontSize": 20,
+        "renderedFontSize": 20,
+        "bitmapFont": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "visible": {
+      "width": 1778.6666666666667,
+      "height": 1334
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 1024,
+      "height": 768
+    },
+    "clip": {
+      "x": 312.55401662049866,
+      "y": 6.38227146814404,
+      "width": 401.01939058171735,
+      "height": 89.35180055401658
+    },
+    "percent": "37.26%",
+    "count": "本局 +3",
+    "font": "hud_round_v1",
+    "header": {
+      "left": 550.2903970452447,
+      "right": 1232.0715604801476,
+      "bottom": 1176.9501385041551,
+      "top": 1313.6759002770084
+    },
+    "board": {
+      "left": 646.3679593721145,
+      "right": 1224.6809787626962,
+      "bottom": 433.2728531855956,
+      "top": 1152.0069252077562
+    },
+    "rank": {
+      "left": 557.6809787626962,
+      "right": 638.9773776546631,
+      "bottom": 598.6371191135734,
+      "top": 986.6426592797784
+    },
+    "beanUuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8",
+    "mascots": [
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      },
+      {
+        "name": "moodBeanMascot",
+        "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+      }
+    ],
+    "sharedPanel": true,
+    "bounds": [
+      {
+        "text": "37.26%",
+        "width": 348,
+        "parentWidth": 546,
+        "x": 75,
+        "fontSize": 64,
+        "renderedFontSize": 64,
+        "bitmapFont": true
+      },
+      {
+        "text": "本局 +3",
+        "width": 120,
+        "parentWidth": 132,
+        "x": 0,
+        "fontSize": 24,
+        "renderedFontSize": 24,
+        "bitmapFont": true
+      },
+      {
+        "text": "2400",
+        "width": 148,
+        "parentWidth": 180,
+        "x": 0,
+        "fontSize": 46,
+        "renderedFontSize": 46,
+        "bitmapFont": true
+      },
+      {
+        "text": "最高 4800",
+        "width": 160,
+        "parentWidth": 180,
+        "x": 0,
+        "fontSize": 20,
+        "renderedFontSize": 20,
+        "bitmapFont": true
+      }
+    ],
+    "errors": []
+  }
+]

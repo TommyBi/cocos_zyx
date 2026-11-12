@@ -12,7 +12,6 @@ import {
     createStaminaBolt,
     createMoodCanvasBackground,
     createGameRoomBackground,
-    createExperienceToken,
     drawMoodBlockMaterial,
     createMoodStamp,
     createMoodWatermarkWall,
@@ -20,6 +19,7 @@ import {
     MOOD_COLORS,
 } from './zyxGame/MoodArt';
 import { showLeaderboardPanel } from './zyxGame/LeaderboardPanel';
+import { showShopPanel, drawShopBag, refreshShopPanel } from './zyxGame/ShopPanel';
 import {
     ASSET_PATHS,
     getSpriteFrame,
@@ -79,6 +79,7 @@ export default class GameMainScene extends cc.Component {
     private homeDemoPlaying: boolean = false;
     private startHomeDemoLoop: () => void = null;
     private startButton: cc.Node = null;
+    private startStaminaRecoveryLabel: cc.Label = null;
     private moodBeanCountLabel: cc.Label = null;
     private moodBeanCountCard: cc.Node = null;
     private cloudProfileReady: boolean = false;
@@ -166,7 +167,8 @@ export default class GameMainScene extends cc.Component {
         }
         this.showLaunchLoading();
         this.bootstrapCloudProfile().then(async () => {
-            if (zyxGameModule.shouldEnterGameOnLaunch()) {
+            const previewHome = typeof CC_DEBUG !== 'undefined' && CC_DEBUG && /(?:^|[?&])home=1(?:&|$)/.test(search);
+            if (!previewHome && zyxGameModule.shouldEnterGameOnLaunch()) {
                 const started = await this.startGame(true);
                 if (!started) this.enterHome(() => {
                     if (this.stamina && this.getStaminaPreview().current < 1) this.showStaminaEmptyModal();
@@ -328,7 +330,7 @@ export default class GameMainScene extends cc.Component {
     }
 
     private enterHome(onReady?: () => void): void {
-        if (!isFeatureReady('home')) uimanager.showToast('正在加载首页…');
+        if (!isFeatureReady('home') && !this.pendingSettlementPresentation) uimanager.showToast('正在加载首页…');
         prepareFeature('home')
             .then(() => {
                 this.showHome();
@@ -380,6 +382,9 @@ export default class GameMainScene extends cc.Component {
             24,
         );
         this.decorateStartButton();
+        this.startStaminaRecoveryLabel = uimanager.createLabel(this.startButton, '', 0,
+            this.startButton.height / 2 + 20, 18, MOOD_COLORS.cocoaSoft, 490, 28);
+        this.startStaminaRecoveryLabel.node.name = 'startStaminaCountdown';
         this.createStartButtonGuide();
         this.updateStaminaStatus();
         this.preloadGameResourcesSilently();
@@ -427,6 +432,22 @@ export default class GameMainScene extends cc.Component {
                 this.staminaRecoveryLabel.string = `${minutesText}:${secondsText} 后恢复`;
             }
         }
+        if (this.startStaminaRecoveryLabel && cc.isValid(this.startStaminaRecoveryLabel.node, true)) {
+            this.startStaminaRecoveryLabel.string = this.getChallengeStaminaText();
+        }
+        refreshShopPanel();
+    }
+
+    private getChallengeStaminaText(): string {
+        if (!this.stamina) return '正在同步体力…';
+        const preview = this.getStaminaPreview();
+        const max = this.stamina.max || 10;
+        const amount = `体力 ${preview.current}/${max}`;
+        if (preview.current >= max) return `${amount} · 体力已满`;
+        if (preview.secondsToNext <= 0) return `${amount} · 等待同步恢复时间`;
+        const minutes = String(Math.floor(preview.secondsToNext / 60)).padStart(2, '0');
+        const seconds = String(preview.secondsToNext % 60).padStart(2, '0');
+        return `${amount} · ${minutes}:${seconds} 后恢复1点`;
     }
 
     private showStaminaInfo(): void {
@@ -490,16 +511,19 @@ export default class GameMainScene extends cc.Component {
         if (this.shareClaimInFlight) return;
         this.shareClaimInFlight = true;
         const storage = cc.sys.localStorage;
-        let claimId = storage.getItem(PENDING_STAMINA_SHARE_ID_KEY) || '';
-        if (!/^share_[a-z0-9_]{8,80}$/.test(claimId)) {
-            claimId = `share_${Date.now()}_${Math.floor(Math.random() * 1000000000).toString(36)}`;
-            storage.setItem(PENDING_STAMINA_SHARE_ID_KEY, claimId);
-        }
+        let requestSent = false;
         try {
+            let claimId = storage.getItem(PENDING_STAMINA_SHARE_ID_KEY) || '';
+            if (!/^share_[a-z0-9_]{8,80}$/.test(claimId)) {
+                claimId = `share_${Date.now()}_${Math.floor(Math.random() * 1000000000).toString(36)}`;
+                storage.setItem(PENDING_STAMINA_SHARE_ID_KEY, claimId);
+            }
+            requestSent = true;
             const result = await cloudService.claimSharedStamina(claimId);
             storage.removeItem(PENDING_STAMINA_SHARE_ID_KEY);
             this.applyStaminaState(result.stamina);
-            uimanager.showToast(result.duplicate ? '体力已到账' : `体力 +${result.awarded}`);
+            uimanager.showToast(result.previousDay ? '此前奖励已确认，今天仍可领取'
+                : result.duplicate ? '体力已到账' : `体力 +${result.awarded}`);
         } catch (error) {
             if (error && (error as any).stamina) this.applyStaminaState((error as any).stamina);
             const code = error && (error as any).businessCode;
@@ -510,7 +534,7 @@ export default class GameMainScene extends cc.Component {
                 storage.removeItem(PENDING_STAMINA_SHARE_ID_KEY);
                 uimanager.showToast('体力已满，暂时无需补充');
             } else {
-                uimanager.showToast('体力领取未确认，请联网后重试');
+                uimanager.showToast(requestSent ? '体力领取未确认，请联网后重试' : '存储空间不足，清理后再领取');
             }
         } finally {
             this.shareClaimInFlight = false;
@@ -616,7 +640,7 @@ export default class GameMainScene extends cc.Component {
     private createMoodBeanCount(profile: cc.Node): void {
         const staminaCard = this.createHomeResourceCapsule(
             profile, 'staminaCount', 75,
-            new cc.Color(226, 243, 226), new cc.Color(129, 183, 145, 175), new cc.Color(249, 255, 237),
+            new cc.Color(255, 237, 197), new cc.Color(201, 155, 82, 175), new cc.Color(255, 249, 226),
         );
         this.staminaIcon = createStaminaBolt(staminaCard, -50, 0, 38);
         this.staminaLabel = uimanager.createLabel(staminaCard, '—/10', 20, 0, 23, MOOD_COLORS.cocoa, 104, 29);
@@ -661,6 +685,7 @@ export default class GameMainScene extends cc.Component {
     }
 
     private updateMoodBeanCount(): void {
+        if (this.homeMoodBeanBalanceLabel) this.homeMoodBeanBalanceLabel.string = `${zyxGameModule.getDisplayMoodBeanBalance()}`;
         this.layoutMoodBeanCountBadge();
         if (this.moodBeanCountCard) this.pulseRewardTarget(this.moodBeanCountCard);
     }
@@ -703,8 +728,8 @@ export default class GameMainScene extends cc.Component {
 
     private applyCloudProfile(profile: CloudProfile): void {
         if (!profile) return;
+        if (!zyxGameModule.applyCloudProfile(profile)) return;
         this.currentCloudProfile = profile;
-        zyxGameModule.applyCloudProfile(profile);
         if (this.profileNameLabel) this.profileNameLabel.string = formatDisplayNickname(profile.nickname);
         if (this.profileAvatarContent && cc.isValid(this.profileAvatarContent)
             && this.profileAvatarUrl !== (profile.avatarUrl || '')) {
@@ -713,6 +738,9 @@ export default class GameMainScene extends cc.Component {
         this.applyStaminaState(profile.stamina);
         this.updateStaminaStatus();
         this.updateMoodBeanCount();
+        const game = this.screen && this.screen.getComponent(ZyxGame);
+        if (game && game.node && cc.isValid(game.node)) game.refreshInventoryHud();
+        refreshShopPanel();
         // 开心豆余额和经验只展示服务端确认值，避免预支待同步奖励。
         const display = zyxGameModule.getDisplayLevelAndExperience();
         this.updateHomeExperienceDisplay(display.level, display.experience, display.target);
@@ -799,13 +827,13 @@ export default class GameMainScene extends cc.Component {
     private createHomeFeatureEntries(): void {
         const safeArea = uimanager.getSafeAreaMetrics();
         const cardWidth = 118;
-        // 首发只保留排行榜入口，工具架收缩为单入口。
+        // 排行在上、商城在下，沿用同一工具架和点击热区。
         const entryHeight = 126;
         const railPadY = 18;
-        const railHeight = railPadY * 2 + entryHeight;
+        const railHeight = railPadY * 2 + entryHeight * 2 + 18;
         const contentRight = Math.min(this.screen.width / 2 - safeArea.right, DESIGN_WIDTH / 2);
         const entryX = contentRight - 15 - cardWidth / 2;
-        const rail = uimanager.createRect(this.screen, 'homeFeatureRail', cardWidth, railHeight, new cc.Color(239, 220, 178), 230, 26, entryX, 72);
+        const rail = uimanager.createRect(this.screen, 'homeFeatureRail', cardWidth, railHeight, new cc.Color(239, 220, 178), 230, 26, entryX, 0);
         rail.zIndex = 125;
         const railBorder = new cc.Node('homeFeatureRailBorder');
         railBorder.zIndex = 2;
@@ -819,7 +847,7 @@ export default class GameMainScene extends cc.Component {
             rail,
             'rankEntry',
             '排行榜',
-            0,
+            72,
             new cc.Color(105, 164, 190),
             ASSET_PATHS.home.rankEntry,
             () => showLeaderboardPanel(
@@ -827,6 +855,12 @@ export default class GameMainScene extends cc.Component {
                 () => this.authorizeWeChatProfile(),
             ),
         );
+        this.createHomeFeatureIcon(rail, 'shopEntry', '商城', -72, MOOD_COLORS.honey, null,
+            () => showShopPanel(() => this.refreshCloudProfile(), profile => this.applyCloudProfile(profile), {
+                staminaText: () => this.getChallengeStaminaText(),
+                staminaAmount: () => this.stamina ? `当前体力 ${this.getStaminaPreview().current}/${this.stamina.max}` : '体力同步中…',
+                start: () => this.startGame(),
+            }));
     }
 
     /** 右下角独立设置入口：用高对比度的软糖按钮承接全局设置。 */
@@ -949,7 +983,8 @@ export default class GameMainScene extends cc.Component {
 
         const iconBase = uimanager.createRect(entry, 'featureIconBase', 86, 86, color, 255, 20, 0, 20);
         uimanager.drawButtonSurface(iconBase, 86, 86, color, 20);
-        this.loadHomeFeatureIcon(iconBase, resourcePath, 70, 0, 2);
+        if (resourcePath) this.loadHomeFeatureIcon(iconBase, resourcePath, 70, 0, 2);
+        else drawShopBag(iconBase);
         const titleLabel = uimanager.createLabel(entry, title, 0, -44, 24, MOOD_COLORS.cocoa, 108, 32);
         this.makeLabelBold(titleLabel);
         entry.addComponent(cc.Button);
@@ -1765,7 +1800,7 @@ export default class GameMainScene extends cc.Component {
         delete this.settlementReceipts[pending.roundId];
         this.pendingSettlementPresentation = null;
         const remote = receipt.settlement;
-        const profile = remote.profile;
+        const profile = this.currentCloudProfile || remote.profile;
         const confirmedRequest: SettlementExitRequest = {
             restart: false,
             settlement: {
@@ -1784,145 +1819,49 @@ export default class GameMainScene extends cc.Component {
         });
     }
 
-    /** 服务端确认后回主页：开心豆飞入资产卡，经验飞入经验条。 */
+    /** 服务端确认后，仅演出开心豆回流；等级经验保持当前权威档案值。 */
     private playSettlementRewardReturn(request: SettlementExitRequest, onComplete: () => void): void {
         const settlement = request.settlement;
-        if (!this.screen || !cc.isValid(this.screen)) {
-            onComplete();
-            return;
-        }
-
-        // 开心豆回流期间先藏起示意消除，避免 reset/飞入抢戏。
+        if (!this.screen || !cc.isValid(this.screen)) { onComplete(); return; }
+        const earned = settlement.roundEarnedMoodBeans;
+        if (earned <= 0) { onComplete(); return; }
         this.setHomeDemoActive(false);
-
-        this.updateHomeExperienceDisplay(
-            settlement.levelBefore,
-            settlement.experienceBefore,
-            settlement.experienceTargetBefore,
-        );
-        const balanceStart = settlement.moodBeanBalanceBefore;
-        const balanceEnd = settlement.moodBeanBalanceAfter;
-        if (this.homeMoodBeanBalanceLabel) {
-            this.homeMoodBeanBalanceLabel.string = `${balanceStart}`;
-        }
+        const balanceEnd = zyxGameModule.getDisplayMoodBeanBalance();
+        const balanceStart = Math.max(0, balanceEnd - earned);
+        if (this.homeMoodBeanBalanceLabel) this.homeMoodBeanBalanceLabel.string = `${balanceStart}`;
         this.layoutMoodBeanCountBadge(balanceStart);
-
-        const finishSettlementPresentation = (): void => {
-            this.updateHomeExperienceDisplay(
-                settlement.levelAfter,
-                settlement.experienceAfter,
-                settlement.experienceTargetAfter,
-            );
-            if (this.homeMoodBeanBalanceLabel) {
-                this.homeMoodBeanBalanceLabel.string = `${balanceEnd}`;
-            }
-            this.layoutMoodBeanCountBadge(balanceEnd);
-            this.updateMoodBeanCount();
-            this.setHomeDemoActive(true);
-            onComplete();
-        };
-
-        const hasMood = settlement.roundEarnedMoodBeans > 0;
-        const hasExperience = settlement.gainedExperience > 0;
-        if (!hasMood && !hasExperience) {
-            this.scheduleOnce(finishSettlementPresentation, request.restart ? 0.45 : 0.2);
-            return;
-        }
-
         const rewardLayer = new cc.Node('settlementRewardReturn');
-        rewardLayer.width = this.screen.width;
-        rewardLayer.height = this.screen.height;
-        rewardLayer.setAnchorPoint(0.5, 0.5);
+        rewardLayer.setContentSize(this.screen.width, this.screen.height);
+        rewardLayer.addComponent(cc.BlockInputEvents);
         rewardLayer.zIndex = 2600;
         this.screen.addChild(rewardLayer);
-
-        const softVeil = uimanager.createRect(
-            rewardLayer,
-            'rewardSoftVeil',
-            rewardLayer.width,
-            rewardLayer.height,
-            new cc.Color(72, 53, 47),
-            0,
-        );
-        softVeil.zIndex = -2;
-        cc.tween(softVeil).to(0.16, { opacity: 58 }).delay(0.78).to(0.38, { opacity: 0 }).start();
-
-        // 经验条在档案卡顶部；开心豆飞主页中央收纳位。
-        const experienceTarget = this.getNodePositionInScreen(this.profileExperienceFill);
-        const moodTarget = this.getNodePositionInScreen(this.homeMoodBeanIcon);
-        const moodVisualCount = hasMood
-            ? Math.min(16, Math.max(4, 3 + Math.ceil(Math.sqrt(settlement.roundEarnedMoodBeans) * 1.6)))
-            : 0;
-        const experienceVisualCount = hasExperience
-            ? Math.min(16, Math.max(4, 3 + Math.ceil(Math.sqrt(settlement.gainedExperience) * 1.6)))
-            : 0;
-        let experienceArrivals = 0;
-        let moodArrivals = 0;
-        let seed = Math.max(1, settlement.roundScore * 31 + settlement.roundEarnedMoodBeans * 17);
-        const random = (): number => {
-            seed = (seed * 9301 + 49297) % 233280;
-            return seed / 233280;
-        };
-
-        let moodPresentationDone = !hasMood;
-        let experiencePresentationDone = !hasExperience;
-        let presentationFinished = false;
-        const tryFinishPresentation = (): void => {
-            if (presentationFinished || !moodPresentationDone || !experiencePresentationDone) return;
-            presentationFinished = true;
-            if (cc.isValid(rewardLayer)) rewardLayer.destroy();
-            this.scheduleOnce(finishSettlementPresentation, 0.18);
-        };
-
-        const spawnToken = (
-            isExperience: boolean,
-            resourceIndex: number,
-            delayBase: number,
-        ): void => {
-            const scatterX = -235 + random() * 470;
-            const scatterY = -70 + random() * 330;
-            const size = 38 + random() * 11;
-            const token = isExperience
-                ? createExperienceToken(rewardLayer, scatterX, scatterY, size, 0)
-                : createMoodBean(rewardLayer, 1 + (resourceIndex % 6), scatterX, scatterY, size, 0);
+        const veil = uimanager.createRect(rewardLayer, 'rewardSoftVeil', rewardLayer.width, rewardLayer.height, new cc.Color(72, 53, 47), 0);
+        veil.zIndex = -2;
+        cc.tween(veil).to(0.16, { opacity: 58 }).delay(0.78).to(0.38, { opacity: 0 }).start();
+        const target = this.getNodePositionInScreen(this.homeMoodBeanIcon);
+        const count = Math.min(16, Math.max(4, 3 + Math.ceil(Math.sqrt(earned) * 1.6)));
+        let arrivals = 0;
+        let seed = Math.max(1, settlement.roundScore * 31 + earned * 17);
+        const random = (): number => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+        for (let index = 0; index < count; index++) {
+            const token = createMoodBean(rewardLayer, 1 + index % 6, -235 + random() * 470, -70 + random() * 330, 38 + random() * 11, 0);
             token.scale = 0.35;
             token.angle = 18 - random() * 36;
-            const target = isExperience ? experienceTarget : moodTarget;
-            const delay = delayBase + random() * 0.08;
-            this.animateRewardToken(token, target, delay, random, () => {
-                if (isExperience) {
-                    experienceArrivals++;
-                    this.updateExperienceRewardProgress(settlement, experienceArrivals / experienceVisualCount);
-                    this.pulseRewardTarget(this.profileExperienceFill);
-                    if (experienceArrivals >= experienceVisualCount) {
-                        experiencePresentationDone = true;
-                        tryFinishPresentation();
-                    }
-                    return;
-                }
-                moodArrivals++;
-                const ratio = moodArrivals / moodVisualCount;
-                const shown = balanceStart + Math.round((balanceEnd - balanceStart) * ratio);
-                if (this.homeMoodBeanBalanceLabel) {
-                    this.homeMoodBeanBalanceLabel.string = `${shown}`;
-                }
+            this.animateRewardToken(token, target, 0.04 + index * 0.03 + random() * 0.08, random, () => {
+                arrivals++;
+                const shown = balanceStart + Math.round((balanceEnd - balanceStart) * arrivals / count);
+                if (this.homeMoodBeanBalanceLabel) this.homeMoodBeanBalanceLabel.string = `${shown}`;
                 this.layoutMoodBeanCountBadge(shown);
                 this.pulseRewardTarget(this.homeMoodBeanIcon);
-                if (moodArrivals >= moodVisualCount) {
-                    moodPresentationDone = true;
-                    tryFinishPresentation();
+                if (arrivals === count) {
+                    rewardLayer.destroy();
+                    // 动画过程中可能收到补传/兑换回执，结束时重新读取当前余额。
+                    this.updateMoodBeanCount();
+                    this.setHomeDemoActive(true);
+                    onComplete();
                 }
             });
-        };
-
-        for (let index = 0; index < moodVisualCount; index++) {
-            spawnToken(false, index, 0.04 + index * 0.03);
         }
-        for (let index = 0; index < experienceVisualCount; index++) {
-            spawnToken(true, index, 0.1 + index * 0.03);
-        }
-
-        tryFinishPresentation();
     }
 
     private animateRewardToken(
@@ -1965,26 +1904,6 @@ export default class GameMainScene extends cc.Component {
                 if (cc.isValid(token)) token.destroy();
             })
             .start();
-    }
-
-    private updateExperienceRewardProgress(settlement: SettlementExitRequest['settlement'], ratio: number): void {
-        if (ratio >= 0.999) {
-            this.updateHomeExperienceDisplay(
-                settlement.levelAfter,
-                settlement.experienceAfter,
-                settlement.experienceTargetAfter,
-            );
-            return;
-        }
-        let level = settlement.levelBefore;
-        let experience = settlement.experienceBefore + Math.round(settlement.gainedExperience * ratio);
-        let target = zyxGameModule.getExperienceTargetForLevel(level);
-        while (experience >= target) {
-            experience -= target;
-            level++;
-            target = zyxGameModule.getExperienceTargetForLevel(level);
-        }
-        this.updateHomeExperienceDisplay(level, experience, target);
     }
 
     private updateHomeExperienceDisplay(level: number, experience: number, target: number): void {
@@ -2057,6 +1976,14 @@ export default class GameMainScene extends cc.Component {
                 if (error && (error as any).stamina) this.applyStaminaState((error as any).stamina);
                 if (error && (error as any).businessCode === 'STAMINA_EMPTY') {
                     this.showStaminaEmptyModal();
+                } else if (error && ((error as any).businessCode === 'BOARD_RULES_UNSUPPORTED'
+                    || (error as any).businessCode === 'ROUND_COLLECTION_RULE_CONFLICT'
+                    || (error as any).businessCode === 'ROUND_ALREADY_SETTLED')) {
+                    // 旧版未完成的开局凭证不能切换规则；清除待开局标记，允许下一次申请新局。
+                    storage.removeItem(PENDING_START_ROUND_ID_KEY);
+                    uimanager.showToast('对局状态已更新，请重新开始');
+                } else if (error && (error as any).businessCode === 'COLLECTION_RULE_UNSUPPORTED') {
+                    uimanager.showToast((error as Error).message);
                 } else {
                     uimanager.showToast('开局校验失败，请联网后重试');
                 }
@@ -2068,8 +1995,10 @@ export default class GameMainScene extends cc.Component {
             }
             this.applyStaminaState(started.stamina);
             this.activeRoundId = roundId;
-// 开局配置必须在 resetRound 前登记，由 resetRound 在生成棋盘前一次性消费。
-if (started.seed) zyxGameModule.setRoundSeed(started.seed, started.isTutorial === true);
+            zyxGameModule.cloudRoundId = roundId;
+            if (started.profile) this.applyCloudProfile(started.profile);
+            // 开局配置必须在 resetRound 前登记，由 resetRound 在生成棋盘前一次性消费。
+            if (started.seed) zyxGameModule.setRoundSeed(started.seed, started.isTutorial === true);
             await this.playStartStaminaFlight();
             if (this.pendingSettlementPresentation) {
                 delete this.settlementReceipts[this.pendingSettlementPresentation.roundId];
@@ -2135,6 +2064,7 @@ if (started.seed) zyxGameModule.setRoundSeed(started.seed, started.isTutorial ==
         this.homeDemoPlaying = false;
         this.startHomeDemoLoop = null;
         this.startButton = null;
+        this.startStaminaRecoveryLabel = null;
         this.staminaLabel = null;
         this.staminaRecoveryLabel = null;
         this.staminaIcon = null;

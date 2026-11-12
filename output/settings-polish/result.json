@@ -1,0 +1,312 @@
+{
+  "errors": [],
+  "volume": 0.7609070034443168,
+  "layouts": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "buttons": [
+        {
+          "text": "继续",
+          "x": -122,
+          "y": -125,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "playGlyph",
+          "visible": true
+        },
+        {
+          "text": "重新开始",
+          "x": 122,
+          "y": -125,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "restartGlyph",
+          "visible": true
+        },
+        {
+          "text": "退出",
+          "x": 0,
+          "y": -251,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "exitGlyph",
+          "visible": true
+        }
+      ],
+      "rows": [
+        {
+          "text": "声音",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        },
+        {
+          "text": "音量",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        },
+        {
+          "text": "震动",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        }
+      ],
+      "panelVisible": true
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "buttons": [
+        {
+          "text": "继续",
+          "x": -122,
+          "y": -125,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "playGlyph",
+          "visible": true
+        },
+        {
+          "text": "重新开始",
+          "x": 122,
+          "y": -125,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "restartGlyph",
+          "visible": true
+        },
+        {
+          "text": "退出",
+          "x": 0,
+          "y": -251,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "exitGlyph",
+          "visible": true
+        }
+      ],
+      "rows": [
+        {
+          "text": "声音",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        },
+        {
+          "text": "音量",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        },
+        {
+          "text": "震动",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        }
+      ],
+      "panelVisible": true
+    },
+    {
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "buttons": [
+        {
+          "text": "继续",
+          "x": -122,
+          "y": -125,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "playGlyph",
+          "visible": true
+        },
+        {
+          "text": "重新开始",
+          "x": 122,
+          "y": -125,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "restartGlyph",
+          "visible": true
+        },
+        {
+          "text": "退出",
+          "x": 0,
+          "y": -251,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "exitGlyph",
+          "visible": true
+        }
+      ],
+      "rows": [
+        {
+          "text": "声音",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        },
+        {
+          "text": "音量",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        },
+        {
+          "text": "震动",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        }
+      ],
+      "panelVisible": true
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "buttons": [
+        {
+          "text": "继续",
+          "x": -122,
+          "y": -125,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "playGlyph",
+          "visible": true
+        },
+        {
+          "text": "重新开始",
+          "x": 122,
+          "y": -125,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "restartGlyph",
+          "visible": true
+        },
+        {
+          "text": "退出",
+          "x": 0,
+          "y": -251,
+          "width": 224,
+          "height": 100,
+          "fontSize": 32,
+          "color": [
+            255,
+            255,
+            255
+          ],
+          "glyph": "exitGlyph",
+          "visible": true
+        }
+      ],
+      "rows": [
+        {
+          "text": "声音",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        },
+        {
+          "text": "音量",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        },
+        {
+          "text": "震动",
+          "fontSize": 30,
+          "height": 94,
+          "surface": true
+        }
+      ],
+      "panelVisible": true
+    }
+  ],
+  "checks": [
+    "sound switch",
+    "vibration switch",
+    "volume drag",
+    "row input protection",
+    "home blank/mask/close/done",
+    "pause blank/mask/close/resume",
+    "restart/exit callbacks",
+    "four screen sizes"
+  ]
+}

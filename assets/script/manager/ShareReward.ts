@@ -1,5 +1,6 @@
 import { BUTTON_COLORS, uimanager } from './UIManager';
 import { getWxApi } from './PlatformAdapter';
+import { SHARE_CARDS } from './ShareConfig';
 
 /**
  * 激励视频总开关。false 时所有奖励点位走分享；true 时统一切换为激励视频。
@@ -23,8 +24,45 @@ type SharePending = {
 let pending: SharePending | null = null;
 let onShowHooked: boolean = false;
 let systemShareRegistered: boolean = false;
+const shareImageFiles: { [url: string]: string } = {};
+const shareImageDownloads: { [url: string]: Promise<string> } = {};
 
-const SHARE_TITLE = '烦恼排排消｜整理心情，收集开心豆';
+/** CDN 保留微信来源防盗链；先用小游戏下载接口缓存，再交给原生分享读取。 */
+function cacheShareImage(imageUrl: string): Promise<string> {
+    if (shareImageFiles[imageUrl]) return Promise.resolve(shareImageFiles[imageUrl]);
+    if (shareImageDownloads[imageUrl]) return shareImageDownloads[imageUrl];
+    const wxApi = getWxApi();
+    const download = new Promise<string>((resolve, reject) => {
+        wxApi.downloadFile({
+            url: imageUrl,
+            timeout: 2500,
+            success: (result: any) => {
+                if (result.statusCode === 200 && result.tempFilePath) resolve(result.tempFilePath);
+                else reject(new Error('分享图片下载失败'));
+            },
+            fail: reject,
+        });
+    }).then((filePath) => {
+        shareImageFiles[imageUrl] = filePath;
+        delete shareImageDownloads[imageUrl];
+        return filePath;
+    }, (error) => {
+        delete shareImageDownloads[imageUrl];
+        throw error;
+    });
+    shareImageDownloads[imageUrl] = download;
+    return download;
+}
+
+function prepareShareMessage(message: { title: string; imageUrl: string; query: string }): Promise<typeof message> {
+    return cacheShareImage(message.imageUrl).then(imageUrl => ({ ...message, imageUrl }));
+}
+
+/** 发起分享时才随机，保持图片和图中主文案成对。 */
+function createShareMessage(from: 'system_share' | 'share_reward'): { title: string; imageUrl: string; query: string } {
+    const card = SHARE_CARDS[Math.floor(Math.random() * SHARE_CARDS.length)];
+    return { title: card.title, imageUrl: shareImageFiles[card.imageUrl] || card.imageUrl, query: `from=${from}` };
+}
 
 function finishPending(rewarded: boolean, toastMessage: string = ''): void {
     if (!pending || pending.completed) return;
@@ -40,7 +78,7 @@ function finishPending(rewarded: boolean, toastMessage: string = ''): void {
 }
 
 function resolvePendingFromShow(): void {
-    if (!pending || pending.completed) return;
+    if (!pending || pending.completed || !pending.startedAt) return;
     const elapsed = Date.now() - pending.startedAt;
     if (elapsed >= SHARE_SUCCESS_MIN_MS) {
         finishPending(true);
@@ -70,10 +108,15 @@ export function registerSystemShare(): void {
                 menus: ['shareAppMessage'],
             });
         }
-        wxApi.onShareAppMessage(() => ({
-            title: SHARE_TITLE,
-            query: 'from=system_share',
-        }));
+        if (typeof wxApi.downloadFile === 'function') {
+            SHARE_CARDS.forEach(card => cacheShareImage(card.imageUrl).catch(() => undefined));
+        }
+        wxApi.onShareAppMessage(() => {
+            const message = createShareMessage('system_share');
+            if (typeof wxApi.downloadFile !== 'function' || !message.imageUrl.startsWith('https://')) return message;
+            // 基础库 2.12+ 支持三秒内异步补齐分享参数；正常情况下启动预取已经完成。
+            return { ...message, promise: prepareShareMessage(message).catch(() => message) };
+        });
         systemShareRegistered = true;
     } catch (error) {
         // Web 预览和旧基础库静默降级，不影响游戏启动。
@@ -148,7 +191,7 @@ export function requestShareReward(onResult: (rewarded: boolean) => void, reward
 
     ensureOnShowHook();
     pending = {
-        startedAt: Date.now(),
+        startedAt: 0,
         onResult,
         completed: false,
         timeoutId: setTimeout(() => {
@@ -156,14 +199,22 @@ export function requestShareReward(onResult: (rewarded: boolean) => void, reward
         }, 60000),
     };
 
-    try {
-        wxApi.shareAppMessage({
-            title: SHARE_TITLE,
-            query: 'from=share_reward',
+    const request = pending;
+    const share = (message: { title: string; imageUrl: string; query: string }): void => {
+        if (pending !== request || request.completed) return;
+        try {
+            request.startedAt = Date.now();
+            wxApi.shareAppMessage(message);
+        } catch (error) {
+            finishPending(false, '分享暂时不可用，请稍后再试');
+        }
+    };
+    const message = createShareMessage('share_reward');
+    if (typeof wxApi.downloadFile === 'function' && message.imageUrl.startsWith('https://')) {
+        prepareShareMessage(message).then(share).catch(() => {
+            if (pending === request) finishPending(false, '分享图片暂时没有加载好，请再试一次');
         });
-    } catch (error) {
-        finishPending(false, '分享暂时不可用，请稍后再试');
-    }
+    } else share(message);
 }
 
 /** 播放一次激励视频；只有完整观看（或旧基础库未返回观看状态）才发放奖励。 */

@@ -2,13 +2,14 @@ import { gameSettings } from './GameSettings';
 import { ASSET_PATHS, BundleName, getAudioClip, loadMusicClip } from './AssetLoader';
 
 export type MusicName = 'main' | 'game';
-export type SoundName = 'break' | 'move' | 'hammer' | 'magicWand';
+export type SoundName = 'break' | 'move' | 'hammer' | 'magicWand' | 'bomb';
 
 type AudioResource = { bundle: BundleName; path: string };
 
 const SOUND_RESOURCES: { [key in SoundName]: AudioResource } = {
     break: { bundle: 'game', path: ASSET_PATHS.game.breakSound },
     move: { bundle: 'game', path: ASSET_PATHS.game.moveSound },
+    bomb: { bundle: 'game', path: ASSET_PATHS.game.bombSound },
     hammer: { bundle: 'game', path: ASSET_PATHS.game.hammerSound },
     magicWand: { bundle: 'game', path: ASSET_PATHS.game.magicWandSound },
 };

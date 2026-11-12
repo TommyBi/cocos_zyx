@@ -30,3 +30,17 @@ test('舞台缩放和平移后，手指移动一格仍只移动一个逻辑格',
     assert.deepEqual(moved, { id: 7, offset: 1 });
   }
 });
+
+
+test('另一根手指引爆后，进行中的拖动/松手/取消都不能改演出位置或提交动作', () => {
+  for (const method of ['onTouchMove','onTouchEnd','onTouchCancel']) {
+    const grid=new Grid();let allowed=true,moves=0,taps=0;
+    grid.node={x:0,zIndex:10,parent:{convertToNodeSpaceAR:p=>p},getChildByName:()=>null};
+    grid.initialize(7,80,{canInteract:()=>allowed,onInteract(){},getMoveRange:()=>({min:-3,max:3}),onMove(){moves++;},onTap(){taps++;}});
+    const event=x=>({touch:{getLocation:()=>({x,y:0})}});
+    grid.onTouchStart(event(0));grid.onTouchMove(event(20));
+    allowed=false;grid.node.x=99;grid[method](event(120));
+    assert.equal(grid.node.x,99);assert.equal(moves,0);assert.equal(taps,0);assert.equal(grid.touching,false);
+    allowed=true;grid.onTouchEnd(event(150));assert.equal(moves,0);
+  }
+});

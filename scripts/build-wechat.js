@@ -37,6 +37,7 @@ if (buildStatus !== 0) {
     process.exit(buildStatus);
 }
 
-// 产物验收：分包/体积/远程 Bundle 检查，再执行 GM 字符串检查。
+// 生成目录中的 PNG 无损压缩后，再检查分包体积、远程 Bundle 和 GM 隔离。
+execFileSync('python3', [path.join(__dirname, 'compress-wechat-images.py')], { cwd: repoRoot, stdio: 'inherit' });
 execFileSync(process.execPath, [path.join(__dirname, 'prepare-wechat-build.js')], { cwd: repoRoot, stdio: 'inherit' });
 execFileSync(process.execPath, [path.join(__dirname, 'check-wechat-gm.js')], { cwd: repoRoot, stdio: 'inherit' });

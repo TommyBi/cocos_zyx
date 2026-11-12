@@ -1,6 +1,14 @@
 /** 服务端权威经济与体力配置。客户端提交的奖励和时间不作为资产依据。 */
 
 const MAX_COLLECTED_MOOD_BEANS_PER_ROUND = 5000;
+const MOOD_BLOCKS_PER_BEAN = 100;
+const MOOD_COLLECTION_RULE = 'progress_v2';
+const MAX_COLLECTED_MOOD_BLOCKS_PER_ROUND = 1000000;
+
+function collectedBlocksToBeans(blocks, rule = MOOD_COLLECTION_RULE) {
+  const divisor = rule === 'progress_v1' ? 10000 : MOOD_BLOCKS_PER_BEAN;
+  return Math.floor(Math.max(0, Math.floor(blocks || 0)) / divisor);
+}
 const MIN_ROUND_DURATION_MS = 5 * 1000;
 const MAX_ROUND_DURATION_MS = 4 * 60 * 60 * 1000;
 const MAX_FUTURE_SKEW_MS = 2 * 60 * 1000;
@@ -12,6 +20,10 @@ const STAMINA_COST_PER_ROUND = 1;
 const STAMINA_SHARE_REWARD = 5;
 
 module.exports = {
+  MOOD_BLOCKS_PER_BEAN,
+  MOOD_COLLECTION_RULE,
+  MAX_COLLECTED_MOOD_BLOCKS_PER_ROUND,
+  collectedBlocksToBeans,
   MAX_COLLECTED_MOOD_BEANS_PER_ROUND,
   MIN_ROUND_DURATION_MS,
   MAX_ROUND_DURATION_MS,

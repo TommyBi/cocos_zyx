@@ -1,15 +1,17 @@
 import { BUTTON_COLORS, ModalAction, uimanager } from './UIManager';
 import { gameSettings } from './GameSettings';
 import { audioManager } from './AudioManager';
+import { decorateSettingsActionButton } from '../zyxGame/GlyphFactory';
 
 export type SettingsPanelOptions = {
-    /** 局内暂停时，将继续、重开、结束直接追加在设置项下方。 */
+    /** 局内暂停时，继续和重开并排，退出居中放在下一排。 */
     actions?: ModalAction[];
+    onDismiss?: () => void;
 };
 
 const COCOA = new cc.Color(101, 70, 58);
-const COCOA_SOFT = new cc.Color(137, 98, 76);
-const CREAM = new cc.Color(255, 247, 228);
+const COCOA_SOFT = new cc.Color(123, 87, 66);
+const CREAM = new cc.Color(255, 251, 238);
 const SAGE = new cc.Color(111, 182, 139);
 const MUTED = new cc.Color(185, 165, 145);
 
@@ -23,30 +25,49 @@ export default class SettingsPanel {
     }
 
     public show(options: SettingsPanelOptions = {}): void {
-        const render = (panel: cc.Node, centerY: number): void => {
-            this.createSoundRow(panel, centerY + 154);
-            this.createVolumeRow(panel, centerY + 74);
-            this.createVibrationRow(panel, centerY - 6);
-        };
         const actions = options.actions && options.actions.length > 0 ? options.actions : [
             {
                 text: '完成',
                 color: BUTTON_COLORS.green,
                 onClick: () => undefined,
+                icon: (button: cc.Node) => decorateSettingsActionButton(button, 'done'),
             },
         ];
-        // 局内暂停弹窗需要显式选择操作；首页设置允许点击遮罩关闭。
-        uimanager.showModal('设   置', '', actions, render, 260, false, !options.actions);
+        const twoRows = actions.length > 1;
+        const render = (panel: cc.Node): void => {
+            const top = panel.height / 2;
+            this.createSoundRow(panel, top - 130);
+            this.createVolumeRow(panel, top - 242);
+            this.createVibrationRow(panel, top - 354);
+            actions.forEach((action, index) => {
+                const x = twoRows && index < 2 ? (index === 0 ? -122 : 122) : 0;
+                const y = top - 500 - (twoRows ? Math.floor(index / 2) * 126 : 0);
+                const button = uimanager.createButton(panel, action.text, x, y, 224, 100, action.color, () => {
+                    if (action.closeOnClick !== false) uimanager.closeModal();
+                    action.onClick();
+                }, 32);
+                const label = button.getChildByName('label');
+                label.color = cc.Color.WHITE;
+                const outline = label.addComponent(cc.LabelOutline);
+                outline.color = new cc.Color(Math.round(action.color.r * 0.54), Math.round(action.color.g * 0.54), Math.round(action.color.b * 0.54));
+                outline.width = 2;
+                if (action.icon) action.icon(button);
+            });
+        };
+        uimanager.showModal('设   置', '', [], render, twoRows ? 450 : 324, false, true, 560, {
+            onDismiss: options.onDismiss,
+            closeOnBlank: true,
+        });
     }
 
     private createSoundRow(parent: cc.Node, y: number): void {
         const row = this.createSettingRow(parent, '声音', y);
-        const state = uimanager.createLabel(row, '', 89, 0, 15, COCOA_SOFT, 90, 24);
+        const state = uimanager.createLabel(row, '', 67, 0, 24, COCOA_SOFT, 100, 36);
         const update = (): void => {
             state.string = gameSettings.soundEnabled ? '已开启' : '已关闭';
         };
         update();
-        this.createSwitch(row, 176, 0, gameSettings.soundEnabled, (enabled) => {
+        this.createSwitch(row, 167, 0, gameSettings.soundEnabled, (enabled) => {
             gameSettings.setSoundEnabled(enabled);
             audioManager.applySettings();
             if (enabled) gameSettings.vibrateLight();
@@ -55,24 +76,25 @@ export default class SettingsPanel {
     }
 
     private createVolumeRow(parent: cc.Node, y: number): void {
-        const row = this.createSettingRow(parent, '音量', y, 70);
-        const value = uimanager.createLabel(row, '', 158, 19, 15, COCOA_SOFT, 64, 22);
+        const row = this.createSettingRow(parent, '音量', y);
+        const value = uimanager.createLabel(row, '', 178, 22, 24, COCOA_SOFT, 76, 34);
         const slider = new cc.Node('volumeSlider');
-        const sliderWidth = 250;
+        const sliderWidth = 268;
         slider.width = sliderWidth;
-        slider.height = 40;
-        slider.setPosition(45, -13);
+        slider.height = 52;
+        slider.setPosition(57, -16);
         slider.zIndex = 65;
         row.addChild(slider);
-        uimanager.createRect(slider, 'volumeTrack', sliderWidth, 12, new cc.Color(209, 194, 169), 255, 6);
-        const fill = uimanager.createRect(slider, 'volumeFill', 1, 12, BUTTON_COLORS.yellow, 255, 6);
-        const thumb = uimanager.createCircle(slider, 'volumeThumb', 13, new cc.Color(255, 249, 231));
+        slider.addComponent(cc.BlockInputEvents);
+        uimanager.createRect(slider, 'volumeTrack', sliderWidth, 16, new cc.Color(209, 194, 169), 255, 8);
+        const fill = uimanager.createRect(slider, 'volumeFill', 1, 16, BUTTON_COLORS.yellow, 255, 8);
+        const thumb = uimanager.createCircle(slider, 'volumeThumb', 18, new cc.Color(255, 249, 231));
         const thumbBorderNode = new cc.Node('volumeThumbBorder');
         thumb.addChild(thumbBorderNode);
         const thumbBorder = thumbBorderNode.addComponent(cc.Graphics);
         thumbBorder.strokeColor = new cc.Color(158, 111, 61, 215);
         thumbBorder.lineWidth = 1.7;
-        thumbBorder.circle(0, 0, 12.1);
+        thumbBorder.circle(0, 0, 17.1);
         thumbBorder.stroke();
         const update = (): void => {
             const volume = gameSettings.soundVolume;
@@ -82,7 +104,7 @@ export default class SettingsPanel {
             if (fill.active) {
                 fill.width = fillWidth;
                 fill.x = -sliderWidth / 2 + fillWidth / 2;
-                uimanager.drawRect(fill, fillWidth, 12, BUTTON_COLORS.yellow, 6);
+                uimanager.drawRect(fill, fillWidth, 16, BUTTON_COLORS.yellow, 8);
             }
             thumb.x = -sliderWidth / 2 + fillWidth;
         };
@@ -113,29 +135,33 @@ export default class SettingsPanel {
 
     private createVibrationRow(parent: cc.Node, y: number): void {
         const row = this.createSettingRow(parent, '震动', y);
-        const state = uimanager.createLabel(row, '', 89, 0, 15, COCOA_SOFT, 90, 24);
+        const state = uimanager.createLabel(row, '', 67, 0, 24, COCOA_SOFT, 100, 36);
         const update = (): void => {
             state.string = gameSettings.vibrationEnabled ? '已开启' : '已关闭';
         };
         update();
-        this.createSwitch(row, 176, 0, gameSettings.vibrationEnabled, (enabled) => {
+        this.createSwitch(row, 167, 0, gameSettings.vibrationEnabled, (enabled) => {
             gameSettings.setVibrationEnabled(enabled);
             if (enabled) gameSettings.vibrateLight();
             update();
         });
     }
 
-    private createSettingRow(parent: cc.Node, title: string, y: number, height: number = 62): cc.Node {
-        const row = uimanager.createRect(parent, `setting_${title}`, 438, height, CREAM, 255, 17, 0, y);
-        uimanager.createLabel(row, title, -168, 0, 21, COCOA, 96, 30).horizontalAlign = cc.Label.HorizontalAlign.LEFT;
+    private createSettingRow(parent: cc.Node, title: string, y: number): cc.Node {
+        const row = uimanager.createRect(parent, `setting_${title}`, 468, 94, new cc.Color(222, 194, 151), 255, 22, 0, y);
+        row.addComponent(cc.BlockInputEvents);
+        uimanager.createRect(row, 'settingRowSurface', 464, 88, CREAM, 255, 20, 0, 2);
+        const label = uimanager.createLabel(row, title, -154, 0, 30, COCOA, 96, 44);
+        label.horizontalAlign = cc.Label.HorizontalAlign.LEFT;
+        label.enableBold = true;
         return row;
     }
 
     private createSwitch(parent: cc.Node, x: number, y: number, initial: boolean, onChange: (enabled: boolean) => void): void {
-        const switchWidth = 72;
-        const switchHeight = 38;
-        const thumbTravel = 17;
-        const node = uimanager.createRect(parent, 'settingSwitch', switchWidth, switchHeight, initial ? SAGE : MUTED, 255, 19, x, y);
+        const switchWidth = 88;
+        const switchHeight = 48;
+        const thumbTravel = 20;
+        const node = uimanager.createRect(parent, 'settingSwitch', switchWidth, switchHeight, initial ? SAGE : MUTED, 255, 24, x, y);
         node.addComponent(cc.Button);
 
         const trackOutline = new cc.Node('switchTrackOutline');
@@ -144,18 +170,18 @@ export default class SettingsPanel {
         const trackGraphics = trackOutline.addComponent(cc.Graphics);
         trackGraphics.strokeColor = new cc.Color(101, 70, 58, 42);
         trackGraphics.lineWidth = 1.2;
-        trackGraphics.roundRect(-switchWidth / 2 + 0.8, -switchHeight / 2 + 0.8, switchWidth - 1.6, switchHeight - 1.6, 18.2);
+        trackGraphics.roundRect(-switchWidth / 2 + 0.8, -switchHeight / 2 + 0.8, switchWidth - 1.6, switchHeight - 1.6, 23.2);
         trackGraphics.stroke();
 
         const thumb = new cc.Node('switchThumb');
-        thumb.width = 28;
-        thumb.height = 28;
+        thumb.width = 36;
+        thumb.height = 36;
         thumb.zIndex = 2;
         thumb.setPosition(initial ? thumbTravel : -thumbTravel, 0);
         node.addChild(thumb);
-        const shadow = uimanager.createCircle(thumb, 'switchThumbShadow', 14, new cc.Color(91, 63, 50, 38), 0, -2);
+        const shadow = uimanager.createCircle(thumb, 'switchThumbShadow', 18, new cc.Color(91, 63, 50, 38), 0, -2);
         shadow.zIndex = -1;
-        const surface = uimanager.createCircle(thumb, 'switchThumbSurface', 14, new cc.Color(255, 250, 237));
+        const surface = uimanager.createCircle(thumb, 'switchThumbSurface', 18, new cc.Color(255, 250, 237));
         surface.zIndex = 1;
         const outlineNode = new cc.Node('switchThumbOutline');
         outlineNode.zIndex = 2;
@@ -163,9 +189,9 @@ export default class SettingsPanel {
         const outline = outlineNode.addComponent(cc.Graphics);
         outline.strokeColor = new cc.Color(111, 81, 67, 90);
         outline.lineWidth = 1.2;
-        outline.circle(0, 0, 13.3);
+        outline.circle(0, 0, 17.3);
         outline.stroke();
-        const highlight = uimanager.createCircle(thumb, 'switchThumbHighlight', 3, new cc.Color(255, 255, 255, 190), -5, 5);
+        const highlight = uimanager.createCircle(thumb, 'switchThumbHighlight', 4, new cc.Color(255, 255, 255, 190), -6, 6);
         highlight.zIndex = 3;
 
         let enabled = initial;

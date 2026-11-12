@@ -1,0 +1,47 @@
+{
+  "releaseId": "20261112-settings",
+  "createdAt": "2026-11-12T12:43:35+08:00",
+  "appId": "wxdc39c78bfd045896",
+  "libVersion": "3.15.2",
+  "cocosCreator": "2.4.13",
+  "nodeVersion": "v24.19.0",
+  "buildCommand": "npm run build:wechat",
+  "buildArguments": "platform=wechatgame;debug=false;md5Cache=true;appid=wxdc39c78bfd045896",
+  "sourceFingerprint": "7d71045ed096339e63e22d8bf211b86a4ee4f2622063fcb93a19d55debc9065d",
+  "wechatArtifactFingerprint": "a6176c07b94604d47c9559a1800256a80764d84742ca8310b337f33dccecd8f6",
+  "wechatMainSha256": "0374278e3dd9faf8f75f6faff0e94ede89d187588eaec398fc6e85a151db86c5",
+  "packageLockSha256": "39a9a2b3ea66d4abff1907f6dafea6aa50211a5f7ccf9d80709d20af0c3b6d73",
+  "mainPackageBytes": 3527528,
+  "homeSubpackageBytes": 364998,
+  "gmRemoved": true,
+  "cdnVerifiedFiles": 5,
+  "clientTests": 133,
+  "typescriptPassed": true,
+  "engineCheckPassed": true,
+  "uiViewports": [
+    "320x568",
+    "390x844",
+    "430x932",
+    "768x1024"
+  ],
+  "serverImage": "sha256:17bfd4e0c91f28a042e5a35ba88625a073d175f305a6fd1a5be4ccbeaf0d0e6b",
+  "serverSourceAndRuntimeMatchReviewedRelease": true,
+  "productionHealthApi": 8,
+  "stagingHealthApi": 8,
+  "uploadedByAgent": false,
+  "submittedForReviewByAgent": false,
+  "notVerified": [
+    "WeChat real device",
+    "WeChat console legal domains"
+  ],
+  "changes": [
+    "White larger setting buttons with trailing icons",
+    "Two action rows with exit centered",
+    "Blank dismissal resumes game",
+    "Larger settings text and separate row panels"
+  ],
+  "archive": "/Users/liuyang/Documents/private/cocos_zyx/build/wechat-review-20261112-settings.zip",
+  "archiveBytes": 2342171,
+  "archiveSha256": "379bd770a3c7703a5b02e3c140e60a08f07b962347c99e245e7a2fd43bc8ec66",
+  "verifiedFiles": 79
+}

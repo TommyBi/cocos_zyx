@@ -34,12 +34,18 @@ test.before(() => {
   config = require(compiled);
 });
 
-test('一块一豆：固定语义常量存在且为 1', () => {
-  assert.strictEqual(config.MOOD_BEANS_PER_MOOD_BLOCK, 1);
+test('每块推进1%，每100块一颗，满格后保留余量', () => {
+  assert.equal(config.MOOD_BLOCKS_PER_PERCENT, 1);
+  assert.equal(config.MOOD_BLOCKS_PER_BEAN, 100);
+  for (const [blocks, beans, percent] of [[0,0,'0%'],[1,0,'1%'],[99,0,'99%'],[100,1,'0%'],[101,1,'1%'],[9999,99,'99%'],[10000,100,'0%'],[20001,200,'1%'],[999999,9999,'99%']]) {
+    const state = config.getMoodCollection(blocks);
+    assert.equal(state.beans, beans);
+    assert.equal(state.percent, percent);
+  }
 });
 
-test('继续使用当前数据代际，保留已有消除进度', () => {
-  assert.strictEqual(config.DATA_GENERATION, 'mood_bean_v1');
+test('发布重置使用新代际，后续保留新档', () => {
+  assert.strictEqual(config.DATA_GENERATION, 'mood_bean_v5_20261112');
   assert.strictEqual(config.MOOD_BEAN_BALANCE_KEY, 'zyx_mood_bean_balance');
   assert.strictEqual(config.PENDING_ROUND_SETTLEMENTS_KEY, 'zyx_pending_round_settlements');
 });

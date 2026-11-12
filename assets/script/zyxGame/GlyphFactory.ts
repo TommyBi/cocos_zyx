@@ -129,6 +129,68 @@ export function decorateActionButton(button: cc.Node, icon: 'video' | 'share' | 
     else createRestartGlyph(button, iconX, 1, glyphScale);
 }
 
+/** 设置操作使用白色圆润图标，接在文字右侧并作为一个整体居中。 */
+export function decorateSettingsActionButton(button: cc.Node, icon: 'play' | 'restart' | 'exit' | 'done'): void {
+    const labelNode = button.getChildByName('label');
+    const label = labelNode.getComponent(cc.Label);
+    const textWidth = Array.from(label.string).length * label.fontSize + 4;
+    labelNode.width = textWidth;
+    labelNode.height = 48;
+    labelNode.x = -24;
+    label.enableWrapText = false;
+    const node = new cc.Node(`${icon}Glyph`);
+    node.setPosition(textWidth / 2 + 6, 3);
+    node.zIndex = 60;
+    button.addChild(node);
+    const graphics = node.addComponent(cc.Graphics);
+    graphics.lineCap = cc.Graphics.LineCap.ROUND;
+    graphics.lineJoin = cc.Graphics.LineJoin.ROUND;
+    const outline = labelNode.getComponent(cc.LabelOutline).color;
+    if (icon === 'play') {
+        graphics.fillColor = cc.Color.WHITE;
+        graphics.strokeColor = outline;
+        graphics.lineWidth = 2;
+        graphics.moveTo(-10, 16);
+        graphics.lineTo(15, 0);
+        graphics.lineTo(-10, -16);
+        graphics.close();
+        graphics.fill();
+        graphics.stroke();
+    } else {
+        [outline, cc.Color.WHITE].forEach((color, index) => {
+            graphics.strokeColor = color;
+            graphics.lineWidth = index === 0 ? 8 : 5;
+            if (icon === 'restart') {
+                graphics.moveTo(-14, 4);
+                graphics.bezierCurveTo(-8, 16, 8, 16, 14, 4);
+                graphics.moveTo(14, -4);
+                graphics.bezierCurveTo(8, -16, -8, -16, -14, -4);
+                graphics.moveTo(5, 6);
+                graphics.lineTo(14, 4);
+                graphics.lineTo(12, 13);
+                graphics.moveTo(-5, -6);
+                graphics.lineTo(-14, -4);
+                graphics.lineTo(-12, -13);
+            } else if (icon === 'exit') {
+                graphics.moveTo(0, 16);
+                graphics.lineTo(-14, 16);
+                graphics.lineTo(-14, -16);
+                graphics.lineTo(0, -16);
+                graphics.moveTo(-4, 0);
+                graphics.lineTo(16, 0);
+                graphics.moveTo(7, 9);
+                graphics.lineTo(16, 0);
+                graphics.lineTo(7, -9);
+            } else {
+                graphics.moveTo(-13, 0);
+                graphics.lineTo(-4, -10);
+                graphics.lineTo(14, 12);
+            }
+            graphics.stroke();
+        });
+    }
+}
+
 /** 保留：激励视频恢复后，decorateActionButton('video') 仍可直接使用。 */
 export function createVideoGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
     const node = new cc.Node('videoGlyph');

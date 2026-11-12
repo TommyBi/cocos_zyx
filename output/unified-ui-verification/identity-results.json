@@ -1,0 +1,53 @@
+{
+  "home": [
+    {
+      "name": "defaultAvatar",
+      "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+    },
+    {
+      "name": "moodBeanMascot",
+      "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+    },
+    {
+      "name": "moodBeanMascot",
+      "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+    },
+    {
+      "name": "moodBean_1",
+      "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+    }
+  ],
+  "leaderboard": [
+    {
+      "name": "defaultAvatar",
+      "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+    },
+    {
+      "name": "moodBeanMascot",
+      "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+    },
+    {
+      "name": "moodBeanMascot",
+      "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+    },
+    {
+      "name": "moodBean_1",
+      "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+    },
+    {
+      "name": "moodBeanMascot",
+      "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+    }
+  ],
+  "settlement": [
+    {
+      "name": "moodBeanMascot",
+      "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+    },
+    {
+      "name": "moodBean_1",
+      "uuid": "f0ae1db8-b258-5d17-a599-7e4279be4fb8"
+    }
+  ],
+  "errors": []
+}

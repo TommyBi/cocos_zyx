@@ -1,0 +1,297 @@
+[
+  {
+    "tutorial": true,
+    "seeds": 1000,
+    "openingNoDirectClear": 780,
+    "openingNoOneCellClear": 840,
+    "reachedGreatFirst12": 308,
+    "reachedPerfectFirst12": 61,
+    "consecutiveOpening12": 0,
+    "openingReplayMismatch": 39,
+    "mismatchSamples": [
+      {
+        "seed": 387276917,
+        "client": {
+          "score": 60,
+          "blocks": 8
+        },
+        "server": {
+          "score": 90,
+          "collectedMoodBeans": 11,
+          "valid": true
+        }
+      },
+      {
+        "seed": 1401181143,
+        "client": {
+          "score": 60,
+          "blocks": 8
+        },
+        "server": {
+          "score": 90,
+          "collectedMoodBeans": 12,
+          "valid": true
+        }
+      },
+      {
+        "seed": 1936384585,
+        "client": {
+          "score": 60,
+          "blocks": 8
+        },
+        "server": {
+          "score": 90,
+          "collectedMoodBeans": 11,
+          "valid": true
+        }
+      }
+    ],
+    "steps": [
+      {
+        "action": 1,
+        "alive": 1000,
+        "hasDirectClear": 220,
+        "hasOneCellClear": 160,
+        "cleared": 267
+      },
+      {
+        "action": 2,
+        "alive": 1000,
+        "hasDirectClear": 275,
+        "hasOneCellClear": 219,
+        "cleared": 311
+      },
+      {
+        "action": 3,
+        "alive": 1000,
+        "hasDirectClear": 270,
+        "hasOneCellClear": 214,
+        "cleared": 309
+      },
+      {
+        "action": 4,
+        "alive": 1000,
+        "hasDirectClear": 300,
+        "hasOneCellClear": 228,
+        "cleared": 334
+      },
+      {
+        "action": 5,
+        "alive": 1000,
+        "hasDirectClear": 337,
+        "hasOneCellClear": 262,
+        "cleared": 373
+      },
+      {
+        "action": 6,
+        "alive": 1000,
+        "hasDirectClear": 315,
+        "hasOneCellClear": 245,
+        "cleared": 366
+      },
+      {
+        "action": 7,
+        "alive": 1000,
+        "hasDirectClear": 349,
+        "hasOneCellClear": 268,
+        "cleared": 390
+      },
+      {
+        "action": 8,
+        "alive": 997,
+        "hasDirectClear": 352,
+        "hasOneCellClear": 277,
+        "cleared": 394
+      },
+      {
+        "action": 9,
+        "alive": 985,
+        "hasDirectClear": 369,
+        "hasOneCellClear": 310,
+        "cleared": 406
+      },
+      {
+        "action": 10,
+        "alive": 970,
+        "hasDirectClear": 378,
+        "hasOneCellClear": 311,
+        "cleared": 418
+      },
+      {
+        "action": 11,
+        "alive": 943,
+        "hasDirectClear": 369,
+        "hasOneCellClear": 298,
+        "cleared": 399
+      },
+      {
+        "action": 12,
+        "alive": 911,
+        "hasDirectClear": 349,
+        "hasOneCellClear": 291,
+        "cleared": 395
+      }
+    ],
+    "sample": [
+      {
+        "seed": 2654435761,
+        "op": {
+          "legal": 16,
+          "winning": 0,
+          "near": 0
+        },
+        "turn": 14,
+        "score": 90
+      },
+      {
+        "seed": 1013904226,
+        "op": {
+          "legal": 14,
+          "winning": 1,
+          "near": 1
+        },
+        "turn": 16,
+        "score": 200
+      },
+      {
+        "seed": 3668339987,
+        "op": {
+          "legal": 11,
+          "winning": 1,
+          "near": 0
+        },
+        "turn": 15,
+        "score": 150
+      }
+    ]
+  },
+  {
+    "tutorial": false,
+    "seeds": 1000,
+    "openingNoDirectClear": 0,
+    "openingNoOneCellClear": 0,
+    "reachedGreatFirst12": 24,
+    "reachedPerfectFirst12": 1,
+    "consecutiveOpening12": 0,
+    "openingReplayMismatch": 0,
+    "mismatchSamples": [],
+    "steps": [
+      {
+        "action": 1,
+        "alive": 1000,
+        "hasDirectClear": 1000,
+        "hasOneCellClear": 1000,
+        "cleared": 1000
+      },
+      {
+        "action": 2,
+        "alive": 1000,
+        "hasDirectClear": 84,
+        "hasOneCellClear": 51,
+        "cleared": 117
+      },
+      {
+        "action": 3,
+        "alive": 1000,
+        "hasDirectClear": 271,
+        "hasOneCellClear": 174,
+        "cleared": 312
+      },
+      {
+        "action": 4,
+        "alive": 1000,
+        "hasDirectClear": 280,
+        "hasOneCellClear": 200,
+        "cleared": 321
+      },
+      {
+        "action": 5,
+        "alive": 1000,
+        "hasDirectClear": 285,
+        "hasOneCellClear": 208,
+        "cleared": 338
+      },
+      {
+        "action": 6,
+        "alive": 1000,
+        "hasDirectClear": 320,
+        "hasOneCellClear": 224,
+        "cleared": 360
+      },
+      {
+        "action": 7,
+        "alive": 1000,
+        "hasDirectClear": 312,
+        "hasOneCellClear": 236,
+        "cleared": 351
+      },
+      {
+        "action": 8,
+        "alive": 1000,
+        "hasDirectClear": 330,
+        "hasOneCellClear": 265,
+        "cleared": 366
+      },
+      {
+        "action": 9,
+        "alive": 1000,
+        "hasDirectClear": 302,
+        "hasOneCellClear": 226,
+        "cleared": 353
+      },
+      {
+        "action": 10,
+        "alive": 995,
+        "hasDirectClear": 349,
+        "hasOneCellClear": 279,
+        "cleared": 387
+      },
+      {
+        "action": 11,
+        "alive": 987,
+        "hasDirectClear": 356,
+        "hasOneCellClear": 285,
+        "cleared": 410
+      },
+      {
+        "action": 12,
+        "alive": 973,
+        "hasDirectClear": 371,
+        "hasOneCellClear": 297,
+        "cleared": 410
+      }
+    ],
+    "sample": [
+      {
+        "seed": 2654435761,
+        "op": {
+          "legal": 16,
+          "winning": 2,
+          "near": 1
+        },
+        "turn": 12,
+        "score": 50
+      },
+      {
+        "seed": 1013904226,
+        "op": {
+          "legal": 16,
+          "winning": 2,
+          "near": 1
+        },
+        "turn": 13,
+        "score": 50
+      },
+      {
+        "seed": 3668339987,
+        "op": {
+          "legal": 16,
+          "winning": 2,
+          "near": 1
+        },
+        "turn": 12,
+        "score": 40
+      }
+    ]
+  }
+]

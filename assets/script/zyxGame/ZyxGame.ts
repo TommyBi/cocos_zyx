@@ -1,7 +1,9 @@
 import {
     BOARD_COLS,
     BOARD_ROWS,
+    MAX_ACTION_APPENDS,
     BoardPiece,
+    BombDetonation,
     CELL_SIZE,
     EliminateResult,
     GravityMove,
@@ -28,9 +30,9 @@ import {
     createShareGlyph,
     createVideoGlyph,
     decorateActionButton,
+    decorateSettingsActionButton,
 } from './GlyphFactory';
 import {
-    createExperienceToken,
     createMoodBean,
     createMoodBeanMascot,
     createMoodStamp,
@@ -39,10 +41,13 @@ import {
     getMoodName,
     MOOD_COLORS,
 } from './MoodArt';
-import { calculateGameLayout } from '../manager/ResponsiveLayout';
+import { calculateGameLayout, calculateGameHudLayout } from '../manager/ResponsiveLayout';
 import { CloudProfile, cloudService, LeaderboardEntry } from '../manager/CloudService';
 import RankChaseView from './RankChaseView';
+import BeanCollectionHud, { applyHudFont, formatHudScore } from './BeanCollectionHud';
 import { createBombBadge, createComboArt, createScoreArt } from './RewardArt';
+import { createGamePanel } from './GamePanel';
+import { BOMB_PRIME_TIME, BOMB_CHAIN_INTERVAL, bombResolutionDelay, bombPlaybackDuration, playBombEffect } from './BombEffect';
 
 const { ccclass } = cc._decorator;
 const NEXT_PREVIEW_HEIGHT = 42;
@@ -67,12 +72,15 @@ export default class ZyxGame extends cc.Component {
     private boardRoot: cc.Node = null;
     private pieceLayer: cc.Node = null;
     private nextLayer: cc.Node = null;
+    private nextRowLabel: cc.Label = null;
+    private bombGuideKey = '';
+    private bombGuideCount = 0;
+    private bombGuideIds = new Set<number>();
+    private firstGameBombGuide = false;
     private scoreLabel: cc.Label = null;
     private bestLabel: cc.Label = null;
-    private roundMoodLabel: cc.Label = null;
+    private beanCollectionHud: BeanCollectionHud = null;
     private recordTagLabel: cc.Label = null;
-    private recordTagOnLeft: boolean = false;
-    private scoreColumnX: number = 70;
     private moodStageLabel: cc.Label = null;
     private hammerButton: cc.Node = null;
     private hammerIcon: cc.Node = null;
@@ -88,7 +96,10 @@ export default class ZyxGame extends cc.Component {
     private hintPieceId: number = 0;
     private hintTipBeforeGuide: string = '';
     private clearSpineData: sp.SkeletonData = null;
-    private locked: boolean = true;
+    private resolutionLocked = true;
+    private bombAnimationLocks = 0;
+    private get locked(): boolean { return this.resolutionLocked || this.bombAnimationLocks > 0; }
+    private set locked(value: boolean) { this.resolutionLocked = value; }
     private hammerMode: boolean = false;
     private purifierMode: boolean = false;
     private toolDragging: boolean = false;
@@ -141,6 +152,10 @@ export default class ZyxGame extends cc.Component {
         this.onRoundFinished = onRoundFinished;
         this.onRestartFromPause = onRestartFromPause;
         this.rankChaseProfile = profile;
+        this.firstGameBombGuide = !!profile && profile.gameCount === 0;
+        this.bombGuideKey = 'zyx_first_round_bomb_guides_' + (profile ? profile.playerId : '');
+        this.bombGuideCount = Math.min(5, Math.max(0, Number(cc.sys.localStorage.getItem(this.bombGuideKey)) || 0));
+        this.bombGuideIds.clear();
         // 每局只在开局读取一次榜单；教学期间预取数据但不展示，后续纯本地追赶。
         this.rankChaseSnapshot = cloudService.getLeaderboard('power')
             .then((result) => result.entries.map((entry) => ({ ...entry })))
@@ -165,6 +180,7 @@ export default class ZyxGame extends cc.Component {
 
     public onDestroy(): void {
         if (this.rankChase) this.rankChase.dispose();
+        if (this.beanCollectionHud) this.beanCollectionHud.dispose();
         cc.Tween.stopAllByTarget(this.rankExpansion);
         this.dismissRoundRescuePrompt(false);
         this.clearTutorialGuide();
@@ -184,7 +200,7 @@ export default class ZyxGame extends cc.Component {
         if (this.isTutorialGuidedStep()) return;
         if (this.locked || this.roundRescueGuideVisible || this.hammerMode || this.purifierMode || this.hintHand) return;
         this.idleSeconds += dt;
-        if (this.idleSeconds >= 2) {
+        if (this.idleSeconds >= zyxGameModule.getHintDelay()) {
             this.idleSeconds = 0;
             this.playEliminationHint();
         }
@@ -227,6 +243,18 @@ export default class ZyxGame extends cc.Component {
     private applyRankLayout(): void {
         const progress = this.rankExpansion.progress;
         const x = this.layout.boardX * progress;
+        if (this.hudRoot && this.beanCollectionHud) {
+            const hud = calculateGameHudLayout(this.node.width, BOARD_COLS * CELL_SIZE, progress);
+            this.hudRoot.x = hud.x;
+            this.hudRoot.setContentSize(hud.width, 148);
+            const scoreWidth = 180;
+            const gap = 12;
+            const scoreCard = this.hudRoot.getChildByName('scoreCompareCard');
+            scoreCard.x = -hud.width / 2 + scoreWidth / 2;
+            const beanWidth = hud.width - scoreWidth - gap;
+            this.beanCollectionHud.root.x = hud.width / 2 - beanWidth / 2;
+            this.beanCollectionHud.resize(beanWidth);
+        }
         for (const node of [this.boardRoot, this.boardDangerHalo, this.tutorialGuideRoot,
             this.node.getChildByName('boardShadow'), this.node.getChildByName('boardFrame'),
             this.node.getChildByName('nextRow')]) {
@@ -235,7 +263,8 @@ export default class ZyxGame extends cc.Component {
         if (this.rankChase) {
             const hiddenX = -this.node.width / 2 - this.rankChase.root.width / 2 - 12;
             this.rankChase.setPosition(hiddenX + (this.layout.rankX - hiddenX) * progress, this.layout.boardY);
-            this.rankChase.setExpansion(progress, -this.node.width / 2 + 24, this.layout.boardY);
+            // 64px按钮两侧完整留在舞台内，距左边缘8px，避免页签被裁掉。
+            this.rankChase.setExpansion(progress, -this.node.width / 2 + 40, this.layout.boardY);
         }
     }
 
@@ -285,48 +314,23 @@ export default class ZyxGame extends cc.Component {
         this.node.addChild(this.footerRoot);
         const topY = 0;
         const bottomTipY = 0;
-        const hudGap = 22;
-        const scoreCardWidth = 288;
-        const beanCardWidth = 230;
+        const hudGap = 12;
+        const hudWidth = calculateGameHudLayout(this.node.width, BOARD_COLS * CELL_SIZE, this.rankExpansion.progress).width;
+        const scoreCardWidth = 180;
+        const beanCardWidth = hudWidth - scoreCardWidth - hudGap;
         const pauseWidth = 80;
-        const hudWidth = scoreCardWidth + beanCardWidth + hudGap;
         const hudLeft = -hudWidth / 2;
         const leftCardX = hudLeft + scoreCardWidth / 2;
         const beanCardX = hudLeft + scoreCardWidth + hudGap + beanCardWidth / 2;
         const pauseX = this.node.width / 2 - 16 - pauseWidth / 2;
-        uimanager.createRect(this.hudRoot, 'scoreCompareShadow', scoreCardWidth + 6, 100, new cc.Color(78, 53, 46), 34, 22, leftCardX, topY - 5);
-        const scoreCard = uimanager.createRect(
-            this.hudRoot,
-            'scoreCompareCard',
-            scoreCardWidth,
-            94,
-            new cc.Color(255, 249, 232),
-            238,
-            20,
-            leftCardX,
-            topY,
-        );
-        const scoreColumnX = scoreCardWidth / 4;
-        this.scoreColumnX = scoreColumnX;
-        uimanager.createLabel(scoreCard, '本局', -scoreColumnX, 27, 15, HUD_LABEL_COLOR, 90, 24);
-        uimanager.createLabel(scoreCard, '最高', scoreColumnX, 27, 15, HUD_LABEL_COLOR, 90, 24);
-        uimanager.createRect(scoreCard, 'scoreDivider', 2, 54, MOOD_COLORS.creamDeep, 180, 1, 0, -2);
-        this.scoreLabel = uimanager.createLabel(scoreCard, '0', -scoreColumnX, -6, 32, HUD_VALUE_COLOR, 110, 38);
-        this.bestLabel = uimanager.createLabel(scoreCard, '0', scoreColumnX, -6, 32, HUD_VALUE_COLOR, 110, 38);
-        this.makeLabelBold(this.scoreLabel);
-        this.makeLabelBold(this.bestLabel);
-        this.recordTagOnLeft = false;
-        this.recordTagLabel = uimanager.createLabel(scoreCard, '最高记录', scoreColumnX, -37, 12, HUD_LABEL_COLOR, 124, 18);
-
-        uimanager.createRect(this.hudRoot, 'beanCardShadow', beanCardWidth + 6, 100, new cc.Color(78, 53, 46), 30, 20, beanCardX, topY - 5);
-        uimanager.createRect(this.hudRoot, 'beanCard', beanCardWidth, 94, new cc.Color(239, 232, 187), 246, 19, beanCardX, topY);
-        const beanIconX = beanCardX - beanCardWidth * 0.32;
-        // 局内收集位：开心豆图标 + 本局数量；一块一豆，到达一颗只 +1。
-        this.moodBeanHudIcon = createMoodBeanMascot(this.hudRoot, beanIconX, topY + 2, 52);
-        const beanTextX = beanCardX + beanCardWidth * 0.16;
-        const beanTextWidth = 112;
-        this.roundMoodLabel = uimanager.createLabel(this.hudRoot, '0', beanTextX, topY, 30, HUD_VALUE_COLOR, beanTextWidth, 36);
-        this.makeLabelBold(this.roundMoodLabel);
+        const scoreCard = createGamePanel(this.hudRoot, 'scoreCompareCard', scoreCardWidth, 148, leftCardX);
+        const caption = uimanager.createLabel(scoreCard, '本局得分', 0, 46, 24, HUD_LABEL_COLOR, scoreCardWidth - 20, 32);
+        this.scoreLabel = uimanager.createLabel(scoreCard, '0', 0, 5, 46, HUD_VALUE_COLOR, scoreCardWidth - 32, 56);
+        this.bestLabel = uimanager.createLabel(scoreCard, '最高 0', 0, -46, 20, HUD_LABEL_COLOR, scoreCardWidth - 20, 28);
+        for (const label of [caption, this.scoreLabel, this.bestLabel]) applyHudFont(label);
+        this.recordTagLabel = caption;
+        this.beanCollectionHud = new BeanCollectionHud(this.hudRoot, beanCardX, beanCardWidth);
+        this.moodBeanHudIcon = this.beanCollectionHud.icon;
 
         const pauseButton = uimanager.createButton(
             this.footerRoot,
@@ -645,6 +649,7 @@ export default class ZyxGame extends cc.Component {
 
     /** 三排数据同步入场，避免教学结束后棋盘只剩孤零零的一排。 */
     private appendTutorialOpeningRows(): void {
+        zyxGameModule.actionAppends = 0;
         for (let index = 0; index < 3; index++) {
             if (!zyxGameModule.appendNextRow()) {
                 this.handleChallengeFailed('整理台暂时放满了');
@@ -656,6 +661,11 @@ export default class ZyxGame extends cc.Component {
                 if (zyxGameModule.isGameOver()) {
                     this.handleChallengeFailed('整理台暂时放满了');
                     return;
+                }
+                this.completePlayerAction();
+                for (const piece of zyxGameModule.pieces.filter(value => value.bomb)) {
+                    const node = this.pieceLayer.getChildByName(`piece_${piece.id}`);
+                    if (node) this.showBombGuide(node, piece);
                 }
                 this.locked = false;
                 this.idleSeconds = 0;
@@ -925,36 +935,14 @@ export default class ZyxGame extends cc.Component {
     private createNextRowPreview(): void {
         const boardWidth = BOARD_COLS * CELL_SIZE;
         const root = new cc.Node('nextRow');
-        root.width = boardWidth + 52;
+        root.width = boardWidth + 32;
         root.height = 114;
         root.setAnchorPoint(0.5, 0.5);
         root.setPosition(this.layout.boardX, this.layout.nextY);
         root.zIndex = 80;
         this.node.addChild(root);
 
-        uimanager.createRect(
-            root,
-            'nextPreviewShieldShadow',
-            boardWidth + 44,
-            116,
-            new cc.Color(78, 53, 46),
-            22,
-            14,
-            0,
-            -4,
-        );
-        uimanager.createRect(
-            root,
-            'nextPreviewShield',
-            boardWidth + 38,
-            112,
-            new cc.Color(250, 237, 211),
-            255,
-            14,
-            0,
-            0,
-        );
-        uimanager.createRect(root, 'nextPreviewLip', boardWidth + 12, 2, MOOD_COLORS.cocoaSoft, 28, 1, 0, 55);
+        createGamePanel(root, 'nextPreviewShield', boardWidth + 24, 112);
 
         this.nextLayer = new cc.Node('nextPieces');
         this.nextLayer.width = boardWidth;
@@ -964,40 +952,14 @@ export default class ZyxGame extends cc.Component {
         this.nextLayer.zIndex = 5;
         root.addChild(this.nextLayer);
         uimanager.createRect(root, 'nextRowLabelBg', 128, 32, new cc.Color(255, 249, 232), 255, 16, 0, -34);
-        const nextLabel = uimanager.createLabel(root, '下一排', 0, -34, 18, new cc.Color(45, 42, 39), 120, 30);
+        const nextLabel = this.nextRowLabel = uimanager.createLabel(root, '下一排', 0, -34, 18, new cc.Color(45, 42, 39), 120, 30);
         this.makeLabelBold(nextLabel);
     }
 
     private createToolBar(): void {
         const dockY = this.layout.toolY;
-        uimanager.createRect(
-            this.node,
-            'toolDockShadow',
-            300,
-            134,
-            new cc.Color(70, 46, 40),
-            52,
-            28,
-            0,
-            dockY - 7,
-        );
-        const dock = uimanager.createRect(
-            this.node,
-            'toolDock',
-            292,
-            128,
-            new cc.Color(255, 247, 226),
-            248,
-            26,
-            0,
-            dockY,
-        );
+        const dock = createGamePanel(this.node, 'toolDock', 292, 128, 0, dockY);
         dock.zIndex = 90;
-        const dockGraphics = dock.getComponent(cc.Graphics);
-        dockGraphics.strokeColor = new cc.Color(151, 111, 87, 132);
-        dockGraphics.lineWidth = 2;
-        dockGraphics.roundRect(-144, -62, 288, 124, 24);
-        dockGraphics.stroke();
         this.hammerButton = uimanager.createRect(
             dock,
             'reliefToolButton',
@@ -1297,16 +1259,53 @@ export default class ZyxGame extends cc.Component {
     }
 
     private decorateBombPiece(node: cc.Node, piece: BoardPiece): void {
-        if (node.getChildByName('bombBadge')) return;
+        if (node.getChildByName('bombBadge')) { this.showBombGuide(node, piece); return; }
         const badge = createBombBadge(node);
+        badge.y += 4;
         const stamp = node.getChildByName('moodStamp');
         if (stamp && Math.abs(stamp.x) < 30) {
             // 单格的炸弹优先显示，避免与正中的表情重叠；收豆仍保留来源节点。
             stamp.active = false;
         }
         cc.tween(badge)
-            .repeatForever(cc.tween().to(0.7, { scale: 1.08 }, { easing: 'sineInOut' }).to(0.7, { scale: 1 }, { easing: 'sineInOut' }))
+            .repeatForever(cc.tween().delay(1.1)
+                .to(0.08, { angle: -12 }, { easing: 'sineInOut' })
+                .to(0.08, { angle: 12 }, { easing: 'sineInOut' })
+                .to(0.08, { angle: -9 }, { easing: 'sineInOut' })
+                .to(0.08, { angle: 9 }, { easing: 'sineInOut' })
+                .to(0.08, { angle: 0 }, { easing: 'sineInOut' }))
             .start();
+        this.showBombGuide(node, piece);
+    }
+
+    /** 首局最多提示五枚不同炸弹，重绘与重新打开页面均不会重复计数。 */
+    private showBombGuide(node: cc.Node, piece: BoardPiece): void {
+        if (!this.firstGameBombGuide || this.isTutorialGuidedStep() || node.getChildByName('bombTapGuide')) return;
+        if (!this.bombGuideIds.has(piece.id)) {
+            if (this.bombGuideCount >= 5) return;
+            this.bombGuideIds.add(piece.id);
+            this.bombGuideCount++;
+            try { cc.sys.localStorage.setItem(this.bombGuideKey, String(this.bombGuideCount)); } catch (_) { /* 本局计数仍有效。 */ }
+        }
+        const below = piece.row < 2;
+        const x = Math.max(-BOARD_COLS * CELL_SIZE / 2 + 50,
+            Math.min(BOARD_COLS * CELL_SIZE / 2 - 50, node.x)) - node.x;
+        const bubble = uimanager.createRect(node, 'bombTapGuide', 96, 30,
+            new cc.Color(255, 247, 215), 255, 12, x, below ? -47 : 49);
+        bubble.zIndex = 30;
+        const g = bubble.getComponent(cc.Graphics);
+        g.strokeColor = new cc.Color(173, 126, 73); g.lineWidth = 1.5;
+        g.roundRect(-48, -15, 96, 30, 12); g.stroke();
+        g.fillColor = new cc.Color(255, 247, 215);
+        const direction = below ? 1 : -1;
+        g.moveTo(-5, direction * 14); g.lineTo(0, direction * 22); g.lineTo(5, direction * 14); g.fill();
+        uimanager.createLabel(bubble, '点我引爆', 0, 0, 18, MOOD_COLORS.cocoa, 92, 28);
+        bubble.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
+            event.stopPropagation();
+            if (!this.locked && !this.isTutorialGuidedStep()) this.useBomb(piece.id);
+        });
+        cc.tween(bubble).delay(5).to(0.25, { opacity: 0 })
+            .call(() => { if (cc.isValid(bubble, true)) bubble.destroy(); }).start();
     }
 
     private drawPiece(node: cc.Node, color: cc.Color, alpha: number): void {
@@ -1334,24 +1333,25 @@ export default class ZyxGame extends cc.Component {
         if (!this.nextLayer) return nodes;
 
         const previewWidth = BOARD_COLS * CELL_SIZE;
-        for (const piece of zyxGameModule.nextPieces) {
-            const width = piece.size * CELL_SIZE - 12;
-            const x = -previewWidth / 2 + piece.col * CELL_SIZE + piece.size * CELL_SIZE / 2;
-            const preview = new cc.Node(`next_${piece.col}`);
-            preview.width = width;
-            preview.height = NEXT_PREVIEW_HEIGHT;
+        const rows = zyxGameModule.getRiseRowCount(zyxGameModule.difficultyActionCount + 1);
+        if (this.nextRowLabel) this.nextRowLabel.string = rows === 2 ? '下两排 ↑↑' : '下一排';
+        const previews = rows === 2 ? [zyxGameModule.nextPieces, zyxGameModule.secondNextPieces] : [zyxGameModule.nextPieces];
+        previews.forEach((pieces, index) => pieces.forEach(piece => {
+            const preview = new cc.Node(`next_${index}_${piece.col}`);
+            preview.width = piece.size * CELL_SIZE - 12;
+            preview.height = rows === 2 ? 18 : NEXT_PREVIEW_HEIGHT;
             preview.opacity = initialOpacity;
             preview.setAnchorPoint(0.5, 0.5);
-            preview.setPosition(x, 0);
-            const moodColor = getMoodColor(piece.color);
-            drawMoodBlockMaterial(preview, moodColor);
+            preview.setPosition(-previewWidth / 2 + piece.col * CELL_SIZE + piece.size * CELL_SIZE / 2,
+                rows === 2 ? 11 - index * 22 : 0);
+            drawMoodBlockMaterial(preview, getMoodColor(piece.color));
             this.nextLayer.addChild(preview);
             nodes.push(preview);
-        }
+        }));
         return nodes;
     }
 
-    private animateAppendedRow(onComplete: () => void): void {
+    private animateAppendedRow(onComplete: () => void, riseRows: number = 1): void {
         const previousNodes = this.nextLayer ? this.nextLayer.children.slice() : [];
         for (const node of previousNodes) {
             cc.Tween.stopAllByTarget(node);
@@ -1373,7 +1373,7 @@ export default class ZyxGame extends cc.Component {
 
         for (const piece of zyxGameModule.pieces) {
             let node = this.pieceLayer.getChildByName(`piece_${piece.id}`);
-            if (!node) node = this.createPieceView(piece, BOARD_ROWS);
+            if (!node) node = this.createPieceView(piece, riseRows === 2 ? piece.row + riseRows : BOARD_ROWS);
 
             const target = this.getPiecePosition(piece.row, piece.col, piece.size);
             cc.Tween.stopAllByTarget(node);
@@ -1709,66 +1709,67 @@ export default class ZyxGame extends cc.Component {
         else shard.destroy();
     }
 
-    private spawnPieceShards(pieceNode: cc.Node, color: cc.Color, id: number, rowClear: boolean): void {
-        const targetShardWidth = rowClear ? 20 : 24;
-        const minColumns = rowClear ? 4 : 3;
-        const maxColumns = rowClear ? 12 : 10;
-        const columns = Math.max(minColumns, Math.min(maxColumns, Math.ceil(pieceNode.width / targetShardWidth)));
-        const rows = rowClear ? 5 : 4;
-        const shardWidth = pieceNode.width / columns;
-        const shardHeight = pieceNode.height / rows;
-        let shardIndex = 0;
+    private spawnPieceShards(pieceNode: cc.Node, color: cc.Color, id: number, rowClear: boolean, blastCenter: cc.Vec2 = null): void {
+        // 以碎裂瞬间的实际尺寸取样，避免预压缩后碎片突然弹回原尺寸。
+        const width = pieceNode.width * Math.abs(pieceNode.scaleX);
+        const height = pieceNode.height * Math.abs(pieceNode.scaleY);
+        const columns = Math.max(3, Math.min(rowClear ? 9 : 8, Math.ceil(width / (rowClear ? 26 : 30))));
+        const rows = 3;
+        const shardWidth = width / columns;
+        const shardHeight = height / rows;
+        const gravity = rowClear ? 1400 : 1550;
 
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < columns; col++) {
-                const index = shardIndex++;
-                const shard = this.acquireShard();
-                shard.width = shardWidth + 0.6;
-                shard.height = shardHeight + 0.6;
+                const index = row * columns + col;
+                const shard = this.acquireShard() as cc.Node & { shardFlightTime: number };
+                shard.name = `pieceShard_${id}_${index}`;
+                shard.width = shardWidth * (0.82 + Math.random() * 0.2);
+                shard.height = shardHeight * (0.82 + Math.random() * 0.2);
                 shard.setAnchorPoint(0.5, 0.5);
-                const startX = pieceNode.x - pieceNode.width / 2 + shardWidth * (col + 0.5);
-                const startY = pieceNode.y + pieceNode.height / 2 - shardHeight * (row + 0.5);
+                const localX = (col + 0.5) / columns * 2 - 1;
+                const localY = 1 - (row + 0.5) / rows * 2;
+                const startX = pieceNode.x + localX * width / 2;
+                const startY = pieceNode.y + localY * height / 2;
+                const startAngle = pieceNode.angle + (Math.random() - 0.5) * 22;
+                const dx = blastCenter ? startX - blastCenter.x : 0;
+                const dy = blastCenter ? startY - blastCenter.y : 0;
+                const distance = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+                const velocityX = localX * (rowClear ? 150 : 220) + (Math.random() - 0.5) * 75
+                    + dx / distance * 160;
+                const velocityY = (blastCenter ? 160 : rowClear ? 235 : 320) + localY * 85
+                    + (Math.random() - 0.5) * 90 + dy / distance * 230;
+                const angularVelocity = velocityX * 0.7 + (Math.random() - 0.5) * 340;
+                const drag = 0.65 + Math.random() * 0.45;
+                const lifetime = (rowClear ? 0.62 : 0.72) + Math.random() * 0.16;
+                const endScale = 0.72 + Math.random() * 0.18;
                 shard.setPosition(startX, startY);
                 shard.zIndex = 28;
                 shard.opacity = 255;
                 shard.scale = 1;
-                const startRotation = ((index * 13) % 19) - 9;
-                shard.angle = -startRotation;
+                shard.angle = startAngle;
+                shard.shardFlightTime = 0;
                 this.pieceLayer.addChild(shard);
-                // 只在生成时绘制一次；透明度交由 node.opacity 驱动，避免每帧重建 Graphics 顶点。
+                // 图形只创建一次，每帧只变换节点；不重绘 Graphics，也不使用棋盘随机源。
                 this.drawPieceShard(shard, color, 1, index);
 
-                const side = rowClear
-                    ? (startX < 0 ? -1 : 1)
-                    : (startX < pieceNode.x ? -1 : 1);
-                const spread = side * (
-                    rowClear
-                        ? 16 + (index % 4) * 7
-                        : 28 + (index % 4) * 10
-                ) + ((index * 7) % 9) - 4;
-                const lift = rowClear
-                    ? 10 + ((index * 7) % 20)
-                    : 26 + ((index * 11) % 29);
-                const fall = rowClear
-                    ? 78 + ((index * 13) % 43)
-                    : 112 + ((index * 17) % 62);
-                const spinDirection = (index + row + col) % 2 === 0 ? 1 : -1;
-                const turn = spinDirection * (
-                    rowClear
-                        ? 46 + (index % 7) * 18
-                        : 62 + (index % 8) * 22
-                );
-                // 碎片只走一次「爆散并消失」；不再先落一半、再进入第二段下坠。
-                const burstDuration = 0.28 + (index % 4) * 0.015;
-                const burstY = startY + lift * 0.42 - fall * 0.24;
                 cc.tween(shard)
-                    .to(burstDuration, {
-                        x: startX + spread,
-                        y: burstY,
-                        angle: -startRotation - turn,
-                        scale: 0.22 + (index % 4) * 0.045,
-                        opacity: 0,
-                    }, { easing: 'quadOut' })
+                    .to(lifetime, { shardFlightTime: lifetime }, {
+                        easing: 'linear',
+                        onUpdate: () => {
+                            if (!cc.isValid(shard)) return;
+                            const time = shard.shardFlightTime;
+                            const progress = Math.min(1, time / lifetime);
+                            const fade = Math.max(0, (progress - 0.64) / 0.36);
+                            shard.setPosition(
+                                startX + velocityX * (1 - Math.exp(-drag * time)) / drag,
+                                startY + velocityY * time - gravity * time * time / 2,
+                            );
+                            shard.angle = startAngle + angularVelocity * time;
+                            shard.scale = 1 - (1 - endScale) * progress;
+                            shard.opacity = Math.round(255 * (1 - fade * fade));
+                        },
+                    })
                     .call(() => this.releaseShard(shard))
                     .start();
             }
@@ -1780,8 +1781,9 @@ export default class ZyxGame extends cc.Component {
         const graphics = node.getComponent(cc.Graphics) || node.addComponent(cc.Graphics);
         const width = node.width;
         const height = node.height;
-        const cutA = Math.min(4, 1.2 + ((index * 5) % 4));
-        const cutB = Math.min(4, 1 + ((index * 7) % 5));
+        const edge = Math.min(width, height);
+        const cutA = edge * (0.16 + ((index * 5) % 7) * 0.045);
+        const cutB = edge * (0.12 + ((index * 7) % 5) * 0.055);
         const tone = ((index * 3) % 5 - 2) * 7;
         const red = Math.max(0, Math.min(255, color.r + tone));
         const green = Math.max(0, Math.min(255, color.g + tone));
@@ -1796,6 +1798,14 @@ export default class ZyxGame extends cc.Component {
         graphics.lineTo(-width / 2, -cutA);
         graphics.lineTo(-width / 2 + cutA, -height / 2);
         graphics.fill();
+        // 一块暗面保留色块的厚度，避免飞散时像平面的彩纸。
+        graphics.fillColor = new cc.Color(Math.round(red * 0.72), Math.round(green * 0.72),
+            Math.round(blue * 0.72), Math.round(100 * safeAlpha));
+        graphics.moveTo(-width / 2 + cutA, -height / 2);
+        graphics.lineTo(width / 2 - cutB, -height / 2 + cutA * 0.25);
+        graphics.lineTo(width / 2, height / 2 - cutA);
+        graphics.lineTo(width * 0.06, -height * 0.08);
+        graphics.close(); graphics.fill();
 
         graphics.strokeColor = new cc.Color(255, 255, 255, Math.round(92 * safeAlpha));
         graphics.lineWidth = 1.3;
@@ -2015,27 +2025,54 @@ export default class ZyxGame extends cc.Component {
             .start();
     }
 
-    private animateRowShatter(pieceIds: number[]): void {
-        const targets: { id: number; node: cc.Node; color: cc.Color }[] = [];
+    private animateRowShatter(pieceIds: number[], bombs: BombDetonation[] = []): void {
         for (const id of pieceIds) {
             const node = this.pieceLayer.getChildByName(`piece_${id}`);
             const color = this.pieceColors[id];
             if (!node || !color) continue;
-            targets.push({ id, node, color });
+            // 连锁中的炸弹等自己的起爆时刻；其他格子由最早命中的冲击波驱动。
+            const ownBlast = bombs.findIndex((bomb) => bomb.id === id);
+            const hitIndex = ownBlast >= 0 ? ownBlast : bombs.findIndex((bomb) => bomb.affectedPieceIds.indexOf(id) >= 0);
+            const center = hitIndex >= 0
+                ? this.getPiecePosition(bombs[hitIndex].row, bombs[hitIndex].col, bombs[hitIndex].size) : null;
+            const dx = center ? node.x - center.x : 0;
+            const dy = center ? node.y - center.y : 0;
+            const distance = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+            const delay = center ? BOMB_PRIME_TIME + hitIndex * BOMB_CHAIN_INTERVAL
+                + (ownBlast >= 0 ? 0 : Math.min(1, distance / (CELL_SIZE * 1.5)) * 0.035) : 0;
             cc.Tween.stopAllByTarget(node);
-            cc.tween(node)
-                .to(0.045, { scaleX: 1.03, scaleY: 0.72 }, { easing: 'quadOut' })
-                .start();
-        }
-
-        this.scheduleOnce(() => {
-            for (const target of targets) {
-                if (!cc.isValid(target.node)) continue;
-                this.spawnPieceShards(target.node, target.color, target.id, true);
-                delete this.pieceColors[target.id];
-                target.node.destroy();
+            if (center) {
+                const flash = new cc.Node('bombHitFlash');
+                flash.zIndex = 20;
+                flash.opacity = 0;
+                node.addChild(flash);
+                const glow = flash.addComponent(cc.Graphics);
+                glow.fillColor = new cc.Color(255, 237, 170, 200);
+                glow.strokeColor = new cc.Color(255, 255, 230, 245);
+                glow.lineWidth = 3;
+                glow.roundRect(-node.width / 2 + 2, -node.height / 2 + 2, node.width - 4, node.height - 4, 10);
+                glow.fill(); glow.stroke();
+                cc.tween(flash).delay(hitIndex * BOMB_CHAIN_INTERVAL)
+                    .to(0.055, { opacity: 85 })
+                    .delay(delay - hitIndex * BOMB_CHAIN_INTERVAL - 0.055)
+                    .to(0.025, { opacity: 255 }).start();
             }
-        }, 0.05);
+            cc.tween(node).delay(delay)
+                .call(() => { if (center && cc.isValid(node)) this.drawPieceCracks(node); })
+                .to(center ? 0.06 : 0.045, {
+                    x: node.x + dx / distance * 7,
+                    y: node.y + dy / distance * 5,
+                    scaleX: center ? 1.1 : 1.03,
+                    scaleY: center ? 0.78 : 0.84,
+                }, { easing: 'quadOut' })
+                .call(() => {
+                    if (!cc.isValid(node)) return;
+                    this.playMoodCollect([id]);
+                    this.spawnPieceShards(node, color, id, !center, center);
+                    delete this.pieceColors[id];
+                    node.destroy();
+                }).start();
+        }
     }
 
     private animateElimination(result: EliminateResult, onComplete: () => void): void {
@@ -2043,11 +2080,11 @@ export default class ZyxGame extends cc.Component {
         audioManager.playSound('break');
         this.playTutorialNpcBounce();
         this.playRowClearEffects(result.clearedRowIndexes);
-        this.playMoodCollect(result.removedPieceIds);
-        this.animateRowShatter(result.removedPieceIds);
+        this.animateBombBlasts(result);
+        this.animateRowShatter(result.removedPieceIds, result.detonatedBombs);
         this.playScoreFeedback(result);
         // 给每一档连消的弹出留出短暂节拍，再继续掉落结算。
-        this.scheduleOnce(onComplete, 0.2);
+        this.scheduleOnce(onComplete, bombResolutionDelay((result.detonatedBombs || []).length));
     }
 
     private playScoreFeedback(result: EliminateResult): void {
@@ -2057,11 +2094,17 @@ export default class ZyxGame extends cc.Component {
         root.zIndex = 160;
         this.boardRoot.addChild(root);
         this.rewardFeedback = root;
-        const row = result.clearedRowIndexes.reduce((sum, value) => sum + value, 0) / result.clearedRows;
-        const y = this.getPiecePosition(row, 0, 1).y;
-        const feedbackLimit = BOARD_ROWS * CELL_SIZE / 2 - 150;
-        root.setPosition(0, Math.max(-feedbackLimit, Math.min(feedbackLimit, y + 70)));
         const combo = result.combo || 1;
+        // 连消图片字、倍率与得分整组在棋盘中央弹出，随棋盘容器适配位置。
+        if (combo >= 2) {
+            root.setPosition(0, -38);
+            root.opacity = 0;
+        } else {
+            const row = result.clearedRowIndexes.reduce((sum, value) => sum + value, 0) / result.clearedRows;
+            const y = this.getPiecePosition(row, 0, 1).y;
+            const feedbackLimit = BOARD_ROWS * CELL_SIZE / 2 - 150;
+            root.setPosition(0, Math.max(-feedbackLimit, Math.min(feedbackLimit, y + 70)));
+        }
         if (combo >= 2) {
             const word = createComboArt(root, combo);
             word.y = 45;
@@ -2070,7 +2113,18 @@ export default class ZyxGame extends cc.Component {
         }
         const score = createScoreArt(root, `+${result.gainedScore}`, combo >= 2 ? 58 : 48);
         score.y = combo >= 2 ? -76 : 0;
+        if (result.clearedRows >= 2 || (result.cascade || 0) >= 2) {
+            const text = (result.cascade || 0) >= 2 ? `连锁 ×${result.cascade}` : `${result.clearedRows} 排齐消`;
+            const badge = uimanager.createLabel(root, text, 0, combo >= 2 ? 110 : 58, 28,
+                new cc.Color(151, 91, 49), 280, 40);
+            this.makeLabelBold(badge);
+        }
         root.scale = 0.5;
+        if (combo >= 2) {
+            cc.tween(root)
+                .to(0.28, { y: 0, opacity: 255 }, { easing: 'quadOut' })
+                .start();
+        }
         cc.tween(root)
             .to(0.18, { scale: 1.12 }, { easing: 'backOut' })
             .to(0.1, { scale: 1 }, { easing: 'sineOut' })
@@ -2090,7 +2144,7 @@ export default class ZyxGame extends cc.Component {
             const moodIndex = Number((stamp as any).moodIndex) || 1;
             const worldStart = pieceNode.convertToWorldSpaceAR(stamp.getPosition());
             const start = this.node.convertToNodeSpaceAR(worldStart);
-            // 一块一豆：飞行豆继承来源色块的 moodIndex、颜色和表情。
+            // 飞行表情只推进收集进度；每满 100 块获得一颗可结算的开心豆。
             const token = createMoodBean(this.node, moodIndex, start.x, start.y, 40, 0);
             token.zIndex = 900;
             const target = this.moodBeanHudIcon
@@ -2101,7 +2155,7 @@ export default class ZyxGame extends cc.Component {
                 Math.max(start.y, target.y) + 150,
             );
             const state = { t: 0 };
-            const delay = rewardIndex * 0.08;
+            const delay = Math.min(0.28, rewardIndex * 0.025);
             rewardIndex++;
             cc.tween(token)
                 .delay(delay)
@@ -2125,9 +2179,9 @@ export default class ZyxGame extends cc.Component {
                     },
                 })
                 .call(() => {
-                    // 到达一颗只 +1，最终值必须与实际收集数一致。
+                    if (this.settlementReported || !cc.isValid(this.node)) { token.destroy(); return; }
                     this.displayedRoundMoods++;
-                    this.updateHudNumber(this.roundMoodLabel, this.displayedRoundMoods);
+                    this.beanCollectionHud.collectTo(this.displayedRoundMoods);
                     if (this.moodBeanHudIcon && cc.isValid(this.moodBeanHudIcon)) {
                         cc.Tween.stopAllByTarget(this.moodBeanHudIcon);
                         cc.tween(this.moodBeanHudIcon)
@@ -2155,29 +2209,21 @@ export default class ZyxGame extends cc.Component {
             return;
         }
 
-        const rowBomb = zyxGameModule.awardBomb(clearedRows);
-        const comboBomb = zyxGameModule.claimComboBomb();
-        [rowBomb, comboBomb].filter((bomb) => !!bomb).forEach((bomb) => {
-            const node = this.pieceLayer.getChildByName(`piece_${bomb.id}`);
-            if (node) this.decorateBombPiece(node, bomb);
-            else this.createPieceView(bomb);
-        });
-        if (comboBomb) uimanager.showToast('Great！奖励一枚炸弹，点击炸开周围色块');
-        else if (rowBomb) uimanager.showToast('双排消除奖励！点击炸弹，炸开周围色块');
         this.updateBoardDangerState();
         onStable();
     }
 
     private appendNextRowAndResolve(): void {
-        if (!zyxGameModule.appendNextRow()) {
+        const riseRows = zyxGameModule.getRiseRowCount();
+        if (!zyxGameModule.appendTurnRows()) {
             this.handleChallengeFailed('整理台暂时放满了');
             return;
         }
 
         this.animateAppendedRow(() => {
             this.resolveStableBoard(() => {
-                this.ensureMinimumOccupiedRows(2, () => {
-                    zyxGameModule.finishPlayerAction();
+                this.ensureMinimumOccupiedRows(zyxGameModule.getRefillRowTarget(), () => {
+                    this.completePlayerAction();
                     if (zyxGameModule.isGameOver()) {
                         this.handleChallengeFailed('整理台暂时放满了');
                         return;
@@ -2187,12 +2233,13 @@ export default class ZyxGame extends cc.Component {
                     this.idleSeconds = 0;
                 });
             });
-        });
+        }, riseRows);
     }
 
-    /** 连消可能把刚升起的一排再次清掉；持续补排并完整结算，直到场上至少保留两排。 */
+    /** 连消可能把刚升起的一排再次清掉；在预算内补足支撑层，保留后续双排和掉落连锁机会。 */
     private ensureMinimumOccupiedRows(minimumRows: number, onReady: () => void): void {
-        if (zyxGameModule.getOccupiedRowCount() >= minimumRows) {
+        if (zyxGameModule.getOccupiedRowCount() >= minimumRows
+            || zyxGameModule.actionAppends >= MAX_ACTION_APPENDS) {
             onReady();
             return;
         }
@@ -2558,7 +2605,7 @@ export default class ZyxGame extends cc.Component {
         this.playEmergencyClearEffect(removedPieceIds, () => {
             this.resolveStableBoard(() => {
                 this.updateHud();
-                uimanager.showToast('整理台已全部清空，自动补足两排');
+                uimanager.showToast('整理台已全部清空，继续连消吧');
                 this.appendNextRowAndResolve();
             });
         });
@@ -2569,11 +2616,10 @@ export default class ZyxGame extends cc.Component {
         const isNewRecord = zyxGameModule.score > zyxGameModule.startingBestScore;
         const scoreColor = isNewRecord ? MOOD_COLORS.coral : HUD_VALUE_COLOR;
         this.setLabelTone(this.scoreLabel, scoreColor, 1.1);
-        this.setLabelTone(this.bestLabel, HUD_VALUE_COLOR, 1.1);
-        this.setLabelTone(this.roundMoodLabel, HUD_VALUE_COLOR, 1.05);
+        this.setLabelTone(this.bestLabel, HUD_LABEL_COLOR, 1.1);
         this.updateHudNumber(this.scoreLabel, zyxGameModule.score);
-        this.updateHudNumber(this.bestLabel, zyxGameModule.bestScore);
-        this.updateHudNumber(this.roundMoodLabel, this.displayedRoundMoods);
+        this.bestLabel.string = `最高 ${formatHudScore(zyxGameModule.bestScore)}`;
+        this.scoreLabel.fontSize = this.scoreLabel.string.length >= 6 ? 34 : 46;
         this.updateRecordTag(isNewRecord);
         const hammerColor = this.hammerMode ? BUTTON_COLORS.green : BUTTON_COLORS.yellow;
         uimanager.drawButtonSurface(this.hammerButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, hammerColor, 23);
@@ -2596,14 +2642,15 @@ export default class ZyxGame extends cc.Component {
 
     private updateHudNumber(label: cc.Label, value: number): void {
         if (!label || !label.node) return;
-        const nextValue = String(value);
+        const nextValue = formatHudScore(value);
         if (label.string === nextValue) return;
         label.string = nextValue;
         const node = label.node;
         cc.Tween.stopAllByTarget(node);
         node.scale = 1;
+        const pulseScale = nextValue.length >= 5 ? 1.04 : 1.14;
         cc.tween(node)
-            .to(0.1, { scale: 1.14 }, { easing: 'quadOut' })
+            .to(0.1, { scale: pulseScale }, { easing: 'quadOut' })
             .to(0.12, { scale: 0.97 }, { easing: 'quadInOut' })
             .to(0.12, { scale: 1 }, { easing: 'backOut' })
             .start();
@@ -2611,32 +2658,14 @@ export default class ZyxGame extends cc.Component {
 
     private updateRecordTag(isNewRecord: boolean): void {
         if (!this.recordTagLabel) return;
-        const node = this.recordTagLabel.node;
-        if (!isNewRecord) {
-            if (this.recordTagOnLeft) cc.Tween.stopAllByTarget(node);
-            this.recordTagOnLeft = false;
-            node.x = this.scoreColumnX;
-            node.opacity = 255;
-            node.color = HUD_LABEL_COLOR;
-            this.recordTagLabel.string = '最高记录';
-            return;
-        }
-
-        this.recordTagLabel.string = '新纪录，继续保持';
-        node.color = MOOD_COLORS.coral;
-        if (this.recordTagOnLeft) return;
-        this.recordTagOnLeft = true;
-        cc.Tween.stopAllByTarget(node);
-        node.x = this.scoreColumnX;
-        node.opacity = 80;
-        cc.tween(node)
-            .to(0.3, { x: -84, opacity: 255 }, { easing: 'backOut' })
-            .to(0.12, { x: -this.scoreColumnX }, { easing: 'quadInOut' })
-            .start();
+        this.recordTagLabel.string = isNewRecord ? '本局新纪录' : '本局得分';
+        this.recordTagLabel.node.color = isNewRecord ? MOOD_COLORS.coral : HUD_LABEL_COLOR;
     }
 
     private movePiece(id: number, offset: number): void {
-        if (this.locked || this.hammerMode || this.purifierMode) {
+        // 过期手势/多指输入不能重绘棋盘，否则会中断起爆回调、碎裂和掉落的时间线。
+        if (this.locked) return;
+        if (this.hammerMode || this.purifierMode) {
             this.renderBoard();
             if (this.hammerMode) uimanager.showToast('解压锤已就绪，请点一下目标格子');
             if (this.purifierMode) uimanager.showToast('魔法棒已就绪，请点一下目标颜色');
@@ -2695,36 +2724,60 @@ export default class ZyxGame extends cc.Component {
     }
 
     private useBomb(id: number): void {
+        if (this.locked || this.settlementReported) return;
         const piece = zyxGameModule.getPiece(id);
         if (!piece) return;
-        const center = this.getPiecePosition(piece.row, piece.col, piece.size);
         const blast = zyxGameModule.detonateBomb(id);
         if (!blast) return;
         this.locked = true;
         this.markInteraction();
-        audioManager.playSound('hammer');
-        gameSettings.vibrateLight();
-        this.playHammerImpact(center.x, center.y);
-        const wave = new cc.Node('bombBlastWave');
-        this.pieceLayer.addChild(wave);
-        wave.setPosition(center);
-        wave.zIndex = 120;
-        const g = wave.addComponent(cc.Graphics);
-        g.strokeColor = new cc.Color(255, 209, 104, 220);
-        g.lineWidth = 9;
-        g.circle(0, 0, CELL_SIZE * 1.45); g.stroke();
-        g.strokeColor = new cc.Color(255, 248, 218, 235);
-        g.lineWidth = 3;
-        g.circle(0, 0, CELL_SIZE * 1.25); g.stroke();
-        wave.scale = 0.15;
-        cc.tween(wave).to(0.32, { scale: 1, opacity: 0 }, { easing: 'quadOut' }).call(() => wave.destroy()).start();
-        this.playMoodCollect(blast.removedPieceIds);
-        this.animateRowShatter(blast.removedPieceIds);
+        this.animateBombBlasts(blast);
+        this.animateRowShatter(blast.removedPieceIds, blast.detonatedBombs);
         this.updateHud();
-        this.scheduleOnce(() => this.resolveStableBoard(() => this.appendNextRowAndResolve()), 0.25);
+        this.scheduleOnce(() => this.resolveStableBoard(() => this.appendNextRowAndResolve()),
+            bombResolutionDelay((blast.detonatedBombs || []).length));
     }
 
-    private useReliefTool(id: number): void {
+    private animateBombBlasts(result: EliminateResult): void {
+        const bombs = result.detonatedBombs || [];
+        if (bombs.length) {
+            this.bombAnimationLocks++;
+            this.scheduleOnce(() => { this.bombAnimationLocks--; }, bombPlaybackDuration(bombs.length));
+        }
+        bombs.forEach((bomb, index) => {
+            const original = this.pieceLayer.getChildByName(`piece_${bomb.id}`);
+            const badge = original && original.getChildByName('bombBadge');
+            if (badge) cc.tween(badge).delay(index * BOMB_CHAIN_INTERVAL).to(0.025, { opacity: 0 }).start();
+            const center = this.getPiecePosition(bomb.row, bomb.col, bomb.size);
+            playBombEffect(this.pieceLayer, center, CELL_SIZE, index * BOMB_CHAIN_INTERVAL, () => {
+                audioManager.playSound('bomb');
+                gameSettings.vibrateLight();
+            });
+        });
+    }
+
+    private completePlayerAction(): void {
+        const rewards = zyxGameModule.finishPlayerAction();
+        for (const bomb of rewards) {
+            const node = this.pieceLayer.getChildByName(`piece_${bomb.id}`);
+            if (node) this.decorateBombPiece(node, bomb);
+            else this.createPieceView(bomb);
+        }
+        if (rewards.length) uimanager.showToast(rewards.length > 1
+            ? '连消加双排！奖励两枚炸弹' : '获得炸弹！消除它或点击它都能引爆');
+        this.restoreDefaultPlayTip();
+        this.renderNextRow();
+        this.updateHud();
+    }
+
+    private async useReliefTool(id: number): Promise<void> {
+        if (this.locked || !zyxGameModule.getPiece(id)) return;
+        this.locked = true;
+        const result = await this.confirmToolUse('hammer', id, () => this.useReliefTool(id));
+        if (!result || !this.node || !cc.isValid(this.node)) return;
+        // 服务端已经扣除一件；纯棋盘引擎在记录动作时还需要一个临时使用额度。
+        zyxGameModule.applyCloudProfile(result.profile);
+        zyxGameModule.hammerCount++;
         if (!zyxGameModule.useHammer(id)) {
             uimanager.showToast('本局解压锤已经用完');
             this.setToolSelectionMode(null);
@@ -2739,10 +2792,16 @@ export default class ZyxGame extends cc.Component {
         this.resolveTurn([id], true);
     }
 
-    private useColorPurifierTool(id: number): void {
+    private async useColorPurifierTool(id: number): Promise<void> {
+        if (this.locked) return;
         const piece = zyxGameModule.getPiece(id);
         if (!piece) return;
         const colorIndex = piece.color;
+        this.locked = true;
+        const result = await this.confirmToolUse('magicWand', colorIndex, () => this.useColorPurifierTool(id));
+        if (!result || !this.node || !cc.isValid(this.node)) return;
+        zyxGameModule.applyCloudProfile(result.profile);
+        zyxGameModule.colorPurifierCount++;
         const removedPieceIds = zyxGameModule.useColorPurifier(colorIndex);
         if (removedPieceIds.length === 0) {
             uimanager.showToast('本局魔法棒已经用完');
@@ -2759,6 +2818,66 @@ export default class ZyxGame extends cc.Component {
         this.animateColorPurifierRemoval(removedPieceIds, colorIndex, () => {
             this.resolveStableBoard(() => this.appendNextRowAndResolve());
         });
+    }
+
+    private async confirmToolUse(item: 'hammer' | 'magicWand', target: number, retry: () => void): Promise<{ profile: CloudProfile }> {
+        try {
+            return await cloudService.useTool(zyxGameModule.cloudRoundId, item, zyxGameModule.roundActions.length, target);
+        } catch (error) {
+            if (!this.node || !cc.isValid(this.node)) return null;
+            if (error && ['TOOL_INSUFFICIENT', 'ROUND_NOT_ACTIVE', 'TOOL_PAYLOAD_CONFLICT', 'TOOL_REQUEST_INVALID', 'ACCOUNT_CHANGED']
+                .indexOf((error as any).businessCode) >= 0) {
+                this.locked = false;
+                this.setToolSelectionMode(null);
+                uimanager.showToast((error as Error).message);
+                return null;
+            }
+            // 不允许未确认动作继续推进棋盘，重试复用相同回合、动作位置和目标。
+            uimanager.showModal('道具待确认', '网络暂未确认这次使用，重新确认后继续。不会重复扣除道具。', [{
+                text: '重新确认', color: BUTTON_COLORS.green,
+                onClick: () => { this.locked = false; retry(); },
+            }]);
+            return null;
+        }
+    }
+
+    private async confirmRewardedTool(item: 'hammer' | 'magicWand'): Promise<void> {
+        const key = `zyx_tool_reward_${item}`;
+        let claim: string;
+        try {
+            claim = cc.sys.localStorage.getItem(key);
+            if (!claim || claim.indexOf(`${zyxGameModule.cloudRoundId}:`) !== 0) {
+                claim = `${zyxGameModule.cloudRoundId}:reward:${item}:${Date.now()}`;
+                cc.sys.localStorage.setItem(key, claim);
+            }
+        } catch (_) {
+            this.locked = false;
+            uimanager.showToast('存储空间不足，清理后再领取');
+            return;
+        }
+        this.locked = true;
+        try {
+            const result = await cloudService.claimToolReward(zyxGameModule.cloudRoundId, item, claim);
+            cc.sys.localStorage.removeItem(key);
+            zyxGameModule.applyCloudProfile(result.profile);
+            if (this.node && cc.isValid(this.node)) {
+                this.locked = false;
+                this.updateHud();
+                this.setToolSelectionMode(item === 'hammer' ? 'hammer' : 'magicWand');
+            }
+        } catch (error) {
+            if (!this.node || !cc.isValid(this.node)) return;
+            if (error && ['TOOL_REWARD_LIMIT', 'ROUND_NOT_ACTIVE', 'TOOL_PAYLOAD_CONFLICT', 'TOOL_REQUEST_INVALID', 'ACCOUNT_CHANGED']
+                .indexOf((error as any).businessCode) >= 0) {
+                cc.sys.localStorage.removeItem(key);
+                this.locked = false;
+                uimanager.showToast((error as Error).message);
+                return;
+            }
+            uimanager.showModal('补给待确认', '补给已完成，联网确认后即可使用。', [{
+                text: '重新确认', color: BUTTON_COLORS.green, onClick: () => this.confirmRewardedTool(item),
+            }]);
+        }
     }
 
     private showHammerInfoModal(): void {
@@ -2793,7 +2912,7 @@ export default class ZyxGame extends cc.Component {
             ];
         uimanager.showModal(
             '解压锤',
-            '敲掉一个挡路色块',
+            '敲掉一个挡路色块\n分享或广告补给，每局最多 3 次',
             actions,
             (panel, centerY) => this.createHammerToolDemo(panel, centerY),
             148,
@@ -2828,8 +2947,7 @@ export default class ZyxGame extends cc.Component {
                 uimanager.showToast(getRewardOfferFailToast('tool'));
                 return;
             }
-            zyxGameModule.grantRewardedHammer();
-            this.setToolSelectionMode('hammer');
+            this.confirmRewardedTool('hammer');
         });
     }
 
@@ -2865,7 +2983,7 @@ export default class ZyxGame extends cc.Component {
             ];
         uimanager.showModal(
             '魔法棒',
-            '选中一种颜色，同色一起消失',
+            '选中一种颜色，同色一起消失\n分享或广告补给，每局最多 3 次',
             actions,
             (panel, centerY) => this.createMagicWandToolDemo(panel, centerY),
             148,
@@ -2900,8 +3018,7 @@ export default class ZyxGame extends cc.Component {
                 uimanager.showToast(getRewardOfferFailToast('tool'));
                 return;
             }
-            zyxGameModule.grantRewardedColorPurifier();
-            this.setToolSelectionMode('magicWand');
+            this.confirmRewardedTool('magicWand');
         });
     }
 
@@ -3025,7 +3142,7 @@ export default class ZyxGame extends cc.Component {
 
     private restoreDefaultPlayTip(): void {
         if (!this.moodStageLabel) return;
-        this.moodStageLabel.string = '拖动心情块左右移动，填满一行就能消除';
+        this.moodStageLabel.string = `${zyxGameModule.getDifficulty().label} · 填满整行，试试连续掉落消除`;
         this.moodStageLabel.node.opacity = 255;
         this.tipSeconds = 0;
     }
@@ -3043,11 +3160,11 @@ export default class ZyxGame extends cc.Component {
             '带表情的心情块消除后，会变成开心豆飞进收集位',
             '解压锤能敲掉一个挡路的心情块',
             '魔法棒能让场上全部同色色块一起消失',
-            '八秒没操作时，小手会提示一次可消除移动',
+            '两秒没操作时，小手会提示一次可消除移动',
             '留意下一排，提前为新色块腾出位置',
             '连续操作都消除即可叠加连消，最高 5 倍分数！',
-            '连续 4 次操作消除达到 Great，额外奖励一枚炸弹',
-            '一次消除两排可获得炸弹，轻点就能炸开周围一圈',
+            '三连及以上，每次有效连消都额外奖励炸弹',
+            '双排或掉落连消可获得炸弹，消除炸弹也能引爆',
         ];
         const warmTips = [
             '你不需要一直坚强，慢一点也没关系',
@@ -3088,7 +3205,7 @@ export default class ZyxGame extends cc.Component {
         this.updateHud();
         const clearedRowsBefore = zyxGameModule.roundClearedRows;
         this.resolveStableBoard(() => {
-            zyxGameModule.finishPlayerAction();
+            this.completePlayerAction();
             if (zyxGameModule.roundClearedRows <= clearedRowsBefore) {
                 cc.error(`[新手教学] 第 ${this.tutorialStep + 1} 步没有产生消除`);
                 this.locked = false;
@@ -3395,26 +3512,31 @@ export default class ZyxGame extends cc.Component {
         this.markInteraction();
         this.setToolSelectionMode(null);
         this.locked = true;
+        const resume = (): void => {
+            this.locked = false;
+            this.idleSeconds = 0;
+            if (this.isTutorialGuidedStep()) this.showTutorialStep();
+        };
         settingsPanel.show({
+            onDismiss: resume,
             actions: [
             {
-                text: '继续游戏',
+                text: '继续',
                 color: BUTTON_COLORS.green,
-                onClick: () => {
-                    this.locked = false;
-                    this.idleSeconds = 0;
-                    if (this.isTutorialGuidedStep()) this.showTutorialStep();
-                },
+                onClick: resume,
+                icon: (button) => decorateSettingsActionButton(button, 'play'),
             },
             {
                 text: '重新开始',
                 color: BUTTON_COLORS.yellow,
                 onClick: () => this.restartFromPause(),
+                icon: (button) => decorateSettingsActionButton(button, 'restart'),
             },
             {
-                text: '结束本局',
+                text: '退出',
                 color: BUTTON_COLORS.red,
                 onClick: () => this.finishGame('今天先整理到这里'),
+                icon: (button) => decorateSettingsActionButton(button, 'exit'),
             },
             ],
         });
@@ -3428,6 +3550,7 @@ export default class ZyxGame extends cc.Component {
         this.setToolSelectionMode(null);
         this.locked = true;
         const settlement = zyxGameModule.finishRound();
+        this.beanCollectionHud.complete(zyxGameModule.roundCollectedMoodBeans);
         this.settlementReported = true;
         if (this.onRoundFinished) this.onRoundFinished(settlement, zyxGameModule.roundStartedAt);
         this.updateHud();
@@ -3460,18 +3583,20 @@ export default class ZyxGame extends cc.Component {
                 new cc.Color(255, 239, 203),
                 255,
                 20,
-                -106,
+                0,
                 centerY - 56,
             );
+            const rewardCaption = uimanager.createLabel(panel, '本局收获 · 开心豆', 0, centerY - 8, 18, HUD_LABEL_COLOR, 280, 28);
+            this.makeLabelBold(rewardCaption);
             createMoodBean(moodChip, 1, -57, 0, 40);
-            const moodValue = uimanager.createLabel(moodChip, `×${settlement.roundCollectedMoodBeans}`, 24, 0, 23, HUD_VALUE_COLOR, 112, 34);
+            const moodValue = uimanager.createLabel(moodChip, `×${settlement.roundEarnedMoodBeans}`, 24, 0, 23, HUD_VALUE_COLOR, 112, 34);
             this.makeLabelBold(moodValue);
             if (settlement.roundBonusMoodBeans > 0) {
                 // 额外奖励必须单列展示，不能伪装成局内单颗豆的倍率。
                 const bonus = uimanager.createLabel(
                     panel,
                     `含结算额外奖励 +${settlement.roundBonusMoodBeans}`,
-                    -106,
+                    0,
                     centerY - 121,
                     13,
                     HUD_LABEL_COLOR,
@@ -3481,20 +3606,7 @@ export default class ZyxGame extends cc.Component {
                 this.makeLabelBold(bonus);
             }
 
-            const experienceChip = uimanager.createRect(
-                panel,
-                'settlementExperienceReward',
-                194,
-                62,
-                new cc.Color(220, 239, 222),
-                255,
-                20,
-                106,
-                centerY - 56,
-            );
-            createExperienceToken(experienceChip, -57, 0, 36);
-            const experienceValue = uimanager.createLabel(experienceChip, `×${settlement.gainedExperience}`, 24, 0, 23, HUD_VALUE_COLOR, 112, 34);
-            this.makeLabelBold(experienceValue);
+
         }, 250, true);
     }
 

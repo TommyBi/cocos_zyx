@@ -1,0 +1,100 @@
+[
+  {
+    "tutorial": true,
+    "samples": 100,
+    "policy": "bomb-first",
+    "limit": 120,
+    "played": 14734,
+    "cleared": 10215,
+    "multiRows": 2120,
+    "cascade": 1715,
+    "bombsUsed": 3076,
+    "bombsEarned": 3188,
+    "perfectRounds": 100,
+    "aliveAt36": 98,
+    "directAtOpening": 82,
+    "replayMismatch": 0,
+    "stages": [
+      {
+        "actions": 4246,
+        "cleared": 3329,
+        "multiRows": 723,
+        "heightTotal": 17995
+      },
+      {
+        "actions": 2863,
+        "cleared": 2184,
+        "multiRows": 423,
+        "heightTotal": 12641
+      },
+      {
+        "actions": 3001,
+        "cleared": 1944,
+        "multiRows": 366,
+        "heightTotal": 14570
+      },
+      {
+        "actions": 4624,
+        "cleared": 2758,
+        "multiRows": 608,
+        "heightTotal": 23614
+      }
+    ],
+    "firstTen": {
+      "played": 1000,
+      "cleared": 947,
+      "multiRows": 219
+    },
+    "averageRoundMs": 283,
+    "noMissBefore15": 56
+  },
+  {
+    "tutorial": false,
+    "samples": 100,
+    "policy": "bomb-first",
+    "limit": 120,
+    "played": 15091,
+    "cleared": 10618,
+    "multiRows": 2147,
+    "cascade": 1790,
+    "bombsUsed": 3124,
+    "bombsEarned": 3244,
+    "perfectRounds": 100,
+    "aliveAt36": 99,
+    "directAtOpening": 100,
+    "replayMismatch": 0,
+    "stages": [
+      {
+        "actions": 4566,
+        "cleared": 3629,
+        "multiRows": 734,
+        "heightTotal": 19165
+      },
+      {
+        "actions": 2884,
+        "cleared": 2178,
+        "multiRows": 448,
+        "heightTotal": 12701
+      },
+      {
+        "actions": 3027,
+        "cleared": 1993,
+        "multiRows": 378,
+        "heightTotal": 14405
+      },
+      {
+        "actions": 4614,
+        "cleared": 2818,
+        "multiRows": 587,
+        "heightTotal": 23593
+      }
+    ],
+    "firstTen": {
+      "played": 1000,
+      "cleared": 945,
+      "multiRows": 151
+    },
+    "averageRoundMs": 273,
+    "noMissBefore15": 49
+  }
+]

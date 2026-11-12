@@ -42,9 +42,11 @@ function createFlatButton(
 export function showGmSupplyPanel(
     onInventoryChanged?: () => void,
     onSyncCloud?: () => void | Promise<void>,
+    onResetAccount?: () => Promise<void>,
 ): void {
+    let resetting = false;
     const render = (panel: cc.Node, centerY: number): void => {
-        const inventory = uimanager.createRect(panel, 'gmInventorySummary', 438, 84, new cc.Color(232, 241, 221), 255, 18, 0, centerY + 92);
+        const inventory = uimanager.createRect(panel, 'gmInventorySummary', 438, 84, new cc.Color(232, 241, 221), 255, 18, 0, centerY + 135);
         const inventoryLabel = uimanager.createLabel(inventory, '', 0, 0, 18, COCOA, 410, 68);
         inventoryLabel.enableWrapText = true;
         const updateInventory = (): void => {
@@ -61,22 +63,32 @@ export function showGmSupplyPanel(
             if (syncCloud && onSyncCloud) Promise.resolve(onSyncCloud()).catch(() => undefined);
         };
 
-        createFlatButton(panel, 'grantMoodBeans', '开心豆  +500', -111, centerY - 6, 206, 58, new cc.Color(236, 177, 68), () => {
+        createFlatButton(panel, 'grantMoodBeans', '开心豆  +500', -111, centerY + 35, 206, 58, new cc.Color(236, 177, 68), () => {
+            if (resetting) return;
             zyxGameModule.grantDebugInventory(500, 0, 0);
             afterGrant('开心豆 +500', true);
         }, 20);
-        createFlatButton(panel, 'grantMoodBeansLarge', '开心豆  +5000', 111, centerY - 6, 206, 58, new cc.Color(244, 196, 98), () => {
+        createFlatButton(panel, 'grantMoodBeansLarge', '开心豆  +5000', 111, centerY + 35, 206, 58, new cc.Color(244, 196, 98), () => {
+            if (resetting) return;
             zyxGameModule.grantDebugInventory(5000, 0, 0);
             afterGrant('开心豆 +5000', true);
         }, 20);
-        createFlatButton(panel, 'grantHammer', '解压锤  +1', -111, centerY - 76, 206, 58, new cc.Color(124, 181, 145), () => {
+        createFlatButton(panel, 'grantHammer', '解压锤  +1', -111, centerY - 45, 206, 58, new cc.Color(124, 181, 145), () => {
+            if (resetting) return;
             zyxGameModule.grantDebugInventory(0, 1, 0);
-            afterGrant('解压锤 +1', false);
+            afterGrant('解压锤 +1', true);
         }, 19);
-        createFlatButton(panel, 'grantMagicWand', '魔法棒  +1', 111, centerY - 76, 206, 58, new cc.Color(105, 164, 186), () => {
+        createFlatButton(panel, 'grantMagicWand', '魔法棒  +1', 111, centerY - 45, 206, 58, new cc.Color(105, 164, 186), () => {
+            if (resetting) return;
             zyxGameModule.grantDebugInventory(0, 0, 1);
-            afterGrant('魔法棒 +1', false);
+            afterGrant('魔法棒 +1', true);
         }, 19);
+        createFlatButton(panel, 'resetAccount', '重置账号并体验新手', 0, centerY - 135, 438, 64, BUTTON_COLORS.red, async () => {
+            if (resetting || !onResetAccount) return;
+            resetting = true;
+            try { await onResetAccount(); } finally { resetting = false; }
+        }, 22);
+        uimanager.createLabel(panel, '清空进度、豆子和道具 · 恢复10点体力\n仅限当前本地试玩账号', 0, centerY - 202, 17, COCOA, 438, 52);
     };
-    uimanager.showModal('GM 补给', '点击按钮，资源会直接加入背包', [], render, 280, false, true);
+    uimanager.showModal('GM 补给', '补充资源，或从新手第一步重新体验', [], render, 450, false, true);
 }

@@ -1,3 +1,5 @@
+// 显式开启历史协议兼容性夹具；正式服务默认只允许当前规则新开局。
+process.env.ALLOW_LEGACY_ROUND_STARTS = '1';
 /** 关键经济事务必须先落盘再返回成功；重试不得重复扣体力或发币。 */
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -144,4 +146,21 @@ test('分享领取写盘失败后重试同一 claimId，只补一次体力', asy
   assert.equal(claims.length, 1);
   const onDisk = await readDisk('SELECT stamina_current FROM players WHERE device_id = ?', ['fault_share_device']);
   assert.equal(onDisk[0].stamina_current, 5);
+});
+
+test('系统短写时完整写出数据库后才返回2xx，不会把只写一部分的文件当作持久化成功', async () => {
+  const original=fs.writeSync;let writes=0;
+  fs.writeSync=(fd,buffer,offset,length,position)=>{
+    if(fd>2 && Buffer.isBuffer(buffer) && typeof length==='number') {
+      writes++;return original(fd,buffer,offset,Math.min(length,1024),position);
+    }
+    return original(fd,buffer,offset,length,position);
+  };
+  let result;
+  try { result=await bootstrap('short_write_device'); }
+  finally { fs.writeSync=original; }
+  assert.ok(writes>1);
+  const onDisk=await readDisk('SELECT token FROM players WHERE device_id = ?',['short_write_device']);
+  assert.equal(onDisk[0].token,result.token);
+  assert.equal((await readDisk('PRAGMA integrity_check'))[0].integrity_check,'ok');
 });

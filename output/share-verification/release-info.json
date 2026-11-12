@@ -1,0 +1,71 @@
+{
+  "releaseId": "20261112-share",
+  "createdAt": "2026-11-12T14:47:02+08:00",
+  "appId": "wxdc39c78bfd045896",
+  "libVersion": "3.15.2",
+  "cocosCreator": "2.4.13",
+  "buildCommand": "npm run build:wechat",
+  "sourceFingerprint": "bb27809cd77b860df9576795e2919df4fdb17d41cda6a17982b8a6c6d4e3d385",
+  "wechatArtifactFingerprint": "da5c11fbc7deb6469db5513d4a1f539b157efb0b54e5290afdcfe2094752932e",
+  "wechatMainSha256": "5fee2bc970165bf9e60f2c9b0e86698c4a5a7991da52fa7bc1899f19b670b815",
+  "packageLockSha256": "39a9a2b3ea66d4abff1907f6dafea6aa50211a5f7ccf9d80709d20af0c3b6d73",
+  "mainPackageBytes": 3491708,
+  "homeSubpackageBytes": 334370,
+  "previousMainBytes": 3527528,
+  "previousHomeBytes": 364998,
+  "packageBytesSaved": 66448,
+  "pngCompression": {
+    "pngFilesCompressed": 7,
+    "beforeBytes": 1658108,
+    "afterBytes": 1589638,
+    "savedBytes": 68470
+  },
+  "shareImages": [
+    {
+      "title": "这一拖，爽翻了！",
+      "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/burst.114f9e07f6f2.jpg",
+      "width": 500,
+      "height": 400,
+      "bytes": 82443,
+      "sha256": "114f9e07f6f2ec1be2e3710a41fcb899aa5331dc7466331f7e72419de94adeaa"
+    },
+    {
+      "title": "快满了？一拖翻盘！",
+      "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/comeback.802a89bfbfe6.jpg",
+      "width": 500,
+      "height": 400,
+      "bytes": 85176,
+      "sha256": "802a89bfbfe65f454ad691b137741e6db32b992c89c66177ddf7c17679998d2b"
+    },
+    {
+      "title": "边消边冲榜，下一名被我超了！",
+      "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/rank.a5408140d36d.jpg",
+      "width": 500,
+      "height": 400,
+      "bytes": 82000,
+      "sha256": "a5408140d36d0bd044a2327153a1987ce233d67a9cdacb299f83d6bf2b33e8bd"
+    }
+  ],
+  "cdnShareVerifiedFiles": 3,
+  "cdnMusicVerifiedFiles": 5,
+  "shareImagesPacked": 0,
+  "originalPostersPacked": 0,
+  "imageCache": "wx.downloadFile temp files; CDN WeChat Referer access; existing anti-hotlink rules retained",
+  "clientTests": 138,
+  "typescriptPassed": true,
+  "engineCheckPassed": true,
+  "gmRemoved": true,
+  "builtMinifiedShareModuleVerified": true,
+  "pngRegression": 14,
+  "apiRuntimeUnchanged": "sha256:17bfd4e0c91f28a042e5a35ba88625a073d175f305a6fd1a5be4ccbeaf0d0e6b",
+  "uploadedToCDNByAgent": true,
+  "uploadedToWeChatByAgent": false,
+  "submittedForReviewByAgent": false,
+  "notVerified": [
+    "Actual WeChat share card on real device"
+  ],
+  "archive": "/Users/liuyang/Documents/private/cocos_zyx/build/wechat-review-20261112-share.zip",
+  "archiveBytes": 2276016,
+  "archiveSha256": "b3aae1ed42be6617970c9bdb9571b5cf80fd60767c3bd41873e0f6ee7333ec5c",
+  "verifiedFiles": 79
+}

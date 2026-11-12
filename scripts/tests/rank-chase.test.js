@@ -36,12 +36,13 @@ test('一次跨多人只跃升一次，连续加分合并到最新位置；离�
     const stopped = [];
     const ui = {
         createRect(parent, name) { const node = new Node(name); parent.addChild(node); return node; },
+        drawButtonSurface(node, width, height, _color, radius) { node.buttonSurface = { width, height, radius }; },
         createLabel(parent, string) { const node = new Node('label'); parent.addChild(node); const label = { node, string }; node.label = label; return label; },
     };
     const colors = {};
     const entries = [entry('a', 100, 1), entry('b', 60, 2), entry('c', 30, 3), entry('d', 10, 4)];
     const exported = {};
-    Node.EventType = { TOUCH_END: 'touchend' };
+    Node.EventType = { TOUCH_START: 'touchstart', TOUCH_END: 'touchend', TOUCH_CANCEL: 'touchcancel' };
     class Sprite {}
     Sprite.Type = { SLICED: 1 };
     Sprite.SizeMode = { CUSTOM: 1 };
@@ -103,6 +104,7 @@ test('一次跨多人只跃升一次，连续加分合并到最新位置；离�
     reveal.done();
     assert.equal(view.bookmark.width, 64);
     assert.equal(view.bookmark.height, 44);
+    assert.deepEqual(view.bookmark.buttonSurface, { width: 64, height: 44, radius: 12 });
     assert.equal(view.bookmark.y, 120 - 181);
     assert.equal(view.bookmark.x, -351);
     let hidden = false;

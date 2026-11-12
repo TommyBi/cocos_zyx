@@ -1,0 +1,14 @@
+{
+  "fullRow": {
+    "clearedRows": 1,
+    "neighborInBlastAreaSurvived": true
+  },
+  "chain": {
+    "removed": [
+      200,
+      201
+    ],
+    "secondaryBlastTargetSurvived": true,
+    "comboAfterBombWithoutFullRow": 0
+  }
+}

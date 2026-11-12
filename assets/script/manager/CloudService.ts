@@ -1,4 +1,6 @@
 import { getWxApi } from './PlatformAdapter';
+import { BOARD_RULES_VERSION } from '../dataModule/BoardEngine';
+import { MOOD_COLLECTION_RULE } from '../dataModule/MoodBeanConfig';
 
 const PRODUCTION_API_BASE = 'https://api.tcjstory.cn/v1/cocos-zyx';
 const STAGING_API_BASE = 'https://staging-api.tcjstory.cn/v1/cocos-zyx';
@@ -24,6 +26,12 @@ export function getApiBase(): string {
             return PRODUCTION_API_BASE;
         }
     }
+    // Web Debug 本机联调；微信和远程网页始终按环境固定路由。
+    if (typeof CC_DEBUG !== 'undefined' && CC_DEBUG && typeof location !== 'undefined'
+        && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+        && /(?:^|[?&])localApi=1(?:&|$)/.test(location.search)) {
+        return 'http://127.0.0.1:8080/v1/cocos-zyx';
+    }
     return STAGING_API_BASE;
 }
 
@@ -44,6 +52,8 @@ export type CloudProfile = {
     level: number;
     experience: number;
     moodBeanBalance: number;
+    assetRevision?: number;
+    inventory?: { hammer: number; magicWand: number };
     totalMoodBeans: number;
     highestSingleGameScore: number;
     gameCount: number;
@@ -63,6 +73,7 @@ export type StaminaShareResult = {
     awarded: number;
     stamina: StaminaState;
     duplicate?: boolean;
+    previousDay?: boolean;
 };
 
 export type StartRoundResult = {
@@ -71,6 +82,9 @@ export type StartRoundResult = {
     duplicate?: boolean;
     seed: number;
     isTutorial: boolean;
+    collectionRule?: string;
+    rulesVersion?: number;
+    profile?: CloudProfile;
 };
 
 export type LeaderboardEntry = {
@@ -145,7 +159,25 @@ export default class CloudService {
 
     /** roundId 由客户端在请求前生成；超时后复用同一 ID 重试，不重复消耗体力。 */
     public async startRound(roundId: string): Promise<StartRoundResult> {
-        return await this.request('/games/start', 'POST', { roundId }, true) as StartRoundResult;
+        const health = await this.request('/health', 'GET', null, false);
+        if (!health.capabilities || health.capabilities.indexOf('bean-collection-progress') < 0
+            || health.capabilities.indexOf('adaptive-combo-v2') < 0
+            || health.capabilities.indexOf('bean-collection-1pct') < 0
+            || health.capabilities.indexOf('bean-tool-shop') < 0
+            || health.capabilities.indexOf('difficulty-ramp-2x') < 0
+            || health.capabilities.indexOf('difficulty-pressure-v4') < 0
+            || health.capabilities.indexOf('rising-rows-v5') < 0) {
+            const error = new Error('游戏服务更新中，请稍后再试') as any;
+            error.businessCode = 'COLLECTION_RULE_UNSUPPORTED';
+            throw error;
+        }
+        const result = await this.request('/games/start', 'POST', { roundId, collectionRule: MOOD_COLLECTION_RULE, rulesVersion: BOARD_RULES_VERSION }, true) as StartRoundResult;
+        if (result.collectionRule !== MOOD_COLLECTION_RULE || result.rulesVersion !== BOARD_RULES_VERSION) {
+            const error = new Error('游戏服务更新中，请稍后再试') as any;
+            error.businessCode = 'COLLECTION_RULE_UNSUPPORTED';
+            throw error;
+        }
+        return result;
     }
 
     /** 每日分享/激励视频补体力；claimId 用于网络超时后的幂等重试。 */
@@ -175,6 +207,19 @@ export default class CloudService {
 
     public async getLeaderboard(type: 'power'): Promise<LeaderboardResult> {
         return await this.request(`/leaderboards?type=${type}`, 'GET', null, true) as LeaderboardResult;
+    }
+
+    public async exchangeTool(actionId: string, item: 'hammer' | 'magicWand' | 'stamina'): Promise<{ profile: CloudProfile }> {
+        return await this.request('/shop/exchanges', 'POST', { actionId, item }, true);
+    }
+
+    public async useTool(roundId: string, item: 'hammer' | 'magicWand', actionIndex: number, target: number): Promise<{ profile: CloudProfile }> {
+        const actionId = `${roundId}:use:${actionIndex}`;
+        return await this.request('/games/tools/use', 'POST', { roundId, item, actionIndex, target, actionId }, true);
+    }
+
+    public async claimToolReward(roundId: string, item: 'hammer' | 'magicWand', actionId: string): Promise<{ profile: CloudProfile }> {
+        return await this.request('/games/tools/reward', 'POST', { roundId, item, actionId }, true);
     }
 
     /**
@@ -212,14 +257,23 @@ export default class CloudService {
         this.ensureDeviceId();
         const headers: { [key: string]: string } = { 'Content-Type': 'application/json' };
         if (authenticated && this.token) headers.Authorization = `Bearer ${this.token}`;
+        const sentToken = this.token;
+        const checkAccount = (): void => {
+            if (authenticated && (cc.sys.localStorage.getItem('zyx_cloud_token') || '') !== sentToken) {
+                const error = new Error('账号已切换，请重新进入当前操作') as any;
+                error.businessCode = 'ACCOUNT_CHANGED';
+                throw error;
+            }
+        };
         const url = `${getApiBase()}${path}`;
         const wxApi = getWxApi();
+        let result: any;
         try {
             if (wxApi && typeof wxApi.request === 'function') {
-                return await this.requestWithWeChat(wxApi, url, method, headers, body);
-            }
-            return await this.requestWithFetch(url, method, headers, body);
+                result = await this.requestWithWeChat(wxApi, url, method, headers, body);
+            } else result = await this.requestWithFetch(url, method, headers, body);
         } catch (error) {
+            checkAccount();
             // 401 凭证失效：重新 bootstrap/刷新 token，用相同请求（含相同 roundId/actionId）重试一次。
             // bootstrap 本身不走 authenticated，不会触发重试，避免递归。
             if (authenticated && _allowAuthRetry && Number((error as any).status) === 401) {
@@ -228,16 +282,22 @@ export default class CloudService {
             }
             throw error;
         }
+        checkAccount();
+        return result;
     }
 
     private async requestWithFetch(url: string, method: string, headers: { [key: string]: string }, body: any): Promise<any> {
         if (typeof fetch !== 'function') throw new Error('当前平台不支持网络请求');
-        const response = await fetch(url, {
-            method,
-            headers,
-            body: body ? JSON.stringify(body) : undefined,
-        });
-        const payload = await response.json();
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timer = controller ? setTimeout(() => controller.abort(), 10000) : null;
+        let response: Response;
+        let payload: any;
+        try {
+            response = await fetch(url, { method, headers,
+                body: body ? JSON.stringify(body) : undefined,
+                signal: controller ? controller.signal : undefined });
+            payload = await response.json();
+        } finally { if (timer !== null) clearTimeout(timer); }
         if (!response.ok || payload.code !== 0) {
             // 携带 HTTP 状态码与服务端稳定业务错误码，供队列工作器分类。
             const error = new Error(payload.message || '云端服务暂不可用') as any;

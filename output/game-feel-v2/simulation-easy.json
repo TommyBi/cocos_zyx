@@ -1,0 +1,100 @@
+[
+  {
+    "tutorial": true,
+    "samples": 200,
+    "policy": "random-easy",
+    "limit": 36,
+    "played": 6741,
+    "cleared": 6535,
+    "multiRows": 1672,
+    "cascade": 1449,
+    "bombsUsed": 141,
+    "bombsEarned": 1955,
+    "perfectRounds": 200,
+    "aliveAt36": 200,
+    "directAtOpening": 166,
+    "replayMismatch": 0,
+    "stages": [
+      {
+        "actions": 6741,
+        "cleared": 6535,
+        "multiRows": 1672,
+        "heightTotal": 26777
+      },
+      {
+        "actions": 0,
+        "cleared": 0,
+        "multiRows": 0,
+        "heightTotal": 0
+      },
+      {
+        "actions": 0,
+        "cleared": 0,
+        "multiRows": 0,
+        "heightTotal": 0
+      },
+      {
+        "actions": 0,
+        "cleared": 0,
+        "multiRows": 0,
+        "heightTotal": 0
+      }
+    ],
+    "firstTen": {
+      "played": 2000,
+      "cleared": 1974,
+      "multiRows": 488
+    },
+    "averageRoundMs": 98,
+    "noMissBefore15": 169
+  },
+  {
+    "tutorial": false,
+    "samples": 200,
+    "policy": "random-easy",
+    "limit": 36,
+    "played": 7318,
+    "cleared": 7125,
+    "multiRows": 1727,
+    "cascade": 1511,
+    "bombsUsed": 118,
+    "bombsEarned": 2023,
+    "perfectRounds": 200,
+    "aliveAt36": 200,
+    "directAtOpening": 200,
+    "replayMismatch": 0,
+    "stages": [
+      {
+        "actions": 7318,
+        "cleared": 7125,
+        "multiRows": 1727,
+        "heightTotal": 28469
+      },
+      {
+        "actions": 0,
+        "cleared": 0,
+        "multiRows": 0,
+        "heightTotal": 0
+      },
+      {
+        "actions": 0,
+        "cleared": 0,
+        "multiRows": 0,
+        "heightTotal": 0
+      },
+      {
+        "actions": 0,
+        "cleared": 0,
+        "multiRows": 0,
+        "heightTotal": 0
+      }
+    ],
+    "firstTen": {
+      "played": 2000,
+      "cleared": 1980,
+      "multiRows": 414
+    },
+    "averageRoundMs": 94,
+    "noMissBefore15": 163
+  }
+]

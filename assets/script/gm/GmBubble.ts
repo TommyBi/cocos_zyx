@@ -9,7 +9,7 @@
  */
 import { uimanager } from '../manager/UIManager';
 import { showGmSupplyPanel } from './GmPanel';
-import { pushDebugProfileToCloud, GmCloudHooks } from './GmCloudApi';
+import { pushDebugProfileToCloud, resetCloudAccount, GmCloudHooks } from './GmCloudApi';
 
 export type GmBubbleHooks = GmCloudHooks & {
     /** 发放或重置后刷新首页/局内 HUD。 */
@@ -49,7 +49,8 @@ export function attachGmBubble(parent: cc.Node, hooks: GmBubbleHooks): void {
     const halfW = bubbleWidth / 2;
     const halfH = bubbleHeight / 2;
     const defaultX = -cc.winSize.width / 2 + safeArea.left + halfW + 16;
-    const defaultY = cc.winSize.height / 2 - safeArea.top - 168;
+    // 顶部调试空隙，避免默认气泡遮住扩高后的局内得分卡。
+    const defaultY = cc.winSize.height / 2 - safeArea.top - halfH - 8;
     const saved = loadBubblePosition(defaultX, defaultY);
     const bubble = uimanager.createRect(parent, 'gmFloatingBubble', bubbleWidth, bubbleHeight, new cc.Color(225, 127, 102), 255, 24, saved.x, saved.y);
     // 位于游戏 UI 之上，但让模态弹窗完整遮住它，避免打断暂停/设置上下文。
@@ -121,6 +122,13 @@ export function attachGmBubble(parent: cc.Node, hooks: GmBubbleHooks): void {
             showGmSupplyPanel(
                 () => hooks.refreshInventoryDisplays(),
                 () => pushDebugProfileToCloud(hooks),
+                async () => {
+                    const reset = await resetCloudAccount(hooks);
+                    if (reset && typeof window !== 'undefined') {
+                        // 丢弃旧棋盘与内存中的开局/结算回执，以新账号进度进入教学。
+                        window.location.assign(`${window.location.origin}${window.location.pathname}?localApi=1&autostart=1`);
+                    }
+                },
             );
         }
         event.stopPropagation();

@@ -76,10 +76,21 @@ export default class RankChaseView {
         this.bookmark.active = false;
         parent.addChild(this.bookmark);
         this.bookmark.addComponent(cc.Button).transition = cc.Button.Transition.NONE;
+        uimanager.drawButtonSurface(this.bookmark, 64, 44, new cc.Color(194, 217, 151), 12);
+        this.bookmark.on(cc.Node.EventType.TOUCH_START, () => {
+            cc.Tween.stopAllByTarget(this.bookmark);
+            cc.tween(this.bookmark).to(0.07, { scale: 0.94 }).start();
+        });
         this.bookmark.on(cc.Node.EventType.TOUCH_END, () => {
+            cc.Tween.stopAllByTarget(this.bookmark);
+            cc.tween(this.bookmark).to(0.1, { scale: 1 }).start();
             if (this.bookmarkReveal.progress === 1) onToggle();
         });
-        uimanager.createLabel(this.bookmark, '›', 7, 1, 32, MOOD_COLORS.cocoa, 40, 40);
+        this.bookmark.on(cc.Node.EventType.TOUCH_CANCEL, () => {
+            cc.Tween.stopAllByTarget(this.bookmark);
+            cc.tween(this.bookmark).to(0.1, { scale: 1 }).start();
+        });
+        uimanager.createLabel(this.bookmark, '›', 0, 1, 32, MOOD_COLORS.cocoa, 40, 40);
         this.above = this.createSlot('chaseAbove', STEP + ROW_OFFSET);
         this.self = this.createSlot('chaseSelf', ROW_OFFSET);
         this.below = this.createSlot('chaseBelow', -STEP + ROW_OFFSET);
@@ -141,13 +152,6 @@ export default class RankChaseView {
         this.bookmark.active = progress > 0;
         this.bookmark.x = this.bookmarkX - BOOKMARK_TRAVEL * (1 - progress);
         this.bookmark.opacity = Math.round(255 * progress);
-        // 横向书签的切口放在右端，和面板底部收起按钮保持同一高度。
-        const g = this.bookmark.getComponent(cc.Graphics) || this.bookmark.addComponent(cc.Graphics);
-        g.clear();
-        g.fillColor = new cc.Color(123, 153, 107, Math.round(255 * progress));
-        this.drawBookmark(g, 32, 22);
-        g.fillColor = new cc.Color(224, 237, 198, Math.round(255 * progress));
-        this.drawBookmark(g, 30, 20);
     }
 
     public updateScore(score: number): void {
@@ -166,18 +170,6 @@ export default class RankChaseView {
         this.disposed = true;
         cc.Tween.stopAllByTarget(this.bookmarkReveal);
         for (const node of [this.root, this.bookmark, this.selfAvatar, this.above, this.below]) cc.Tween.stopAllByTarget(node);
-    }
-
-    private drawBookmark(g: cc.Graphics, halfWidth: number, halfHeight: number): void {
-        g.moveTo(-halfWidth, halfHeight);
-        g.lineTo(halfWidth - 10, halfHeight);
-        g.quadraticCurveTo(halfWidth, halfHeight, halfWidth, halfHeight - 10);
-        g.lineTo(halfWidth - 8, 0);
-        g.lineTo(halfWidth, -halfHeight + 8);
-        g.quadraticCurveTo(halfWidth, -halfHeight, halfWidth - 8, -halfHeight);
-        g.lineTo(-halfWidth, -halfHeight);
-        g.close();
-        g.fill();
     }
 
     private createPlate(parent: cc.Node, name: string, width: number, height: number,

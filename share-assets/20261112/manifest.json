@@ -1,0 +1,41 @@
+[
+  {
+    "id": "burst",
+    "title": "这一拖，爽翻了！",
+    "file": "burst.114f9e07f6f2.jpg",
+    "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/burst.114f9e07f6f2.jpg",
+    "width": 500,
+    "height": 400,
+    "bytes": 82443,
+    "sha256": "114f9e07f6f2ec1be2e3710a41fcb899aa5331dc7466331f7e72419de94adeaa",
+    "source": "output/marketing/2026-11-05/01-爆消爽感.png",
+    "sourceSha256": "2ceb78951b770caa1ee3399fb306d6b1d98e88e857ee83ca546fead735c5446f",
+    "sourceBytes": 2247513
+  },
+  {
+    "id": "comeback",
+    "title": "快满了？一拖翻盘！",
+    "file": "comeback.802a89bfbfe6.jpg",
+    "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/comeback.802a89bfbfe6.jpg",
+    "width": 500,
+    "height": 400,
+    "bytes": 85176,
+    "sha256": "802a89bfbfe65f454ad691b137741e6db32b992c89c66177ddf7c17679998d2b",
+    "source": "output/marketing/2026-11-05/02-绝境翻盘.png",
+    "sourceSha256": "49391347f8881b732862f7abcceace82f85b5adcec35626e47e4eecd22a50fae",
+    "sourceBytes": 2400941
+  },
+  {
+    "id": "rank",
+    "title": "边消边冲榜，下一名被我超了！",
+    "file": "rank.a5408140d36d.jpg",
+    "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/rank.a5408140d36d.jpg",
+    "width": 500,
+    "height": 400,
+    "bytes": 82000,
+    "sha256": "a5408140d36d0bd044a2327153a1987ce233d67a9cdacb299f83d6bf2b33e8bd",
+    "source": "output/marketing/2026-11-05/03-冲榜逆袭.png",
+    "sourceSha256": "69bb1e696ba18331ab4a0653341ae071ee8907b4dee9523cc61e4232ec4cb305",
+    "sourceBytes": 2226860
+  }
+]

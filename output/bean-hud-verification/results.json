@@ -1,0 +1,465 @@
+[
+  {
+    "realElimination": {
+      "percent": "0.03%",
+      "beans": "本局 +0",
+      "score": "10"
+    }
+  },
+  {
+    "animation": {
+      "seen": [
+        {
+          "percent": "99.99%",
+          "count": "本局 +0"
+        },
+        {
+          "percent": "99.99%",
+          "count": "本局 +0"
+        },
+        {
+          "percent": "99.99%",
+          "count": "本局 +0"
+        },
+        {
+          "percent": "99.99%",
+          "count": "本局 +0"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "0.00%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "32.52%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "58.67%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "88.07%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "97.23%",
+          "count": "本局 +1"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "100%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.00%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.00%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.00%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.00%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.00%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        },
+        {
+          "percent": "0.01%",
+          "count": "本局 +2"
+        }
+      ],
+      "percent": "0.01%",
+      "count": "本局 +2"
+    }
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "visible": {
+      "width": 750,
+      "height": 1623.076923076923
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 844
+    },
+    "clip": {
+      "x": 29.64,
+      "y": 22.639999999999986,
+      "width": 330.71999999999997,
+      "height": 87.36
+    },
+    "percent": "37.26%",
+    "count": "本局 +3",
+    "font": "hud_round_v1",
+    "bounds": [
+      {
+        "text": "37.26%",
+        "width": 276,
+        "parentWidth": 442,
+        "x": 76,
+        "fontSize": 64,
+        "renderedFontSize": 64,
+        "bitmapFont": true
+      },
+      {
+        "text": "本局 +3",
+        "width": 120,
+        "parentWidth": 132,
+        "x": 0,
+        "fontSize": 24,
+        "renderedFontSize": 24,
+        "bitmapFont": true
+      },
+      {
+        "text": "2400",
+        "width": 134,
+        "parentWidth": 166,
+        "x": 0,
+        "fontSize": 46,
+        "renderedFontSize": 46,
+        "bitmapFont": true
+      },
+      {
+        "text": "最高 4800",
+        "width": 146,
+        "parentWidth": 166,
+        "x": 0,
+        "fontSize": 20,
+        "renderedFontSize": 20,
+        "bitmapFont": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 320,
+      "height": 568
+    },
+    "visible": {
+      "width": 751.5492957746479,
+      "height": 1334
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 568
+    },
+    "clip": {
+      "x": 34.91412742382273,
+      "y": 4.720221606648238,
+      "width": 250.17174515235453,
+      "height": 66.08310249307476
+    },
+    "percent": "37.26%",
+    "count": "本局 +3",
+    "font": "hud_round_v1",
+    "bounds": [
+      {
+        "text": "37.26%",
+        "width": 276,
+        "parentWidth": 442,
+        "x": 76,
+        "fontSize": 64,
+        "renderedFontSize": 64,
+        "bitmapFont": true
+      },
+      {
+        "text": "本局 +3",
+        "width": 120,
+        "parentWidth": 132,
+        "x": 0,
+        "fontSize": 24,
+        "renderedFontSize": 24,
+        "bitmapFont": true
+      },
+      {
+        "text": "2400",
+        "width": 134,
+        "parentWidth": 166,
+        "x": 0,
+        "fontSize": 46,
+        "renderedFontSize": 46,
+        "bitmapFont": true
+      },
+      {
+        "text": "最高 4800",
+        "width": 146,
+        "parentWidth": 166,
+        "x": 0,
+        "fontSize": 20,
+        "renderedFontSize": 20,
+        "bitmapFont": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "visible": {
+      "width": 1000.5,
+      "height": 1334
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 768,
+      "height": 1024
+    },
+    "clip": {
+      "x": 158.4930747922438,
+      "y": 8.509695290858758,
+      "width": 451.0138504155124,
+      "height": 119.1357340720221
+    },
+    "percent": "37.26%",
+    "count": "本局 +3",
+    "font": "hud_round_v1",
+    "bounds": [
+      {
+        "text": "37.26%",
+        "width": 276,
+        "parentWidth": 442,
+        "x": 76,
+        "fontSize": 64,
+        "renderedFontSize": 64,
+        "bitmapFont": true
+      },
+      {
+        "text": "本局 +3",
+        "width": 120,
+        "parentWidth": 132,
+        "x": 0,
+        "fontSize": 24,
+        "renderedFontSize": 24,
+        "bitmapFont": true
+      },
+      {
+        "text": "2400",
+        "width": 134,
+        "parentWidth": 166,
+        "x": 0,
+        "fontSize": 46,
+        "renderedFontSize": 46,
+        "bitmapFont": true
+      },
+      {
+        "text": "最高 4800",
+        "width": 146,
+        "parentWidth": 166,
+        "x": 0,
+        "fontSize": 20,
+        "renderedFontSize": 20,
+        "bitmapFont": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 540,
+      "height": 900
+    },
+    "visible": {
+      "width": 800.4,
+      "height": 1334
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 540,
+      "height": 900
+    },
+    "clip": {
+      "x": 71.80055401662051,
+      "y": 7.479224376731281,
+      "width": 396.398891966759,
+      "height": 104.70914127423818
+    },
+    "percent": "37.26%",
+    "count": "本局 +3",
+    "font": "hud_round_v1",
+    "bounds": [
+      {
+        "text": "37.26%",
+        "width": 276,
+        "parentWidth": 442,
+        "x": 76,
+        "fontSize": 64,
+        "renderedFontSize": 64,
+        "bitmapFont": true
+      },
+      {
+        "text": "本局 +3",
+        "width": 120,
+        "parentWidth": 132,
+        "x": 0,
+        "fontSize": 24,
+        "renderedFontSize": 24,
+        "bitmapFont": true
+      },
+      {
+        "text": "2400",
+        "width": 134,
+        "parentWidth": 166,
+        "x": 0,
+        "fontSize": 46,
+        "renderedFontSize": 46,
+        "bitmapFont": true
+      },
+      {
+        "text": "最高 4800",
+        "width": 146,
+        "parentWidth": 166,
+        "x": 0,
+        "fontSize": 20,
+        "renderedFontSize": 20,
+        "bitmapFont": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "visible": {
+      "width": 1778.6666666666667,
+      "height": 1334
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 1024,
+      "height": 768
+    },
+    "clip": {
+      "x": 342.8698060941828,
+      "y": 6.38227146814404,
+      "width": 338.2603878116343,
+      "height": 89.35180055401658
+    },
+    "percent": "37.26%",
+    "count": "本局 +3",
+    "font": "hud_round_v1",
+    "bounds": [
+      {
+        "text": "37.26%",
+        "width": 276,
+        "parentWidth": 442,
+        "x": 76,
+        "fontSize": 64,
+        "renderedFontSize": 64,
+        "bitmapFont": true
+      },
+      {
+        "text": "本局 +3",
+        "width": 120,
+        "parentWidth": 132,
+        "x": 0,
+        "fontSize": 24,
+        "renderedFontSize": 24,
+        "bitmapFont": true
+      },
+      {
+        "text": "2400",
+        "width": 134,
+        "parentWidth": 166,
+        "x": 0,
+        "fontSize": 46,
+        "renderedFontSize": 46,
+        "bitmapFont": true
+      },
+      {
+        "text": "最高 4800",
+        "width": 146,
+        "parentWidth": 166,
+        "x": 0,
+        "fontSize": 20,
+        "renderedFontSize": 20,
+        "bitmapFont": true
+      }
+    ],
+    "errors": []
+  }
+]
