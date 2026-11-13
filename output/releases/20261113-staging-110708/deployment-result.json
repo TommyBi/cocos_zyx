@@ -1,0 +1,44 @@
+{
+  "releaseId": "20261113-staging-110708",
+  "image": "sha256:7fc4e5c2631e2fb00359f5c7feef4d457a72723f1b4fd4de77b4b8b5cb530854",
+  "containerId": "70d9c70223eeab1e94dc8379b7b059437b2e7f850e48807a67a3f236195b6663",
+  "backup": "/opt/tcjstory/backups/cocos-zyx-staging-20261113-staging-110708",
+  "source": "/opt/tcjstory/apps/cocos-zyx/releases/20261113-staging-110708/server",
+  "composeOverride": "/opt/tcjstory/apps/cocos-zyx/releases/20261113-staging-110708/staging-image.override.yml",
+  "health": {
+    "ok": true,
+    "service": "cocos-zyx-cloud",
+    "apiVersion": 11,
+    "schemaVersion": 8,
+    "capabilities": [
+      "wechat-login",
+      "stamina",
+      "round-start",
+      "settlement",
+      "power-leaderboard",
+      "daily-share",
+      "bean-collection-progress",
+      "adaptive-combo-v2",
+      "bean-collection-1pct",
+      "bean-tool-shop",
+      "difficulty-ramp-2x",
+      "difficulty-pressure-v4",
+      "rising-rows-v5",
+      "balloon-rescue-v6",
+      "balloon-blast-v7",
+      "random-rescue-v8"
+    ],
+    "checkedAt": "2026-11-13T03:18:00.530Z"
+  },
+  "dataPreserved": true,
+  "tableCounts": {
+    "game_rounds": 207,
+    "players": 49,
+    "release_resets": 0,
+    "round_settlements": 37,
+    "sqlite_sequence": 1,
+    "stamina_share_claims": 7,
+    "tool_transactions": 9
+  },
+  "productionAndGatewayUnchanged": true
+}

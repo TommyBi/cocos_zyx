@@ -1,0 +1,422 @@
+{
+  "stage": "after",
+  "sample": [
+    {
+      "text": "排行榜",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 24,
+      "actual": 24,
+      "width": 108
+    },
+    {
+      "text": "恬静的天鹅",
+      "font": "zyx_happy_round_body_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 192
+    },
+    {
+      "text": "3440",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 100
+    },
+    {
+      "text": "关闭",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 24,
+      "actual": 24,
+      "width": 396
+    },
+    {
+      "text": "排行榜",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 36,
+      "actual": 36,
+      "width": 174
+    },
+    {
+      "text": "最高分",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 34,
+      "actual": 34,
+      "width": 130
+    }
+  ],
+  "errors": [],
+  "labels": [
+    {
+      "text": "10/10",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 23,
+      "actual": 21,
+      "width": 104
+    },
+    {
+      "text": "Lv.1",
+      "font": null,
+      "system": true,
+      "bold": false,
+      "size": 17,
+      "actual": 17,
+      "width": 66
+    },
+    {
+      "text": "0",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 23,
+      "actual": 21,
+      "width": 104
+    },
+    {
+      "text": "幸运的柴犬",
+      "font": null,
+      "system": true,
+      "bold": false,
+      "size": 22,
+      "actual": 22,
+      "width": 182
+    },
+    {
+      "text": "经验 0/15",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 16,
+      "actual": 16,
+      "width": 190
+    },
+    {
+      "text": "左右拖动心情块，让它落进合适的位置",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 23,
+      "actual": 23,
+      "width": 568
+    },
+    {
+      "text": "开 始",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 46,
+      "actual": 46,
+      "width": 430
+    },
+    {
+      "text": "体力 10/10 · 体力已满",
+      "font": null,
+      "system": true,
+      "bold": false,
+      "size": 18,
+      "actual": 18,
+      "width": 490
+    },
+    {
+      "text": "左右挪动 · 收集开心豆",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 17,
+      "actual": 17,
+      "width": 280
+    },
+    {
+      "text": "0",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 24,
+      "actual": 24,
+      "width": 160
+    },
+    {
+      "text": "排行榜",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 24,
+      "actual": 24,
+      "width": 108
+    },
+    {
+      "text": "商城",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 24,
+      "actual": 24,
+      "width": 108
+    },
+    {
+      "text": "设置",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 24,
+      "actual": 19,
+      "width": 76
+    },
+    {
+      "text": "1",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 30,
+      "actual": 30,
+      "width": 64
+    },
+    {
+      "text": "恬静的天鹅",
+      "font": "zyx_happy_round_body_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 192
+    },
+    {
+      "text": "3440",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 100
+    },
+    {
+      "text": "2",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 30,
+      "actual": 30,
+      "width": 64
+    },
+    {
+      "text": "就不告诉你",
+      "font": "zyx_happy_round_body_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 192
+    },
+    {
+      "text": "1750",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 100
+    },
+    {
+      "text": "3",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 30,
+      "actual": 30,
+      "width": 64
+    },
+    {
+      "text": "可爱的企鹅",
+      "font": "zyx_happy_round_body_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 192
+    },
+    {
+      "text": "750",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 100
+    },
+    {
+      "text": "4",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 64
+    },
+    {
+      "text": "美丽的小熊",
+      "font": "zyx_happy_round_body_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 192
+    },
+    {
+      "text": "260",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 100
+    },
+    {
+      "text": "5",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 64
+    },
+    {
+      "text": "美丽的企鹅",
+      "font": "zyx_happy_round_body_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 192
+    },
+    {
+      "text": "30",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 100
+    },
+    {
+      "text": "6",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 64
+    },
+    {
+      "text": "快乐的团子",
+      "font": "zyx_happy_round_body_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 192
+    },
+    {
+      "text": "25",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 26,
+      "actual": 26,
+      "width": 100
+    },
+    {
+      "text": "我的排名：第 2 名",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 24,
+      "actual": 24,
+      "width": 270
+    },
+    {
+      "text": "最高分 1750",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 24,
+      "actual": 24,
+      "width": 190
+    },
+    {
+      "text": "关闭",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 24,
+      "actual": 24,
+      "width": 396
+    },
+    {
+      "text": "排行榜",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 36,
+      "actual": 36,
+      "width": 174
+    },
+    {
+      "text": "",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 24,
+      "actual": 24,
+      "width": 510
+    },
+    {
+      "text": "排名",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 34,
+      "actual": 34,
+      "width": 74
+    },
+    {
+      "text": "玩家",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 34,
+      "actual": 34,
+      "width": 192
+    },
+    {
+      "text": "最高分",
+      "font": "zyx_happy_round_display_v1",
+      "system": false,
+      "bold": false,
+      "size": 34,
+      "actual": 34,
+      "width": 130
+    },
+    {
+      "text": "GM",
+      "font": null,
+      "system": true,
+      "bold": true,
+      "size": 24,
+      "actual": 22,
+      "width": 54
+    }
+  ]
+}

@@ -19,6 +19,7 @@ const moduleSource = path.join(repoRoot, 'assets', 'script', 'dataModule', 'ZyxG
 
 let ZyxGameModuleClass;
 let ensureDataGeneration;
+let boardRulesVersion;
 
 /** Map 版 localStorage：键缺失时与真实环境一致返回 null。 */
 function installCcStub() {
@@ -56,6 +57,7 @@ test.before(() => {
   const moduleExports = require(compiled);
   ZyxGameModuleClass = moduleExports.default;
   ensureDataGeneration = moduleExports.ensureDataGeneration;
+  boardRulesVersion = moduleExports.BOARD_RULES_VERSION;
 });
 
 test('乱序结算回执不能覆盖兑换后的余额和库存，开局和刷新也不返还已用道具', () => {
@@ -583,7 +585,7 @@ test('炸弹按横块中心的 3×3 范围移除相交整块，收豆一次且�
   assert.strictEqual(module.roundCollectedMoodBeans - before, 3);
   assert.strictEqual(module.detonateBomb(100), null);
   assert.strictEqual(module.detonateBomb(103), null, '普通块不可冒充炸弹');
-  assert.deepStrictEqual(module.roundActions, [{ type: 'rules', version: 5 }, { type: 'bomb', id: 100 }]);
+  assert.deepStrictEqual(module.roundActions, [{ type: 'rules', version: boardRulesVersion }, { type: 'bomb', id: 100 }]);
 });
 
 test('多种种子的真实移动、连消、奖励炸弹与爆破，客户端和服务端重放一致', () => {

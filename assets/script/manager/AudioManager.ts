@@ -14,83 +14,199 @@ const SOUND_RESOURCES: { [key in SoundName]: AudioResource } = {
     magicWand: { bundle: 'game', path: ASSET_PATHS.game.magicWandSound },
 };
 
-const LOOP_BACKGROUND_MUSIC = true;
+export type MusicScene = 'silent' | 'home' | 'game';
 
-/** 只负责播放策略；具体音频归属和加载缓存由 AssetLoader 统一管理。 */
+/** 音乐与音效的唯一控制者。页面声明场景，暂停/前后台/声音偏好共同决定是否播放。 */
 export default class AudioManager {
     private static _instance: AudioManager;
-
     public static get instance(): AudioManager {
         if (!this._instance) this._instance = new AudioManager();
         return this._instance;
     }
 
+    private initialized = false;
+    private scene: MusicScene = 'silent';
+    private gamePaused = false;
+    private appVisible = true;
+    private webFocused = true;
+    private previewMuted = false;
+    private previewAudioOwner = true;
     private currentMusic: MusicName = null;
     private musicLoadName: MusicName = null;
-    private musicRequestId: number = 0;
-    private musicAudioId: number = -1;
+    private musicRequestId = 0;
+    private musicAudioId = -1;
+    private musicClip: cc.AudioClip = null;
+    private appliedVolume = -1;
+    private unsubscribeSettings: () => void = null;
 
-    /** 切换并循环播放逻辑场景对应的背景音乐。曲目从 CDN 远程 Bundle 拉取，不阻塞界面。 */
-    public playMusic(name: MusicName): void {
-        if (this.currentMusic === name && (cc.audioEngine.isMusicPlaying() || this.musicLoadName === name)) {
-            this.applySettings();
-            return;
+    private readonly onHide = (): void => {
+        this.appVisible = false;
+        this.syncMusic();
+        cc.audioEngine.stopAllEffects();
+    };
+    private readonly onShow = (): void => { this.appVisible = true; this.syncMusic(); };
+    private readonly onBlur = (): void => {
+        this.webFocused = false;
+        this.syncMusic();
+        cc.audioEngine.stopAllEffects();
+    };
+    private readonly onFocus = (): void => { this.webFocused = true; this.syncMusic(); };
+    private readonly onVisibility = (): void => {
+        this.webFocused = document.hasFocus();
+        this.syncMusic();
+    };
+    private readonly onPageHide = (): void => this.dispose();
+
+    public initialize(): void {
+        if (this.initialized) return;
+        this.initialized = true;
+        this.appVisible = true;
+        this.previewAudioOwner = typeof window === 'undefined'
+            || (window as any).__zyxPreviewAudioGranted !== false;
+        this.unsubscribeSettings = gameSettings.onAudioChange(() => this.applySettings());
+        cc.game.on(cc.game.EVENT_HIDE, this.onHide);
+        cc.game.on(cc.game.EVENT_SHOW, this.onShow);
+        if (cc.sys.isBrowser && typeof window !== 'undefined') {
+            this.webFocused = document.hasFocus();
+            window.addEventListener('blur', this.onBlur);
+            window.addEventListener('focus', this.onFocus);
+            window.addEventListener('pagehide', this.onPageHide);
+            document.addEventListener('visibilitychange', this.onVisibility);
         }
-        this.currentMusic = name;
-        this.musicLoadName = name;
-        const requestId = ++this.musicRequestId;
-        loadMusicClip(name)
-            .then((clip) => {
-                if (requestId !== this.musicRequestId || this.currentMusic !== name) return;
-                cc.audioEngine.stopMusic();
-                this.startMusicLoop(name, clip, requestId);
-            })
-            .catch((error: Error) => {
-                cc.warn('背景音乐加载失败', name, error);
-            })
-            .then(() => {
-                if (this.musicLoadName === name && requestId === this.musicRequestId) this.musicLoadName = null;
-            });
+        this.applySettings();
     }
 
-    /** 部分 Web/小游戏容器会忽略底层 loop 标志，结束回调负责无缝补播。 */
-    private startMusicLoop(name: MusicName, clip: cc.AudioClip, requestId: number): void {
-        if (requestId !== this.musicRequestId || this.currentMusic !== name) return;
-        this.applySettings();
-        const audioId = cc.audioEngine.playMusic(clip, LOOP_BACKGROUND_MUSIC);
-        this.musicAudioId = audioId;
+    /** 加载/结算使用silent；只有真正进入首页或对局才切换到对应曲目。 */
+    public enterScene(scene: MusicScene): void {
+        this.initialize();
+        this.scene = scene;
+        this.gamePaused = false;
+        if (scene !== 'game') cc.audioEngine.stopAllEffects();
+        const name: MusicName = scene === 'home' ? 'main' : scene === 'game' ? 'game' : null;
+        if (name !== this.currentMusic) {
+            this.musicRequestId++;
+            this.musicLoadName = null;
+            this.musicClip = null;
+            this.currentMusic = name;
+            this.stopCurrentMusic();
+        }
+        this.syncMusic();
+    }
 
-        const engine: any = cc.audioEngine;
-        if (typeof engine.setLoop === 'function') engine.setLoop(audioId, true);
-        if (typeof engine.setFinishCallback !== 'function') return;
-        engine.setFinishCallback(audioId, () => {
-            if (
-                requestId !== this.musicRequestId
-                || this.currentMusic !== name
-                || this.musicAudioId !== audioId
-            ) return;
-            if (typeof engine.isPlaying === 'function' && engine.isPlaying(audioId)) return;
-            this.startMusicLoop(name, clip, requestId);
+    public setGamePaused(paused: boolean): void {
+        this.gamePaused = paused;
+        if (paused) cc.audioEngine.stopAllEffects();
+        this.syncMusic();
+    }
+
+    /** 演示页静音独立于用户偏好，不能把试玩账号的声音开关永久关闭。 */
+    public setPreviewMuted(muted: boolean): void {
+        this.previewMuted = muted;
+        this.syncMusic();
+    }
+
+    /** 本地嵌入式预览的播放权独立于focus/visibility；同一时刻只允许一个预览发声。 */
+    public setPreviewAudioOwner(owner: boolean): void {
+        this.previewAudioOwner = owner;
+        this.syncMusic();
+        if (!owner) cc.audioEngine.stopAllEffects();
+    }
+
+    private foreground(): boolean {
+        return this.appVisible && this.previewAudioOwner && (!cc.sys.isBrowser || (this.webFocused
+            && typeof document !== 'undefined' && !document.hidden));
+    }
+
+    private canPlayMusic(): boolean {
+        return !!this.currentMusic && this.foreground() && !this.previewMuted
+            && !(this.scene === 'game' && this.gamePaused)
+            && gameSettings.soundEnabled && gameSettings.soundVolume > 0;
+    }
+
+    private syncMusic(): void {
+        if (!this.initialized) return;
+        if (!this.currentMusic) { this.stopCurrentMusic(); return; }
+        if (!this.canPlayMusic()) {
+            if (this.musicAudioId >= 0 && cc.audioEngine.getState(this.musicAudioId) === cc.audioEngine.AudioState.PLAYING) {
+                cc.audioEngine.pause(this.musicAudioId);
+            }
+            return;
+        }
+        if (this.musicAudioId >= 0) {
+            const state = cc.audioEngine.getState(this.musicAudioId);
+            if (state === cc.audioEngine.AudioState.PAUSED) cc.audioEngine.resume(this.musicAudioId);
+            if (state === cc.audioEngine.AudioState.PLAYING || state === cc.audioEngine.AudioState.PAUSED) return;
+            this.stopCurrentMusic();
+        }
+        if (this.musicClip) {
+            this.musicAudioId = cc.audioEngine.playMusic(this.musicClip, true);
+            return;
+        }
+        if (this.musicLoadName) return;
+        const name = this.currentMusic;
+        const requestId = ++this.musicRequestId;
+        this.musicLoadName = name;
+        loadMusicClip(name).then(clip => {
+            if (!this.initialized || requestId !== this.musicRequestId || this.currentMusic !== name) return;
+            this.musicLoadName = null;
+            this.musicClip = clip;
+            // 加载期间可能已经暂停、静音或切到后台，统一重新判断，不能直接play。
+            this.syncMusic();
+        }).catch((error: Error) => {
+            if (requestId !== this.musicRequestId) return;
+            this.musicLoadName = null;
+            cc.warn('背景音乐加载失败', name, error);
         });
     }
 
-    /** 音效只在设置允许时播放；加载期间关闭声音也不会补播。 */
-    public playSound(name: SoundName): void {
-        if (!gameSettings.soundEnabled || gameSettings.soundVolume <= 0) return;
-        const clip = this.getClip(SOUND_RESOURCES[name]);
-        if (!gameSettings.soundEnabled || gameSettings.soundVolume <= 0) return;
-        cc.audioEngine.playEffect(clip, false);
+    private stopCurrentMusic(): void {
+        const id = this.musicAudioId;
+        this.musicAudioId = -1;
+        if (id < 0) return;
+        cc.audioEngine.setFinishCallback(id, null);
+        cc.audioEngine.stop(id);
     }
 
-    /** 设置面板调用此方法，让当前音乐和仍在播放的效果音立即响应开关/音量。 */
+    public playSound(name: SoundName): void {
+        if (this.scene !== 'game' || this.gamePaused || !this.foreground()
+            || !gameSettings.soundEnabled || gameSettings.soundVolume <= 0) return;
+        cc.audioEngine.playEffect(this.getClip(SOUND_RESOURCES[name]), false);
+    }
+
+    /** 设置只发变更通知，音量写入、静音暂停和重新启用都在这里处理。 */
     public applySettings(): void {
         const enabled = gameSettings.soundEnabled && gameSettings.soundVolume > 0;
         const volume = enabled ? gameSettings.soundVolume : 0;
-        cc.audioEngine.setMusicVolume(volume);
-        cc.audioEngine.setEffectsVolume(volume);
-        if (!enabled) {
-            cc.audioEngine.stopAllEffects();
+        if (volume !== this.appliedVolume) {
+            this.appliedVolume = volume;
+            cc.audioEngine.setMusicVolume(volume);
+            cc.audioEngine.setEffectsVolume(volume);
         }
+        if (!enabled) cc.audioEngine.stopAllEffects();
+        this.syncMusic();
+    }
+
+    /** 主组件销毁或网页离开时，取消所有旧加载并停止音乐，移除全部监听。 */
+    public dispose(): void {
+        this.scene = 'silent';
+        this.currentMusic = this.musicLoadName = null;
+        this.musicClip = null;
+        this.musicRequestId++;
+        this.gamePaused = this.previewMuted = false;
+        this.stopCurrentMusic();
+        cc.audioEngine.stopAllEffects();
+        if (!this.initialized) return;
+        this.initialized = false;
+        cc.game.off(cc.game.EVENT_HIDE, this.onHide);
+        cc.game.off(cc.game.EVENT_SHOW, this.onShow);
+        if (cc.sys.isBrowser && typeof window !== 'undefined') {
+            window.removeEventListener('blur', this.onBlur);
+            window.removeEventListener('focus', this.onFocus);
+            window.removeEventListener('pagehide', this.onPageHide);
+            document.removeEventListener('visibilitychange', this.onVisibility);
+        }
+        if (this.unsubscribeSettings) this.unsubscribeSettings();
+        this.unsubscribeSettings = null;
     }
 
     private getClip(resource: AudioResource): cc.AudioClip {

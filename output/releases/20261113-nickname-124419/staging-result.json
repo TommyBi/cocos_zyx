@@ -1,0 +1,18 @@
+{
+  "releaseId": "20261113-nickname-124419",
+  "environment": "staging",
+  "image": "sha256:edaa76d54d2f089798ccf677dc00c5d0fb486295abd357eba90da1afb35f53f9",
+  "container": "77c2b8680101cbf26782fd85a5479aba692169dd53fedc7e9401258c6cb0f0de",
+  "apiVersion": 11,
+  "capabilitiesPreserved": true,
+  "configurationPreserved": true,
+  "changedDefaultNicknames": 32,
+  "databaseIntegrity": "ok",
+  "allOtherDataPreserved": true,
+  "backup": "/opt/tcjstory/backups/20261113-nickname-124419-staging",
+  "smoke": {
+    "authenticatedLeaderboard": true,
+    "entries": 25,
+    "servedNamesMatchDatabase": true
+  }
+}

@@ -1,0 +1,985 @@
+{
+  "reports": [
+    {
+      "name": "power-390x844",
+      "labels": [
+        {
+          "text": "10/10",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "Lv.1",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "幸运的小兔子",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "经验 0/15",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "左右拖动心情块，让它落进合适的位置",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "开 始",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "体力 10/10 · 体力已满",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "左右挪动 · 收集开心豆",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "商城",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "设置",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "积分榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "开心榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "2",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "1",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "3",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "4",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "美丽的小熊",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "260",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "5",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "可爱的小柴犬",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "30",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "5",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "美丽的小企鹅",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "30",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "7",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "快乐的小团子",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "25",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "我的排名",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "未上榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "最高分",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "就不告诉你",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "1,750",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "恬静的小天鹅",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "最高分",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "3,440",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "可爱的小企鹅",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "750",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "关闭",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "按历史最高分排名",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        }
+      ]
+    },
+    {
+      "name": "beans-390x844",
+      "labels": [
+        {
+          "text": "10/10",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "Lv.1",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "幸运的小兔子",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "经验 0/15",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "左右拖动心情块，让它落进合适的位置",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "开 始",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "体力 10/10 · 体力已满",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "左右挪动 · 收集开心豆",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "商城",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "设置",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "积分榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "开心榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "2",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "1",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "3",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "4",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "恬静的小天鹅",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "6,240",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "5",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "可爱的小企鹅",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "4,860",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "6",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "就不告诉你",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "3,280",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "7",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "美丽的小企鹅",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "2,160",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "我的排名",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "未上榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "当前拥有",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "快乐的小团子",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "12,680",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "可爱的小柴犬",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "当前开心豆",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "17,002",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "美丽的小熊",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "8,960",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "关闭",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "按当前拥有的开心豆排名",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "开心豆消费后，排名也会变化",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        }
+      ]
+    },
+    {
+      "name": "rapid-tabs-power",
+      "labels": [
+        {
+          "text": "10/10",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "Lv.1",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "幸运的小兔子",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "经验 0/15",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "左右拖动心情块，让它落进合适的位置",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "开 始",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "体力 10/10 · 体力已满",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "左右挪动 · 收集开心豆",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "商城",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "设置",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "积分榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "开心榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "2",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "1",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "3",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "4",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "美丽的小熊",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "260",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "5",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "可爱的小柴犬",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "30",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "5",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "美丽的小企鹅",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "30",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "7",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "快乐的小团子",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "25",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "我的排名",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "未上榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "最高分",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "就不告诉你",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "1,750",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "恬静的小天鹅",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "最高分",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "3,440",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "可爱的小企鹅",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "750",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "关闭",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "按历史最高分排名",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        }
+      ]
+    },
+    {
+      "name": "cute-settings-390x844",
+      "labels": [
+        {
+          "text": "10/10",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "Lv.1",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "幸运的小兔子",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "经验 0/15",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "左右拖动心情块，让它落进合适的位置",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "开 始",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "体力 10/10 · 体力已满",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "左右挪动 · 收集开心豆",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "商城",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "设置",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "声音",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "已开启",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "音量",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "70%",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "震动",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "已开启",
+          "font": "zyx_happy_round_body_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "继续",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "重新开始",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "退出",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "设   置",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_v1",
+          "bold": false,
+          "system": false
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

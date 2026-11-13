@@ -341,7 +341,7 @@ function removeTopRows(pieces, rowCount) {
  */
 function replayRound(seed, isTutorial, actions, rulesVersion) {
   const version = rulesVersion === undefined ? (actions[0]?.type === 'rules' ? actions[0].version : 1) : rulesVersion;
-  if (version === 2 || version === 3 || version === 4 || version === 5) return require('./replayBoardEngine').replayBoardEngine(seed, isTutorial, actions, version);
+  if ([2, 3, 4, 5, 6, 7, 8].includes(version)) return require('./replayBoardEngine').replayBoardEngine(seed, isTutorial, actions, version);
   if (version !== 1 || actions[0]?.type === 'rules') return { score: -1, collectedMoodBeans: -1, valid: false };
   const random = createRandom(seed);
   const nextId = { value: 1 };

@@ -1,0 +1,201 @@
+{
+  "releaseId": "20261113-staging-ui-144730",
+  "appId": "wxdc39c78bfd045896",
+  "sourceTreeSha256": "9f1701d4d80ed341fa68220c81eb310a9a059ad372369044e97108be27d587cb",
+  "sourceFiles": 249,
+  "serverTreeSha256": "f6ad7040ff3deddcc388def59c92d0560293929905b3efe3a929526cdee88d72",
+  "runtimeTreeSha256": "266a6279a5be49c42f517fab9d87e12f352de946872d4e23266d2e3425222165",
+  "wechatTreeSha256": "087283c1a56facbe91e1ca96140012086bf4f164b2c18216a03eb451ce2d94eb",
+  "wechatFiles": 91,
+  "sourceVerifiedAfterBuild": true,
+  "build": {
+    "command": "npm run build:wechat",
+    "args": "platform=wechatgame;debug=false;md5Cache=true;appid=wxdc39c78bfd045896",
+    "cocosCreator": "2.4.13",
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "runtimeNodeTested": "v20.20.2",
+    "typescript": "4.9.5"
+  },
+  "locks": {
+    "package-lock.json": "39a9a2b3ea66d4abff1907f6dafea6aa50211a5f7ccf9d80709d20af0c3b6d73",
+    "server/package-lock.json": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868"
+  },
+  "packageBytes": {
+    "main": 2667659,
+    "home": 3831391,
+    "effects": 1034459,
+    "total": 7533509
+  },
+  "archives": {
+    "delivery": "/Users/liuyang/Documents/private/cocos_zyx/build/cocos-zyx-release-20261113-staging-ui-144730",
+    "wechatZip": "/Users/liuyang/Documents/private/cocos_zyx/build/wechat-review-20261113-staging-ui-144730.zip",
+    "wechatZipSha256": "1a9529d5d75e527f21b7bcf8c4fce68ea381a656cddd7da08c280ab95261eb43",
+    "backendTar": "/Users/liuyang/Documents/private/cocos_zyx/build/cocos-zyx-server-20261113-staging-ui-144730.tar.gz",
+    "backendTarSha256": "083569a4a60235d9fde1ded5f421a684cec4047dd6820b9b5ad698e839c1caa5"
+  },
+  "checks": {
+    "clientTests": 171,
+    "serverTests": 48,
+    "serverNode20Tests": 48,
+    "engineConsistency": true,
+    "typescript": true,
+    "assetValidation": true,
+    "gmRemovedAndSourcesRestored": true,
+    "compiledBundleQA": {
+      "dualLeaderboardIncluded": true,
+      "regularFontAndArtIncluded": true,
+      "moduleCount": 29,
+      "rulesVersion": 8,
+      "balloonFlightSeconds": 15,
+      "scoreBoundary": {
+        "at500": false,
+        "at501": true
+      },
+      "routes": {
+        "develop": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+        "trial": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+        "release": "https://api.tcjstory.cn/v1/cocos-zyx"
+      },
+      "appId": "wxdc39c78bfd045896",
+      "libVersion": "3.15.2",
+      "urlCheck": true,
+      "subpackages": [
+        {
+          "name": "effects",
+          "root": "subpackages/effects/"
+        },
+        {
+          "name": "home",
+          "root": "subpackages/home/"
+        }
+      ]
+    },
+    "fonts": [
+      {
+        "file": "build/wechatgame/subpackages/home/native/43/43b95c81-43e5-592a-85f9-fcdf105b9c57.f4545/zyx_happy_round_body_v1.ttf",
+        "weight": 400,
+        "bytes": 2688660,
+        "sha256": "46a772c96daa8a7e78e20eb4e6978aa0419001fd5c2fcc13d9ddc727175c1469"
+      },
+      {
+        "file": "build/wechatgame/assets/game/native/cf/cfa33f68-4829-543f-b6ec-f2826c33db3a.c127e/zyx_happy_round_ui_v1.ttf",
+        "weight": 400,
+        "bytes": 179912,
+        "sha256": "31eb59ef8b0e77650cbf07a2da564c1e287662fbabed8468f1704c3c246430b8"
+      }
+    ],
+    "cdnFilesMatched": 8,
+    "stagingHttpProtocol": true,
+    "stagingDualLeaderboardDatabaseMatch": true,
+    "existingRowsPreserved": true,
+    "remoteFrozenCandidateVerified": true,
+    "servedRuntimeVerified": true
+  },
+  "staging": {
+    "releaseId": "20261113-staging-ui-144730",
+    "image": "sha256:933f200be8c4e11fca5f25e28e22cfec07bd9a6194c381a13cf0db658f31bcb3",
+    "container": "3019de4787e6c327a8e04a9975079baa63e3c75f22046b02c5e95fb8797df4d5",
+    "backup": "/opt/tcjstory/backups/cocos-zyx-staging-20261113-staging-ui-144730",
+    "source": "/opt/tcjstory/apps/cocos-zyx/releases/20261113-staging-ui-144730/server",
+    "composeOverride": "/opt/tcjstory/apps/cocos-zyx/releases/20261113-staging-ui-144730/staging-image.override.yml",
+    "rollbackImage": "cocos-zyx-staging-rollback:20261113-staging-ui-144730",
+    "health": {
+      "ok": true,
+      "service": "cocos-zyx-cloud",
+      "apiVersion": 11,
+      "schemaVersion": 8,
+      "capabilities": [
+        "wechat-login",
+        "stamina",
+        "round-start",
+        "settlement",
+        "power-leaderboard",
+        "bean-balance-leaderboard",
+        "daily-share",
+        "bean-collection-progress",
+        "adaptive-combo-v2",
+        "bean-collection-1pct",
+        "bean-tool-shop",
+        "difficulty-ramp-2x",
+        "difficulty-pressure-v4",
+        "rising-rows-v5",
+        "balloon-rescue-v6",
+        "balloon-blast-v7",
+        "random-rescue-v8"
+      ],
+      "checkedAt": "2026-11-13T06:58:23.097Z"
+    },
+    "dataPreserved": true,
+    "tableCounts": {
+      "game_rounds": 225,
+      "players": 52,
+      "release_resets": 0,
+      "round_settlements": 47,
+      "sqlite_sequence": 1,
+      "stamina_share_claims": 8,
+      "tool_transactions": 13
+    },
+    "servedSourceVerified": true,
+    "productionAndGatewayUnchanged": true
+  },
+  "postVerificationAudit": {
+    "integrity": "ok",
+    "tables": {
+      "game_rounds": {
+        "before": 225,
+        "after": 235,
+        "existingRowsPreserved": true
+      },
+      "players": {
+        "before": 52,
+        "after": 53,
+        "existingRowsPreserved": true
+      },
+      "release_resets": {
+        "before": 0,
+        "after": 0,
+        "existingRowsPreserved": true
+      },
+      "round_settlements": {
+        "before": 47,
+        "after": 51,
+        "existingRowsPreserved": true
+      },
+      "sqlite_sequence": {
+        "before": 1,
+        "after": 1,
+        "existingRowsPreserved": false
+      },
+      "stamina_share_claims": {
+        "before": 8,
+        "after": 9,
+        "existingRowsPreserved": true
+      },
+      "tool_transactions": {
+        "before": 13,
+        "after": 13,
+        "existingRowsPreserved": true
+      }
+    },
+    "productionGatewayAndSharedSourceUnchanged": true,
+    "testWrites": "One isolated zero-score/zero-bean protocol account; new rounds, settlements and share claim only; sqlite_sequence advances for these inserts."
+  },
+  "production": {
+    "apiVersion": 9,
+    "changed": false
+  },
+  "actions": {
+    "deployedStaging": true,
+    "deployedProduction": false,
+    "uploadedWeChat": false,
+    "submittedReview": false,
+    "resetPlayerData": false,
+    "uploadedCdn": false
+  },
+  "notVerified": [
+    "微信真机授权、分享、音效听感与前后台生命周期；需用户验收",
+    "正式发布 V8 客户端前需要将 Production 从 API9 升级至配套 API11/余额榜接口"
+  ],
+  "evidence": "/private/tmp/zyx-release-20261113-staging-ui-144730"
+}

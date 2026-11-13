@@ -101,7 +101,7 @@ export default class RankChaseView {
             MOOD_COLORS.honey, 255, 12, 26, 27);
         badge.zIndex = 90;
         const me = uimanager.createLabel(badge, '我', 0, 0, 18, MOOD_COLORS.cocoa, 26, 26);
-        me.enableBold = true;
+        uimanager.applyTypography(me, true);
         this.selfScore = this.createScore(this.self, 0, -50, 26);
         snapshot.then((entries) => {
             if (this.disposed || !cc.isValid(this.root)) return;
@@ -189,7 +189,7 @@ export default class RankChaseView {
 
     private createScore(parent: cc.Node, value: number, y: number, size: number = 24): cc.Label {
         const label = uimanager.createLabel(parent, String(value), 0, y, size, MOOD_COLORS.cocoa, 80, 34);
-        label.enableBold = true;
+        uimanager.applyTypography(label, true);
         return label;
     }
 
@@ -203,10 +203,10 @@ export default class RankChaseView {
     private setAvatar(slot: cc.Node, url: string, size: number): cc.Node {
         const frame = createAvatarFrame(slot, 'chaseAvatar', 0, 0, size);
         const mask = new cc.Node('chaseAvatarMask');
-        mask.setContentSize(size - 4, size - 4);
+        mask.setContentSize(size - 10, size - 10);
         frame.addChild(mask);
         applyRoundedAvatarMask(mask);
-        createMoodBeanMascot(mask, 0, -1, size - 7);
+        createMoodBeanMascot(mask, 0, -1, size - 12);
         if (!url) return frame;
         loadRemoteTexture(url).then((texture) => {
             if (this.disposed || !cc.isValid(mask)) return;
@@ -217,7 +217,7 @@ export default class RankChaseView {
             const sprite = node.addComponent(cc.Sprite);
             sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
             sprite.spriteFrame = new cc.SpriteFrame(texture);
-            uimanager.fitSpriteFrameInside(node, sprite.spriteFrame, size - 4, size - 4);
+            uimanager.fitSpriteFrameInside(node, sprite.spriteFrame, size - 10, size - 10);
         }).catch(() => undefined);
         return frame;
     }

@@ -16,13 +16,19 @@
 
 升级会删除秘境两张表、奖励邮件和旧周结算状态，去掉开心豆排行榜字段。保留玩家余额、经验、等级、最高分、历史结算和周最高分，不返还秘境投入。迁移前必须备份生产数据库。`node src/databaseAudit.js backup.sqlite` 可以在内存中演练；加第二个数据库路径可核对实际迁移结果，只输出摘要。
 
-`GET /v1/cocos-zyx/health` 返回 `apiVersion: 8`、`schemaVersion: 8` 和能力列表。未知/已退役路由返回 JSON 404；生产环境不注册调试路由。
+本地候选的 `GET /v1/cocos-zyx/health` 返回 `apiVersion: 11`、`schemaVersion: 8` 和 `balloon-rescue-v6` / `balloon-blast-v7` / `random-rescue-v8` 能力。未知/已退役路由返回 JSON 404；生产环境不注册调试路由。候选构建完成不代表线上已经升级。
 
 发布后从仓库根目录运行 `node scripts/check-cloud.js`，检查真实 HTTPS 的完整客户端协议。它创建独立测试档案，结算 0 分/0 豆，不占排行榜。
 
 ## 开心豆商城
 
-当前新开局固定使用 `collectionRule: progress_v2` 与 `rulesVersion: 5`。`difficulty-ramp-2x` 对应18/30/42步的新难度曲线；在途V2局保留原曲线重放。`bean-tool-shop` 能力提供服务端库存、固定20:1道具/5:1体力兑换、道具使用凭据和资产版本；接口及历史迁移见 [商城说明](../docs/shop.md)。普通服务不要配置历史兼容夹具的 `ALLOW_LEGACY_ROUND_STARTS`。
+当前新开局使用 `collectionRule: progress_v2`；滚动发布期间同时接受 `rulesVersion: 5`、`6`、`7` 和当前的 `8`，均按服务端记录的种子和版本完整重放。V1–V4仅保留历史局结算兼容。`difficulty-ramp-2x` 对应18/30/42步的新难度曲线；在途V2局保留原曲线重放。`bean-tool-shop` 能力提供服务端库存、固定20:1道具/5:1体力兑换、道具使用凭据和资产版本；接口及历史迁移见 [商城说明](../docs/shop.md)。普通服务不要配置历史兼容夹具的 `ALLOW_LEGACY_ROUND_STARTS`。
+
+`balloon-rescue-v6`：V6棋盘分布与涨行修订、热气球出现/消失/兑现记录及随机四分之一清除重放。API9无需新数据结构或玩家重置。发布须先升级测试API并完成真机体验，再升级正式API；审核通过后的微信客户端可逐步替换旧V5客户端。
+
+`balloon-blast-v7`：V7热气球随机选取四分之一色块作为投弹落点，复用普通炸弹3×3范围及旧炸弹连锁；重叠命中只收集一次，不增加投弹本身的行分或额外上涨。V6旧局保留单块移除重放。V7客户端在扣体力前检查此能力，需配套API10；无数据结构变更或玩家重置。
+
+`random-rescue-v8`：两种救场共用分数>500、高度>6且未失败的条件；用对局种子各50%选择类型。`rescueOffer` 记录开局后毫秒数和类型，重放逐次检查共享60秒CD；`rescueDismiss` 结束机会，`balloon` / `rescueClear` 仅能兑换相应类型一次。无整局次数上限；服务端校验出现时间不得超过实际对局时长。清屏沿用原有无行分、无表情收集、清空后补排的效果。V8客户端需配套API11；历史V2–V7结果保持，无结构变更或玩家重置。
 
 `difficulty-pressure-v4` 对应9/15/21次有效操作的压力曲线，后期基础辅助15%，提示逐渐延后至8秒；V2/V3在途局保留对应原规则。
 

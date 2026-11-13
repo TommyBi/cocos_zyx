@@ -1,5 +1,5 @@
-import { BUTTON_COLORS, formatDisplayNickname, uimanager } from './manager/UIManager';
-import { getWxApi, requestWeChatUserProfile } from './manager/PlatformAdapter';
+import { BUTTON_COLORS, BUTTON_TEXT_COLOR, formatDisplayNickname, uimanager } from './manager/UIManager';
+import { getWxApi, requestWeChatUserProfile, hasWeChatProfileAuthorization, rememberWeChatProfileAuthorization } from './manager/PlatformAdapter';
 import { cloudService, CloudProfile, RoundSettlementResult, StaminaState } from './manager/CloudService';
 import { settingsPanel } from './manager/SettingsPanel';
 import { zyxGameModule } from './dataModule/ZyxGameModule';
@@ -26,6 +26,7 @@ import {
     isFeatureReady,
     loadRemoteTexture,
     prepareFeature,
+    prepareTypography,
 } from './manager/AssetLoader';
 import {
     getRewardOfferActionText,
@@ -33,7 +34,7 @@ import {
     registerSystemShare,
     requestRewardOffer,
 } from './manager/ShareReward';
-import { audioManager, MusicName } from './manager/AudioManager';
+import { audioManager } from './manager/AudioManager';
 import { isGmEnvironmentAvailable } from './manager/GmAccess';
 import { flushPendingRoundSettlements as flushSettlementQueue } from './manager/SettlementSync';
 import {
@@ -100,6 +101,10 @@ export default class GameMainScene extends cc.Component {
     private viewportRefreshPending: boolean = false;
 
     public onLoad(): void {
+        audioManager.enterScene('silent');
+        const balloonPreview = typeof CC_DEBUG !== 'undefined' && CC_DEBUG && typeof window !== 'undefined'
+            && /(?:^|[?&])balloonDemo=1(?:&|$)/.test(window.location.search);
+        audioManager.setPreviewMuted(balloonPreview);
         uimanager.init(this.node);
         registerSystemShare();
         cc.debug.setDisplayStats(false);
@@ -150,6 +155,17 @@ export default class GameMainScene extends cc.Component {
             cc.dynamicAtlasManager.enabled = false;
             cc.dynamicAtlasManager.reset();
         }
+        prepareTypography().then(() => {
+            if (!cc.isValid(this.node)) return;
+            uimanager.refreshTypography(this.node);
+            this.launch();
+        }).catch((error) => {
+            cc.warn('[字体] 使用可读字体继续启动', error);
+            if (cc.isValid(this.node)) this.launch();
+        });
+    }
+
+    private launch(): void {
         const search = typeof window !== 'undefined'
             && window.location
             && typeof window.location.search === 'string'
@@ -212,6 +228,7 @@ export default class GameMainScene extends cc.Component {
     }
 
     public onDestroy(): void {
+        audioManager.dispose();
         this.unschedule(this.updateStaminaStatus);
         const wxApi = getWxApi();
         if (wxApi) {
@@ -330,6 +347,7 @@ export default class GameMainScene extends cc.Component {
     }
 
     private enterHome(onReady?: () => void): void {
+        audioManager.enterScene('silent');
         if (!isFeatureReady('home') && !this.pendingSettlementPresentation) uimanager.showToast('正在加载首页…');
         prepareFeature('home')
             .then(() => {
@@ -852,7 +870,7 @@ export default class GameMainScene extends cc.Component {
             ASSET_PATHS.home.rankEntry,
             () => showLeaderboardPanel(
                 () => this.bootstrapCloudProfile(),
-                () => this.authorizeWeChatProfile(),
+                () => this.authorizeWeChatProfile(false),
             ),
         );
         this.createHomeFeatureIcon(rail, 'shopEntry', '商城', -72, MOOD_COLORS.honey, null,
@@ -875,7 +893,7 @@ export default class GameMainScene extends cc.Component {
         entry.zIndex = 150;
         uimanager.drawButtonSurface(entry, buttonWidth, buttonHeight, MOOD_COLORS.mistBlue, 24);
         const gear = this.drawSettingsGear(entry);
-        const title = uimanager.createLabel(entry, '设置', 0, -27, 24, new cc.Color(255, 250, 237), 76, 26);
+        const title = uimanager.createLabel(entry, '设置', 0, -27, 24, BUTTON_TEXT_COLOR, 76, 26);
         this.makeLabelBold(title);
         entry.addComponent(cc.Button);
         entry.on(cc.Node.EventType.TOUCH_START, () => {
@@ -1544,7 +1562,9 @@ export default class GameMainScene extends cc.Component {
     }
 
     /** 授权必须由按钮点击直接进入；成功写回服务端后才替换游戏内资料。 */
-    private async authorizeWeChatProfile(): Promise<CloudProfile> {
+    private async authorizeWeChatProfile(force: boolean = true): Promise<CloudProfile> {
+        const current = this.currentCloudProfile;
+        if (!force && current && hasWeChatProfileAuthorization(current.playerId, current.avatarUrl)) return current;
         if (this.profileAuthorizationInFlight) return null;
         this.profileAuthorizationInFlight = true;
         let failureStage = '微信授权';
@@ -1553,6 +1573,7 @@ export default class GameMainScene extends cc.Component {
             failureStage = '保存微信资料';
             const profile = await cloudService.updateWeChatProfile(wechatProfile.nickName, wechatProfile.avatarUrl);
             this.applyCloudProfile(profile);
+            rememberWeChatProfileAuthorization(profile.playerId);
             uimanager.showToast('授权成功，昵称和头像已更新');
             return profile;
         } catch (error) {
@@ -1613,7 +1634,7 @@ export default class GameMainScene extends cc.Component {
                 maskNode.addChild(content);
                 this.renderProfileAvatar(content, avatarUrl || '', 112, 112);
                 const name = uimanager.createLabel(panel, nickname, 0, centerY - 48, 28, MOOD_COLORS.cocoa, 420, 48);
-                this.makeLabelBold(name);
+                uimanager.applyTypography(name);
             },
             220,
             false,
@@ -1930,7 +1951,7 @@ export default class GameMainScene extends cc.Component {
     }
 
     private makeLabelBold(label: cc.Label): void {
-        if (label) label.enableBold = true;
+        if (label) uimanager.applyTypography(label, true);
     }
 
     private async startGame(profileBootstrapHandled: boolean = false): Promise<boolean> {
@@ -2048,6 +2069,7 @@ export default class GameMainScene extends cc.Component {
     }
 
     private replaceScreen(name: string): void {
+        audioManager.enterScene(name === 'home' ? 'home' : name === 'game' ? 'game' : 'silent');
         if (this.screen && this.screen.isValid) {
             this.stopScreenTweens(this.screen);
             this.screen.destroy();
@@ -2076,8 +2098,6 @@ export default class GameMainScene extends cc.Component {
         this.applyStageLayout(this.screen);
         this.renderBackdrop(name);
         uimanager.init(this.screen);
-        if (name === 'launchLoading') return;
-        const music: MusicName = name === 'game' ? 'game' : 'main';
-        audioManager.playMusic(music);
+
     }
 }

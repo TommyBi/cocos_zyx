@@ -181,7 +181,7 @@ test('当前规则不接受跳过重力/消除结算就结束或进行下一次�
 
 
 test('V5保护25步，26/40/55切阶段，双排频率与大块明显增加并封顶', () => {
-    const b = new BoardEngine(); b.resetBoard(20261111, false);
+    const b = new BoardEngine(); b.resetBoard(20261111, false, 5);
     for (const [actions, stage, rows] of [[0,0,1],[25,0,1],[26,1,2],[27,1,1],[30,1,2],
         [39,1,1],[40,2,2],[41,2,1],[54,2,2],[55,3,2],[500,3,2]]) {
         b.difficultyActionCount = actions;
@@ -199,7 +199,7 @@ test('V5保护25步，26/40/55切阶段，双排频率与大块明显增加并�
 });
 
 test('V5整次双排原子升起，预告不改牌；顶行或预算不足不进行半次上升', () => {
-    const b = new BoardEngine(); b.resetBoard(42, false);
+    const b = new BoardEngine(); b.resetBoard(42, false, 5);
     b.difficultyActionCount = 55; b.beginPlayerAction();
     b.pieces = [piece(99, 5, 0, 1)];
     const first = JSON.parse(JSON.stringify(b.nextPieces));
@@ -239,7 +239,7 @@ test('冻结的V4长局保留原始结果；V5双排篡改无法重放', () => {
         valid: true, score: trace.score, collectedMoodBeans: trace.raw,
     });
     assert.equal(replayRound(trace.seed, trace.tutorial, trace.actions, 5).valid, false);
-    const b = new BoardEngine(); b.resetBoard(42, false);
+    const b = new BoardEngine(); b.resetBoard(42, false, 5);
     b.appendTurnRows(); b.resolveBoard(); b.finishPlayerAction();
     assert.equal(replayRound(42,false,b.roundActions,5).valid,true);
     const altered = b.roundActions.map(a => a.type === 'rise' ? { ...a,rows:2 } : a);
@@ -248,7 +248,7 @@ test('冻结的V4长局保留原始结果；V5双排篡改无法重放', () => {
 
 
 test('V5不能省略上一回合上升，或把双排篡改为单排后继续刷消除', () => {
-    const seed=3,b=new BoardEngine(); b.resetBoard(seed,false);
+    const seed=3,b=new BoardEngine(); b.resetBoard(seed,false,5);
     for(let i=0;i<30;i++) {
         const hint=b.findEliminationHint(),bomb=b.pieces.find(p=>p.bomb);
         if(hint)b.movePiece(hint.id,hint.offset);else if(bomb)b.detonateBomb(bomb.id);else break;

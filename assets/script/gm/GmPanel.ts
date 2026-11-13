@@ -6,7 +6,7 @@
  * 面板只由全局悬浮气泡打开；发放后由场景回调同步云端与 HUD。
  */
 import { zyxGameModule } from '../dataModule/ZyxGameModule';
-import { BUTTON_COLORS, uimanager } from '../manager/UIManager';
+import { BUTTON_COLORS, BUTTON_TEXT_COLOR, uimanager } from '../manager/UIManager';
 import { gameSettings } from '../manager/GameSettings';
 
 const COCOA = new cc.Color(101, 70, 58);
@@ -27,8 +27,8 @@ function createFlatButton(
     button.addComponent(cc.Button);
     // 一个节点只保留一层 Graphics，避免 Cocos 2.4 的后绘制组件吞掉底色。
     uimanager.drawButtonSurface(button, width, height, color, Math.min(17, height / 2));
-    const label = uimanager.createLabel(button, text, 0, 1, 24, cc.Color.WHITE, width - 20, height - 8);
-    label.enableBold = true;
+    const label = uimanager.createLabel(button, text, 0, 1, 24, BUTTON_TEXT_COLOR, width - 20, height - 8);
+    uimanager.applyTypography(label, true);
     button.on(cc.Node.EventType.TOUCH_START, () => cc.tween(button).to(0.06, { scale: 0.96 }).start());
     button.on(cc.Node.EventType.TOUCH_END, () => {
         cc.tween(button).to(0.1, { scale: 1 }).start();

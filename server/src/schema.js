@@ -1,4 +1,5 @@
 /** 核心消除版本的唯一数据库结构与迁移入口。迁移与持久化成功后才能监听端口。 */
+const { migrateDefaultNicknames } = require('./defaultNickname');
 function migrateSchema(db) {
   db.run('BEGIN IMMEDIATE');
   try {
@@ -73,9 +74,7 @@ function migrateSchema(db) {
       WHERE kind = 'use';`);
     db.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_players_wechat_openid ON players(wechat_openid) WHERE wechat_openid IS NOT NULL AND wechat_openid <> \'\'');
 
-    // 历史随机昵称仅替换贬义前缀，保留动物名；正常昵称和玩家其他资料不变。
-    db.run("UPDATE players SET nickname = '机灵的' || substr(nickname, 4) WHERE substr(nickname, 1, 3) = '狡猾的'");
-    db.run("UPDATE players SET nickname = '温柔的' || substr(nickname, 4) WHERE substr(nickname, 1, 3) = '慵懒的'");
+    migrateDefaultNicknames(db);
 
     const roundColumns = db.exec('PRAGMA table_info(game_rounds)')[0].values.map((row) => row[1]);
     if (!roundColumns.includes('seed')) db.run('ALTER TABLE game_rounds ADD COLUMN seed INTEGER NOT NULL DEFAULT 0');

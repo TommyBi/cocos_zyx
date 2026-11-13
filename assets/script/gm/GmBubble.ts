@@ -7,7 +7,7 @@
  *
  * 全流程都可访问的悬浮气泡：附着在场景根节点，不随页面切换销毁。可拖动，轻点打开补给面板。
  */
-import { uimanager } from '../manager/UIManager';
+import { BUTTON_TEXT_COLOR, uimanager } from '../manager/UIManager';
 import { showGmSupplyPanel } from './GmPanel';
 import { pushDebugProfileToCloud, resetCloudAccount, GmCloudHooks } from './GmCloudApi';
 
@@ -67,8 +67,8 @@ export function attachGmBubble(parent: cc.Node, hooks: GmBubbleHooks): void {
     tailGraphics.lineTo(-2, -8);
     tailGraphics.close();
     tailGraphics.fill();
-    const label = uimanager.createLabel(bubble, 'GM', -5, 1, 24, cc.Color.WHITE, 54, 30);
-    label.enableBold = true;
+    const label = uimanager.createLabel(bubble, 'GM', -5, 1, 24, BUTTON_TEXT_COLOR, 54, 30);
+    uimanager.applyTypography(label, true);
     const dot = uimanager.createCircle(bubble, 'gmBubbleDot', 5, new cc.Color(255, 227, 115), 28, 13);
     dot.zIndex = 60;
     bubble.addComponent(cc.Button);

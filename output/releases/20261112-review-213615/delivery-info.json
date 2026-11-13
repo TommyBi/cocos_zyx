@@ -1,0 +1,44 @@
+{
+  "releaseId": "20261112-review-213615",
+  "delivery": "/Users/liuyang/Documents/private/cocos_zyx/build/cocos-zyx-release-20261112-review-213615",
+  "releaseNotes": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261112-review-213615/发布说明.md",
+  "archives": [
+    {
+      "path": "/Users/liuyang/Documents/private/cocos_zyx/build/wechat-review-20261112-review-213615.zip",
+      "bytes": 2301679,
+      "sha256": "c8876215b0b5e7df92f25893ded9cca95c16ad475916d3db8db0aa2c43ba0ca0"
+    },
+    {
+      "path": "/Users/liuyang/Documents/private/cocos_zyx/build/cocos-zyx-server-20261112-review-213615.tar.gz",
+      "bytes": 91070,
+      "sha256": "968e93c644dd6c529800b62f4806ee67ff85ad23281cfa7b9953362dd3914798"
+    }
+  ],
+  "zipFilesVerified": 79,
+  "backendFilesVerified": 32,
+  "checks": {
+    "clientTests": 159,
+    "serverTests": 42,
+    "totalTests": 201,
+    "serverNode20Tests": 42,
+    "engineConsistency": true,
+    "typescript": true,
+    "assetValidation": true,
+    "gmRemoved": true,
+    "gmSourceRestored": true,
+    "domainCheckEnabled": true,
+    "productionMinifiedBuild": true,
+    "sourceMatches": true,
+    "localApi9V5V6HttpProtocol": true,
+    "localProductionModeDebugRoutes404": true,
+    "cdnMusicFiles": 5,
+    "cdnShareFiles": 3,
+    "cdnAllHashesMatch": true
+  },
+  "packageBytes": {
+    "main": 2466591,
+    "home": 334370,
+    "effects": 1034459,
+    "total": 3835420
+  }
+}

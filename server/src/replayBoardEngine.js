@@ -1,9 +1,9 @@
-/** V2/V3/V4/V5 重放同一纯棋盘引擎，按对局版本保留对应难度曲线与 settle/finish 边界。 */
+/** V2–V8 重放同一纯棋盘引擎，按对局版本保留难度曲线与 settle/finish 边界。 */
 const { default: BoardEngine, BOARD_RULES_VERSION } = require('./boardEngine');
 function replayBoardEngine(seed, tutorial, actions, rulesVersion) {
     const invalid = { score: -1, collectedMoodBeans: -1, valid: false };
     if (!Array.isArray(actions) || actions[0]?.type !== 'rules'
-        || ![2, 3, 4, BOARD_RULES_VERSION].includes(rulesVersion) || actions[0].version !== rulesVersion) return invalid;
+        || ![2, 3, 4, 5, 6, 7, BOARD_RULES_VERSION].includes(rulesVersion) || actions[0].version !== rulesVersion) return invalid;
     const board = new BoardEngine();
     board.resetBoard(seed, tutorial, actions[0].version);
     let openingRemaining = 0;
@@ -17,7 +17,7 @@ function replayBoardEngine(seed, tutorial, actions, rulesVersion) {
     for (const action of actions.slice(1)) {
         if (!action || typeof action.type !== 'string') return invalid;
         // 客户端只能报告真实结算边界，不能跳过掉落/满行后直接继续操作。
-        if (['move', 'bomb', 'hammer', 'purify', 'clear', 'revive', 'finish', 'rise'].includes(action.type)
+        if (['move', 'bomb', 'hammer', 'purify', 'clear', 'revive', 'finish', 'rise', 'balloon', 'balloonOffer', 'rescueOffer', 'rescueClear'].includes(action.type)
             && !stable()) return invalid;
         const startsAction = ['move', 'bomb', 'hammer', 'purify', 'clear', 'revive'].includes(action.type);
         if (rulesVersion >= 5 && startsAction) {
@@ -26,6 +26,17 @@ function replayBoardEngine(seed, tutorial, actions, rulesVersion) {
             riseRequired = !(tutorial && action.type === 'move' && board.moveCount < 3);
         }
         switch (action.type) {
+            case 'rescueOffer':
+                if (rulesVersion < 8 || riseRequired || !['balloon', 'clear'].includes(action.kind)
+                    || board.offerRoundRescue(action.elapsedMs) !== action.kind) return invalid;
+                break;
+            case 'rescueDismiss':
+                if (rulesVersion < 8 || !board.dismissRoundRescue()) return invalid;
+                break;
+            case 'rescueClear':
+                if (rulesVersion < 8 || riseRequired || !board.applyClearRescue()) return invalid;
+                riseRequired = true;
+                break;
             case 'move':
                 openingRemaining = 0;
                 if (!Number.isSafeInteger(action.id) || !Number.isSafeInteger(action.offset)
@@ -68,7 +79,18 @@ function replayBoardEngine(seed, tutorial, actions, rulesVersion) {
                 board.colorPurifierCount = 1;
                 if (!Number.isSafeInteger(action.color) || !board.useColorPurifier(action.color).length) return invalid;
                 break;
-            case 'clear': board.removeAllPieces(); break;
+            case 'balloonOffer':
+                if (rulesVersion < 6 || riseRequired || !board.offerBalloonRescue()) return invalid;
+                break;
+            case 'balloonDismiss':
+                if (rulesVersion < 6 || !board.dismissBalloonRescue()) return invalid;
+                break;
+            case 'balloon':
+                if (rulesVersion < 6 || riseRequired || !board.applyBalloonRescue()) return invalid;
+                break;
+            case 'clear':
+                if (rulesVersion >= 6) return invalid;
+                board.removeAllPieces(); break;
             case 'revive':
                 if (!Number.isSafeInteger(action.rowCount) || action.rowCount < 1 || action.rowCount > 10
                     || !board.removeTopRowsForRevive(action.rowCount).length) return invalid;

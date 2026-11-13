@@ -19,6 +19,16 @@ test.before(() => {
 });
 test.afterEach(() => { delete global.wx; delete global.location; delete global.CC_DEBUG; store.clear(); });
 
+test('排行榜复用已保存授权，重启后仍生效，换账号不误用旧标记', () => {
+    assert.equal(platform.hasWeChatProfileAuthorization('p1', ''), false);
+    platform.rememberWeChatProfileAuthorization('p1');
+    assert.equal(platform.hasWeChatProfileAuthorization('p1', ''), true);
+    assert.equal(platform.hasWeChatProfileAuthorization('p2', ''), false);
+    assert.equal(platform.hasWeChatProfileAuthorization('p2', 'https://avatar.example/a.png'), true);
+    store.set('zyx_wechat_profile', 'corrupt');
+    assert.equal(platform.hasWeChatProfileAuthorization('p1', ''), false);
+});
+
 test('Web 请求超时会取消，允许商城用原ID继续确认而非永久卡在确认中', async () => {
     const originalFetch = global.fetch;
     const originalSetTimeout = global.setTimeout;
@@ -98,15 +108,28 @@ test('服务端仍是V3时在扣体力前拦截V4新开局', async () => {
 
 // ── 微信环境 ──
 
+test('服务端仅支持V6单块投弹时，在扣体力前拦截V7新开局', async () => {
+    const requests = [];
+    global.wx = { request(options) {
+        requests.push(options.url);
+        options.success({ statusCode: 200, data: { code: 0, data: { capabilities:
+            ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop',
+                'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6'] } } });
+    } };
+    await assert.rejects(cloud.cloudService.startRound('unsupported_balloon_blast'), /游戏服务更新中/);
+    assert.equal(requests.length, 1);
+    assert.ok(requests[0].endsWith('/health'));
+});
+
 test('微信正式版（release）使用 Production API', async () => {
     store.set('zyx_cloud_token', 'test-token');
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'release' } }),
         request: (options) => {
-            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5'] } } }); return; }
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'] } } }); return; }
             assert.equal(options.url, 'https://api.tcjstory.cn/v1/cocos-zyx/games/start');
             assert.equal(options.header.Authorization, 'Bearer test-token');
-            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 5, stamina: { current: 29 } } } });
+            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 8, stamina: { current: 29 } } } });
         },
     };
     assert.equal(cloud.getEnvName(), 'production');
@@ -119,9 +142,9 @@ test('微信体验版（trial）使用 Staging API', async () => {
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'trial' } }),
         request: (options) => {
-            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5'] } } }); return; }
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'] } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/games/start');
-            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 5, stamina: { current: 29 } } } });
+            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 8, stamina: { current: 29 } } } });
         },
     };
     assert.equal(cloud.getEnvName(), 'staging');
@@ -134,9 +157,9 @@ test('微信开发版（develop）使用 Staging API', async () => {
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'develop' } }),
         request: (options) => {
-            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5'] } } }); return; }
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'] } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/games/start');
-            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 5, stamina: { current: 29 } } } });
+            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 8, stamina: { current: 29 } } } });
         },
     };
     assert.equal(cloud.getEnvName(), 'staging');
@@ -154,7 +177,7 @@ test('资料更新只走独立接口并携带微信昵称头像', async () => {
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'trial' } }),
         request: (options) => {
-            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5'] } } }); return; }
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'] } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/players/profile');
             assert.deepEqual(options.data, { nickname: '微信玩家', avatarUrl: 'https://thirdwx.qlogo.cn/avatar.png' });
             options.success({ statusCode: 200, data: { code: 0, data: { profile: { nickname: '微信玩家' } } } });
@@ -171,7 +194,7 @@ test('微信建档携带一次性 loginCode，清缓存后 deviceId 改变仍提
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'develop' } }),
         login: (options) => options.success({ code: `login_code_${++loginSeq}` }),
         request: (options) => {
-            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5'] } } }); return; }
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'] } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/players/bootstrap');
             bodies.push(options.data);
             options.success({ statusCode: 200, data: { code: 0, data: { token: `token_${loginSeq}`, profile: { playerId: 'stable_player' } } } });

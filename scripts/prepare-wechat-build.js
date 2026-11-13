@@ -31,7 +31,7 @@ function dirSizeBytes(target) {
 }
 
 function formatMb(bytes) {
-    return `${(bytes / 1024 / 1024).toFixed(2)}MB`;
+    return `${(bytes / 1024 / 1024).toFixed(2)}MiB`;
 }
 
 const projectConfig = JSON.parse(fs.readFileSync(projectConfigPath, 'utf8'));
@@ -61,7 +61,7 @@ const subpackageNames = fs.readdirSync(subpackagesRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
-const expectedSubpackages = ['home'];
+const expectedSubpackages = ['effects', 'home'];
 if (JSON.stringify(subpackageNames) !== JSON.stringify(expectedSubpackages)) {
     throw new Error(`Cocos 构建分包必须且只能是 ${expectedSubpackages.join(', ')}，实际为 ${subpackageNames.join(', ')}`);
 }
@@ -84,6 +84,7 @@ settings.server = CDN_ROOT;
 if (!Array.isArray(settings.subpackages) || settings.subpackages.slice().sort().join(',') !== expectedSubpackages.join(',')) {
     throw new Error(`Cocos 分包声明错误：${settings && settings.subpackages}`);
 }
+settings.subpackages = expectedSubpackages;
 const settingsLiteral = `window._CCSettings=${JSON.stringify(settings)};`;
 const settingsWithoutServer = settingsSource.replace(/window\._CCSettings\s*=\s*\{[\s\S]*?\};/, settingsLiteral);
 if (settingsWithoutServer === settingsSource) throw new Error('无法更新微信 settings.js 分包声明');
@@ -165,6 +166,14 @@ if (packedOversizedAudio.length > 0) {
     throw new Error(`超过 128KB 的音频仍在代码包内：${packedOversizedAudio.join(', ')}`);
 }
 
+// 保持 UUID 的贴图迁移不能因后续序列化引用而悄悄复制回主包。
+const effectsSource = path.resolve(__dirname, '..', 'assets', 'bundles', 'effects');
+const effectTextureIds = walkFiles(effectsSource).filter(file => file.endsWith('.png.meta'))
+    .map(file => JSON.parse(fs.readFileSync(file, 'utf8')).uuid);
+const leakedEffects = walkFiles(path.join(buildRoot, 'assets')).filter(file =>
+    effectTextureIds.some(uuid => path.basename(file).startsWith(uuid)));
+if (leakedEffects.length) throw new Error(`特效贴图重复进入主包：${leakedEffects.join(', ')}`);
+
 const subpackageSizes = expectedSubpackages.map((name) => ({
     name,
     bytes: dirSizeBytes(path.join(subpackagesRoot, name)),
@@ -177,8 +186,8 @@ const totalBytes = dirSizeBytes(buildRoot);
 const subpackageBytes = subpackageSizes.reduce((sum, item) => sum + item.bytes, 0);
 const remoteBytes = dirSizeBytes(remoteRoot);
 const mainBytes = totalBytes - subpackageBytes;
-if (mainBytes > 4 * 1024 * 1024) {
-    throw new Error(`微信主包超过 4MB：${formatMb(mainBytes)}`);
+if (mainBytes > 2.75 * 1024 * 1024) {
+    throw new Error(`微信主包超过项目预算 2.75MiB：${formatMb(mainBytes)}`);
 }
 
 console.log(`Prepared WeChat mini game: ${APP_ID}`);

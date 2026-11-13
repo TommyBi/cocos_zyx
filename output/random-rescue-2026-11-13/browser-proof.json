@@ -1,0 +1,137 @@
+{
+  "clear": {
+    "before": {
+      "count": 13,
+      "score": 2950,
+      "raw": 186,
+      "elapsed": 0.9699899999999999,
+      "offers": [
+        {
+          "type": "rescueOffer",
+          "elapsedMs": 0,
+          "kind": "balloon"
+        },
+        {
+          "type": "rescueOffer",
+          "elapsedMs": 60000,
+          "kind": "balloon"
+        },
+        {
+          "type": "rescueOffer",
+          "elapsedMs": 120000,
+          "kind": "clear"
+        }
+      ],
+      "kind": "clear",
+      "last": 120000,
+      "remainingTime": false
+    },
+    "acknowledged": {
+      "prompt": true,
+      "explanation": false,
+      "mask": false,
+      "locked": false
+    },
+    "sharing": {
+      "shares": 1,
+      "phase": "sharing",
+      "remaining": 0.8933299999999998,
+      "locked": true
+    },
+    "canceled": {
+      "before": 0.8933299999999998,
+      "remaining": 0.8933299999999998,
+      "active": true,
+      "phase": "flying",
+      "locked": false
+    },
+    "after": {
+      "score": 2950,
+      "raw": 186,
+      "count": 13,
+      "seed": 1,
+      "actions": 420,
+      "locked": false,
+      "clearActions": 1,
+      "prompt": false
+    }
+  },
+  "balloon": {
+    "before": {
+      "count": 13,
+      "targets": 4,
+      "kind": "balloon"
+    },
+    "after": {
+      "seed": 1,
+      "score": 2950,
+      "raw": 189,
+      "actions": 409,
+      "result": {
+        "clearedRows": 0,
+        "gainedScore": 0,
+        "removedPieceIds": [
+          353,
+          354,
+          356,
+          359,
+          366,
+          373,
+          375,
+          378
+        ],
+        "clearedRowIndexes": [],
+        "collectedMoodTypes": [
+          2,
+          6,
+          1
+        ],
+        "detonatedBombs": [
+          {
+            "id": 356,
+            "row": 4,
+            "col": 4,
+            "size": 3,
+            "affectedPieceIds": [
+              354,
+              356,
+              359
+            ]
+          },
+          {
+            "id": 354,
+            "row": 3,
+            "col": 6,
+            "size": 1,
+            "affectedPieceIds": [
+              354,
+              356
+            ]
+          },
+          {
+            "id": 375,
+            "row": 7,
+            "col": 6,
+            "size": 1,
+            "affectedPieceIds": [
+              366,
+              375,
+              378
+            ]
+          },
+          {
+            "id": 353,
+            "row": 6,
+            "col": 0,
+            "size": 2,
+            "affectedPieceIds": [
+              353,
+              373
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "errors": []
+}

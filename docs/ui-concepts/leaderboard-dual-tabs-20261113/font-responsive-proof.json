@@ -1,0 +1,96 @@
+[
+  {
+    "width": 320,
+    "height": 568,
+    "labels": [
+      {
+        "text": "一二三四五六七...",
+        "font": "zyx_happy_round_body_v1",
+        "system": false,
+        "wrap": false,
+        "actual": 24,
+        "nodeWidth": 192
+      },
+      {
+        "text": "12345678",
+        "font": "zyx_happy_round_display_v1",
+        "system": false,
+        "wrap": false,
+        "actual": 20,
+        "nodeWidth": 100
+      },
+      {
+        "text": "开心豆🙂𠮷",
+        "font": "zyx_happy_round_body_v1",
+        "system": false,
+        "wrap": false,
+        "actual": 26,
+        "nodeWidth": 192
+      },
+      {
+        "text": "我的排名：未上榜",
+        "font": "zyx_happy_round_display_v1",
+        "system": false,
+        "wrap": false,
+        "actual": 24,
+        "nodeWidth": 270
+      },
+      {
+        "text": "最高分 12345678",
+        "font": "zyx_happy_round_display_v1",
+        "system": false,
+        "wrap": false,
+        "actual": 24,
+        "nodeWidth": 190
+      }
+    ],
+    "errors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "labels": [
+      {
+        "text": "一二三四五六七...",
+        "font": "zyx_happy_round_body_v1",
+        "system": false,
+        "wrap": false,
+        "actual": 24,
+        "nodeWidth": 192
+      },
+      {
+        "text": "12345678",
+        "font": "zyx_happy_round_display_v1",
+        "system": false,
+        "wrap": false,
+        "actual": 20,
+        "nodeWidth": 100
+      },
+      {
+        "text": "开心豆🙂𠮷",
+        "font": "zyx_happy_round_body_v1",
+        "system": false,
+        "wrap": false,
+        "actual": 26,
+        "nodeWidth": 192
+      },
+      {
+        "text": "我的排名：未上榜",
+        "font": "zyx_happy_round_display_v1",
+        "system": false,
+        "wrap": false,
+        "actual": 24,
+        "nodeWidth": 270
+      },
+      {
+        "text": "最高分 12345678",
+        "font": "zyx_happy_round_display_v1",
+        "system": false,
+        "wrap": false,
+        "actual": 24,
+        "nodeWidth": 190
+      }
+    ],
+    "errors": []
+  }
+]

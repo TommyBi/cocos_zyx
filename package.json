@@ -6,7 +6,7 @@
     "test:module": "node --test scripts/tests/*.test.js",
     "validate:assets": "node scripts/validate-assets.js",
     "build:web": "node scripts/clean-build.js web-mobile && npm run validate:assets && env -u ELECTRON_RUN_AS_NODE /Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/MacOS/CocosCreator --path . --build \"platform=web-mobile;debug=true;md5Cache=false\" --nologin --force",
-    "serve:web": "python3 -m http.server 7457 --directory build/web-mobile",
+    "serve:web": "node scripts/preview/server.cjs",
     "build:wechat": "node scripts/clean-build.js wechatgame && npm run validate:assets && node scripts/build-wechat.js",
     "check:wechat-gm": "node scripts/check-wechat-gm.js",
     "upload:wechat": "node scripts/upload-wechat.js",

@@ -1,0 +1,7 @@
+{
+  "delivery": "/Users/liuyang/Documents/private/cocos_zyx/build/cocos-zyx-release-20261113-staging-ui-144730",
+  "wechatZip": "/Users/liuyang/Documents/private/cocos_zyx/build/wechat-review-20261113-staging-ui-144730.zip",
+  "wechatZipSha256": "1a9529d5d75e527f21b7bcf8c4fce68ea381a656cddd7da08c280ab95261eb43",
+  "backendTar": "/Users/liuyang/Documents/private/cocos_zyx/build/cocos-zyx-server-20261113-staging-ui-144730.tar.gz",
+  "backendTarSha256": "083569a4a60235d9fde1ded5f421a684cec4047dd6820b9b5ad698e839c1caa5"
+}

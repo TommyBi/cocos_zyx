@@ -1,0 +1,14 @@
+{
+  "releaseId": "20261113-avatar-frame-152504",
+  "stagingBackendReleaseId": "20261113-staging-ui-144730",
+  "evidence": "/private/tmp/zyx-release-20261113-avatar-frame-152504",
+  "delivery": "/Users/liuyang/Documents/private/cocos_zyx/build/cocos-zyx-release-20261113-avatar-frame-152504",
+  "releaseNotes": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261113-avatar-frame-152504/发布说明.md",
+  "wechatZip": "/Users/liuyang/Documents/private/cocos_zyx/build/wechat-review-20261113-avatar-frame-152504.zip",
+  "backendTar": "/Users/liuyang/Documents/private/cocos_zyx/build/cocos-zyx-server-20261113-staging-ui-144730.tar.gz",
+  "stagingDeployed": true,
+  "stagingBackendRecreated": false,
+  "productionDeployed": false,
+  "uploadedWeChat": false,
+  "submittedReview": false
+}

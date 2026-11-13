@@ -13,6 +13,7 @@ const { migrateSchema } = require('./schema');
 const { replayRound } = require('./gameEngine');
 const { BOARD_RULES_VERSION } = require('./boardEngine');
 const { exchangeWeChatLoginCode } = require('./wechatAuth');
+const { createDefaultNickname } = require('./defaultNickname');
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
@@ -63,14 +64,6 @@ function newToken() {
 
 function newGuestId() {
   return `guest_${crypto.randomBytes(18).toString('hex')}`;
-}
-
-const DEFAULT_NICKNAME_ADJECTIVES = ['美丽的', '快乐的', '勇敢的', '温柔的', '机灵的', '幸运的', '恬静的', '活泼的', '善良的', '可爱的'];
-const DEFAULT_NICKNAME_ANIMALS = ['狐狸', '天鹅', '小熊', '猫咪', '兔子', '企鹅', '小鹿', '松鼠', '熊猫', '海豚', '柴犬', '考拉'];
-function createDefaultNickname() {
-  const adjective = DEFAULT_NICKNAME_ADJECTIVES[crypto.randomInt(DEFAULT_NICKNAME_ADJECTIVES.length)];
-  const animal = DEFAULT_NICKNAME_ANIMALS[crypto.randomInt(DEFAULT_NICKNAME_ANIMALS.length)];
-  return `${adjective}${animal}`;
 }
 
 const PERSIST_DEBOUNCE_MS = 500;
@@ -271,15 +264,15 @@ function addExperience(user, amount) {
 }
 
 /**
- * 永久单局最高分排行榜。
- * 直接基于 players.highest_single_game_score，无周期、无结算概念：
- * 列表返回全服前 200 名，自己始终单独返回名次与单局最高分（未上榜时 onBoard=false）。
+ * 永久榜单：积分榜基于最高分；开心榜只读取当前钱包余额。
+ * 动态 SQL 列名只来自内部白名单，不接受请求中的任意字段。
  */
-function leaderboard(user) {
+function leaderboard(user, type = 'power') {
+  const column = type === 'beans' ? 'mood_bean_balance' : 'highest_single_game_score';
   const rows = all(
-    `SELECT player_id, nickname, avatar_url, highest_single_game_score AS value
-     FROM players WHERE highest_single_game_score > 0
-     ORDER BY highest_single_game_score DESC, updated_at ASC, player_id ASC
+    `SELECT player_id, nickname, avatar_url, ${column} AS value
+     FROM players WHERE ${column} > 0
+     ORDER BY ${column} DESC, updated_at ASC, player_id ASC
      LIMIT 200`,
   );
   const entries = rows.map((row, index) => ({
@@ -291,18 +284,21 @@ function leaderboard(user) {
     rewardTier: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'normal',
   }));
   const bestScore = Math.max(0, user.highest_single_game_score || 0);
+  const moodBeanBalance = Math.max(0, user.mood_bean_balance || 0);
+  const value = type === 'beans' ? moodBeanBalance : bestScore;
   const onBoard = entries.some((entry) => entry.playerId === user.player_id);
-  // 实际名次 = 分数严格高于自己的人数 + 1；同分并列取相同名次。
+  // 数值严格高于自己的人数 + 1；同值并列，余额为 0 不上榜。
   let rank = null;
-  if (bestScore > 0) {
-    const higher = get('SELECT COUNT(*) AS count FROM players WHERE highest_single_game_score > ?', [bestScore]);
+  if (value > 0) {
+    const higher = get(`SELECT COUNT(*) AS count FROM players WHERE ${column} > ?`, [value]);
     rank = (Number(higher && higher.count) || 0) + 1;
   }
-  return { entries, self: { rank, bestScore, onBoard } };
+  return { type, entries, self: { playerId: user.player_id, avatarUrl: user.avatar_url,
+    rank, bestScore, moodBeanBalance, value, onBoard } };
 }
 
 app.get(['/health', '/v1/cocos-zyx/health'], (_req, res) => {
-  ok(res, { ok: true, service: 'cocos-zyx-cloud', apiVersion: 8, schemaVersion: 8, capabilities: ['wechat-login', 'stamina', 'round-start', 'settlement', 'power-leaderboard', 'daily-share', 'bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5'], checkedAt: new Date().toISOString() });
+  ok(res, { ok: true, service: 'cocos-zyx-cloud', apiVersion: 11, schemaVersion: 8, capabilities: ['wechat-login', 'stamina', 'round-start', 'settlement', 'power-leaderboard', 'bean-balance-leaderboard', 'daily-share', 'bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'], checkedAt: new Date().toISOString() });
 });
 
 app.post('/v1/cocos-zyx/players/bootstrap', async (req, res) => {
@@ -387,7 +383,7 @@ app.post('/v1/cocos-zyx/games/start', (req, res) => {
     if (!roundId) return fail(res, '缺少对局标识', 400, 'ROUND_ID_INVALID');
     const collectionRule = req.body.collectionRule || 'legacy';
     const rulesVersion = req.body.rulesVersion === undefined ? 1 : Number(req.body.rulesVersion);
-    if (![1, 2, 3, 4, BOARD_RULES_VERSION].includes(rulesVersion)) return fail(res, '不支持的棋盘规则', 400, 'BOARD_RULES_UNSUPPORTED');
+    if (![1, 2, 3, 4, 5, 6, 7, BOARD_RULES_VERSION].includes(rulesVersion)) return fail(res, '不支持的棋盘规则', 400, 'BOARD_RULES_UNSUPPORTED');
     if (!['legacy', 'progress_v1', economy.MOOD_COLLECTION_RULE].includes(collectionRule)) return fail(res, '不支持的收集规则', 400, 'COLLECTION_RULE_UNSUPPORTED');
 
     const existing = get('SELECT status, seed, is_tutorial, collection_rule, rules_version, tool_rules_version FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
@@ -409,8 +405,9 @@ app.post('/v1/cocos-zyx/games/start', (req, res) => {
       });
     }
 
-    // 旧协议仅供历史局补传；不能再新建可直接提交原始奖励数的对局。
-    if ((rulesVersion !== BOARD_RULES_VERSION || collectionRule !== economy.MOOD_COLLECTION_RULE)
+    // 滚动发布期间保留V5/V6/V7与当前V8新开局；更早协议仅供历史局补传。
+    // 都必须使用当前收集规则、服务端种子及完整重放，不开放旧奖励协议。
+    if ((![5, 6, 7, BOARD_RULES_VERSION].includes(rulesVersion) || collectionRule !== economy.MOOD_COLLECTION_RULE)
       && process.env.ALLOW_LEGACY_ROUND_STARTS !== '1') {
       return fail(res, '请更新游戏后重新开始', 400, 'COLLECTION_RULE_UNSUPPORTED');
     }
@@ -606,12 +603,14 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
     const actions = Array.isArray(req.body.actions) ? req.body.actions : [];
     if (actions.length > 100000) return fail(res, '操作序列过长', 400, 'REPLAY_INVALID');
     if (startedRound.rules_version >= 5) {
-      // 救场分享尚无平台侧验签，但不能凭伪造动作无限清屏/复活绕过上升压力。
-      // UI 每60秒最多出现一次清屏，复活每局一次且固定清理顶部8排。
-      const clearCount = actions.filter(action => action && action.type === 'clear').length;
+      // V8由棋盘重放逐次检查两种提示的共享60秒CD，不设整局次数上限。
+      // 旧协议按对局时长检查总量；复活仍每局一次且固定清理顶部8排。
+      const clearCount = actions.filter(action => action && ['clear', 'balloonOffer', 'rescueOffer'].includes(action.type)).length;
       const revives = actions.filter(action => action && action.type === 'revive');
       const elapsed = Math.max(0, Math.min(duration, now() - startedRound.started_at));
-      if (clearCount > 1 + Math.floor(elapsed / 60000) || revives.length > 1
+      if ((startedRound.rules_version < 8 && clearCount > 1 + Math.floor(elapsed / 60000)) || revives.length > 1
+        || (startedRound.rules_version >= 8 && actions.some(action => action && action.type === 'rescueOffer'
+          && (!Number.isSafeInteger(action.elapsedMs) || action.elapsedMs < 0 || action.elapsedMs > elapsed)))
         || revives.some(action => action.rowCount !== 8)) {
         return fail(res, '救场次数或范围异常', 400, 'REPLAY_INVALID');
       }
@@ -694,8 +693,9 @@ app.get('/v1/cocos-zyx/leaderboards', (req, res) => {
   try {
     const user = authenticate(req, res);
     if (!user) return;
-    if (req.query.type && req.query.type !== 'power') return fail(res, '仅支持单局最高分排行榜', 400, 'LEADERBOARD_TYPE_UNSUPPORTED');
-    ok(res, leaderboard(user));
+    const type = req.query.type || 'power';
+    if (!['power', 'beans'].includes(type)) return fail(res, '不支持该排行榜类型', 400, 'LEADERBOARD_TYPE_UNSUPPORTED');
+    ok(res, leaderboard(user, type));
   } catch (error) {
     fail(res, error.message || '读取排行榜失败', 500);
   }

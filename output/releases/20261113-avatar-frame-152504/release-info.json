@@ -1,0 +1,123 @@
+{
+  "releaseId": "20261113-avatar-frame-152504",
+  "baseReleaseId": "20261113-staging-ui-144730",
+  "sourceTreeSha256": "cfc19e5cd54d2e4b27c681797056bf47afccc792ac8469d82c7cffc505c74f64",
+  "sourceFiles": 249,
+  "wechatTreeSha256": "04d2c8fb1e0aef27a222572d9bae0a3035cd4ca1df10dcaf8937bef0c4769ee3",
+  "wechatFiles": 91,
+  "archives": {
+    "delivery": "/Users/liuyang/Documents/private/cocos_zyx/build/cocos-zyx-release-20261113-avatar-frame-152504",
+    "wechatZip": "/Users/liuyang/Documents/private/cocos_zyx/build/wechat-review-20261113-avatar-frame-152504.zip",
+    "wechatZipSha256": "9b0e3186eda3d8ba7a3ac425c07188af82dbaef320ab16a1598353e52a1bc982"
+  },
+  "packageBytes": {
+    "main": 2668735,
+    "home": 3831391,
+    "effects": 1034459,
+    "total": 7534585
+  },
+  "build": {
+    "command": "npm run build:wechat",
+    "args": "platform=wechatgame;debug=false;md5Cache=true;appid=wxdc39c78bfd045896",
+    "cocosCreator": "2.4.13",
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "runtimeNodeTested": "v20.20.2",
+    "typescript": "4.9.5"
+  },
+  "locks": {
+    "package-lock.json": "39a9a2b3ea66d4abff1907f6dafea6aa50211a5f7ccf9d80709d20af0c3b6d73",
+    "server/package-lock.json": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868"
+  },
+  "checks": {
+    "clientTests": 171,
+    "typescript": true,
+    "webAndWechatBuilds": true,
+    "gmRemovedAndSourceRestored": true,
+    "compiledBundleQA": {
+      "dualLeaderboardIncluded": true,
+      "regularFontAndArtIncluded": true,
+      "moduleCount": 29,
+      "rulesVersion": 8,
+      "balloonFlightSeconds": 15,
+      "scoreBoundary": {
+        "at500": false,
+        "at501": true
+      },
+      "routes": {
+        "develop": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+        "trial": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+        "release": "https://api.tcjstory.cn/v1/cocos-zyx"
+      },
+      "appId": "wxdc39c78bfd045896",
+      "libVersion": "3.15.2",
+      "urlCheck": true,
+      "subpackages": [
+        {
+          "name": "effects",
+          "root": "subpackages/effects/"
+        },
+        {
+          "name": "home",
+          "root": "subpackages/home/"
+        }
+      ]
+    },
+    "avatarPixelQA": [
+      {
+        "podium": "leaderPodium_1",
+        "photoPixels": 8109,
+        "outsideOpening": 0,
+        "overMedal": 0,
+        "unfilledInterior": 0
+      },
+      {
+        "podium": "leaderPodium_2",
+        "photoPixels": 8175,
+        "outsideOpening": 0,
+        "overMedal": 0,
+        "unfilledInterior": 0
+      },
+      {
+        "podium": "leaderPodium_0",
+        "photoPixels": 9850,
+        "outsideOpening": 0,
+        "overMedal": 0,
+        "unfilledInterior": 0
+      }
+    ],
+    "photosTested": [
+      "portrait",
+      "landscape",
+      "square"
+    ],
+    "staging": {
+      "clientReleaseId": "20261113-avatar-frame-152504",
+      "backendReleaseId": "20261113-staging-ui-144730",
+      "backendImage": "sha256:933f200be8c4e11fca5f25e28e22cfec07bd9a6194c381a13cf0db658f31bcb3",
+      "backendContainer": "3019de4787e6c327a8e04a9975079baa63e3c75f22046b02c5e95fb8797df4d5",
+      "clientSourceSynced": true,
+      "backendRuntimeHashVerified": true,
+      "backendRecreated": false,
+      "dataModified": false,
+      "stagingHealthy": true
+    },
+    "backendTestsInheritedFrom": "20261113-staging-ui-144730",
+    "backendRuntimeUnchanged": true,
+    "serverTestsInVerifiedBackend": 48,
+    "cdnAssetsUnchangedFromBase": true
+  },
+  "actions": {
+    "syncedStagingSource": true,
+    "recreatedBackend": false,
+    "modifiedDatabase": false,
+    "deployedProduction": false,
+    "uploadedWeChat": false,
+    "submittedReview": false
+  },
+  "notVerified": [
+    "微信真机授权、分享、音效听感与前后台生命周期；需用户验收",
+    "正式发布 V8 客户端前需要将 Production 从 API9 升级至配套 API11/余额榜接口"
+  ],
+  "evidence": "/private/tmp/zyx-release-20261113-avatar-frame-152504"
+}

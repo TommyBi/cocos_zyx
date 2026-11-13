@@ -1,0 +1,2 @@
+验收目标：https://staging-api.tcjstory.cn/v1/cocos-zyx
+PASS [staging/local]: 建档、V5/V6/V7/V8并行开局及结算/幂等、体力扣减/耗尽、每日分享、排行榜、退役路由

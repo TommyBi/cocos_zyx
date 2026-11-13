@@ -1,0 +1,35 @@
+{
+  "base": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+  "apiVersion": 11,
+  "kinds": [
+    "balloon",
+    "clear"
+  ],
+  "rounds": [
+    {
+      "roundId": "qa_rescue_20261113-staging-110708_0",
+      "actions": 466,
+      "score": 3440,
+      "raw": 226,
+      "rescue": {
+        "kind": "clear",
+        "scoreAtOffer": 3440,
+        "before": 19,
+        "removed": 19
+      }
+    },
+    {
+      "roundId": "qa_rescue_20261113-staging-110708_1",
+      "actions": 317,
+      "score": 2150,
+      "raw": 158,
+      "rescue": {
+        "kind": "balloon",
+        "scoreAtOffer": 2150,
+        "before": 15,
+        "removed": 9
+      }
+    }
+  ],
+  "duplicateAndInvalidReplayChecks": true
+}

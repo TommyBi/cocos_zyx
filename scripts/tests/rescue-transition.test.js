@@ -7,6 +7,7 @@ const vm = require('node:vm');
 const { execFileSync } = require('node:child_process');
 let gameSource;
 let responsiveLayout;
+let balloonSource;
 test.before(() => {
     const out = fs.mkdtempSync(path.join(os.tmpdir(), 'zyx-rescue-transition-'));
     try {
@@ -15,6 +16,7 @@ test.before(() => {
     } catch (_) { /* 独立编译不载入 Cocos 类型，使用产物验证交互时序。 */ }
     gameSource = fs.readFileSync(path.join(out, 'zyxGame/ZyxGame.js'), 'utf8');
     responsiveLayout = require(path.join(out, 'manager/ResponsiveLayout.js'));
+    balloonSource = fs.readFileSync(path.join(out, 'zyxGame/RescueBalloon.js'), 'utf8');
 });
 
 function harness(deps = {}, storage = {}) {
@@ -35,9 +37,12 @@ function harness(deps = {}, storage = {}) {
             sys: { localStorage: storage },
             _decorator: { ccclass: (value) => value }, Color: class {}, Component: class {},
             isValid: (node) => node.isValid !== false,
+            Node: class { setContentSize() {} addComponent() {} destroy() { this.isValid = false; } },
+            BlockInputEvents: class {},
+            v2: (x, y) => ({ x, y }),
             Tween: { stopAllByTarget() {} },
             tween(target) {
-                const tween = { target, moves: [], to(duration, properties, options) { this.moves.push({ duration, properties, options }); return this; }, call(callback) { this.done = callback; return this; }, start() { return this; } };
+                const tween = { target, moves: [], delay() { return this; }, to(duration, properties, options) { this.moves.push({ duration, properties, options }); return this; }, call(callback) { this.done = callback; return this; }, start() { return this; } };
                 tweens.push(tween); return tween;
             },
         },
@@ -46,53 +51,186 @@ function harness(deps = {}, storage = {}) {
     const game = new exported.default();
     game.node = { isValid: true, width: 750 };
     game.locked = false;
-    game.roundRescuePrompt = prompt;
-    game.roundRescueInteractive = true;
-    game.roundRescueGuideVisible = true;
-    game.roundRescueCountdownState = { progress: 0.5 };
+    game.roundRescuePrompt = null;
     game.setToolSelectionMode = () => events.push('selection');
-    game.requestRoundRescue = () => events.push('reward');
     return { game, tweens, events, prompt, drawer, explanation, mask };
 }
 
-test('点击倒计时按钮先收回抽屉再撤罩，最后请求奖励；重复点击不重复触发', () => {
-    const { game, tweens, events, drawer, mask } = harness();
-    game.handleRoundRescueClick();
-    game.handleRoundRescueClick();
-    assert.equal(tweens.length, 1);
-    assert.equal(tweens[0].target, drawer);
-    assert.deepEqual(events, []);
-    tweens[0].done();
-    assert.equal(tweens[1].target, mask);
-    assert.deepEqual(events, []);
-    tweens[1].done();
-    assert.deepEqual(events, ['destroy', 'selection', 'reward']);
-    assert.equal(game.roundRescuePrompt, null);
-    assert.equal(game.roundRescueCountdownState, null);
+test('右侧我可以只收起说明和遮罩，倒计时按钮保留；另点按钮才请求分享', () => {
+    const { game, tweens, events, prompt, explanation, drawer, mask } = harness();
+    game.roundRescuePrompt = prompt; game.roundRescueInteractive = game.roundRescueGuideVisible = true;
+    game.balloonPhase = 'flying'; game.roundRescueCountdownState = { progress: 0.5 };
+    game.markInteraction = () => {};
+    game.requestRoundRescue = () => events.push('reward');
+    game.acknowledgeRoundRescue(); game.acknowledgeRoundRescue();
+    assert.equal(tweens.length, 1); assert.equal(tweens[0].target, explanation);
+    tweens[0].done(); tweens[1].done();
+    assert.equal(mask.active, false); assert.equal(prompt.isValid, true);
+    assert.equal(game.roundRescueCountdownState.progress, 0.5);
+    assert.equal(game.roundRescueInteractive, true); assert.equal(game.roundRescueGuideVisible, false);
+    assert.deepEqual(events, ['explanation']);
+    game.handleScreenClearRescueClick(); game.handleScreenClearRescueClick();
+    assert.equal(tweens[2].target, drawer); assert.equal(game.locked, true);
+    tweens[2].done(); assert.equal(tweens[3].target, mask);
+    assert.deepEqual(events, ['explanation', 'selection']);
+    tweens[3].done();
+    assert.equal(prompt.active, false);
+    assert.deepEqual(events, ['explanation', 'selection', 'reward']);
 });
 
-test('我可以只收起说明和遮罩，保留倒计时按钮；之后点击按钮才请求奖励', () => {
-    const { game, tweens, events, prompt, explanation, drawer, mask } = harness();
-    game.acknowledgeRoundRescue();
-    game.acknowledgeRoundRescue();
-    assert.equal(tweens.length, 1);
-    assert.equal(tweens[0].target, explanation);
-    tweens[0].done();
-    assert.equal(tweens[1].target, mask);
-    assert.deepEqual(events, ['explanation']);
-    tweens[1].done();
-    assert.equal(mask.active, false);
-    assert.equal(prompt.isValid, true);
-    assert.equal(game.roundRescueCountdownState.progress, 0.5);
-    assert.equal(game.roundRescueInteractive, true);
-    assert.equal(game.roundRescueGuideVisible, false);
-    assert.equal(game.locked, false);
-    assert.deepEqual(events, ['explanation']);
-    game.handleRoundRescueClick();
-    assert.equal(tweens[2].target, drawer);
-    tweens[2].done();
-    tweens[3].done();
-    assert.deepEqual(events, ['explanation', 'destroy', 'selection', 'reward']);
+test('右侧倒计时与气球一致，普通掉落继续计时，暂停和分享冻结，超时结束机会', () => {
+    const { game } = harness(); let redraws = 0, dismissed = 0;
+    game.roundRescueCountdownState = { progress: 1, started: true, redraw: () => redraws++ };
+    game.balloonPhase = 'flying'; game.updateRotatingTip = () => {};
+    game.isTutorialGuidedStep = () => false; game.locked = true;
+    game.update(1); assert.equal(game.roundRescueCountdownState.progress, 0.9);
+    game.pauseMenuOpen = true; game.update(3); assert.equal(redraws, 1);
+    game.pauseMenuOpen = false; game.balloonPhase = 'sharing'; game.update(3); assert.equal(redraws, 1);
+    game.balloonPhase = 'flying'; game.dismissRoundRescuePrompt = () => dismissed++;
+    game.update(10); assert.equal(dismissed, 1);
+});
+
+test('取消清屏分享恢复同一个按钮与剩余倒计时，成功回调只能清屏一次', () => {
+    const callbacks = []; let cleared = 0;
+    const { game, prompt } = harness({'../manager/UIManager': {uimanager: {showToast() {}}},
+        '../manager/ShareReward': {getRewardOfferFailToast: () => ''}});
+    game.node.addChild = () => {};
+    game.roundRescuePrompt = prompt; game.balloonPhase = 'dialog';
+    game.roundRescueCountdownState = {progress: 0.45};
+    game.refreshRoundRescueLayout = () => {};
+    game.showRewardOffer = cb => callbacks.push(cb);
+    game.applyScreenClearRescue = () => {cleared++; game.balloonPhase = 'none';};
+    game.requestRoundRescue(); callbacks[0](false); callbacks[0](true);
+    assert.equal(cleared, 0); assert.equal(prompt.active, true);
+    assert.equal(game.roundRescueCountdownState.progress, 0.45);
+    assert.equal(game.roundRescueInteractive, true); assert.equal(game.locked, false);
+    game.balloonPhase = 'dialog'; game.requestRoundRescue(); callbacks[1](true); callbacks[1](true);
+    assert.equal(cleared, 1);
+});
+
+test('热气球点击只打开一次弹窗，拒绝后保留剩余飞行时间并恢复输入', () => {
+    let actions, dismiss, opened = 0;
+    const { game } = harness({
+        '../manager/UIManager': { BUTTON_COLORS: {yellow: {}, green: {}}, uimanager: { showModal(_title, _message, a, _d, _h, _horizontal, _dismissible, _width, options) {
+            opened++; actions = a; dismiss = options.onDismiss; return { isValid: true };
+        } } },
+        '../manager/ShareReward': { getRewardOfferIcon: () => 'share' },
+    });
+    game.markInteraction = () => {};
+    game.rescueBalloon = { elapsed: 4.25 };
+    game.balloonPhase = 'flying';
+    game.handleRoundRescueClick(); game.handleRoundRescueClick();
+    assert.equal(opened, 1); assert.equal(game.locked, true);
+    assert.equal(actions[0].text, '才不要'); assert.equal(actions[1].text, '帮帮我');
+    actions[0].onClick();
+    assert.equal(game.balloonPhase, 'flying'); assert.equal(game.locked, false);
+    assert.equal(game.rescueBalloon.elapsed, 4.25);
+    game.handleRoundRescueClick(); dismiss();
+    assert.equal(game.balloonPhase, 'flying'); assert.equal(game.locked, false);
+});
+
+test('分享期间旧弹窗拒绝回调不解锁，取消后迟到成功回调不能触发救援', () => {
+    let actions, callback, rescued = 0;
+    const { game } = harness({
+        '../manager/UIManager': { BUTTON_COLORS: {}, uimanager: { showToast() {}, showModal(_t, _m, a) { actions = a; return {}; } } },
+        '../manager/ShareReward': { getRewardOfferIcon: () => 'share', getRewardOfferFailToast: () => '' },
+    });
+    game.node.addChild = () => {};
+    game.markInteraction = () => {};
+    game.rescueBalloon = { elapsed: 5 };
+    game.balloonPhase = 'flying';
+    game.showRewardOffer = cb => callback = cb;
+    game.applyRoundRescue = () => rescued++;
+    game.handleRoundRescueClick(); actions[1].onClick();
+    assert.equal(game.balloonPhase, 'sharing'); assert.equal(game.locked, true);
+    actions[0].onClick();
+    assert.equal(game.balloonPhase, 'sharing'); assert.equal(game.locked, true);
+    callback(false); assert.equal(game.balloonPhase, 'flying'); assert.equal(game.locked, false);
+    callback(true); assert.equal(rescued, 0);
+});
+
+test('普通掉落锁不延长热气球飞行，暂停菜单和分享才暂停飞行', () => {
+    const { game } = harness(); const calls = [];
+    game.updateRotatingTip = () => {}; game.isTutorialGuidedStep = () => false;
+    game.rescueBalloon = { update(_dt, fly) { calls.push(fly); return false; } };
+    game.balloonPhase = 'flying'; game.locked = true; game.update(0.1);
+    game.pauseMenuOpen = true; game.update(0.1);
+    game.pauseMenuOpen = false; game.balloonPhase = 'sharing'; game.update(0.1);
+    assert.deepEqual(calls, [true, false, false]);
+});
+
+test('气球全部落地200ms后同步播放标准范围爆炸，全部受击块使用同一爆破结果', () => {
+    const blasts = [], shatters = [], scheduled = [], drops = [];
+    const targets = [{id: 1, row: 5, col: 2, size: 1}, {id: 2, row: 6, col: 3, size: 1}];
+    const result = {removedPieceIds: [1, 2, 3, 4], detonatedBombs: [...targets, {id: 3, row: 7, col: 4, size: 1}]};
+    let applied = 0, faded = 0;
+    const { game, tweens } = harness({
+        '../dataModule/ZyxGameModule': {BOARD_ROWS: 10, CELL_SIZE: 76, zyxGameModule: {
+            getBalloonTargets: () => targets,
+            applyBalloonRescue: () => { applied++; return result; },
+        }},
+        './RewardArt': {createBombBadge: () => {
+            const drop = {isValid: true, setPosition() {}, destroy() { this.isValid = false; }};
+            drops.push(drop); return drop;
+        }},
+        './BombEffect': {playBombEffect: (...args) => blasts.push(args), bombPlaybackDuration: () => 1.18},
+    });
+    game.pieceLayer = {convertToNodeSpaceAR: p => p};
+    game.rescueBalloon = {root: {convertToWorldSpaceAR: p => p}, fadeOut: () => faded++};
+    game.getPiecePosition = (row, col) => ({x: col * 76, y: -row * 76});
+    game.scheduleOnce = (callback, delay) => scheduled.push({callback, delay});
+    game.animateRowShatter = (...args) => shatters.push(args);
+    game.applyRoundRescue();
+    assert.equal(applied, 0); assert.equal(game.locked, true);
+    const lastLanding = Math.max(...tweens.map((tween, index) => index * 0.13 + tween.moves[0].duration));
+    assert.ok(Math.abs(scheduled[0].delay - lastLanding - 0.2) < 1e-9);
+    scheduled[0].callback();
+    assert.equal(applied, 1); assert.equal(faded, 1);
+    assert.ok(drops.every(p => !p.isValid));
+    assert.equal(blasts.length, 3, '旧炸弹也要播放爆炸');
+    assert.ok(blasts.every(args => args[2] === 76 && args[3] === 0 && args[5] === true));
+    assert.deepEqual(shatters, [[result.removedPieceIds, result.detonatedBombs, true]]);
+    assert.equal(scheduled[1].delay, 1.18);
+    assert.equal(game.locked, true, '演出结束前保持输入保护');
+});
+
+test('矢量序列飞行恰好15秒，暂停保留姿态、时间与剩余航程，出口淡隐', () => {
+    const methods = ['clear','ellipse','fill','stroke','moveTo','bezierCurveTo','quadraticCurveTo','roundRect','lineTo','close','circle'];
+    class Graphics {} methods.forEach(key => Graphics.prototype[key] = () => {});
+    Graphics.LineCap = { ROUND: 1 }; Graphics.LineJoin = { ROUND: 1 };
+    class Node { constructor() { this.isValid = true; } setContentSize() {} addComponent() { return new Graphics(); } on() {} }
+    Node.EventType = { TOUCH_END: 'touchend' };
+    const exports = {};
+    vm.runInNewContext(balloonSource, {exports, Math, cc: {Node, Graphics, Color: class {}, isValid: () => true},
+        require: () => ({MOOD_COLORS: {}})});
+    const b = new exports.RescueBalloon({addChild() {}}, 76, () => {});
+    assert.equal(b.update(4, true), false);
+    const pose = [b.root.x, b.root.y, b.root.angle]; b.update(60, false);
+    assert.equal(b.elapsed, 4); assert.deepEqual([b.root.x, b.root.y, b.root.angle], pose);
+    assert.equal(b.update(6, true), false); assert.equal(b.elapsed, 10);
+    assert.equal(b.update(4.5, true), false); assert.ok(b.root.opacity > 0 && b.root.opacity < 255);
+    assert.equal(b.update(0.5, true), true); assert.equal(b.elapsed, 15); assert.equal(b.root.opacity, 0);
+});
+
+test('气球炸弹是抛物线，落点精确，爆炸渐隐不被每帧位置刷新覆盖', () => {
+    class Graphics {};
+    ['clear','ellipse','fill','stroke','moveTo','bezierCurveTo','quadraticCurveTo','roundRect','lineTo','close','circle']
+        .forEach(key => Graphics.prototype[key] = () => {});
+    Graphics.LineCap = {ROUND: 1}; Graphics.LineJoin = {ROUND: 1};
+    class Node {constructor() {this.isValid = true;} setContentSize() {} addComponent() {return new Graphics();} on() {}}
+    Node.EventType = {TOUCH_END: 'touchend'};
+    const exports = {};
+    vm.runInNewContext(balloonSource, {exports, Math, cc: {Node, Graphics, Color: class {}, v2: (x, y) => ({x, y})}, require: () => ({})});
+    const from = {x: -180, y: 250}, to = {x: 220, y: -250};
+    const position = t => exports.getBalloonBombPosition(from, to, t);
+    assert.deepEqual({...position(0)}, from); assert.deepEqual({...position(1)}, to);
+    assert.ok(position(0.1).y > from.y, '抛出时先形成可见弧顶');
+    const samples = [0, 0.25, 0.5, 0.75, 1].map(position);
+    const curvature = samples.slice(0, 3).map((p, i) => samples[i + 2].y - 2 * samples[i + 1].y + p.y);
+    assert.ok(curvature.every(value => Math.abs(value - curvature[0]) < 1e-9), '二阶差分恒定，不能用正弦代替抛物线');
+    const b = new exports.RescueBalloon({addChild() {}}, 76, () => {}); b.update(3.4, true);
+    b.fadeOut(); b.update(0.16, false); assert.ok(b.root.opacity > 100 && b.root.opacity < 150);
+    b.update(0.16, false); assert.equal(b.root.opacity, 0);
 });
 
 test('窗口变化后棋盘、边框、下一排和危险光效同轴，追赶底板保持垂直居中', () => {

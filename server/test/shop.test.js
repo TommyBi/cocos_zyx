@@ -116,6 +116,46 @@ test('新开局不再支持旧免重放奖励协议；补给有幂等和每局�
   assert.equal(limit.errorCode, 'TOOL_REWARD_LIMIT');
 });
 
+test('V5/V6/V7/V8客户端可并行幂等开局、重放结算，旧协议仍不能新开局', async () => {
+  for (const rulesVersion of [5, 6, 7, BOARD_RULES_VERSION]) {
+    const { token } = await player(0);
+    const roundId = `rolling_release_v${rulesVersion}`;
+    const startBody = { roundId, rulesVersion, collectionRule: 'progress_v2' };
+    const begun = await api('/games/start', token, startBody);
+    assert.equal(begun.status, 200, `V${rulesVersion} must remain playable during rollout`);
+    assert.equal(begun.data.rulesVersion, rulesVersion);
+    assert.equal(begun.data.stamina.current, 9);
+    const retry = await api('/games/start', token, startBody);
+    assert.equal(retry.data.duplicate, true);
+    assert.equal(retry.data.stamina.current, 9);
+    assert.equal(retry.data.seed, begun.data.seed);
+    const conflict = await api('/games/start', token, { ...startBody, rulesVersion: rulesVersion === 5 ? 6 : 5 });
+    assert.equal(conflict.errorCode, 'BOARD_RULES_UNSUPPORTED');
+    const board = new BoardEngine();
+    board.resetBoard(begun.data.seed, begun.data.isTutorial, rulesVersion);
+    for (let step = 0; step < 3; step++) {
+      const move = board.getTutorialMove(step);
+      board.movePiece(move.id, move.offset); board.resolveBoard(); board.finishPlayerAction();
+    }
+    for (let row = 0; row < 3; row++) board.appendNextRow();
+    board.resolveBoard(); board.finishPlayerAction();
+    assert.ok(board.score > 0);
+    clock += 10000;
+    const body = { roundId, startedAt: clock - 10000, endedAt: clock, score: board.score,
+      collectedMoodBeanCount: board.roundCollectedMoodBeans, actions: board.roundActions };
+    const settled = await api('/games/settlements', token, body);
+    assert.equal(settled.status, 200);
+    assert.equal(settled.data.settlement.gainedExperience, board.roundCollectedMoodBeans);
+    assert.equal(settled.data.settlement.awardedMoodBeans, Math.floor(board.roundCollectedMoodBeans / 100));
+    assert.equal((await api('/games/settlements', token, body)).data.duplicate, true);
+    for (const oldVersion of [1, 2, 3, 4]) {
+      const rejected = await api('/games/start', token, { roundId: `${roundId}_old_${oldVersion}`,
+        rulesVersion: oldVersion, collectionRule: 'progress_v2' });
+      assert.equal(rejected.errorCode, 'COLLECTION_RULE_UNSUPPORTED');
+    }
+  }
+});
+
 test('GM重置清空资产/道具/对局记录，恢复10体力，新开局重新进入教学', async () => {
   const { token, deviceId } = await player(40);
   await exchange(token, 'before_reset_hammer');

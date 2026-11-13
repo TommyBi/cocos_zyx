@@ -35,6 +35,7 @@ test('一次跨多人只跃升一次，连续加分合并到最新位置；离�
     const tweens = [];
     const stopped = [];
     const ui = {
+        applyTypography() {},
         createRect(parent, name) { const node = new Node(name); parent.addChild(node); return node; },
         drawButtonSurface(node, width, height, _color, radius) { node.buttonSurface = { width, height, radius }; },
         createLabel(parent, string) { const node = new Node('label'); parent.addChild(node); const label = { node, string }; node.label = label; return label; },

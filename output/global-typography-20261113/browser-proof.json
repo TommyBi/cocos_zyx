@@ -1,0 +1,1218 @@
+{
+  "results": [
+    {
+      "name": "home",
+      "labels": [
+        {
+          "text": "10/10",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "Lv.1",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "美丽的柴犬",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "经验 0/15",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "左右拖动心情块，让它落进合适的位置",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            45,
+            42,
+            39
+          ]
+        },
+        {
+          "text": "开 始",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "体力 10/10 · 体力已满",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "左右挪动 · 收集开心豆",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            119,
+            86,
+            73
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "商城",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "设置",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        }
+      ]
+    },
+    {
+      "name": "settings",
+      "labels": [
+        {
+          "text": "10/10",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "Lv.1",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "美丽的柴犬",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "经验 0/15",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "左右拖动心情块，让它落进合适的位置",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            45,
+            42,
+            39
+          ]
+        },
+        {
+          "text": "开 始",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "体力 10/10 · 体力已满",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "左右挪动 · 收集开心豆",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            119,
+            86,
+            73
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "商城",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "设置",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "声音",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            101,
+            70,
+            58
+          ]
+        },
+        {
+          "text": "已开启",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            123,
+            87,
+            66
+          ]
+        },
+        {
+          "text": "音量",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            101,
+            70,
+            58
+          ]
+        },
+        {
+          "text": "70%",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            123,
+            87,
+            66
+          ]
+        },
+        {
+          "text": "震动",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            101,
+            70,
+            58
+          ]
+        },
+        {
+          "text": "已开启",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            123,
+            87,
+            66
+          ]
+        },
+        {
+          "text": "完成",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "设   置",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            90,
+            64,
+            58
+          ]
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        }
+      ]
+    },
+    {
+      "name": "shop",
+      "labels": [
+        {
+          "text": "10/10",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "Lv.1",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "美丽的柴犬",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "经验 0/15",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "左右拖动心情块，让它落进合适的位置",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            45,
+            42,
+            39
+          ]
+        },
+        {
+          "text": "开 始",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "体力 10/10 · 体力已满",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "左右挪动 · 收集开心豆",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            119,
+            86,
+            73
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "商城",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "设置",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "兑换 [0/20]",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "解压锤 ×1",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "敲掉一个挡路色块",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            64,
+            100,
+            112
+          ]
+        },
+        {
+          "text": "已拥有 0 个",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "兑换 [0/20]",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "魔法棒 ×1",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "消除选中颜色的所有色块",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            64,
+            100,
+            112
+          ]
+        },
+        {
+          "text": "已拥有 0 个",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "兑换 [0/5]",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "体力 ×1",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "恢复1点体力，继续挑战",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            64,
+            100,
+            112
+          ]
+        },
+        {
+          "text": "恢复后立即可用",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "商城",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            90,
+            64,
+            58
+          ]
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        }
+      ]
+    },
+    {
+      "name": "game",
+      "labels": [
+        {
+          "text": "本局得分",
+          "font": "hud_round_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            132,
+            96,
+            80
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            112,
+            78,
+            65
+          ]
+        },
+        {
+          "text": "最高 0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            132,
+            96,
+            80
+          ]
+        },
+        {
+          "text": "收集进度",
+          "font": "hud_round_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            255,
+            255,
+            232
+          ]
+        },
+        {
+          "text": "0%",
+          "font": "hud_round_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            38,
+            89,
+            29
+          ]
+        },
+        {
+          "text": "集满100%再得1颗",
+          "font": "hud_round_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            117,
+            82,
+            51
+          ]
+        },
+        {
+          "text": "本局 +0",
+          "font": "hud_round_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            255,
+            252,
+            238
+          ]
+        },
+        {
+          "text": "拖动心情块左右移动，填满一行就能消除",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            112,
+            78,
+            65
+          ]
+        },
+        {
+          "text": "下一排",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            45,
+            42,
+            39
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "第 1 步：把 3 格块向左拖",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            112,
+            78,
+            65
+          ]
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pause",
+      "labels": [
+        {
+          "text": "本局得分",
+          "font": "hud_round_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            132,
+            96,
+            80
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            112,
+            78,
+            65
+          ]
+        },
+        {
+          "text": "最高 0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            132,
+            96,
+            80
+          ]
+        },
+        {
+          "text": "收集进度",
+          "font": "hud_round_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            255,
+            255,
+            232
+          ]
+        },
+        {
+          "text": "0%",
+          "font": "hud_round_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            38,
+            89,
+            29
+          ]
+        },
+        {
+          "text": "集满100%再得1颗",
+          "font": "hud_round_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            117,
+            82,
+            51
+          ]
+        },
+        {
+          "text": "本局 +0",
+          "font": "hud_round_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            255,
+            252,
+            238
+          ]
+        },
+        {
+          "text": "拖动心情块左右移动，填满一行就能消除",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            112,
+            78,
+            65
+          ]
+        },
+        {
+          "text": "下一排",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            45,
+            42,
+            39
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "第 1 步：把 3 格块向左拖，补满第二排。",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            112,
+            78,
+            65
+          ]
+        },
+        {
+          "text": "声音",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            101,
+            70,
+            58
+          ]
+        },
+        {
+          "text": "已开启",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            123,
+            87,
+            66
+          ]
+        },
+        {
+          "text": "音量",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            101,
+            70,
+            58
+          ]
+        },
+        {
+          "text": "70%",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            123,
+            87,
+            66
+          ]
+        },
+        {
+          "text": "震动",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            101,
+            70,
+            58
+          ]
+        },
+        {
+          "text": "已开启",
+          "font": "zyx_happy_round_body_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            123,
+            87,
+            66
+          ]
+        },
+        {
+          "text": "继续",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "重开",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "退出",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        },
+        {
+          "text": "设   置",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": false,
+          "color": [
+            90,
+            64,
+            58
+          ]
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_display_v1",
+          "system": false,
+          "bold": false,
+          "button": true,
+          "color": [
+            88,
+            61,
+            55
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

@@ -96,14 +96,22 @@ export type LeaderboardEntry = {
     rewardTier: 'gold' | 'silver' | 'bronze' | 'normal';
 };
 
-/** 永久单局最高分榜：前 200 名列表 + 自己独立的名次与最高分。 */
+export type LeaderboardType = 'power' | 'beans';
+
+/** 两种永久榜单：最高分 / 当前余额，均返回前 200 名及自己的记录。 */
 export type LeaderboardResult = {
+    type?: LeaderboardType;
     entries: LeaderboardEntry[];
     self: {
+        playerId?: string;
+        avatarUrl?: string;
         /** 实际名次；尚未产生有效分数时为 null。 */
         rank: number | null;
         /** 自己单局最高分。 */
         bestScore: number;
+        /** 所选榜单的当前数值；旧最高分响应可用 bestScore 回退。 */
+        value?: number;
+        moodBeanBalance?: number;
         /** 是否进入前 200 名榜单。 */
         onBoard: boolean;
     };
@@ -166,7 +174,10 @@ export default class CloudService {
             || health.capabilities.indexOf('bean-tool-shop') < 0
             || health.capabilities.indexOf('difficulty-ramp-2x') < 0
             || health.capabilities.indexOf('difficulty-pressure-v4') < 0
-            || health.capabilities.indexOf('rising-rows-v5') < 0) {
+            || health.capabilities.indexOf('rising-rows-v5') < 0
+            || health.capabilities.indexOf('balloon-rescue-v6') < 0
+            || health.capabilities.indexOf('balloon-blast-v7') < 0
+            || health.capabilities.indexOf('random-rescue-v8') < 0) {
             const error = new Error('游戏服务更新中，请稍后再试') as any;
             error.businessCode = 'COLLECTION_RULE_UNSUPPORTED';
             throw error;
@@ -205,7 +216,7 @@ export default class CloudService {
         return data as RoundSettlementResult;
     }
 
-    public async getLeaderboard(type: 'power'): Promise<LeaderboardResult> {
+    public async getLeaderboard(type: LeaderboardType): Promise<LeaderboardResult> {
         return await this.request(`/leaderboards?type=${type}`, 'GET', null, true) as LeaderboardResult;
     }
 

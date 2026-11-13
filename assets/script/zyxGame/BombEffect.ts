@@ -14,7 +14,8 @@ export function bombPlaybackDuration(count: number): number {
 
 /** 独立炸弹演出：引线蓄力、蔓延火圈、爆心与上升的小型蘑菇云。 */
 export function playBombEffect(parent: cc.Node, center: cc.Vec2, cellSize: number,
-    delay: number, onIgnite: () => void): void {
+    delay: number, onIgnite: () => void, alreadyPrimed: boolean = false): void {
+    const primeTime = alreadyPrimed ? 0 : BOMB_PRIME_TIME;
     const root = new cc.Node('bombExplosion');
     root.setPosition(center);
     root.setContentSize(cellSize * 3, cellSize * 3);
@@ -30,7 +31,7 @@ export function playBombEffect(parent: cc.Node, center: cc.Vec2, cellSize: numbe
     ember.circle(0, 0, 32); ember.fill();
     ember.fillColor = new cc.Color(255, 230, 145, 90);
     ember.circle(0, 0, 21); ember.fill();
-    cc.tween(glow).delay(delay).to(BOMB_PRIME_TIME, { scale: 1.6, opacity: 0 }).start();
+    cc.tween(glow).delay(delay).to(primeTime, { scale: 1.6, opacity: 0 }).start();
 
     const wave = new cc.Node('bombFireRing');
     root.addChild(wave);
@@ -63,7 +64,7 @@ export function playBombEffect(parent: cc.Node, center: cc.Vec2, cellSize: numbe
         fire.quadraticCurveTo(inside.x, inside.y, end.x, end.y);
         fire.close(); fire.fill();
     }
-    cc.tween(wave).delay(delay + BOMB_PRIME_TIME)
+    cc.tween(wave).delay(delay + primeTime)
         .to(0.025, { opacity: 255 })
         .to(0.18, { scale: 1.02, opacity: 210 }, { easing: 'quadOut' })
         .to(0.18, { scale: 1.12, opacity: 0 }).start();
@@ -79,7 +80,7 @@ export function playBombEffect(parent: cc.Node, center: cc.Vec2, cellSize: numbe
     light.circle(0, 0, 39); light.fill();
     light.fillColor = new cc.Color(255, 255, 236, 255);
     light.circle(0, 0, 22); light.fill();
-    cc.tween(flash).delay(delay + BOMB_PRIME_TIME)
+    cc.tween(flash).delay(delay + primeTime)
         .to(0.025, { scale: 0.8, opacity: 255 })
         .to(0.14, { scale: 1.35, opacity: 0 }, { easing: 'quadOut' }).start();
 
@@ -97,7 +98,7 @@ export function playBombEffect(parent: cc.Node, center: cc.Vec2, cellSize: numbe
         rays.lineTo(Math.cos(angle + 0.055) * 23, Math.sin(angle + 0.055) * 23);
         rays.close(); rays.fill();
     }
-    cc.tween(sparks).delay(delay + BOMB_PRIME_TIME).to(0.025, { opacity: 255 })
+    cc.tween(sparks).delay(delay + primeTime).to(0.025, { opacity: 255 })
         .to(0.23, { scale: 1.1, opacity: 0 }, { easing: 'quadOut' }).start();
 
     const stem = new cc.Node('bombCloudStem');
@@ -112,7 +113,7 @@ export function playBombEffect(parent: cc.Node, center: cc.Vec2, cellSize: numbe
     plume.ellipse(9, 42, 12, 19); plume.fill();
     plume.fillColor = new cc.Color(255, 213, 119, 190);
     plume.ellipse(-3, 21, 9, 24); plume.fill();
-    cc.tween(stem).delay(delay + BOMB_PRIME_TIME + 0.035)
+    cc.tween(stem).delay(delay + primeTime + 0.035)
         .to(0.09, { opacity: 210, scaleX: 0.9, scaleY: 1 }, { easing: 'quadOut' })
         .to(0.38, { y: 25, scaleX: 1.15, scaleY: 1.3, opacity: 0 }).start();
 
@@ -135,7 +136,7 @@ export function playBombEffect(parent: cc.Node, center: cc.Vec2, cellSize: numbe
     cloud.ellipse(-20, 13, 19, 13); cloud.fill();
     cloud.ellipse(3, 22, 25, 15); cloud.fill();
     cloud.ellipse(27, 12, 14, 11); cloud.fill();
-    cc.tween(cap).delay(delay + BOMB_PRIME_TIME + 0.04)
+    cc.tween(cap).delay(delay + primeTime + 0.04)
         .to(0.1, { y: 32, scaleX: 0.9, scaleY: 0.75, opacity: 255 }, { easing: 'quadOut' })
         .to(0.24, { y: 66, scaleX: 1.22, scaleY: 1.05, opacity: 170 }, { easing: 'sineOut' })
         .to(0.18, { y: 83, scaleX: 1.4, scaleY: 1.15, opacity: 0 }).start();
@@ -143,13 +144,18 @@ export function playBombEffect(parent: cc.Node, center: cc.Vec2, cellSize: numbe
     const body = createBombBadge(root);
     body.zIndex = 10;
     body.scale = 1.1;
-    cc.tween(body).delay(delay)
-        .to(0.06, { scale: 1.4, angle: -7 }, { easing: 'quadOut' })
-        .to(BOMB_PRIME_TIME - 0.06, { scale: 1.65, angle: 6 }, { easing: 'quadIn' })
-        .call(onIgnite)
-        .to(0.035, { scale: 1.9, opacity: 0 }).start();
+    if (alreadyPrimed) {
+        body.active = false;
+        cc.tween(root).delay(delay).call(onIgnite).start();
+    } else {
+        cc.tween(body).delay(delay)
+            .to(0.06, { scale: 1.4, angle: -7 }, { easing: 'quadOut' })
+            .to(primeTime - 0.06, { scale: 1.65, angle: 6 }, { easing: 'quadIn' })
+            .call(onIgnite)
+            .to(0.035, { scale: 1.9, opacity: 0 }).start();
+    }
     cc.tween(root).delay(delay).to(0.055, { opacity: 255 })
-        .delay(BOMB_PRIME_TIME + (0.45 - 0.055))
+        .delay(primeTime + (0.45 - 0.055))
         .to(0.22, { opacity: 0 })
         .call(() => root.destroy()).start();
 }

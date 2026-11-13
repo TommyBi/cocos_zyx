@@ -1,0 +1,43 @@
+{
+  "integrity": "ok",
+  "existingRowsPreserved": true,
+  "tables": {
+    "game_rounds": {
+      "before": 207,
+      "after": 221,
+      "originalRowsPreserved": true
+    },
+    "players": {
+      "before": 49,
+      "after": 51,
+      "originalRowsPreserved": true
+    },
+    "release_resets": {
+      "before": 0,
+      "after": 0,
+      "originalRowsPreserved": true
+    },
+    "round_settlements": {
+      "before": 37,
+      "after": 45,
+      "originalRowsPreserved": true
+    },
+    "sqlite_sequence": {
+      "before": 1,
+      "after": 1,
+      "originalRowsPreserved": false
+    },
+    "stamina_share_claims": {
+      "before": 7,
+      "after": 8,
+      "originalRowsPreserved": true
+    },
+    "tool_transactions": {
+      "before": 9,
+      "after": 9,
+      "originalRowsPreserved": true
+    }
+  },
+  "productionGatewayAndSharedSourceUnchanged": true,
+  "nodeVersion": "v20.20.2"
+}

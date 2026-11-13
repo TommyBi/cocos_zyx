@@ -66,7 +66,7 @@ test('安全区、缩放、偏移与窗口变化后，弹窗遮罩始终覆盖�
   assert.equal(mask.height, cc.winSize.height);
 });
 
-test('共用按钮统一棕色加粗文字，结算奖励不展示云端到账小字', () => {
+test('共用按钮统一棕色与打包字体字重，结算奖励不展示云端到账小字', () => {
   const uiSource = fs.readFileSync(path.join(__dirname, '../../assets/script/manager/UIManager.ts'), 'utf8');
   const gameSource = fs.readFileSync(path.join(__dirname, '../../assets/script/zyxGame/ZyxGame.ts'), 'utf8');
   const buttonStart = uiSource.indexOf('public createButton(');
@@ -74,7 +74,8 @@ test('共用按钮统一棕色加粗文字，结算奖励不展示云端到账�
   const buttonFactory = uiSource.slice(buttonStart, buttonEnd);
   assert.ok(buttonStart >= 0 && buttonEnd > buttonStart);
   assert.match(buttonFactory, /BUTTON_TEXT_COLOR/);
-  assert.match(buttonFactory, /label\.enableBold = true/);
+  assert.match(buttonFactory, /this\.applyTypography\(label, true\)/);
+  assert.doesNotMatch(buttonFactory, /label\.enableBold = true/);
   assert.doesNotMatch(buttonFactory, /cc\.Color\.WHITE/);
   assert.doesNotMatch(gameSource, /本局收集 · 到账以云端为准/);
 });
@@ -96,14 +97,9 @@ test('首页头像节点完整创建，排行榜和关闭按钮保持统一实�
   const artSource = fs.readFileSync(path.join(__dirname, '../../assets/script/zyxGame/MoodArt.ts'), 'utf8');
   const mainSource = fs.readFileSync(path.join(__dirname, '../../assets/script/GameMainScene.ts'), 'utf8');
   assert.match(mainSource, /this\.profileAvatarContent = new cc\.Node\('avatarContent'\)/);
-  assert.match(boardSource, /const LIST_HEIGHT = LIST_TOP_OFFSET - \(SELF_CENTER_OFFSET \+ SELF_HEIGHT \/ 2 \+ 16\)/);
-  assert.match(boardSource, /const LIST_WIDTH = 540/);
-  assert.match(boardSource, /const LIST_TOP_OFFSET = 382/);
-  assert.match(boardSource, /const AVATAR_SIZE = 90/);
-  assert.match(boardSource, /createMoodBeanMascot\(avatarMask, 0, -2, 78\)/);
-  assert.match(boardSource, /applyRoundedAvatarMask\(avatarMask\)/);
-  assert.match(boardSource, /y, 34, MOOD_COLORS\.cocoaSoft/g);
-  assert.match(boardSource, /true,\s*600,\s*\)/);
+  assert.match(boardSource, /applyRoundedAvatarMask\(mask(?:,|\))/);
+  assert.match(boardSource, /uimanager\.showModal\('排行榜'/);
+  assert.match(boardSource, /true,\s*640,\s*\{/);
   assert.match(artSource, /mask\.type = cc\.Mask\.Type\.IMAGE_STENCIL/);
   const closeStart = uiSource.indexOf('private createModalCloseButton(');
   const closeEnd = uiSource.indexOf('private createModalTitlePlate(', closeStart);

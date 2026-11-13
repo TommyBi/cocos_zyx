@@ -110,6 +110,8 @@ async function settle(token, body) {
   return api('/games/settlements', { method: 'POST', token, body });
 }
 
+
+
 async function readDisk(sql, params = []) {
   const SQL = await initSqlJs();
   const disk = new SQL.Database(fs.readFileSync(dbFilePath));
@@ -127,7 +129,7 @@ async function readDisk(sql, params = []) {
 
 test('新账号获得稳定默认昵称和 10 点体力，客户端伪造资料与余额被忽略', async () => {
   const boot = await newPlayer();
-  assert.match(boot.profile.nickname, /^(美丽的|快乐的|勇敢的|温柔的|机灵的|幸运的|恬静的|活泼的|善良的|可爱的)(狐狸|天鹅|小熊|猫咪|兔子|企鹅|小鹿|松鼠|熊猫|海豚|柴犬|考拉)$/);
+  assert.match(boot.profile.nickname, /^(美丽的|快乐的|勇敢的|温柔的|机灵的|幸运的|恬静的|活泼的|善良的|可爱的)小(狐狸|天鹅|熊|猫咪|兔子|企鹅|鹿|松鼠|熊猫|海豚|柴犬|考拉)$/);
   assert.equal(boot.profile.avatarUrl, '');
   assert.equal(boot.profile.moodBeanBalance, 0);
   assert.equal(boot.profile.stamina.current, 10);
@@ -529,4 +531,45 @@ test('领取响应丢失后跨北京时间日期重试同ID，不500、不重复
   assert.equal(retry.payload.data.stamina.current,15);assert.equal(retry.payload.data.stamina.shareAvailableToday,true);
   const today=await api('/stamina/share-claim',{method:'POST',token,body:{claimId:'share_cross_day_new_today'}});
   assert.equal(today.status,200);assert.equal(today.payload.data.stamina.current,20);
+});
+
+
+for (const [version, kind] of [[6, 'balloon'], [7, 'balloon'], [8, 'balloon'], [8, 'clear']]) test(`V${version}/${kind}救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝`, async () => {
+  const { token } = await newPlayer();
+  for (let i = 0; i < 2; i++) {
+    const roundId = `rescue_v${version}_${kind}_prepare_${i}`;
+    await startRound(token, roundId); clock += 60000;
+    assert.equal((await settle(token, settlementBody(roundId, 0, 0))).status, 200);
+  }
+  const trace = require(`../../scripts/fixtures/board-v${version}-${kind}-replay.json`);
+  const roundId = `rescue_v${version}_${kind}_http`;
+  const crypto = require('node:crypto'), original = crypto.randomBytes;
+  const seed = Buffer.alloc(4); seed.writeUInt32BE(trace.seed);
+  const startedAt = clock;
+  let begun;
+  try {
+    crypto.randomBytes = (size, ...args) => size === 4 ? Buffer.from(seed) : original(size, ...args);
+    begun = await api('/games/start', {method: 'POST', token,
+      body: {roundId, collectionRule: 'progress_v2', rulesVersion: version}});
+  } finally { crypto.randomBytes = original; }
+  assert.equal(begun.status, 200); assert.equal(begun.payload.data.isTutorial, false);
+  clock += Math.max(120000, (trace.elapsedMs || 0) + 1000);
+  const body = {...settlementBody(roundId, trace.raw, trace.score), startedAt, actions: trace.actions};
+  const missing = await settle(token, {...body, actions: trace.actions.filter(a => !['balloonOffer', 'rescueOffer'].includes(a.type))});
+  assert.equal(missing.payload.errorCode, 'REPLAY_INVALID');
+  const repeated = trace.actions.flatMap(a => a.type === (kind === 'clear' ? 'rescueClear' : 'balloon') ? [a, a] : [a]);
+  assert.equal((await settle(token, {...body, actions: repeated})).payload.errorCode, 'REPLAY_INVALID');
+  if (version === 8) {
+    const future = trace.actions.map(a => a.type === 'rescueOffer' ? {...a, elapsedMs: clock - startedAt + 1} : a);
+    assert.equal((await settle(token, {...body, actions: future})).payload.errorCode, 'REPLAY_INVALID');
+    if (kind === 'clear') {
+      const early = trace.actions.map(a => a.type === 'rescueOffer' && a.kind === 'clear' ? {...a, elapsedMs: 119999} : a);
+      assert.equal((await settle(token, {...body, actions: early})).payload.errorCode, 'REPLAY_INVALID');
+    }
+  }
+  const result = await settle(token, body);
+  assert.equal(result.status, 200);
+  assert.equal(result.payload.data.settlement.awardedMoodBeans, Math.floor(trace.raw / 100));
+  assert.equal(result.payload.data.settlement.gainedExperience, trace.raw);
+  assert.equal((await settle(token, body)).payload.data.duplicate, true);
 });

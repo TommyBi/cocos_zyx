@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "kind": "artifact",
+  "createdAt": "2026-11-13T03:14:46.971629+00:00",
+  "includes": [
+    ".dockerignore",
+    "Dockerfile",
+    "docker-compose.staging.yml",
+    "docker-compose.yml",
+    "package-lock.json",
+    "package.json",
+    "src"
+  ],
+  "files": {
+    ".dockerignore": {
+      "sha256": "47670b1a79542411767bfd40a047d4d4bf7cb5540beae1bd16267081480349bc",
+      "bytes": 37
+    },
+    "Dockerfile": {
+      "sha256": "d0e9ce730a303aaf5fa28f2c6d766374f2db36baa50b2ed725ccbca2aa2e8762",
+      "bytes": 209
+    },
+    "docker-compose.staging.yml": {
+      "sha256": "5f9ac9b45a789643b69782b1e02b236c9515066040d54811e034907b2db0aaa2",
+      "bytes": 520
+    },
+    "docker-compose.yml": {
+      "sha256": "cc6874ebf5e6fb500ed4a6f13291fdbc95dab08aa922e1e63a07d4f3d017e396",
+      "bytes": 404
+    },
+    "package-lock.json": {
+      "sha256": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868",
+      "bytes": 31452
+    },
+    "package.json": {
+      "sha256": "1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9",
+      "bytes": 336
+    },
+    "src/boardEngine.js": {
+      "sha256": "2250c28cc065cac4f19825e9e8eb42af89431a06b10fdc0cfd5aeb32457337b4",
+      "bytes": 40985
+    },
+    "src/databaseAudit.js": {
+      "sha256": "9c20451f74a16f3dfacc5ae795dc0431dcb576c603060f8e17edfd5606805ce9",
+      "bytes": 2117
+    },
+    "src/economyConfig.js": {
+      "sha256": "7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7",
+      "bytes": 1191
+    },
+    "src/gameEngine.js": {
+      "sha256": "6e94faac6e5866e6683d8b893998cfb26ef4ce249b1b42676885e1bf04ce6ada",
+      "bytes": 16556
+    },
+    "src/index.js": {
+      "sha256": "be6c429830f46fba20af34c1701177485eb738406ab12cd11fd37e8143fc1f80",
+      "bytes": 39813
+    },
+    "src/replayBoardEngine.js": {
+      "sha256": "12f62d13893b86ba6b049f05452335ccb3e482faabc8091347831d78ca339284",
+      "bytes": 5476
+    },
+    "src/resetProgress.js": {
+      "sha256": "50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b",
+      "bytes": 2923
+    },
+    "src/schema.js": {
+      "sha256": "9b32d7699ea677a9eb380014f7f969e5797ca1e218fdda9bc5eaf601f6b65da6",
+      "bytes": 7098
+    },
+    "src/wechatAuth.js": {
+      "sha256": "1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed",
+      "bytes": 1964
+    }
+  },
+  "treeSha256": "ad1fa16404d72f5b83c536ad2f520e8e3082609844e8cdabd96a8db724b0e8e0",
+  "excludedPaths": [
+    "data",
+    "server/data",
+    "server/uploads",
+    "uploads",
+    "web/uploads"
+  ],
+  "skippedCount": 0
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "podium": "leaderPodium_1",
+    "photoPixels": 8109,
+    "outsideOpening": 0,
+    "overMedal": 0,
+    "unfilledInterior": 0
+  },
+  {
+    "podium": "leaderPodium_2",
+    "photoPixels": 8175,
+    "outsideOpening": 0,
+    "overMedal": 0,
+    "unfilledInterior": 0
+  },
+  {
+    "podium": "leaderPodium_0",
+    "photoPixels": 9850,
+    "outsideOpening": 0,
+    "overMedal": 0,
+    "unfilledInterior": 0
+  }
+]

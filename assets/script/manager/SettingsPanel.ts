@@ -1,6 +1,5 @@
 import { BUTTON_COLORS, ModalAction, uimanager } from './UIManager';
 import { gameSettings } from './GameSettings';
-import { audioManager } from './AudioManager';
 import { decorateSettingsActionButton } from '../zyxGame/GlyphFactory';
 
 export type SettingsPanelOptions = {
@@ -46,11 +45,6 @@ export default class SettingsPanel {
                     if (action.closeOnClick !== false) uimanager.closeModal();
                     action.onClick();
                 }, 32);
-                const label = button.getChildByName('label');
-                label.color = cc.Color.WHITE;
-                const outline = label.addComponent(cc.LabelOutline);
-                outline.color = new cc.Color(Math.round(action.color.r * 0.54), Math.round(action.color.g * 0.54), Math.round(action.color.b * 0.54));
-                outline.width = 2;
                 if (action.icon) action.icon(button);
             });
         };
@@ -69,7 +63,6 @@ export default class SettingsPanel {
         update();
         this.createSwitch(row, 167, 0, gameSettings.soundEnabled, (enabled) => {
             gameSettings.setSoundEnabled(enabled);
-            audioManager.applySettings();
             if (enabled) gameSettings.vibrateLight();
             update();
         });
@@ -113,7 +106,6 @@ export default class SettingsPanel {
             const local = slider.convertToNodeSpaceAR(point);
             const volume = Math.max(0, Math.min(1, (local.x + sliderWidth / 2) / sliderWidth));
             gameSettings.setSoundVolume(volume);
-            audioManager.applySettings();
             update();
         };
         let dragging = false;
@@ -153,7 +145,7 @@ export default class SettingsPanel {
         uimanager.createRect(row, 'settingRowSurface', 464, 88, CREAM, 255, 20, 0, 2);
         const label = uimanager.createLabel(row, title, -154, 0, 30, COCOA, 96, 44);
         label.horizontalAlign = cc.Label.HorizontalAlign.LEFT;
-        label.enableBold = true;
+        uimanager.applyTypography(label, true);
         return row;
     }
 

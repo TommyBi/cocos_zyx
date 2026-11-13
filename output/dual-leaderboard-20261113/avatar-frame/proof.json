@@ -1,0 +1,281 @@
+[
+  {
+    "mode": "photos",
+    "state": [
+      {
+        "name": "leaderPodium_1",
+        "frameOverAvatar": true,
+        "frameInverted": true,
+        "photo": {
+          "width": 145.96153846153845,
+          "height": 94.875
+        },
+        "mask": {
+          "width": 94.875,
+          "height": 94.875
+        },
+        "center": {
+          "x": 94.599375,
+          "y": 280.75500000000005
+        },
+        "aperture": {
+          "center": {
+            "x": 94.599375,
+            "y": 280.75500000000005
+          },
+          "width": 47.0925,
+          "height": 45.5975
+        },
+        "medal": {
+          "x": 95.16,
+          "y": 308.03875
+        }
+      },
+      {
+        "name": "leaderPodium_2",
+        "frameOverAvatar": true,
+        "frameInverted": true,
+        "photo": {
+          "width": 98.57142857142858,
+          "height": 94.875
+        },
+        "mask": {
+          "width": 94.875,
+          "height": 94.875
+        },
+        "center": {
+          "x": 294.279375,
+          "y": 280.75500000000005
+        },
+        "aperture": {
+          "center": {
+            "x": 294.279375,
+            "y": 280.75500000000005
+          },
+          "width": 47.0925,
+          "height": 45.5975
+        },
+        "medal": {
+          "x": 294.84,
+          "y": 308.03875
+        }
+      },
+      {
+        "name": "leaderPodium_0",
+        "frameOverAvatar": true,
+        "frameInverted": true,
+        "photo": {
+          "width": 104.15625,
+          "height": 167.083984375
+        },
+        "mask": {
+          "width": 104.15625,
+          "height": 104.15625
+        },
+        "center": {
+          "x": 194.38453125,
+          "y": 272.1262500000001
+        },
+        "aperture": {
+          "center": {
+            "x": 194.38453125,
+            "y": 272.1262500000001
+          },
+          "width": 51.699375,
+          "height": 50.058125000000004
+        },
+        "medal": {
+          "x": 195,
+          "y": 302.0790625
+        }
+      }
+    ],
+    "errors": []
+  },
+  {
+    "mode": "magenta",
+    "state": [
+      {
+        "name": "leaderPodium_1",
+        "frameOverAvatar": true,
+        "frameInverted": true,
+        "photo": {
+          "width": 94.875,
+          "height": 94.875
+        },
+        "mask": {
+          "width": 94.875,
+          "height": 94.875
+        },
+        "center": {
+          "x": 94.599375,
+          "y": 280.75500000000005
+        },
+        "aperture": {
+          "center": {
+            "x": 94.599375,
+            "y": 280.75500000000005
+          },
+          "width": 47.0925,
+          "height": 45.5975
+        },
+        "medal": {
+          "x": 95.16,
+          "y": 308.03875
+        }
+      },
+      {
+        "name": "leaderPodium_2",
+        "frameOverAvatar": true,
+        "frameInverted": true,
+        "photo": {
+          "width": 94.875,
+          "height": 94.875
+        },
+        "mask": {
+          "width": 94.875,
+          "height": 94.875
+        },
+        "center": {
+          "x": 294.279375,
+          "y": 280.75500000000005
+        },
+        "aperture": {
+          "center": {
+            "x": 294.279375,
+            "y": 280.75500000000005
+          },
+          "width": 47.0925,
+          "height": 45.5975
+        },
+        "medal": {
+          "x": 294.84,
+          "y": 308.03875
+        }
+      },
+      {
+        "name": "leaderPodium_0",
+        "frameOverAvatar": true,
+        "frameInverted": true,
+        "photo": {
+          "width": 104.15625,
+          "height": 104.15625
+        },
+        "mask": {
+          "width": 104.15625,
+          "height": 104.15625
+        },
+        "center": {
+          "x": 194.38453125,
+          "y": 272.1262500000001
+        },
+        "aperture": {
+          "center": {
+            "x": 194.38453125,
+            "y": 272.1262500000001
+          },
+          "width": 51.699375,
+          "height": 50.058125000000004
+        },
+        "medal": {
+          "x": 195,
+          "y": 302.0790625
+        }
+      }
+    ],
+    "errors": []
+  },
+  {
+    "mode": "cyan",
+    "state": [
+      {
+        "name": "leaderPodium_1",
+        "frameOverAvatar": true,
+        "frameInverted": true,
+        "photo": {
+          "width": 94.875,
+          "height": 94.875
+        },
+        "mask": {
+          "width": 94.875,
+          "height": 94.875
+        },
+        "center": {
+          "x": 94.599375,
+          "y": 280.75500000000005
+        },
+        "aperture": {
+          "center": {
+            "x": 94.599375,
+            "y": 280.75500000000005
+          },
+          "width": 47.0925,
+          "height": 45.5975
+        },
+        "medal": {
+          "x": 95.16,
+          "y": 308.03875
+        }
+      },
+      {
+        "name": "leaderPodium_2",
+        "frameOverAvatar": true,
+        "frameInverted": true,
+        "photo": {
+          "width": 94.875,
+          "height": 94.875
+        },
+        "mask": {
+          "width": 94.875,
+          "height": 94.875
+        },
+        "center": {
+          "x": 294.279375,
+          "y": 280.75500000000005
+        },
+        "aperture": {
+          "center": {
+            "x": 294.279375,
+            "y": 280.75500000000005
+          },
+          "width": 47.0925,
+          "height": 45.5975
+        },
+        "medal": {
+          "x": 294.84,
+          "y": 308.03875
+        }
+      },
+      {
+        "name": "leaderPodium_0",
+        "frameOverAvatar": true,
+        "frameInverted": true,
+        "photo": {
+          "width": 104.15625,
+          "height": 104.15625
+        },
+        "mask": {
+          "width": 104.15625,
+          "height": 104.15625
+        },
+        "center": {
+          "x": 194.38453125,
+          "y": 272.1262500000001
+        },
+        "aperture": {
+          "center": {
+            "x": 194.38453125,
+            "y": 272.1262500000001
+          },
+          "width": 51.699375,
+          "height": 50.058125000000004
+        },
+        "medal": {
+          "x": 195,
+          "y": 302.0790625
+        }
+      }
+    ],
+    "errors": []
+  }
+]

@@ -8,6 +8,7 @@ const scriptsRoot = path.join(projectRoot, 'assets', 'script');
 const EXPECTED_BUNDLES = {
     game: { compressionType: 'none', remote: false },
     home: { compressionType: 'subpackage', remote: false },
+    effects: { compressionType: 'subpackage', remote: false },
     music: { compressionType: 'none', remote: true },
 };
 
@@ -15,14 +16,15 @@ const REQUIRED_FILES = [
     'game/images/formal/game_room_bg_v3.jpg',
     'game/images/formal/relief_hammer_v2.png',
     'game/images/formal/magic_wand_v1.png',
-    'game/images/formal/combo_wow_v1.png',
-    'game/images/formal/combo_good_v1.png',
-    'game/images/formal/combo_great_v1.png',
-    'game/images/formal/combo_perfect_v1.png',
-    'game/images/formal/score_digits_green_v1.png',
+    'effects/images/formal/combo_wow_v1.png',
+    'effects/images/formal/combo_good_v1.png',
+    'effects/images/formal/combo_great_v1.png',
+    'effects/images/formal/combo_perfect_v1.png',
+    'effects/images/formal/score_digits_green_v1.png',
     'game/images/formal/bean_hud_mascot_v1.png',
     'game/images/formal/hud_glyphs_v1.png',
     'game/images/formal/hud_round_v1.fnt',
+    'game/fonts/zyx_happy_round_ui_v1.ttf',
     'game/spine/get_1.json',
     'game/spine/get_1.atlas',
     'game/spine/get_1.png',
@@ -35,6 +37,13 @@ const REQUIRED_FILES = [
     'home/images/home_title_logo_v1.png',
     'home/images/rank_entry_trophy_v2.png',
     'home/images/start_guide_hand_v3.png',
+    'home/images/leaderboard/title_v2.png',
+    'home/images/leaderboard/podium_gold_v2.png',
+    'home/images/leaderboard/podium_silver_v2.png',
+    'home/images/leaderboard/podium_bronze_v2.png',
+    'home/fonts/zyx_happy_round_body_v1.ttf',
+    'home/fonts/zyx_happy_round_display_v1.fnt',
+    'home/fonts/zyx_happy_round_display_v1.png',
     'music/music_main.mp3',
     'music/music_game.mp3',
 ];
@@ -215,7 +224,7 @@ function validateAssetPathManifest() {
     if (manifest.size === 0) fail('ASSET_PATHS 解析结果为空，清单格式变化后需同步更新本校验');
 
     // 正向：代码引用的每个资源都必须真实存在，且显式登记进 REQUIRED_FILES。
-    const CANDIDATE_EXTS = ['.png', '.jpg', '.mp3', '.wav', '.json', '.effect', '.atlas', '.fnt'];
+    const CANDIDATE_EXTS = ['.png', '.jpg', '.mp3', '.wav', '.json', '.effect', '.atlas', '.fnt', '.ttf'];
     manifest.forEach((_value, key) => {
         const found = CANDIDATE_EXTS.find((ext) => fs.existsSync(path.join(bundlesRoot, `${key}${ext}`)));
         if (!found) fail(`ASSET_PATHS 引用的资源不存在：assets/bundles/${key}.*`);
@@ -226,7 +235,7 @@ function validateAssetPathManifest() {
 
     // 反向：REQUIRED_FILES 每项都必须被代码引用（spine 的 .atlas/.png 伴随文件按主路径折算）。
     REQUIRED_FILES.forEach((relativePath) => {
-        const base = relativePath.replace(/\.(png|jpe?g|mp3|wav|json|effect|atlas|fnt)$/, '');
+        const base = relativePath.replace(/\.(png|jpe?g|mp3|wav|json|effect|atlas|fnt|ttf)$/, '');
         if (!manifest.has(base)) fail(`REQUIRED_FILES 登记的 ${relativePath} 没有被 ASSET_PATHS 引用`);
     });
 

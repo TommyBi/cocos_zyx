@@ -1,0 +1,1040 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "state": {
+      "panel": {
+        "width": 640,
+        "height": 1040,
+        "lo": {
+          "x": 55,
+          "y": 291.53846153846155,
+          "z": 0
+        },
+        "hi": {
+          "x": 695,
+          "y": 1331.5384615384614,
+          "z": 0
+        },
+        "window": {
+          "width": 750,
+          "height": 1623.076923076923
+        }
+      },
+      "listHeight": 409,
+      "visibleRows": 4.554347826086956,
+      "gap": 47,
+      "selfBottom": -496,
+      "bottomInset": 24,
+      "groups": [
+        {
+          "parent": "leaderPodium_1",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderPodium_2",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderPodium_0",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_94dc8262ec55ce16fea04c4e0dddd63fbf0f",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_98ba9bc9d5ee97ae1f394214dab82c81700b",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_641780efaa232d4feb9b83133e8518799714",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_0d05b6a2a30de56f51f3412f12955646e043",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_ae82be60e84228563e483cc80758b81cf6d1",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_d4c3ae35879b52d0b91141037aab7f886f60",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_83886940cec98a953457fa380e2f2c08536c",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "selfItem",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        }
+      ],
+      "labels": [
+        {
+          "text": "排行榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "积分榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "开心榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "12,680",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "2",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "快乐的小团子",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "8,960",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "3",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "美丽的小熊",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "17,002",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "1",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "可爱的小柴犬",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "6,240",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "4",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "恬静的小天鹅",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "4,860",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "5",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "可爱的小企鹅",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "3,280",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "6",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "就不告诉你",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "2,160",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "7",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "美丽的小企鹅",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "1,250",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "8",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "温柔的小兔子",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "740",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "9",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "快乐的小熊猫",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "380",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "10",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "勇敢的小狮子",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "0",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "我的排名",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "未上榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "当前拥有",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        }
+      ]
+    },
+    "scrollMoved": 230.18764629332668,
+    "contentTapKeptOpen": true,
+    "blankDismissed": true,
+    "outsideDismissed": true,
+    "xDismissed": true,
+    "retryRecovered": true,
+    "staleResponseIgnored": true,
+    "errors": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "state": {
+      "panel": {
+        "width": 640,
+        "height": 1040,
+        "lo": {
+          "x": 55.774647887323965,
+          "y": 147,
+          "z": 0
+        },
+        "hi": {
+          "x": 695.7746478873239,
+          "y": 1187,
+          "z": 0
+        },
+        "window": {
+          "width": 751.5492957746479,
+          "height": 1334
+        }
+      },
+      "listHeight": 409,
+      "visibleRows": 4.554347826086956,
+      "gap": 47,
+      "selfBottom": -496,
+      "bottomInset": 24,
+      "groups": [
+        {
+          "parent": "leaderPodium_1",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderPodium_2",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderPodium_0",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_94dc8262ec55ce16fea04c4e0dddd63fbf0f",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_98ba9bc9d5ee97ae1f394214dab82c81700b",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_641780efaa232d4feb9b83133e8518799714",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_0d05b6a2a30de56f51f3412f12955646e043",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_ae82be60e84228563e483cc80758b81cf6d1",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_d4c3ae35879b52d0b91141037aab7f886f60",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_83886940cec98a953457fa380e2f2c08536c",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "selfItem",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        }
+      ],
+      "labels": [
+        {
+          "text": "排行榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "积分榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "开心榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "12,680",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "2",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "快乐的小团子",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "8,960",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "3",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "美丽的小熊",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "17,002",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "1",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "可爱的小柴犬",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "6,240",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "4",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "恬静的小天鹅",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "4,860",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "5",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "可爱的小企鹅",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "3,280",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "6",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "就不告诉你",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "2,160",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "7",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "美丽的小企鹅",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "1,250",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "8",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "温柔的小兔子",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "740",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "9",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "快乐的小熊猫",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "380",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "10",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "勇敢的小狮子",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "0",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "我的排名",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "未上榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "当前拥有",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        }
+      ]
+    },
+    "scrollMoved": 228.4925431081689,
+    "contentTapKeptOpen": true,
+    "blankDismissed": true,
+    "outsideDismissed": true,
+    "xDismissed": true,
+    "retryRecovered": true,
+    "staleResponseIgnored": true,
+    "errors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "state": {
+      "panel": {
+        "width": 640,
+        "height": 1040,
+        "lo": {
+          "x": 180.25,
+          "y": 147,
+          "z": 0
+        },
+        "hi": {
+          "x": 820.25,
+          "y": 1187,
+          "z": 0
+        },
+        "window": {
+          "width": 1000.5,
+          "height": 1334
+        }
+      },
+      "listHeight": 409,
+      "visibleRows": 4.554347826086956,
+      "gap": 47,
+      "selfBottom": -496,
+      "bottomInset": 24,
+      "groups": [
+        {
+          "parent": "leaderPodium_1",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderPodium_2",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderPodium_0",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_94dc8262ec55ce16fea04c4e0dddd63fbf0f",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_98ba9bc9d5ee97ae1f394214dab82c81700b",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_641780efaa232d4feb9b83133e8518799714",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_0d05b6a2a30de56f51f3412f12955646e043",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_ae82be60e84228563e483cc80758b81cf6d1",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_d4c3ae35879b52d0b91141037aab7f886f60",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "leaderboard_guest_83886940cec98a953457fa380e2f2c08536c",
+          "anchor": 1,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        },
+        {
+          "parent": "selfItem",
+          "anchor": 0.5,
+          "gap": 6,
+          "centerYDifference": 0,
+          "scale": 1
+        }
+      ],
+      "labels": [
+        {
+          "text": "排行榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "积分榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "开心榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "12,680",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "2",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "快乐的小团子",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "8,960",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "3",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "美丽的小熊",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "17,002",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "1",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "可爱的小柴犬",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "6,240",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "4",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "恬静的小天鹅",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "4,860",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "5",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "可爱的小企鹅",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "3,280",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "6",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "就不告诉你",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "2,160",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "7",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "美丽的小企鹅",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "1,250",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "8",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "温柔的小兔子",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "740",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "9",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "快乐的小熊猫",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "380",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "10",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "勇敢的小狮子",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        },
+        {
+          "text": "0",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "我的排名",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "未上榜",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "当前拥有",
+          "bold": false,
+          "font": "zyx_happy_round_ui_v1",
+          "system": false
+        },
+        {
+          "text": "",
+          "bold": false,
+          "font": "zyx_happy_round_body_v1",
+          "system": false
+        }
+      ]
+    },
+    "scrollMoved": 238.8341251082279,
+    "contentTapKeptOpen": true,
+    "blankDismissed": true,
+    "outsideDismissed": true,
+    "xDismissed": true,
+    "retryRecovered": true,
+    "staleResponseIgnored": true,
+    "errors": []
+  }
+]

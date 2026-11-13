@@ -100,14 +100,14 @@ test('旧档案余额不变，体力初始化 10，旧画作表被清理', async
   disk.close();
 });
 
-test('历史贬义随机昵称只替换前缀，正常昵称不变且迁移可重复执行', async () => {
+test('历史默认昵称升级为小动物，保留自定义昵称且迁移可重复执行', async () => {
   const SQL = await initSqlJs();
   const disk = new SQL.Database(fs.readFileSync(dbFilePath));
   const sql = "SELECT player_id, nickname FROM players WHERE player_id IN ('legacy_crafty', 'legacy_lazy', 'legacy_positive') ORDER BY player_id";
   const expected = [
-    ['legacy_crafty', '机灵的狐狸'],
-    ['legacy_lazy', '温柔的猫咪'],
-    ['legacy_positive', '美丽的狐狸'],
+    ['legacy_crafty', '机灵的小狐狸'],
+    ['legacy_lazy', '温柔的小猫咪'],
+    ['legacy_positive', '美丽的小狐狸'],
   ];
   assert.deepEqual(disk.exec(sql)[0].values, expected);
   migrateSchema(disk);

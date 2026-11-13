@@ -4,20 +4,20 @@ const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
 const initSqlJs = require('sql.js');
 const { migrateSchema } = require('./schema');
-function digest(db, sql) {
+const { normalizeDefaultNickname } = require('./defaultNickname');
+function digest(db, sql, transform = row => row) {
   const rows = db.exec(sql)[0]?.values || [];
-  return { count: rows.length, sha256: crypto.createHash('sha256').update(JSON.stringify(rows)).digest('hex') };
+  return { count: rows.length, sha256: crypto.createHash('sha256').update(JSON.stringify(rows.map(transform))).digest('hex') };
 }
 function core(db) {
   return {
     players: digest(db, `SELECT player_id, device_id, token,
-      CASE
-        WHEN substr(nickname, 1, 3) = '狡猾的' THEN '机灵的' || substr(nickname, 4)
-        WHEN substr(nickname, 1, 3) = '慵懒的' THEN '温柔的' || substr(nickname, 4)
-        ELSE nickname
-      END AS nickname,
+      nickname,
       avatar_url, level, experience, mood_bean_balance, total_mood_beans, highest_single_game_score, created_at, updated_at
-      FROM players ORDER BY player_id`),
+      FROM players ORDER BY player_id`, row => {
+        row[3] = normalizeDefaultNickname(row[3], row[4], row[0]);
+        return row;
+      }),
     settlements: digest(db, 'SELECT player_id, round_id, score, mood_token_count, awarded_mood_beans, created_at FROM round_settlements ORDER BY player_id, round_id'),
     leaderboard: digest(db, 'SELECT player_id, highest_single_game_score FROM players ORDER BY player_id'),
   };

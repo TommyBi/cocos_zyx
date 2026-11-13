@@ -23,6 +23,22 @@ export type WeChatUserProfile = {
     avatarUrl: string;
 };
 
+/** 按当前云账号记录成功授权，不能把另一账号的本地标记当作已授权。 */
+export function hasWeChatProfileAuthorization(playerId: string, avatarUrl: string): boolean {
+    if (!playerId) return false;
+    if (avatarUrl) return true;
+    try {
+        const cached = JSON.parse(cc.sys.localStorage.getItem('zyx_wechat_profile') || 'null');
+        return !!cached && cached.playerId === playerId && cached.authorized === true;
+    } catch (_) { return false; }
+}
+
+export function rememberWeChatProfileAuthorization(playerId: string): void {
+    try {
+        cc.sys.localStorage.setItem('zyx_wechat_profile', JSON.stringify({ playerId, authorized: true }));
+    } catch (_) { /* 云端资料仍可作为已授权依据，存储失败不影响此次保存。 */ }
+}
+
 function parseWeChatUserInfo(info: any): WeChatUserProfile {
     const nickName = info && typeof info.nickName === 'string' ? info.nickName.trim() : '';
     const avatarUrl = info && typeof info.avatarUrl === 'string' ? info.avatarUrl : '';

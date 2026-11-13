@@ -1,0 +1,54 @@
+[
+  {
+    "width": 320,
+    "height": 568,
+    "state": {
+      "hasScore": true,
+      "hasBean": false,
+      "allRegular": true,
+      "bounds": {
+        "low": {
+          "x": 55.774647887323965,
+          "y": 151,
+          "z": 0
+        },
+        "high": {
+          "x": 695.7746478873239,
+          "y": 1183,
+          "z": 0
+        },
+        "width": 751.5492957746479,
+        "height": 1334
+      }
+    },
+    "retryRecovered": true,
+    "delayedResponseIgnored": true,
+    "errors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "state": {
+      "hasScore": true,
+      "hasBean": false,
+      "allRegular": true,
+      "bounds": {
+        "low": {
+          "x": 180.25,
+          "y": 151,
+          "z": 0
+        },
+        "high": {
+          "x": 820.25,
+          "y": 1183,
+          "z": 0
+        },
+        "width": 1000.5,
+        "height": 1334
+      }
+    },
+    "retryRecovered": true,
+    "delayedResponseIgnored": true,
+    "errors": []
+  }
+]

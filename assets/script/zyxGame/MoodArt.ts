@@ -54,13 +54,13 @@ export function createAvatarFrame(parent: cc.Node, name: string, x: number, y: n
     return frame;
 }
 
-let roundedAvatarMaskFrame: cc.SpriteFrame = null;
+const roundedAvatarMaskFrames: { [radius: number]: cc.SpriteFrame } = {};
 
 /** 生成共享圆角透明蒙版，避免微信头像的矩形四角从圆角框中露出。 */
-function getRoundedAvatarMaskFrame(): cc.SpriteFrame {
-    if (roundedAvatarMaskFrame) return roundedAvatarMaskFrame;
+function getRoundedAvatarMaskFrame(cornerRatio: number): cc.SpriteFrame {
     const size = 64;
-    const radius = 15;
+    const radius = Math.max(0, Math.min(size / 2, Math.round(cornerRatio * size)));
+    if (roundedAvatarMaskFrames[radius]) return roundedAvatarMaskFrames[radius];
     const data = new Uint8Array(size * size * 4);
     const samples = [0.125, 0.375, 0.625, 0.875];
     for (let y = 0; y < size; y++) {
@@ -86,14 +86,15 @@ function getRoundedAvatarMaskFrame(): cc.SpriteFrame {
     }
     const texture = new cc.Texture2D();
     texture.initWithData(data, cc.Texture2D.PixelFormat.RGBA8888, size, size);
-    roundedAvatarMaskFrame = new cc.SpriteFrame(texture);
-    return roundedAvatarMaskFrame;
+    const frame = new cc.SpriteFrame(texture);
+    roundedAvatarMaskFrames[radius] = frame;
+    return frame;
 }
 
-export function applyRoundedAvatarMask(maskNode: cc.Node): cc.Mask {
+export function applyRoundedAvatarMask(maskNode: cc.Node, cornerRatio: number = 15 / 64): cc.Mask {
     const mask = maskNode.getComponent(cc.Mask) || maskNode.addComponent(cc.Mask);
     mask.type = cc.Mask.Type.IMAGE_STENCIL;
-    mask.spriteFrame = getRoundedAvatarMaskFrame();
+    mask.spriteFrame = getRoundedAvatarMaskFrame(cornerRatio);
     mask.alphaThreshold = 0.05;
     return mask;
 }

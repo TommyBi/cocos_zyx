@@ -1,0 +1,11 @@
+{
+  "clientReleaseId": "20261113-avatar-frame-152504",
+  "backendReleaseId": "20261113-staging-ui-144730",
+  "backendImage": "sha256:933f200be8c4e11fca5f25e28e22cfec07bd9a6194c381a13cf0db658f31bcb3",
+  "backendContainer": "3019de4787e6c327a8e04a9975079baa63e3c75f22046b02c5e95fb8797df4d5",
+  "clientSourceSynced": true,
+  "backendRuntimeHashVerified": true,
+  "backendRecreated": false,
+  "dataModified": false,
+  "stagingHealthy": true
+}

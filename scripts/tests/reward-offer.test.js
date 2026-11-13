@@ -291,18 +291,11 @@ test('五个奖励点位全部接入统一双通道，不再直接调用分享�
     }
 });
 
-test('救场从右侧入场后压暗并启动倒计时，确认后先收回再撤罩', () => {
+test('两种救场共用随机入口，气球投弹等待200ms，普通消行沿用现有碎裂', () => {
     const game = fs.readFileSync(path.join(repoRoot, 'assets/script/zyxGame/ZyxGame.ts'), 'utf8');
-    const prompt = game.slice(game.indexOf('private showRoundRescuePrompt()'), game.indexOf('private refreshRoundRescueLayout()'));
-    assert.match(prompt, /'roundRescueMask'/);
-    assert.match(prompt, /'roundRescueLight'/);
-    assert.match(prompt, /const dockX = this\.node\.width \/ 2 - 66/);
-    assert.match(prompt, /'我可以'/);
-    assert.ok(prompt.indexOf('{ x: dockX }') < prompt.indexOf('cc.tween(mask).to'));
-    assert.ok(prompt.indexOf('acceptButton.interactable = true') < prompt.indexOf('.to(10, { progress: 0 }'));
-    const close = game.slice(game.indexOf('private dismissRoundRescuePrompt('), game.indexOf('private updateBoardDangerState()'));
-    assert.ok(close.indexOf('cc.tween(drawer)') < close.indexOf('cc.tween(mask)'));
-    assert.ok(close.indexOf('prompt.destroy();', close.indexOf('cc.tween(mask)')) < close.indexOf('onComplete();'));
+    assert.match(game, /zyxGameModule\.offerRoundRescue\(elapsedMs\)/);
+    assert.match(game, /new RescueBalloon\(this\.boardRoot/);
+    assert.match(game, /lastLanding \+ 0\.2/);
     assert.match(game, /this\.idleSeconds >= zyxGameModule\.getHintDelay\(\)/);
     const eliminate = game.slice(game.indexOf('private animateElimination('), game.indexOf('private playMoodCollect('));
     assert.doesNotMatch(eliminate, /showToast/);

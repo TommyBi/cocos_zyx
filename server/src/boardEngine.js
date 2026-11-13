@@ -1,11 +1,12 @@
 // Generated from assets/script/dataModule/BoardEngine.ts; run npm run sync:engine.
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MAX_ACTION_APPENDS = exports.MAX_BOARD_BOMBS = exports.BOARD_RULES_VERSION = exports.BOARD_COLS = exports.BOARD_ROWS = void 0;
+exports.MAX_ACTION_APPENDS = exports.MAX_BOARD_BOMBS = exports.ROUND_RESCUE_COOLDOWN_MS = exports.BOARD_RULES_VERSION = exports.BOARD_COLS = exports.BOARD_ROWS = void 0;
 /** 纯棋盘规则。客户端直接导入；服务端使用脚本生成的同源 CommonJS 产物。 */
 exports.BOARD_ROWS = 10;
 exports.BOARD_COLS = 8;
-exports.BOARD_RULES_VERSION = 5;
+exports.BOARD_RULES_VERSION = 8;
+exports.ROUND_RESCUE_COOLDOWN_MS = 60 * 1000;
 exports.MAX_BOARD_BOMBS = 3;
 exports.MAX_ACTION_APPENDS = 5;
 class BoardEngine {
@@ -39,6 +40,9 @@ class BoardEngine {
         this.actionOpen = false;
         this.actionBlast = false;
         this.actionRows = 0;
+        this.balloonAvailable = false;
+        this.rescueKind = null;
+        this.rescueLastOfferedAt = -exports.ROUND_RESCUE_COOLDOWN_MS;
     }
     saveToolInventory() { }
     resetBoard(seed, tutorial, rulesVersion = exports.BOARD_RULES_VERSION) {
@@ -49,6 +53,9 @@ class BoardEngine {
         this.actionAppends = this.actionCascade = this.recentMisses = 0;
         this.comboActionCleared = this.pendingComboBomb = this.actionOpen = this.actionBlast = false;
         this.actionRows = 0;
+        this.balloonAvailable = false;
+        this.rescueKind = null;
+        this.rescueLastOfferedAt = -exports.ROUND_RESCUE_COOLDOWN_MS;
         this.nextId = 1;
         this.roundSeed = this.randomState = seed >>> 0 || 1;
         this.currentRoundIsTutorial = tutorial;
@@ -66,6 +73,9 @@ class BoardEngine {
                 this.createPiece(8, 4, 2, 1, 1), this.createPiece(7, 0, 1, 3, 3),
                 this.createPiece(7, 4, 2, 7, 0),
             ];
+            if (this.rulesVersion >= 6 && this.random() < 0.5) {
+                this.pieces.forEach(piece => piece.col = exports.BOARD_COLS - piece.col - piece.size);
+            }
             this.nextPieces = this.generateNextRow();
         }
         this.secondNextPieces = [];
@@ -160,6 +170,91 @@ class BoardEngine {
         const occupiedRows = {};
         this.pieces.forEach((piece) => occupiedRows[piece.row] = true);
         return Object.keys(occupiedRows).length;
+    }
+    getBoardHeight() {
+        return this.pieces.length ? exports.BOARD_ROWS - Math.min(...this.pieces.map(piece => piece.row)) : 0;
+    }
+    canOfferBalloonRescue() {
+        return this.rulesVersion >= 6 && this.rulesVersion < 8 && !this.balloonAvailable
+            && this.score > 1000 && this.getBoardHeight() > 6 && !this.isGameOver();
+    }
+    canOfferRoundRescue(elapsedMs) {
+        return this.rulesVersion >= 8 && !this.rescueKind && this.score > 500 && this.getBoardHeight() > 6
+            && !this.isGameOver() && Number.isSafeInteger(elapsedMs) && elapsedMs >= 0
+            && elapsedMs - this.rescueLastOfferedAt >= exports.ROUND_RESCUE_COOLDOWN_MS;
+    }
+    /** 两种救场共用出现条件和冷却；用对局种子随机选择，重放可验证。 */
+    offerRoundRescue(elapsedMs) {
+        if (!this.canOfferRoundRescue(elapsedMs))
+            return null;
+        this.rescueKind = this.random() < 0.5 ? 'balloon' : 'clear';
+        this.rescueLastOfferedAt = elapsedMs;
+        this.roundActions.push({ type: 'rescueOffer', elapsedMs, kind: this.rescueKind });
+        return this.rescueKind;
+    }
+    dismissRoundRescue() {
+        if (!this.rescueKind)
+            return false;
+        this.rescueKind = null;
+        this.roundActions.push({ type: 'rescueDismiss' });
+        return true;
+    }
+    /** 清屏沿用原救场效果：不计行分、不收集表情，之后正常补排。 */
+    applyClearRescue() {
+        if (this.rulesVersion < 8 || this.rescueKind !== 'clear')
+            return null;
+        this.rescueKind = null;
+        this.beginPlayerAction();
+        const ids = this.pieces.map(piece => piece.id);
+        this.pieces = [];
+        this.roundActions.push({ type: 'rescueClear' });
+        return ids;
+    }
+    offerBalloonRescue() {
+        if (!this.canOfferBalloonRescue())
+            return false;
+        this.balloonAvailable = true;
+        this.roundActions.push({ type: 'balloonOffer' });
+        return true;
+    }
+    dismissBalloonRescue() {
+        if (this.rulesVersion >= 8)
+            return this.dismissRoundRescue();
+        if (!this.balloonAvailable)
+            return false;
+        this.balloonAvailable = false;
+        this.roundActions.push({ type: 'balloonDismiss' });
+        return true;
+    }
+    /** 只读预演，投弹期间棋盘锁定；实际消除时才消费同一段种子序列。 */
+    getBalloonTargets() {
+        const state = this.randomState;
+        try {
+            return this.shuffle(this.pieces.slice()).slice(0, Math.ceil(this.pieces.length / 4));
+        }
+        finally {
+            this.randomState = state;
+        }
+    }
+    applyBalloonRescue() {
+        // 出现时检查高度，兑换时兑现已出现的机会；期间玩家消行降高也不会白分享。
+        if (this.rulesVersion < 6 || (this.rulesVersion >= 8 ? this.rescueKind !== 'balloon' : !this.balloonAvailable))
+            return null;
+        this.rescueKind = null;
+        this.balloonAvailable = false;
+        const targets = this.shuffle(this.pieces.slice()).slice(0, Math.ceil(this.pieces.length / 4));
+        this.roundActions.push({ type: 'balloon' });
+        if (this.rulesVersion >= 7) {
+            // 投弹落点视作炸弹，复用普通炸弹范围与旧炸弹连锁；不修改原块或额外上涨。
+            return this.removeWithBombs(targets.map(piece => (Object.assign(Object.assign({}, piece), { bomb: true }))), []);
+        }
+        const ids = new Set(targets.map(piece => piece.id));
+        const moods = targets.filter(piece => piece.stampMood > 0).map(piece => piece.stampMood);
+        this.pieces = this.pieces.filter(piece => !ids.has(piece.id));
+        this.roundCollectedMoodBeans += moods.length;
+        // V6历史对局保留只移除抽中块的规则，确保旧客户端和离线局可结算。
+        return { clearedRows: 0, gainedScore: 0, removedPieceIds: targets.map(piece => piece.id),
+            clearedRowIndexes: [], collectedMoodTypes: moods, detonatedBombs: [] };
     }
     removeMostCommonColor() {
         const stats = {};
@@ -269,16 +364,28 @@ class BoardEngine {
     awardBomb(clearedRows) {
         if (clearedRows < 2 || this.pieces.filter((piece) => piece.bomb).length >= exports.MAX_BOARD_BOMBS)
             return null;
-        let target = this.pieces.filter((piece) => !piece.bomb)
-            .sort((a, b) => b.row - a.row || a.col - b.col || a.id - b.id)[0];
+        const eligible = this.pieces.filter(piece => !piece.bomb);
+        let target = this.rulesVersion >= 6 ? eligible[Math.floor(this.random() * eligible.length)]
+            : eligible.sort((a, b) => b.row - a.row || a.col - b.col || a.id - b.id)[0];
         if (!target) {
-            // 全清或现存块都带炸弹时，在最低的空格生成普通单格，保证奖励不会丢失。
-            for (let row = exports.BOARD_ROWS - 1; row >= 0 && !target; row--) {
-                for (let col = 0; col < exports.BOARD_COLS && !target; col++) {
-                    if (this.pieces.some((piece) => piece.row === row && col >= piece.col && col < piece.col + piece.size))
-                        continue;
-                    target = this.createPiece(row, col, 1, 1, 0);
-                    this.pieces.push(target);
+            if (this.rulesVersion >= 6) {
+                for (let row = exports.BOARD_ROWS - 1; row >= 0 && !target; row--) {
+                    const empty = Array.from({ length: exports.BOARD_COLS }, (_, col) => col).filter(col => !this.pieces.some(piece => piece.row === row && col >= piece.col && col < piece.col + piece.size));
+                    if (empty.length) {
+                        target = this.createPiece(row, empty[Math.floor(this.random() * empty.length)], 1, 1, 0);
+                        this.pieces.push(target);
+                    }
+                }
+            }
+            else {
+                // 旧规则保留原先的奖励落点，以便重放历史对局。
+                for (let row = exports.BOARD_ROWS - 1; row >= 0 && !target; row--) {
+                    for (let col = 0; col < exports.BOARD_COLS && !target; col++) {
+                        if (this.pieces.some((piece) => piece.row === row && col >= piece.col && col < piece.col + piece.size))
+                            continue;
+                        target = this.createPiece(row, col, 1, 1, 0);
+                        this.pieces.push(target);
+                    }
                 }
             }
         }
@@ -392,6 +499,7 @@ class BoardEngine {
         const rows = this.getRiseRowCount();
         if (this.actionAppends + rows > exports.MAX_ACTION_APPENDS || this.pieces.some(piece => piece.row < rows))
             return false;
+        this.prepareSecondRow(this.difficultyActionCount);
         this.roundActions.push({ type: 'rise', rows });
         for (let index = 0; index < rows; index++)
             this.appendNextRow(false);
@@ -399,6 +507,8 @@ class BoardEngine {
     }
     getRiseRowCount(actions = this.difficultyActionCount) {
         if (this.rulesVersion < 5 || actions <= 25)
+            return 1;
+        if (this.rulesVersion >= 6 && this.getBoardHeight() > 4)
             return 1;
         if (actions < 40)
             return (actions - 26) % 4 === 0 ? 2 : 1;
@@ -508,6 +618,10 @@ class BoardEngine {
                 stampCell: 0, collectibleType: 0, collectibleCell: 0 });
             cell += length;
         }
+        if (this.rulesVersion >= 6 && this.random() < 0.5) {
+            pieces.forEach(piece => piece.col = exports.BOARD_COLS - piece.col - piece.size);
+            pieces.sort((a, b) => a.col - b.col);
+        }
         return { pieces, sizes: pieces.map((piece) => piece.size), gaps: [], movablePieces: this.countMovableNextPieces(pieces) };
     }
     generateNextRow() {
@@ -525,6 +639,9 @@ class BoardEngine {
                     candidates.push(this.rowWithGap(col, gap));
             }
         }
+        // 同分候选不再总是取枚举最靠左的空位，保留辅助评分但消除固定遍历偏差。
+        if (this.rulesVersion >= 6)
+            this.shuffle(candidates);
         // 预判下一次容易识别的移动，再选择它之后仍有容易解/连锁的出排。
         const moves = help ? this.easyMoves(stable) : [];
         const plans = [];
@@ -643,6 +760,9 @@ class BoardEngine {
             sizes.push(size);
             cellsLeft -= size;
         }
+        // 剩余格数会强制产生单格；打散块长后，单格不再固定排在最右。
+        if (this.rulesVersion >= 6)
+            this.shuffle(sizes);
         const gaps = new Array(sizes.length + 1).fill(0);
         const heights = this.getColumnStackHeights();
         let leftPressure = 0;
@@ -655,6 +775,8 @@ class BoardEngine {
         }
         for (let i = 0; i < emptyCells; i++) {
             const weights = gaps.map((_, slot) => {
+                if (this.rulesVersion >= 6)
+                    return 1;
                 const t = gaps.length <= 1 ? 0.5 : slot / (gaps.length - 1);
                 // 哪侧堆得更高，空位就更常落在哪侧，避免单边越堆越高。
                 return 1 + leftPressure * (1 - t) + rightPressure * t;
@@ -720,6 +842,13 @@ class BoardEngine {
                 return i;
         }
         return weights.length - 1;
+    }
+    shuffle(items) {
+        for (let index = items.length - 1; index > 0; index--) {
+            const other = Math.floor(this.random() * (index + 1));
+            [items[index], items[other]] = [items[other], items[index]];
+        }
+        return items;
     }
     createPiece(row, col, size, color, stampMood = -1, stampCell = 0, collectibleType = 0, collectibleCell = 0) {
         const resolvedStamp = stampMood < 0 ? (this.random() < 0.5 ? color : 0) : stampMood;

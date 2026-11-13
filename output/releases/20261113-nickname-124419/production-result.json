@@ -1,0 +1,18 @@
+{
+  "releaseId": "20261113-nickname-124419",
+  "environment": "production",
+  "image": "sha256:09502a1106d858fb2c030d31d4f76e02f9ae626259f1d8756c36086c622d4a34",
+  "container": "a9e49f37609a1e509b0d32de023e6929f51261f175dc468ae0dc34ea21b6145e",
+  "apiVersion": 9,
+  "capabilitiesPreserved": true,
+  "configurationPreserved": true,
+  "changedDefaultNicknames": 59,
+  "databaseIntegrity": "ok",
+  "allOtherDataPreserved": true,
+  "backup": "/opt/tcjstory/backups/20261113-nickname-124419-production",
+  "smoke": {
+    "authenticatedLeaderboard": true,
+    "entries": 28,
+    "servedNamesMatchDatabase": true
+  }
+}

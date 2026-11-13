@@ -1,0 +1,535 @@
+{
+  "state": {
+    "headerY": 74,
+    "groups": [
+      {
+        "parent": "leaderPodium_1",
+        "x": 0,
+        "y": -47.4375,
+        "width": 120.17999999999999,
+        "height": 40,
+        "scale": 1,
+        "children": [
+          {
+            "name": "valueBean",
+            "x": -48.190000000000005,
+            "y": 0,
+            "width": 23.8,
+            "height": 36
+          },
+          {
+            "name": "label",
+            "x": 14.899999999999991,
+            "y": 0,
+            "width": 90.38,
+            "height": 45.36
+          }
+        ]
+      },
+      {
+        "parent": "leaderPodium_2",
+        "x": 0,
+        "y": -47.4375,
+        "width": 103.38,
+        "height": 40,
+        "scale": 1,
+        "children": [
+          {
+            "name": "valueBean",
+            "x": -39.79,
+            "y": 0,
+            "width": 23.8,
+            "height": 36
+          },
+          {
+            "name": "label",
+            "x": 14.899999999999999,
+            "y": 0,
+            "width": 73.58,
+            "height": 45.36
+          }
+        ]
+      },
+      {
+        "parent": "leaderPodium_0",
+        "x": 0,
+        "y": -52.078125,
+        "width": 136.5,
+        "height": 44,
+        "scale": 1,
+        "children": [
+          {
+            "name": "valueBean",
+            "x": -54.65,
+            "y": 0,
+            "width": 27.2,
+            "height": 40
+          },
+          {
+            "name": "label",
+            "x": 16.6,
+            "y": 0,
+            "width": 103.3,
+            "height": 51.66
+          }
+        ]
+      },
+      {
+        "parent": "leaderboard_guest_94dc8262ec55ce16fea04c4e0dddd63fbf0f",
+        "x": 270,
+        "y": 0,
+        "width": 99.91,
+        "height": 39,
+        "scale": 1,
+        "children": [
+          {
+            "name": "valueBean",
+            "x": -88.435,
+            "y": 0,
+            "width": 22.95,
+            "height": 35
+          },
+          {
+            "name": "label",
+            "x": -35.48000000000001,
+            "y": 0,
+            "width": 70.96,
+            "height": 44.1
+          }
+        ]
+      },
+      {
+        "parent": "leaderboard_guest_98ba9bc9d5ee97ae1f394214dab82c81700b",
+        "x": 270,
+        "y": 0,
+        "width": 99.91,
+        "height": 39,
+        "scale": 1,
+        "children": [
+          {
+            "name": "valueBean",
+            "x": -88.435,
+            "y": 0,
+            "width": 22.95,
+            "height": 35
+          },
+          {
+            "name": "label",
+            "x": -35.48000000000001,
+            "y": 0,
+            "width": 70.96,
+            "height": 44.1
+          }
+        ]
+      },
+      {
+        "parent": "leaderboard_guest_641780efaa232d4feb9b83133e8518799714",
+        "x": 270,
+        "y": 0,
+        "width": 99.91,
+        "height": 39,
+        "scale": 1,
+        "children": [
+          {
+            "name": "valueBean",
+            "x": -88.435,
+            "y": 0,
+            "width": 22.95,
+            "height": 35
+          },
+          {
+            "name": "label",
+            "x": -35.48000000000001,
+            "y": 0,
+            "width": 70.96,
+            "height": 44.1
+          }
+        ]
+      },
+      {
+        "parent": "leaderboard_guest_0d05b6a2a30de56f51f3412f12955646e043",
+        "x": 270,
+        "y": 0,
+        "width": 99.91,
+        "height": 39,
+        "scale": 1,
+        "children": [
+          {
+            "name": "valueBean",
+            "x": -88.435,
+            "y": 0,
+            "width": 22.95,
+            "height": 35
+          },
+          {
+            "name": "label",
+            "x": -35.48000000000001,
+            "y": 0,
+            "width": 70.96,
+            "height": 44.1
+          }
+        ]
+      },
+      {
+        "parent": "leaderboard_guest_ae82be60e84228563e483cc80758b81cf6d1",
+        "x": 270,
+        "y": 0,
+        "width": 99.91,
+        "height": 39,
+        "scale": 1,
+        "children": [
+          {
+            "name": "valueBean",
+            "x": -88.435,
+            "y": 0,
+            "width": 22.95,
+            "height": 35
+          },
+          {
+            "name": "label",
+            "x": -35.48000000000001,
+            "y": 0,
+            "width": 70.96,
+            "height": 44.1
+          }
+        ]
+      },
+      {
+        "parent": "leaderboard_guest_d4c3ae35879b52d0b91141037aab7f886f60",
+        "x": 270,
+        "y": 0,
+        "width": 77.55,
+        "height": 39,
+        "scale": 1,
+        "children": [
+          {
+            "name": "valueBean",
+            "x": -66.075,
+            "y": 0,
+            "width": 22.95,
+            "height": 35
+          },
+          {
+            "name": "label",
+            "x": -24.3,
+            "y": 0,
+            "width": 48.6,
+            "height": 44.1
+          }
+        ]
+      },
+      {
+        "parent": "leaderboard_guest_83886940cec98a953457fa380e2f2c08536c",
+        "x": 270,
+        "y": 0,
+        "width": 77.55,
+        "height": 39,
+        "scale": 1,
+        "children": [
+          {
+            "name": "valueBean",
+            "x": -66.075,
+            "y": 0,
+            "width": 22.95,
+            "height": 35
+          },
+          {
+            "name": "label",
+            "x": -24.3,
+            "y": 0,
+            "width": 48.6,
+            "height": 44.1
+          }
+        ]
+      },
+      {
+        "parent": "selfItem",
+        "x": 163,
+        "y": -17,
+        "width": 52.4,
+        "height": 44,
+        "scale": 1,
+        "children": [
+          {
+            "name": "valueBean",
+            "x": -12.600000000000001,
+            "y": 0,
+            "width": 27.2,
+            "height": 40
+          },
+          {
+            "name": "label",
+            "x": 16.599999999999998,
+            "y": 0,
+            "width": 19.2,
+            "height": 51.66
+          }
+        ]
+      }
+    ],
+    "panel": {
+      "width": 640,
+      "height": 1040
+    },
+    "list": {
+      "width": 584,
+      "height": 409,
+      "y": -150.5,
+      "rows": 7
+    },
+    "self": {
+      "y": -444,
+      "height": 104
+    },
+    "gap": 37,
+    "labels": [
+      {
+        "text": "排行榜",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "积分榜",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "开心榜",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "12,680",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "2",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "快乐的小团子",
+        "bold": false,
+        "font": "zyx_happy_round_body_v1",
+        "system": false
+      },
+      {
+        "text": "8,960",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "3",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "美丽的小熊",
+        "bold": false,
+        "font": "zyx_happy_round_body_v1",
+        "system": false
+      },
+      {
+        "text": "17,002",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "1",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "可爱的小柴犬",
+        "bold": false,
+        "font": "zyx_happy_round_body_v1",
+        "system": false
+      },
+      {
+        "text": "排名",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "用户",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "开心豆",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "6,240",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "4",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "恬静的小天鹅",
+        "bold": false,
+        "font": "zyx_happy_round_body_v1",
+        "system": false
+      },
+      {
+        "text": "4,860",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "5",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "可爱的小企鹅",
+        "bold": false,
+        "font": "zyx_happy_round_body_v1",
+        "system": false
+      },
+      {
+        "text": "3,280",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "6",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "就不告诉你",
+        "bold": false,
+        "font": "zyx_happy_round_body_v1",
+        "system": false
+      },
+      {
+        "text": "2,160",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "7",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "美丽的小企鹅",
+        "bold": false,
+        "font": "zyx_happy_round_body_v1",
+        "system": false
+      },
+      {
+        "text": "1,250",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "8",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "温柔的小兔子",
+        "bold": false,
+        "font": "zyx_happy_round_body_v1",
+        "system": false
+      },
+      {
+        "text": "740",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "9",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "快乐的小熊猫",
+        "bold": false,
+        "font": "zyx_happy_round_body_v1",
+        "system": false
+      },
+      {
+        "text": "380",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "10",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "勇敢的小狮子",
+        "bold": false,
+        "font": "zyx_happy_round_body_v1",
+        "system": false
+      },
+      {
+        "text": "0",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "我的排名",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "未上榜",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "当前拥有",
+        "bold": false,
+        "font": "zyx_happy_round_ui_v1",
+        "system": false
+      },
+      {
+        "text": "",
+        "bold": false,
+        "font": "zyx_happy_round_body_v1",
+        "system": false
+      }
+    ]
+  },
+  "errors": []
+}

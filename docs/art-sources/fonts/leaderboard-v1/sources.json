@@ -1,0 +1,12 @@
+[
+  {
+    "file": "ChillRoundF-v3.0.ttf",
+    "source": "https://raw.githubusercontent.com/Warren2060/ChillRound/46dda1602729b58de96e3fdee9f918d7aaa64727/ChillRoundF%20v3.0.ttf",
+    "sha256": "7dae804b344f7bc1a1c8426b9515e9b54d7baac3e123263d0bae94d0a305a732"
+  },
+  {
+    "file": "Nunito-wght.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunito/Nunito%5Bwght%5D.ttf",
+    "sha256": "bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207"
+  }
+]

@@ -1,4 +1,4 @@
-import { BUTTON_COLORS, uimanager } from '../manager/UIManager';
+import { BUTTON_COLORS, BUTTON_TEXT_COLOR, uimanager } from '../manager/UIManager';
 import { cloudService, CloudProfile } from '../manager/CloudService';
 import { ASSET_PATHS, getSpriteFrame } from '../manager/AssetLoader';
 import { zyxGameModule } from '../dataModule/ZyxGameModule';
@@ -37,7 +37,7 @@ export function showShopPanel(ensureProfile: () => Promise<void>, applyProfile: 
     let root: cc.Node = null;
     let status: cc.Label = null;
     const inventory: { [item: string]: cc.Label } = {};
-    const buttons: { item: ShopItem; node: cc.Node; label: cc.RichText; layout: cc.Layout }[] = [];
+    const buttons: { item: ShopItem; node: cc.Node; label: cc.Label; layout: cc.Layout }[] = [];
     const showInsufficientBeans = (item: ShopItem): void => {
         const price = PRICES[item];
         if (!challenge) { uimanager.showToast(`开心豆不足，需要${price}颗才能兑换`); return; }
@@ -75,10 +75,8 @@ export function showShopPanel(ensureProfile: () => Promise<void>, applyProfile: 
             const available = !exchanging && (!pending || !!retry);
             button.node.getComponent(cc.Button).interactable = available;
             const action = exchanging && retry ? '确认中…' : retry ? '继续确认' : '兑换';
-            const ownedColor = balance < PRICES[button.item] ? '#BD4035' : '#287638';
             button.label.fontSize = balance >= 10000000 ? 21 : 24;
-            button.label.string = `<b><color=#65463A>${action} [</color><color=${ownedColor}>${balance}</color>`
-                + `<color=#65463A>/</color><color=#287638>${PRICES[button.item]}</color><color=#65463A>]</color></b>`;
+            button.label.string = `${action} [${balance}/${PRICES[button.item]}]`;
             button.layout.updateLayout();
         });
         if (pending && !exchanging) status.string = '有一笔兑换待确认，点击「继续确认」即可';
@@ -145,7 +143,7 @@ export function showShopPanel(ensureProfile: () => Promise<void>, applyProfile: 
             }
             const title = uimanager.createLabel(card, `${item.title} ×1`, 48, 73, 28, MOOD_COLORS.cocoa, 310, 36);
             title.horizontalAlign = cc.Label.HorizontalAlign.LEFT;
-            title.enableBold = true;
+            uimanager.applyTypography(title, true);
             const description = uimanager.createLabel(card, item.description, 48, 23, 20, new cc.Color(64, 100, 112), 310, 28);
             description.horizontalAlign = cc.Label.HorizontalAlign.LEFT;
             description.enableWrapText = false;
@@ -165,15 +163,12 @@ export function showShopPanel(ensureProfile: () => Promise<void>, applyProfile: 
             const coin = createMoodBean(content, 1, 0, 0, 34 * 0.8);
             coin.name = 'shopCurrencyIcon';
             coin.zIndex = 0;
-            const text = new cc.Node('shopPurchaseText');
-            content.addChild(text);
-            const label = text.addComponent(cc.RichText);
-            label.fontFamily = 'PingFang SC';
-            label.handleTouchEvent = false;
-            label.fontSize = 24;
+            const label = uimanager.createLabel(content, '', 0, 0, 24, BUTTON_TEXT_COLOR, 320, 34);
+            label.node.name = 'shopPurchaseText';
+            label.overflow = cc.Label.Overflow.NONE;
+            label.enableWrapText = false;
+            uimanager.applyTypography(label, true);
             label.lineHeight = 32;
-            label.horizontalAlign = cc.macro.TextAlignment.CENTER;
-            label.maxWidth = 0;
             buttons.push({ item: item.item, node: button, label, layout });
         });
         status = uimanager.createLabel(panel, '', 0, -449, 19, new cc.Color(139, 111, 85), 540, 46);

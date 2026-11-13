@@ -15,6 +15,8 @@ export function formatHudScore(value: number): string {
 export function applyHudFont(label: cc.Label): void {
     const size = label.fontSize;
     label.font = getBitmapFont('game', ASSET_PATHS.game.hudFont);
+    label.useSystemFont = false;
+    label.enableBold = false;
     label.fontSize = size;
     label.lineHeight = size;
     label.enableWrapText = false;

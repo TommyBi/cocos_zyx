@@ -11,8 +11,8 @@ const STORAGE_KEY = 'zyx_game_settings_v1';
 /**
  * 跨首页与局内共享的偏好设置。
  *
- * Cocos 的音频引擎使用全局音量，所以把「音效开关」解释为效果音和音乐的总开关；
- * 后续接入新音效时无需再为每个节点补一套开关逻辑。
+ * 「声音」同时控制音乐与效果音；这里只保存偏好并通知 AudioManager，
+ * 不直接访问音频引擎，避免设置和页面各维护一套播放状态。
  */
 export default class GameSettings {
     private static _instance: GameSettings;
@@ -23,6 +23,7 @@ export default class GameSettings {
     }
 
     private loaded: boolean = false;
+    private audioListeners = new Set<() => void>();
     private state: GameSettingsSnapshot = {
         soundEnabled: true,
         soundVolume: 0.7,
@@ -57,14 +58,14 @@ export default class GameSettings {
         this.ensureLoaded();
         this.state.soundEnabled = !!enabled;
         this.persist();
-        this.applyAudioVolume();
+        this.audioListeners.forEach(listener => listener());
     }
 
     public setSoundVolume(volume: number): void {
         this.ensureLoaded();
         this.state.soundVolume = Math.max(0, Math.min(1, Number(volume) || 0));
         this.persist();
-        this.applyAudioVolume();
+        this.audioListeners.forEach(listener => listener());
     }
 
     public setVibrationEnabled(enabled: boolean): void {
@@ -95,7 +96,11 @@ export default class GameSettings {
         } catch (error) {
             // 解析失败时采用默认设置，不阻断游戏初始化。
         }
-        this.applyAudioVolume();
+    }
+
+    public onAudioChange(listener: () => void): () => void {
+        this.audioListeners.add(listener);
+        return () => this.audioListeners.delete(listener);
     }
 
     private persist(): void {
@@ -106,13 +111,6 @@ export default class GameSettings {
         }
     }
 
-    private applyAudioVolume(): void {
-        const audioEngine: any = typeof cc !== 'undefined' ? (cc as any).audioEngine : null;
-        if (!audioEngine) return;
-        const volume = this.state.soundEnabled ? this.state.soundVolume : 0;
-        if (typeof audioEngine.setEffectsVolume === 'function') audioEngine.setEffectsVolume(volume);
-        if (typeof audioEngine.setMusicVolume === 'function') audioEngine.setMusicVolume(volume);
-    }
 }
 
 export const gameSettings = GameSettings.instance;

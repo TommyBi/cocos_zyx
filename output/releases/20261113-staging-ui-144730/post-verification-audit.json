@@ -1,0 +1,42 @@
+{
+  "integrity": "ok",
+  "tables": {
+    "game_rounds": {
+      "before": 225,
+      "after": 235,
+      "existingRowsPreserved": true
+    },
+    "players": {
+      "before": 52,
+      "after": 53,
+      "existingRowsPreserved": true
+    },
+    "release_resets": {
+      "before": 0,
+      "after": 0,
+      "existingRowsPreserved": true
+    },
+    "round_settlements": {
+      "before": 47,
+      "after": 51,
+      "existingRowsPreserved": true
+    },
+    "sqlite_sequence": {
+      "before": 1,
+      "after": 1,
+      "existingRowsPreserved": false
+    },
+    "stamina_share_claims": {
+      "before": 8,
+      "after": 9,
+      "existingRowsPreserved": true
+    },
+    "tool_transactions": {
+      "before": 13,
+      "after": 13,
+      "existingRowsPreserved": true
+    }
+  },
+  "productionGatewayAndSharedSourceUnchanged": true,
+  "testWrites": "One isolated zero-score/zero-bean protocol account; new rounds, settlements and share claim only; sqlite_sequence advances for these inserts."
+}

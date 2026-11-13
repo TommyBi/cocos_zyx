@@ -1,0 +1,14 @@
+[
+  {
+    "file": "build/wechatgame/subpackages/home/native/43/43b95c81-43e5-592a-85f9-fcdf105b9c57.f4545/zyx_happy_round_body_v1.ttf",
+    "weight": 400,
+    "bytes": 2688660,
+    "sha256": "46a772c96daa8a7e78e20eb4e6978aa0419001fd5c2fcc13d9ddc727175c1469"
+  },
+  {
+    "file": "build/wechatgame/assets/game/native/cf/cfa33f68-4829-543f-b6ec-f2826c33db3a.c127e/zyx_happy_round_ui_v1.ttf",
+    "weight": 400,
+    "bytes": 179912,
+    "sha256": "31eb59ef8b0e77650cbf07a2da564c1e287662fbabed8468f1704c3c246430b8"
+  }
+]

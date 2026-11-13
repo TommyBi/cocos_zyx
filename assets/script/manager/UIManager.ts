@@ -1,5 +1,6 @@
 import { gameSettings } from './GameSettings';
 import { getWxApi } from './PlatformAdapter';
+import { ASSET_PATHS, getTTFFont, isFeatureReady, isTypographyReady } from './AssetLoader';
 
 export type ModalAction = {
     text: string;
@@ -58,6 +59,23 @@ export default class UIManager {
     private hapticRoot: cc.Node = null;
     private hapticTouchStart: cc.Vec2 = null;
     private hapticTouchMoved: boolean = false;
+
+    /** 所有文本使用正常字重圆体；标题、按钮、数字和正文均不额外加粗。 */
+    public applyTypography(label: cc.Label, display: boolean = false): void {
+        if (!label || !isTypographyReady()) return;
+        label.font = !display && isFeatureReady('home')
+            ? getTTFFont('home', ASSET_PATHS.home.leaderboardBodyFont)
+            : getTTFFont('game', ASSET_PATHS.game.uiFont);
+        label.useSystemFont = false;
+        label.enableBold = false;
+        label.cacheMode = cc.Label.CacheMode.NONE;
+    }
+
+    public refreshTypography(root: cc.Node): void {
+        root.getComponentsInChildren(cc.Label).forEach((label: cc.Label) => {
+            this.applyTypography(label, label.fontSize >= 30 || !!label.node.parent.getComponent(cc.Button));
+        });
+    }
 
     public init(scene: cc.Node): void {
         this.scene = scene;
@@ -247,7 +265,9 @@ export default class UIManager {
         const node = new cc.Node('label');
         node.width = width;
         node.height = height;
-        node.color = color;
+        let buttonAncestor = parent;
+        while (buttonAncestor && !buttonAncestor.getComponent(cc.Button)) buttonAncestor = buttonAncestor.parent;
+        node.color = buttonAncestor ? BUTTON_TEXT_COLOR : color;
         node.zIndex = 50;
         node.setAnchorPoint(0.5, 0.5);
         node.setPosition(x, y);
@@ -264,6 +284,7 @@ export default class UIManager {
         label.fontFamily = 'PingFang SC';
         label.cacheMode = cc.Label.CacheMode.CHAR;
         (label as any).isSystemFontUsed = true;
+        this.applyTypography(label, !!buttonAncestor || fontSize >= 30 || /^[\d\s.,%+\-/]+$/.test(text));
         // cc.Label 在 addComponent/string 初始化时会重置节点尺寸，尺寸必须最后写入。
         node.width = width;
         node.height = height;
@@ -285,7 +306,8 @@ export default class UIManager {
         button.addComponent(cc.Button);
         this.drawButtonSurface(button, width, height, color, Math.min(20, height * 0.26));
         const label = this.createLabel(button, text, 0, 2, fontSize, BUTTON_TEXT_COLOR, width - 24, height - 10);
-        label.enableBold = true;
+        this.applyTypography(label, true);
+        label.enableWrapText = false;
 
         button.on(cc.Node.EventType.TOUCH_START, () => {
             if (!button.getComponent(cc.Button).interactable) return;
@@ -399,7 +421,7 @@ export default class UIManager {
             new cc.Color(255, 252, 244), 255, 28, 0, panelY);
         this.createRect(panel, 'sheetHandle', 64, 6, new cc.Color(215, 211, 204), 255, 3, 0, 121);
         const title = this.createLabel(panel, '微信授权', 0, 72, 30, new cc.Color(45, 42, 39), 440, 42);
-        title.enableBold = true;
+        this.applyTypography(title, true);
         this.createLabel(panel, '使用你的微信昵称和头像\n用于游戏资料与排行榜展示', 0, 16, 22,
             new cc.Color(112, 105, 98), panelWidth - 80, 66);
         this.createButton(panel, '微信一键授权', 0, -82, Math.min(480, panelWidth - 80), 74,

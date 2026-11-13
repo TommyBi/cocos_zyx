@@ -1,5 +1,5 @@
 import { ASSET_PATHS, getSpriteFrame } from '../manager/AssetLoader';
-import { uimanager } from '../manager/UIManager';
+import { BUTTON_TEXT_COLOR, uimanager } from '../manager/UIManager';
 
 /**
  * 局内小图标（glyph）绘制工厂。
@@ -110,7 +110,7 @@ export function decorateActionButton(button: cc.Node, icon: 'video' | 'share' | 
         const labelComp = label.getComponent(cc.Label);
         // 强制更新一次以获取真实文字宽度
         if (labelComp) {
-            labelComp.enableBold = true;
+            uimanager.applyTypography(labelComp, true);
             (labelComp as any)._updateRenderData && (labelComp as any)._updateRenderData(true);
         }
         textWidth = label.width > 0 ? Math.min(label.width, button.width * 0.5) : button.width * 0.3;
@@ -129,7 +129,7 @@ export function decorateActionButton(button: cc.Node, icon: 'video' | 'share' | 
     else createRestartGlyph(button, iconX, 1, glyphScale);
 }
 
-/** 设置操作使用白色圆润图标，接在文字右侧并作为一个整体居中。 */
+/** 软糖播放键、豆芽回转箭头和小门；保留动作含义，使用游戏自己的暖色轮廓。 */
 export function decorateSettingsActionButton(button: cc.Node, icon: 'play' | 'restart' | 'exit' | 'done'): void {
     const labelNode = button.getChildByName('label');
     const label = labelNode.getComponent(cc.Label);
@@ -145,49 +145,67 @@ export function decorateSettingsActionButton(button: cc.Node, icon: 'play' | 're
     const graphics = node.addComponent(cc.Graphics);
     graphics.lineCap = cc.Graphics.LineCap.ROUND;
     graphics.lineJoin = cc.Graphics.LineJoin.ROUND;
-    const outline = labelNode.getComponent(cc.LabelOutline).color;
+    const cream = new cc.Color(255, 249, 220);
+    const outline = new cc.Color(141, 103, 67);
+    const leaf = new cc.Color(136, 184, 105);
+    graphics.fillColor = new cc.Color(88, 61, 55, 35);
+    graphics.ellipse(1, -22, 22, 5);
+    graphics.fill();
+    const face = (x: number, y: number): void => {
+        graphics.fillColor = BUTTON_TEXT_COLOR;
+        graphics.circle(x - 4, y + 3, 1.4); graphics.circle(x + 4, y + 3, 1.4); graphics.fill();
+        graphics.strokeColor = BUTTON_TEXT_COLOR; graphics.lineWidth = 1.4;
+        graphics.arc(x, y - 1, 3, Math.PI, Math.PI * 2); graphics.stroke();
+        graphics.fillColor = new cc.Color(237, 153, 118, 190);
+        graphics.ellipse(x - 7, y, 2.5, 1.5); graphics.ellipse(x + 7, y, 2.5, 1.5); graphics.fill();
+    };
     if (icon === 'play') {
-        graphics.fillColor = cc.Color.WHITE;
-        graphics.strokeColor = outline;
-        graphics.lineWidth = 2;
-        graphics.moveTo(-10, 16);
-        graphics.lineTo(15, 0);
-        graphics.lineTo(-10, -16);
-        graphics.close();
-        graphics.fill();
-        graphics.stroke();
+        graphics.fillColor = cream; graphics.strokeColor = outline; graphics.lineWidth = 2;
+        graphics.moveTo(-13, -18); graphics.quadraticCurveTo(-20, -21, -20, -12);
+        graphics.lineTo(-20, 13); graphics.quadraticCurveTo(-20, 23, -11, 18);
+        graphics.lineTo(20, 3); graphics.quadraticCurveTo(25, 0, 19, -4);
+        graphics.close(); graphics.fill(); graphics.stroke();
+        face(-7, 0);
+        graphics.fillColor = leaf;
+        graphics.ellipse(-13, 23, 7, 3.5); graphics.ellipse(-3, 25, 6, 3.5); graphics.fill();
+        graphics.strokeColor = new cc.Color(103, 147, 79); graphics.lineWidth = 1.5;
+        graphics.moveTo(-9, 18); graphics.quadraticCurveTo(-8, 22, -5, 25); graphics.stroke();
+        graphics.fillColor = cc.Color.WHITE; graphics.ellipse(-15, 12, 2, 4); graphics.fill();
+    } else if (icon === 'restart') {
+        for (const stroke of [{ color: outline, width: 8 }, { color: cream, width: 5 }]) {
+            graphics.strokeColor = stroke.color; graphics.lineWidth = stroke.width;
+            graphics.moveTo(13, 15);
+            graphics.bezierCurveTo(-4, 27, -25, 12, -19, -7);
+            graphics.bezierCurveTo(-13, -26, 12, -24, 20, -7); graphics.stroke();
+        }
+        graphics.fillColor = cream; graphics.strokeColor = outline; graphics.lineWidth = 1.8;
+        graphics.moveTo(12, -5); graphics.quadraticCurveTo(9, -5, 12, -2);
+        graphics.lineTo(19, 7); graphics.quadraticCurveTo(21, 9, 22, 5);
+        graphics.lineTo(27, -5); graphics.quadraticCurveTo(29, -8, 25, -7);
+        graphics.close(); graphics.fill(); graphics.stroke();
+        graphics.fillColor = new cc.Color(255, 216, 111);
+        graphics.ellipse(0, -1, 10, 12); graphics.fill();
+        face(0, -1);
+        graphics.fillColor = leaf;
+        graphics.ellipse(-4, 12, 5, 2.8); graphics.ellipse(4, 14, 5, 2.8); graphics.fill();
+    } else if (icon === 'exit') {
+        graphics.fillColor = cream; graphics.strokeColor = outline; graphics.lineWidth = 2;
+        graphics.roundRect(-22, -20, 30, 43, 9); graphics.fill(); graphics.stroke();
+        graphics.fillColor = new cc.Color(250, 213, 139);
+        graphics.roundRect(-16, -16, 18, 33, 6); graphics.fill();
+        face(-7, 5);
+        graphics.fillColor = outline; graphics.circle(-1, -8, 1.6); graphics.fill();
+        for (const stroke of [{ color: outline, width: 8 }, { color: new cc.Color(213, 235, 172), width: 5 }]) {
+            graphics.strokeColor = stroke.color; graphics.lineWidth = stroke.width;
+            graphics.moveTo(4, -3); graphics.lineTo(24, -3);
+            graphics.moveTo(16, 5); graphics.lineTo(24, -3); graphics.lineTo(16, -11); graphics.stroke();
+        }
+        graphics.fillColor = leaf; graphics.ellipse(-16, 25, 5, 2.5); graphics.fill();
     } else {
-        [outline, cc.Color.WHITE].forEach((color, index) => {
-            graphics.strokeColor = color;
-            graphics.lineWidth = index === 0 ? 8 : 5;
-            if (icon === 'restart') {
-                graphics.moveTo(-14, 4);
-                graphics.bezierCurveTo(-8, 16, 8, 16, 14, 4);
-                graphics.moveTo(14, -4);
-                graphics.bezierCurveTo(8, -16, -8, -16, -14, -4);
-                graphics.moveTo(5, 6);
-                graphics.lineTo(14, 4);
-                graphics.lineTo(12, 13);
-                graphics.moveTo(-5, -6);
-                graphics.lineTo(-14, -4);
-                graphics.lineTo(-12, -13);
-            } else if (icon === 'exit') {
-                graphics.moveTo(0, 16);
-                graphics.lineTo(-14, 16);
-                graphics.lineTo(-14, -16);
-                graphics.lineTo(0, -16);
-                graphics.moveTo(-4, 0);
-                graphics.lineTo(16, 0);
-                graphics.moveTo(7, 9);
-                graphics.lineTo(16, 0);
-                graphics.lineTo(7, -9);
-            } else {
-                graphics.moveTo(-13, 0);
-                graphics.lineTo(-4, -10);
-                graphics.lineTo(14, 12);
-            }
-            graphics.stroke();
-        });
+        graphics.fillColor = cream; graphics.strokeColor = outline; graphics.lineWidth = 2;
+        graphics.circle(0, 0, 22); graphics.fill(); graphics.stroke();
+        graphics.strokeColor = leaf; graphics.lineWidth = 5;
+        graphics.moveTo(-12, 0); graphics.lineTo(-3, -9); graphics.lineTo(13, 11); graphics.stroke();
     }
 }
 

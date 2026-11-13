@@ -1,0 +1,18 @@
+{
+  "start": {
+    "at500": false,
+    "at501": true,
+    "balloon": true,
+    "seconds": 15
+  },
+  "at10": {
+    "phase": "flying",
+    "elapsed": 10.016200000000012,
+    "active": true
+  },
+  "ended": {
+    "elapsed": 15,
+    "wallMs": 14883.40000000596
+  },
+  "errors": []
+}
