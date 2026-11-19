@@ -1,0 +1,37 @@
+[
+  {
+    "table": "game_rounds",
+    "count": 3,
+    "unchanged": true
+  },
+  {
+    "table": "players",
+    "count": 3,
+    "unchanged": true
+  },
+  {
+    "table": "release_resets",
+    "count": 0,
+    "unchanged": true
+  },
+  {
+    "table": "round_checkpoints",
+    "count": 1,
+    "unchanged": true
+  },
+  {
+    "table": "round_settlements",
+    "count": 1,
+    "unchanged": true
+  },
+  {
+    "table": "stamina_share_claims",
+    "count": 0,
+    "unchanged": true
+  },
+  {
+    "table": "tool_transactions",
+    "count": 0,
+    "unchanged": true
+  }
+]

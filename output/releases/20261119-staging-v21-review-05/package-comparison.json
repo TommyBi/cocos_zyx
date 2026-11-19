@@ -1,0 +1,30 @@
+[
+  {
+    "name": "/subpackages/effects/",
+    "before": 3388458,
+    "after": 1671108,
+    "reduced": 1717350,
+    "reducedPct": 50.68
+  },
+  {
+    "name": "/subpackages/home/",
+    "before": 3920494,
+    "after": 3920494,
+    "reduced": 0,
+    "reducedPct": 0
+  },
+  {
+    "name": "__APP__",
+    "before": 2849027,
+    "after": 2844783,
+    "reduced": 4244,
+    "reducedPct": 0.15
+  },
+  {
+    "name": "__FULL__",
+    "before": 10157979,
+    "after": 8436385,
+    "reduced": 1721594,
+    "reducedPct": 16.95
+  }
+]

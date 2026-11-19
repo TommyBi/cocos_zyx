@@ -1,0 +1,101 @@
+{
+  "releaseId": "20261114-friends-review-172243",
+  "files": {
+    "protocol-smoke-proxied.log": {
+      "bytes": 198,
+      "sha256": "4db8419f9fd31f9a74e4028892bd4868185807a7b7173fcf0f771e91dd69b265"
+    },
+    "wechat-preview-qr.jpg": {
+      "bytes": 46962,
+      "sha256": "12ee69ead36e1ca285b56bfd18b02175da503e3aab2d3d2cc4ecd1855bba1806"
+    },
+    "提审说明.md": {
+      "bytes": 4843,
+      "sha256": "7f1f7cd5e898d911e9e941c844593accc6c37fe9a369cfa11e97d1bda3ebaa55"
+    },
+    "source.json": {
+      "bytes": 43571,
+      "sha256": "935d12c0a4431b067082e183701141f7914fe61aa0980b8d81ec3f922cb459eb"
+    },
+    "server-source-20261114-friends-review-172243.tar.gz": {
+      "bytes": 60836,
+      "sha256": "e26a55702eded08a4f0b70bd92bc87ebf11d24281d262056bae2d4037e280e7d"
+    },
+    "post-audit.json": {
+      "bytes": 1036,
+      "sha256": "e2114441480b15913616d43120ebe720a78fc7b0def6d62744a95ffc841f49bd"
+    },
+    "typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "candidate-source-20261114-friends-review-172243.tar.gz": {
+      "bytes": 7560958,
+      "sha256": "0292d3d89468fbf843612fe57e93f2c1cc9991e46b84f4edff391714236378bb"
+    },
+    "wechat-build.log": {
+      "bytes": 10803,
+      "sha256": "272c53aafae44fcc34a42d7338c40eb14e53387c3a0e62eb6be77ae95a95c926"
+    },
+    "baseline.json": {
+      "bytes": 9920,
+      "sha256": "818c3da8c3fcca41fa331fe305c8282aa457f7eb3b87d0a08ba228ff890f8da0"
+    },
+    "wechat-artifact.json": {
+      "bytes": 17859,
+      "sha256": "942080885282af4e4eb5b609e737c18100b831446755876cc7d6ad769764077d"
+    },
+    "runtime-tests.log": {
+      "bytes": 11564,
+      "sha256": "a4a0d4fc5b295d611cb1b19e2f3c6ae688ff17b3bb3153bcc0317cf025c1b409"
+    },
+    "build-environment.json": {
+      "bytes": 321,
+      "sha256": "c35d1086f8cb9b2429b7554602828d90a7332dfaca89f3140b2c49e535dccd28"
+    },
+    "runtime-manifest.json": {
+      "bytes": 2224,
+      "sha256": "6035f815391b8bccffbcbd3f474262e62040318d78f2bb65462eec383d932c05"
+    },
+    "wechatgame-v2026.11.14.12.zip": {
+      "bytes": 5159011,
+      "sha256": "c557ef82215811be91d393ec06054954efb83817579eff91d75cb0273106328e"
+    },
+    "browser-results.json": {
+      "bytes": 3922,
+      "sha256": "b0ceb70b1c1f9c36835567d5e6dca066c993b7c35751d9adaba387493c99df01"
+    },
+    "wechat-upload-result.json": {
+      "bytes": 651,
+      "sha256": "b1f0c7a1c8f3e5e55930f05a66273e1fac6be592e255b7ecaaf634ad22effd9f"
+    },
+    "tests.log": {
+      "bytes": 24638,
+      "sha256": "10002ca038548ea781470d0b6de52e762d07acd45046c13878fb38fa94123a06"
+    },
+    "cdn-check.json": {
+      "bytes": 1862,
+      "sha256": "197fbccefe442b8288da39183002ef8b162598afd5a85227535b07a13959bd23"
+    },
+    "live-leaderboard-qa.json": {
+      "bytes": 458,
+      "sha256": "41f9ef5f19354d2af91be8969756b570c9926fbd69fca7482f61e390f00828ce"
+    },
+    "release-info.json": {
+      "bytes": 2711,
+      "sha256": "802e47fcd33fffb09ff34e7d5f167095b5df74c6a2e158d3ae9517a0629c1181"
+    },
+    "native-runtime-verification.json": {
+      "bytes": 1154,
+      "sha256": "d3bf112ac85638ba23f43c3b4e76dae2ddce651531891cb2bd601d90e5445447"
+    },
+    "phone-build-comparison.json": {
+      "bytes": 83,
+      "sha256": "264553b92c83e25461de6b816a9fc4984906525099c485532937086dab1593fd"
+    },
+    "source-reconciliation.json": {
+      "bytes": 784,
+      "sha256": "71ad6e0f2c17814cc0125fb8a5fa0597f4190703977e1eff688ca20b4d29a3f4"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "game_rounds": {
+    "count": 368,
+    "sha256": "5a5a827ac51c7c3313dc19e4a879d2d7f7b117c892abdb07751980b8164d5561"
+  },
+  "players": {
+    "count": 93,
+    "sha256": "7545c3521a8cdb45ba5b394f5403c1674b08450ee288154dfdb06ec86c3b5570"
+  },
+  "release_resets": {
+    "count": 1,
+    "sha256": "64fb926e81be63a21b83939af0a516f1ddafd5580cafb58f16d6ce93cd96d06b"
+  },
+  "round_settlements": {
+    "count": 250,
+    "sha256": "2de6613be981d13f74a5d76b23b30a3129e777328fb35b549eaa90476584d696"
+  },
+  "sqlite_sequence": {
+    "count": 1,
+    "sha256": "da02f31fea09de10e13a8b40df4352ea76e90d36e1d39c4c773cc868399acec6"
+  },
+  "stamina_share_claims": {
+    "count": 4,
+    "sha256": "103564800e85dfdfe712346a5ac7ca8189b8adf02094cb093d12274d5cee9440"
+  },
+  "tool_transactions": {
+    "count": 73,
+    "sha256": "eb3e7473944010e41bcc5fb489648279b3be5ac089ac444927d0d7cdd67110da"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "game_rounds": {
+    "before": 439,
+    "after": 460,
+    "missingOldPrimaryKeys": 0,
+    "newRows": 21,
+    "changedOldRows": []
+  },
+  "players": {
+    "before": 104,
+    "after": 106,
+    "missingOldPrimaryKeys": 0,
+    "newRows": 2,
+    "changedOldRows": [
+      {
+        "changedFields": [
+          "updated_at",
+          "stamina_updated_at",
+          "asset_revision"
+        ],
+        "anonymousKey": "da2cd17f7211",
+        "numericDeltas": {
+          "asset_revision": 1
+        },
+        "game_roundsAdded": 1,
+        "round_settlementsAdded": 0,
+        "tool_transactionsAdded": 0
+      }
+    ]
+  },
+  "release_resets": {
+    "before": 1,
+    "after": 1,
+    "missingOldPrimaryKeys": 0,
+    "newRows": 0,
+    "changedOldRows": []
+  },
+  "round_settlements": {
+    "before": 299,
+    "after": 306,
+    "missingOldPrimaryKeys": 0,
+    "newRows": 7,
+    "changedOldRows": []
+  },
+  "sqlite_sequence": {
+    "before": 1,
+    "after": 1,
+    "missingOldPrimaryKeys": 1,
+    "newRows": 1,
+    "changedOldRows": []
+  },
+  "stamina_share_claims": {
+    "before": 5,
+    "after": 7,
+    "missingOldPrimaryKeys": 0,
+    "newRows": 2,
+    "changedOldRows": []
+  },
+  "tool_transactions": {
+    "before": 98,
+    "after": 98,
+    "missingOldPrimaryKeys": 0,
+    "newRows": 0,
+    "changedOldRows": []
+  }
+}

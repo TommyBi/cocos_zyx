@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "apiVersion": 25,
+  "healthMs": 180,
+  "rounds": [
+    {
+      "version": 20,
+      "item": "hammer",
+      "minimumClaimMs": 3000,
+      "bootstrapWithActiveRoundMs": 234,
+      "resumeMs": 73
+    },
+    {
+      "version": 20,
+      "item": "magicWand",
+      "minimumClaimMs": 5000,
+      "bootstrapWithActiveRoundMs": 188,
+      "resumeMs": 72
+    },
+    {
+      "version": 19,
+      "bootstrapWithActiveRoundMs": 73,
+      "resumeMs": 89
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "localMatchesStagingRuntime": true,
+  "productionRuntimeMatchesFrozenProductionSource": true,
+  "productionChanges": [
+    "src/boardEngine.js",
+    "src/databaseAudit.js",
+    "src/exportRisk.js",
+    "src/gameEngine.js",
+    "src/index.js",
+    "src/replayBoardEngine.js",
+    "src/replayService.js",
+    "src/replayWorker.js",
+    "src/rewardSecurity.js",
+    "src/riskControl.js",
+    "src/roundProgress.js",
+    "src/schema.js"
+  ],
+  "sharedSourceIsHistoricalAndNotBuildBaseline": true
+}

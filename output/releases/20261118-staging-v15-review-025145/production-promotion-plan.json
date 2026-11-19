@@ -1,0 +1,25 @@
+{
+  "readyToPromoteCandidate": false,
+  "executed": false,
+  "authorizationScopeThisTurn": "Staging plus WeChat development candidate; no production deployment or review submission",
+  "candidateImage": "sha256:2406aca78d8d7c67acd454af7f4d8a5a480ee6809fc99c9410b1e7d420c81f3f",
+  "candidateImageRef": "cocos-zyx-staging:20261118-staging-v15-review-025145",
+  "productionCurrentApi": 18,
+  "productionRequiredApi": 20,
+  "schemaVersion": 12,
+  "steps": [
+    "First obtain WeChat review approval and explicit user authorization for formal go-live",
+    "Reconfirm Production container/image/config fingerprints against captured baseline",
+    "Back up actual Production image, environment/Compose and stopped/flushed business data",
+    "Promote the exact Staging-tested image with existing Production environment and volume",
+    "Verify all existing business rows and served runtime hashes",
+    "Run authenticated HTTPS probes, dual leaderboard/database verification, GM isolation and Dawn health",
+    "Coordinate frontend formal release only after compatibility is verified, then monitor old/new clients"
+  ],
+  "candidatePassedStaging": true,
+  "requiredGates": [
+    "WeChat review approved",
+    "Explicit user authorization for formal go-live",
+    "Old client and in-flight round compatibility verified"
+  ]
+}

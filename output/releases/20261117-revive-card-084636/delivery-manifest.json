@@ -1,0 +1,117 @@
+{
+  "releaseId": "20261117-revive-card-084636",
+  "files": {
+    "live-card-qa.json": {
+      "bytes": 471,
+      "sha256": "d65bd5475df1042a19838fff79050b4f7b356178d5590f6d8f3d9b4d4d978b62"
+    },
+    "server-manifest.json": {
+      "bytes": 2667,
+      "sha256": "339214638d7f9f87bc485e2303f5a1be1fb9be87e2e93ecf0321529ad6b1ad4a"
+    },
+    "wechat-preview-qr.jpg": {
+      "bytes": 47624,
+      "sha256": "131b33963a932757af292c687b170ac2e803d28dc4d443870f2716ba322c3a48"
+    },
+    "deployment-result.json": {
+      "bytes": 1663,
+      "sha256": "77e772c184fd89c0e2852215321c2cd294ba42c7e4e8f14f09769c9fffe55a03"
+    },
+    "source.json": {
+      "bytes": 46973,
+      "sha256": "efec42601b52a20365bbede0eafccef653b652ef0cbcf03e309b5af90d9c2116"
+    },
+    "staging-image.override.yml": {
+      "bytes": 176,
+      "sha256": "1203098268c79d33bbc909b0deb468e203a32b444b8f45788574693675973c74"
+    },
+    "package-checks.json": {
+      "bytes": 275,
+      "sha256": "1d862bf02bb9fced4ebd0f271faaeebb724a89671324e0ac00cd2d7b2b1f187e"
+    },
+    "typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "server-v2026.11.16.04-20261117-revive-card-084636.tar.gz": {
+      "bytes": 80234,
+      "sha256": "4016be58f69ed928f3e4863d9df6e479bdebd3b60bbc9c6107ac8fd8ba4a4524"
+    },
+    "wechat-build.log": {
+      "bytes": 10839,
+      "sha256": "16a0134dfec9f6e9367a790d6e36a265c3895fc86b122a56f8c3edda516506e2"
+    },
+    "baseline.json": {
+      "bytes": 9911,
+      "sha256": "a62a77903db706b18c60581baf543ba24de2925971a5537a6189d3f868fab652"
+    },
+    "wechatgame-v2026.11.16.04.zip": {
+      "bytes": 7074594,
+      "sha256": "356db0f9e5f850629f4ae14dcb0d849e17e7d200d0b90cb4fa00a4e532ab79cd"
+    },
+    "wechat-preview-result.json": {
+      "bytes": 585,
+      "sha256": "390ac4be231d12ed808b04d079b229a05f0bcb4a673aa5e9a6669dcd9adf169e"
+    },
+    "wechat-artifact.json": {
+      "bytes": 18256,
+      "sha256": "63fa9a218bdf9979bd0056834e8019ac2fffbf86cddab45457404fb24d84fe84"
+    },
+    "post-verification-audit.json": {
+      "bytes": 1061,
+      "sha256": "c0609feb2255c888bac3c7efb704850aa374c61575f1268651ceb5fa922d8d90"
+    },
+    "runtime-manifest.json": {
+      "bytes": 2366,
+      "sha256": "8f91f246af7cbae2a25a5ff414de403573b9d7b9edc0052615c0ead6798fcb1f"
+    },
+    "migration-rehearsal.json": {
+      "bytes": 453,
+      "sha256": "1d74e705c620c33d6a07dff1ab45960089a5e445e7d9b91cb21479b0d6906621"
+    },
+    "tests.log": {
+      "bytes": 27869,
+      "sha256": "252035cbc930a1c7342b0fc2af85f7308bc0d9cfdfc4e33ab5e860dc98934c0e"
+    },
+    "cdn-check.json": {
+      "bytes": 1694,
+      "sha256": "b9242006181cb9b6cbe633b0aa88ca49e5e901307e152dad550947dfd17f52bb"
+    },
+    "existing-data-preserved.json": {
+      "bytes": 1735,
+      "sha256": "31052d48890bec617ba337f436ea87e93a75d49df7503bc0b5dfc6c531e5b184"
+    },
+    "live-leaderboard-qa.json": {
+      "bytes": 458,
+      "sha256": "0cbc9e813b1630ee93aede3033bd7b428c2ca818a1c6b27a6d8433cc887f255b"
+    },
+    "data-after-switch.json": {
+      "bytes": 1007,
+      "sha256": "5cd3218c381db33023d929fe6f02bf9f4a55ab223facc3fa95bcae4d26487779"
+    },
+    "release-info.json": {
+      "bytes": 3102,
+      "sha256": "45604cfe856a3f68202a048cfcb33de3b8d9cf1406c8c413e4c6317fca9f4e09"
+    },
+    "build.exit": {
+      "bytes": 1,
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+    },
+    "发布说明.md": {
+      "bytes": 4174,
+      "sha256": "697bc8d0b706f418002d77a55466ebdd8060d90f7a266f359f72c980ea878bb4"
+    },
+    "source-v2026.11.16.04-20261117-revive-card-084636.tar.gz": {
+      "bytes": 9793204,
+      "sha256": "5591789c1d433b57956877a7310660af28b70d56c0a95ebb6304ed3a2c75cbc9"
+    },
+    "source-reconciliation.json": {
+      "bytes": 1990,
+      "sha256": "c43134a930dc65dac1c85b6c03d643155edd849679cca13aa4f021a9e1656927"
+    },
+    "build.log": {
+      "bytes": 17570,
+      "sha256": "4c38d2333c9d394ece944ed9d2d49f57136cfefe0e88af22ea35dd2c27011e3e"
+    }
+  }
+}

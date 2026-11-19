@@ -1,0 +1,256 @@
+{
+  "before": {
+    "score": 50,
+    "turn": 11
+  },
+  "warm": {
+    "seconds": 2.016699999999999,
+    "score": 50,
+    "warm": true
+  },
+  "message": {
+    "texts": [
+      "收下祝福",
+      "你的开心在我看来",
+      "远比广告更重要，",
+      "谢谢你",
+      "9天的喜爱！",
+      "剩下的交给我"
+    ],
+    "buttons": [
+      "acceptHeartBlessing"
+    ]
+  },
+  "state": {
+    "score": 175,
+    "raw": 20,
+    "actions": [
+      {
+        "type": "rules",
+        "version": 10
+      },
+      {
+        "type": "move",
+        "id": 1,
+        "offset": -2
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "append"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 4,
+        "offset": -1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": -3
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": 3
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": -7
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": 7
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": -7
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": 7
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": -3
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": 3
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "heartOffer",
+        "elapsedMs": 34975
+      },
+      {
+        "type": "heart"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      }
+    ],
+    "seed": 1,
+    "turn": 12,
+    "movable": true
+  },
+  "errors": []
+}

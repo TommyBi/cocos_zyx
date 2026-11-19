@@ -1,0 +1,620 @@
+{
+  "schemaVersion": 1,
+  "kind": "artifact",
+  "createdAt": "2026-11-17T19:00:52.457938+00:00",
+  "includes": [
+    "wechatgame",
+    "wechatgame-cdn"
+  ],
+  "files": {
+    "wechatgame-cdn/remote/music/config.cf085.json": {
+      "sha256": "ec15a3b8c23e0fc49d4866c9784564a821975efdb763627a256403c73ad254fe",
+      "bytes": 573
+    },
+    "wechatgame-cdn/remote/music/import/01/01423f92-0353-48dc-9d72-9d78fd227930.6e467.json": {
+      "sha256": "6c61c600b5446259533d7a4e036430832a0ab37307318eb944019a65a4a95888",
+      "bytes": 128
+    },
+    "wechatgame-cdn/remote/music/import/1c/1cc6d4e9-bd63-42a1-963c-6db80e144a7f.f2c28.json": {
+      "sha256": "e4aa462a54327749a8235ad3fedb423f38e3c3a6b001b5b2ffbaba643a1a0edb",
+      "bytes": 126
+    },
+    "wechatgame-cdn/remote/music/import/75/759aa7c0-f31e-4186-ae5b-d4ad825bcfe5.b91e9.json": {
+      "sha256": "6e5b07e6c1495f5587a07171d17b8b241c8e66f149be9608aace42099393f9ea",
+      "bytes": 126
+    },
+    "wechatgame-cdn/remote/music/import/9a/9a11ce8c-54ac-49d5-8187-38b165d7f81e.fb0c0.json": {
+      "sha256": "98184b15c203ba1b07f17670f6ec24f4ce6f15d26d6d9f6cd36893c705ba9db1",
+      "bytes": 124
+    },
+    "wechatgame-cdn/remote/music/import/da/dae04b2c-a48e-45da-9ad4-2e101714a90b.f5e34.json": {
+      "sha256": "573e3d5255eee1ee4c043d195a2cd31c0555d2901fa0d9ebd993c70ff67421bf",
+      "bytes": 126
+    },
+    "wechatgame-cdn/remote/music/native/01/01423f92-0353-48dc-9d72-9d78fd227930.0611a.mp3": {
+      "sha256": "f8336a671aaf0145fa4e528e52d42731fe946030fdd3daaf8e2d9c1a05ef0346",
+      "bytes": 72724
+    },
+    "wechatgame-cdn/remote/music/native/1c/1cc6d4e9-bd63-42a1-963c-6db80e144a7f.0241c.mp3": {
+      "sha256": "f9442b0633302b0e54cfe2057addb7bfcf4aaf0f34c935942547189bbdcb7d0f",
+      "bytes": 1152566
+    },
+    "wechatgame-cdn/remote/music/native/75/759aa7c0-f31e-4186-ae5b-d4ad825bcfe5.fadb3.mp3": {
+      "sha256": "d093929b35fe8ee28cd45d562447245fcf044883b318865d0d0025cd1a9e85ff",
+      "bytes": 1260713
+    },
+    "wechatgame-cdn/remote/music/native/9a/9a11ce8c-54ac-49d5-8187-38b165d7f81e.43a97.mp3": {
+      "sha256": "f5b42f552676ff1413364ffc06943531571328b8be60be56f240580d4ad68db1",
+      "bytes": 20733
+    },
+    "wechatgame-cdn/remote/music/native/da/dae04b2c-a48e-45da-9ad4-2e101714a90b.98c1c.mp3": {
+      "sha256": "411c969c0f1b7ed6da5342f2d620620f6bf26d329e70a48e4c3161f725a8bff3",
+      "bytes": 23240
+    },
+    "wechatgame/adapter-min.js": {
+      "sha256": "44c0e1c1311cb51262a8e3d714b3ab5b6c901cad7461ebcff69ce3bc91ccf5bc",
+      "bytes": 106418
+    },
+    "wechatgame/assets/game/config.2b39c.json": {
+      "sha256": "496813a2e2e43b81f75e698d614f23bd453102e061f537ac384b460149f13962",
+      "bytes": 2092
+    },
+    "wechatgame/assets/game/import/06/06d32267-fbf7-5a23-95da-4570854f06ed.91de0.json": {
+      "sha256": "a6724345199f5ccfe3976679cb518a208dec3449b8d88b57ff8e4a6194fec881",
+      "bytes": 78
+    },
+    "wechatgame/assets/game/import/07/072854a9-7b5b-5d35-87d7-84e42738ecac.1c616.json": {
+      "sha256": "e8d92b5dbda9ef3a72f4fdaafe5ab86857ed88c8b6be40902e9548c02772ff54",
+      "bytes": 200
+    },
+    "wechatgame/assets/game/import/0e/0edcfa7a-8de5-48b4-aaaa-a76ab594395c.183ba.json": {
+      "sha256": "8de2ab5fba30b1557ef40f8806e57678696c6f76f57be58ba54803f0d4a1690d",
+      "bytes": 125
+    },
+    "wechatgame/assets/game/import/22/22e2d64d-254e-45c2-a990-9639c297c2e1.72e8c.json": {
+      "sha256": "5d5a7fac9c9efb0af0c0d793f5d0d7edde9a9477ee2248c619efb9ddb0bbba77",
+      "bytes": 200
+    },
+    "wechatgame/assets/game/import/2e/2efbcb2c-6c27-4243-a8ce-76c97d4ad5da.4b7e7.json": {
+      "sha256": "570875660023b6a30e927f6fc8a024f5ce329552de5d5ce11c2ae2a3c231bf95",
+      "bytes": 78
+    },
+    "wechatgame/assets/game/import/3d/3d347856-04ad-44e8-8ce7-ac074f2354bf.91de0.json": {
+      "sha256": "a6724345199f5ccfe3976679cb518a208dec3449b8d88b57ff8e4a6194fec881",
+      "bytes": 78
+    },
+    "wechatgame/assets/game/import/59/5978b47b-823c-5686-8c06-0cfc68f1d3ff.6d35c.json": {
+      "sha256": "b9ae620fe9e815c2334fbf032bbca0bb713d9b8a0d431a8617582e0f3ee22e96",
+      "bytes": 61117
+    },
+    "wechatgame/assets/game/import/5a/5a621242-e59b-52b8-b571-b9f7a5701218.8fa0b.json": {
+      "sha256": "e98d491adda73e8d8f2c7e6efdd246b11ddd2c862b45a2714018c394f11a992f",
+      "bytes": 9069
+    },
+    "wechatgame/assets/game/import/64/6452848c-8118-5e56-b7e7-afffd4daad99.91de0.json": {
+      "sha256": "a6724345199f5ccfe3976679cb518a208dec3449b8d88b57ff8e4a6194fec881",
+      "bytes": 78
+    },
+    "wechatgame/assets/game/import/67/677ac8b3-b496-41a8-858f-235084751d83.c4231.json": {
+      "sha256": "7316447360feee0938d2be44608bd9203f8b1cd0c0be91374f017f2c5dc5c4eb",
+      "bytes": 124
+    },
+    "wechatgame/assets/game/import/71/71107ed7-8075-572c-a395-7ed0471773b4.91de0.json": {
+      "sha256": "a6724345199f5ccfe3976679cb518a208dec3449b8d88b57ff8e4a6194fec881",
+      "bytes": 78
+    },
+    "wechatgame/assets/game/import/73/73056f09-cb34-4790-95aa-20675eee7f07.91de0.json": {
+      "sha256": "a6724345199f5ccfe3976679cb518a208dec3449b8d88b57ff8e4a6194fec881",
+      "bytes": 78
+    },
+    "wechatgame/assets/game/import/76/76b39802-1ddf-4ea1-a68d-27ea74d91453.3ab0d.json": {
+      "sha256": "ded718748c3dd81d3faace5b7f182ebc348e544cd21e77b650c560aebaa964e5",
+      "bytes": 95
+    },
+    "wechatgame/assets/game/import/85/85d85857-8df5-4ca7-aa30-d71e371504a7.9681a.json": {
+      "sha256": "7fc64038469e10f8dff559ee5bda6c2e131890b56cfea6ae5269fbc9e33d86aa",
+      "bytes": 125
+    },
+    "wechatgame/assets/game/import/91/916394ef-5984-5f58-bbfc-715ef03ff315.ce3a3.json": {
+      "sha256": "1c51ad68f294f3e872ef11ad1f20d6f2d734f1f13970b4375f9165b6c430a4f1",
+      "bytes": 3782
+    },
+    "wechatgame/assets/game/import/9b/9bed914a-d6a9-45a6-99a7-e44a0bdf395c.20b83.json": {
+      "sha256": "f19e1b02b0cadc75aa8dd8d050968963fd556dde755b03a0257edba7356768bb",
+      "bytes": 41565
+    },
+    "wechatgame/assets/game/import/ad/ad951aab-e813-4250-a2d6-fd1ecaab3359.c03d4.json": {
+      "sha256": "a5e74c1addd94a35fda67c6d8648b1958cce10634ffb2290ddfda9834a268980",
+      "bytes": 124
+    },
+    "wechatgame/assets/game/import/bc/bc4aa7fd-4659-42cc-b1ca-a24aa017355f.2b9b0.json": {
+      "sha256": "1478ebd962f331073bbf9ff715c835f65914900afdde6be9f5b32e852fcb12d8",
+      "bytes": 191
+    },
+    "wechatgame/assets/game/import/c6/c68e545f-2207-5721-af18-8bf63c0abad3.b99f7.json": {
+      "sha256": "37c03350422a0181c00d112e7b7486101842c704505b16e4d6f5575fd8198ae1",
+      "bytes": 217
+    },
+    "wechatgame/assets/game/import/ca/ca5e5124-a647-4305-a9e5-b63dbdf49fa9.a94ac.json": {
+      "sha256": "8072e31e3cef6fbf0f3f6de9815b9456f865eb98335ea75729c3de47afda6fe2",
+      "bytes": 198
+    },
+    "wechatgame/assets/game/import/d7/d7e9aefd-0459-44db-bbf0-faaf8b42813a.17612.json": {
+      "sha256": "921dc75b12dc67ff11248ec1662f55db4096bb16790c8c4e36141dfc668b6bf6",
+      "bytes": 203
+    },
+    "wechatgame/assets/game/import/dc/dcb4d678-c401-4b4e-9ac3-62dcb5a5637d.7871f.json": {
+      "sha256": "979731fc05b6dfa915b961ffe71b53c7f5f71fcc68c3051dbf9130e2be80da44",
+      "bytes": 78
+    },
+    "wechatgame/assets/game/import/f0/f0ae1db8-b258-5d17-a599-7e4279be4fb8.7be59.json": {
+      "sha256": "3b73f713981355558d70ccf920708f8e7df974ea0e545385da8f0a733ad2acfb",
+      "bytes": 203
+    },
+    "wechatgame/assets/game/index.js": {
+      "sha256": "91e9970eba5f76af1a8585527b6e80352978ac231908ea9e6ec3e139e8f326a5",
+      "bytes": 463
+    },
+    "wechatgame/assets/game/native/06/06d32267-fbf7-5a23-95da-4570854f06ed.27ec9.png": {
+      "sha256": "e78b532d304e87ab1d47f9f6364105bab5e1acca2abaa8534a0ae25293f7aed8",
+      "bytes": 34151
+    },
+    "wechatgame/assets/game/native/0e/0edcfa7a-8de5-48b4-aaaa-a76ab594395c.5e7d5.mp3": {
+      "sha256": "70093f1c94b8f5596c2cac6103ab75c8995bc13f40ee42e3b4cdc6fddd3ba252",
+      "bytes": 10079
+    },
+    "wechatgame/assets/game/native/2e/2efbcb2c-6c27-4243-a8ce-76c97d4ad5da.54533.jpg": {
+      "sha256": "07da9271614aebb72fce538a62c39d0696127c489a81e1a5cf5b03d3b67b81da",
+      "bytes": 53756
+    },
+    "wechatgame/assets/game/native/3d/3d347856-04ad-44e8-8ce7-ac074f2354bf.1a344.png": {
+      "sha256": "23eb7a11f78f7d0f06d978822554b42914e56f6d6e06987df09d58f79908850a",
+      "bytes": 61698
+    },
+    "wechatgame/assets/game/native/64/6452848c-8118-5e56-b7e7-afffd4daad99.dce65.png": {
+      "sha256": "20f857f81028b5b944e830db06415d778b608d5dae925a24e78ce5f2accde3c8",
+      "bytes": 43446
+    },
+    "wechatgame/assets/game/native/67/677ac8b3-b496-41a8-858f-235084751d83.a4df7.mp3": {
+      "sha256": "1e5d76248bebb1a890df88b06b62f28cba1bd9502cf8b1f1f01ddbf8a0a12c11",
+      "bytes": 5785
+    },
+    "wechatgame/assets/game/native/71/71107ed7-8075-572c-a395-7ed0471773b4.76f90.png": {
+      "sha256": "a1e038da0f36b5c5434dd9ebf21de5f3a8e53f0f641f4f663a49c280c56878cd",
+      "bytes": 284269
+    },
+    "wechatgame/assets/game/native/73/73056f09-cb34-4790-95aa-20675eee7f07.656f6.png": {
+      "sha256": "508f9e8620452a3e445bf5826c56261d89735a000e9793fe757da05cbeeba6d9",
+      "bytes": 70522
+    },
+    "wechatgame/assets/game/native/76/76b39802-1ddf-4ea1-a68d-27ea74d91453.b7f93.atlas": {
+      "sha256": "8ff7c314f53a412ed15461ade2ce9ce5514acd0d68f92ab190f7833b1837c3bd",
+      "bytes": 1220
+    },
+    "wechatgame/assets/game/native/85/85d85857-8df5-4ca7-aa30-d71e371504a7.609eb.mp3": {
+      "sha256": "1b5f046a53cb57313b8bb2281d4659fc8e27ecfe86bfbd5d30132280cff18b22",
+      "bytes": 8920
+    },
+    "wechatgame/assets/game/native/ad/ad951aab-e813-4250-a2d6-fd1ecaab3359.1e306.mp3": {
+      "sha256": "4f69ce91c513a89a53ebd9ca0434b9472cfe3c8b260ba06b09028a8ea3fdc2c7",
+      "bytes": 41086
+    },
+    "wechatgame/assets/game/native/dc/dcb4d678-c401-4b4e-9ac3-62dcb5a5637d.f4bce.png": {
+      "sha256": "151647b3cc18128af1955090c173c583db42c3058afa2b14f741be3605f1cd14",
+      "bytes": 25258
+    },
+    "wechatgame/assets/internal/config.e6604.json": {
+      "sha256": "86dfb3c26162158dff4bb0848254151631b88ef0ad94b6e737f7435cb148f04c",
+      "bytes": 1433
+    },
+    "wechatgame/assets/internal/import/09/0967b326a.1f618.json": {
+      "sha256": "b89124ed6ab4421c3e644b4c2f106119d00f287ef4c1e895a510b1c6ea446cd7",
+      "bytes": 57712
+    },
+    "wechatgame/assets/internal/index.js": {
+      "sha256": "91e9970eba5f76af1a8585527b6e80352978ac231908ea9e6ec3e139e8f326a5",
+      "bytes": 463
+    },
+    "wechatgame/assets/internal/native/02/0275e94c-56a7-410f-bd1a-fc7483f7d14a.cea68.png": {
+      "sha256": "83c9b8ce1937570a40bcedde29457a4ab7865ca1db23a46d2d68e6b1949f3c28",
+      "bytes": 82
+    },
+    "wechatgame/assets/main/config.14ace.json": {
+      "sha256": "18c6b5d956cfa7fd20ccd5f5f7934413243a33cba9dd408a55f61c9aef9aa590",
+      "bytes": 286
+    },
+    "wechatgame/assets/main/import/68/6864309e-a883-4fbb-af0b-296d2279eef3.ffd1f.json": {
+      "sha256": "05272a8b2464d74fb0477e6b1ed5591d4938b5b4ab44503b3382c1e926e41ce2",
+      "bytes": 860
+    },
+    "wechatgame/assets/main/index.js": {
+      "sha256": "2c024dccda1090340ca0f8be2bede53c81fff3e3ace87a632b6d5c46d312f116",
+      "bytes": 403156
+    },
+    "wechatgame/ccRequire.js": {
+      "sha256": "e10e10796aeb9fcf76100257bfb55dfc8cbe0b52bc266180955792f691d76c29",
+      "bytes": 622
+    },
+    "wechatgame/cocos/cocos2d-js-min.js": {
+      "sha256": "c3ebdcf98ab119fd90b28bf3bb985e5b4ba9ff028aa97f2ba3db96d8b6acd092",
+      "bytes": 1508295
+    },
+    "wechatgame/game.js": {
+      "sha256": "a3bcd243e64180a95c8ac7b3a4ad663ce468e50a4b5879bccdf764921af87bec",
+      "bytes": 483
+    },
+    "wechatgame/game.json": {
+      "sha256": "27e3db1edfd520cbdecb92deab1ab5733ffe14899957b68ee54f2b18bb5be316",
+      "bytes": 437
+    },
+    "wechatgame/main.js": {
+      "sha256": "4a724217d2bc9f230862fb45f6a82e7b3e36f40913b19ab2fc3f681d179fc629",
+      "bytes": 2120
+    },
+    "wechatgame/openDataContext/index.js": {
+      "sha256": "c2adc3e70619e256943e381ea8d0fe662408f0bf912e54f0ac7d73a033421a08",
+      "bytes": 8753
+    },
+    "wechatgame/openDataContext/ranking.js": {
+      "sha256": "42002fed91bcfad98ec943dac49bd0eef81cd02b19fd430fa6be06f4c9c0642d",
+      "bytes": 2227
+    },
+    "wechatgame/project.config.json": {
+      "sha256": "15a0a8062c1580e4adc24ff2bb2c17ec0d0eeff1b0ade2629114c576ff2dd4df",
+      "bytes": 917
+    },
+    "wechatgame/src/assets/plugin/RenderQuality.js": {
+      "sha256": "d6d2ed82a3aafec398e845dcb3f8ac6f30dcd7a638b055e03d6000c93f0c4737",
+      "bytes": 71
+    },
+    "wechatgame/src/scripts/music/index.js": {
+      "sha256": "91e9970eba5f76af1a8585527b6e80352978ac231908ea9e6ec3e139e8f326a5",
+      "bytes": 463
+    },
+    "wechatgame/src/settings.js": {
+      "sha256": "254768367d6d8ee2676afb8cbb8f0c8ba512c8d521a573a4f4e5f361ad4a9d2f",
+      "bytes": 474
+    },
+    "wechatgame/subpackages/effects/config.9f49f.json": {
+      "sha256": "4cc35cb22455503a2839820f97002865f74642a1cf6537c781aa10b5550626cc",
+      "bytes": 2867
+    },
+    "wechatgame/subpackages/effects/game.js": {
+      "sha256": "91e9970eba5f76af1a8585527b6e80352978ac231908ea9e6ec3e139e8f326a5",
+      "bytes": 463
+    },
+    "wechatgame/subpackages/effects/import/08/08f57e03-da75-4e84-ad94-32b28314c28b.0c45d.json": {
+      "sha256": "dcbd0f1706cedf168518679f17c2e4d91e7842797b24e7b47e0a07cc10897351",
+      "bytes": 127
+    },
+    "wechatgame/subpackages/effects/import/0b/0b7ae651-ae83-4d3b-a14b-67cf698b6457.49890.json": {
+      "sha256": "f6158feaf1872c15a18990ec2ebec35b3b8a094a5c4c9925ed77dde9b7a94707",
+      "bytes": 127
+    },
+    "wechatgame/subpackages/effects/import/0d/0d987d5c2.8d628.json": {
+      "sha256": "ced8bb2ae1ce8718f2797667c7b5f0826ea15cc8c0b4c2ededbe9b505db9599e",
+      "bytes": 212
+    },
+    "wechatgame/subpackages/effects/import/14/14b16954-df6e-4e00-a6b2-0b0504a08a04.e15f2.json": {
+      "sha256": "adcd0b91888bc0d5252295c9afd8d4bdc704dcd71b366af9a0ec9244e7043869",
+      "bytes": 121
+    },
+    "wechatgame/subpackages/effects/import/23/234186ae-cfdc-4b15-897b-e2718beb79a7.81f8e.json": {
+      "sha256": "48ac06f00fe96dff05bb7be176b45f2a0a1b732fac433cb7565ab74356be13cb",
+      "bytes": 126
+    },
+    "wechatgame/subpackages/effects/import/31/31915e18-738d-4a71-919f-55e0af908cbf.7593f.json": {
+      "sha256": "14128483ef95750cbbd04397540f55a23af65cc327a0f7cc211ed0cb624119e9",
+      "bytes": 126
+    },
+    "wechatgame/subpackages/effects/import/3c/3c03136d-71b0-408e-92dd-127c37bbcbb2.83aee.json": {
+      "sha256": "1c4a84579ab5c9d9812a4e85e0860afb8cc4638ea0edd5d5677278def0418a50",
+      "bytes": 127
+    },
+    "wechatgame/subpackages/effects/import/41/412852d8-5409-44da-b6db-eb6a7b5b3616.c2f10.json": {
+      "sha256": "9ed7f6597b2a1484ae29f76acee219614b9165b8dd95375042414f7b2708d4a6",
+      "bytes": 126
+    },
+    "wechatgame/subpackages/effects/import/53/538900bb-5712-47d8-9898-3834d02be178.70d6d.json": {
+      "sha256": "9a5c3bab686f3ebe05b401c37f0840c6d0bf33ed90fcacc20c32da7944f76d01",
+      "bytes": 128
+    },
+    "wechatgame/subpackages/effects/import/56/56aae6bd-4b6f-4584-bfa6-484767ff8e7d.b1ec3.json": {
+      "sha256": "d0c02372809176ec71ab43af8ceae2f8735f0ed823f4ae067a22e765dac71b26",
+      "bytes": 130
+    },
+    "wechatgame/subpackages/effects/import/5d/5dd9849d-fe95-44f5-9a5d-ac60a1aa1666.dbb41.json": {
+      "sha256": "23ffd043c67f93fd8756d3a0ee3903a00b4674441a8ce6af7d1eb0ea2a510f13",
+      "bytes": 201
+    },
+    "wechatgame/subpackages/effects/import/5f/5fe1a985-5e57-4a73-9aa8-33f19a8078ff.806d0.json": {
+      "sha256": "c32da56bf4358a79ed08c3d025f1e965b4bad94f10cfc890c3242921a3c1cd09",
+      "bytes": 128
+    },
+    "wechatgame/subpackages/effects/import/64/64af7770-d869-4474-8d26-58fbe40c3fd2.268c8.json": {
+      "sha256": "2c8cc6df9bf0993207b2d60d2f487a07d1466ff2b5bd272e217e160c429533ca",
+      "bytes": 203
+    },
+    "wechatgame/subpackages/effects/import/72/7216394a-476e-4d99-9e26-50b893c44d69.714ce.json": {
+      "sha256": "e8888e3dc3b10b42b790ba56094365a6a3be361bdec4cb6900b20e3691dbd698",
+      "bytes": 127
+    },
+    "wechatgame/subpackages/effects/import/7c/7c8c4a0f-b65f-474f-96eb-574f417545e2.23664.json": {
+      "sha256": "76e86b81323753515d04859ddfaf9c41ad0db23cca2d864cf5d7a3beef73cda3",
+      "bytes": 128
+    },
+    "wechatgame/subpackages/effects/import/7e/7e5a27cc-7dc7-4814-8b73-1e713382a5e4.fb0c0.json": {
+      "sha256": "98184b15c203ba1b07f17670f6ec24f4ce6f15d26d6d9f6cd36893c705ba9db1",
+      "bytes": 124
+    },
+    "wechatgame/subpackages/effects/import/80/80dc8926-1305-4fbc-8d84-e59b1603d395.f5e34.json": {
+      "sha256": "573e3d5255eee1ee4c043d195a2cd31c0555d2901fa0d9ebd993c70ff67421bf",
+      "bytes": 126
+    },
+    "wechatgame/subpackages/effects/import/88/88116968-f5bf-4228-a01c-6621951871cf.37883.json": {
+      "sha256": "0f688939299448082d429c5fd34469dd4b9141e2eef9b091d717975519d08d44",
+      "bytes": 197
+    },
+    "wechatgame/subpackages/effects/import/89/8999487d-2729-4ae8-855d-06c015108620.c73bb.json": {
+      "sha256": "8b66c573b3b4b27870a03562a98b41c1746df4991def687b736ebc844f38fd9f",
+      "bytes": 198
+    },
+    "wechatgame/subpackages/effects/import/94/94ed8b1f-d31b-4fb2-add4-6a46b212d63e.c6bba.json": {
+      "sha256": "fbb3db212522e0da103b319a4409250e61d88cf215e3092fbbe76d4e654b91d5",
+      "bytes": 128
+    },
+    "wechatgame/subpackages/effects/import/95/95f95c69-650a-41c6-8389-c51dc81cb63c.5b83c.json": {
+      "sha256": "369ec2c286ccb5d24ad4cbde581c05863ed3adf6ead30bb99bb2e77daa6e7ed3",
+      "bytes": 126
+    },
+    "wechatgame/subpackages/effects/import/9c/9c4ceeb4-0adf-4d47-9790-b016ad513399.f1757.json": {
+      "sha256": "798ace98dffde5f80e4d6ec1818da4a9062a483fe905faec72e015dd25bbda07",
+      "bytes": 130
+    },
+    "wechatgame/subpackages/effects/import/9d/9d429ecf-0410-4da0-98b5-33a596d4ed19.3859c.json": {
+      "sha256": "eac205d0fe2ec9608469704fb11154141d92ebc649509c254b4bdf9f2b11e14c",
+      "bytes": 130
+    },
+    "wechatgame/subpackages/effects/import/b5/b55f9091-4037-43f3-908b-27968a1a466d.6e467.json": {
+      "sha256": "6c61c600b5446259533d7a4e036430832a0ab37307318eb944019a65a4a95888",
+      "bytes": 128
+    },
+    "wechatgame/subpackages/effects/import/c2/c209f0ae-f8d6-4d4c-ac0f-356bc644bcd2.b8a89.json": {
+      "sha256": "372f38ca2104d8be096196341f654736bae933df99f52cd5a304fe933aed5e25",
+      "bytes": 130
+    },
+    "wechatgame/subpackages/effects/import/cb/cb728672-e3a6-494d-a094-c1ee14fcecf8.d167c.json": {
+      "sha256": "fc7c49196daf382da27685d0b14d117fe0ffdaec434a154ba102c9fb656d9f80",
+      "bytes": 199
+    },
+    "wechatgame/subpackages/effects/import/e3/e3c979b3-b593-444a-894f-bb3e81cdb28d.3445d.json": {
+      "sha256": "c087996d98a4a54fc142b1c65ea9ac4ee6d945a71542819c25363e0a2d774600",
+      "bytes": 206
+    },
+    "wechatgame/subpackages/effects/import/f2/f28fd540-d808-4928-a4bf-00123c8c1056.dd520.json": {
+      "sha256": "2a4bafbfb91ea7fda8315a0032cc3391fdeeca6bb86febe049a33c6ef681f7bd",
+      "bytes": 124
+    },
+    "wechatgame/subpackages/effects/native/08/08f57e03-da75-4e84-ad94-32b28314c28b.0d974.mp3": {
+      "sha256": "582c2a9cf57510ddd5ece01a4515e7121891636a5abf2eefd25a233161961f07",
+      "bytes": 7148
+    },
+    "wechatgame/subpackages/effects/native/0b/0b7ae651-ae83-4d3b-a14b-67cf698b6457.1ca0f.mp3": {
+      "sha256": "5a020d3b1218e898478349afef51b7a00e31655482f1f8fdd9d57c0c838b8d77",
+      "bytes": 6312
+    },
+    "wechatgame/subpackages/effects/native/14/14b16954-df6e-4e00-a6b2-0b0504a08a04.6527f.mp3": {
+      "sha256": "6788d27a30d364c6ab3342d304974014bbade7d1a0855ffbcf4dc5b9653f0e6e",
+      "bytes": 36571
+    },
+    "wechatgame/subpackages/effects/native/23/234186ae-cfdc-4b15-897b-e2718beb79a7.d1562.mp3": {
+      "sha256": "0bbf6c7b70c1d64999ef6708722efd145829eec5e30d796df385b1ba515e0d9b",
+      "bytes": 7984
+    },
+    "wechatgame/subpackages/effects/native/2d/2de2fcb9-ec66-40de-b667-84ed876a9dfb.968d8.png": {
+      "sha256": "51272b219d8ab124e223011dfaa1250437b02e7ae99c973fb1a478a0c4ebf088",
+      "bytes": 1989310
+    },
+    "wechatgame/subpackages/effects/native/31/31915e18-738d-4a71-919f-55e0af908cbf.2d918.mp3": {
+      "sha256": "23354e647da7e3f3e6c3e3374b10b59e0fa2d5c7662b1b03a6e52d3161f151ff",
+      "bytes": 7984
+    },
+    "wechatgame/subpackages/effects/native/3c/3c03136d-71b0-408e-92dd-127c37bbcbb2.23a74.mp3": {
+      "sha256": "527c84a4128e47c907fcf30de4b051ecef2f44fa87b23edfab8aa10346b07c4f",
+      "bytes": 7148
+    },
+    "wechatgame/subpackages/effects/native/41/412852d8-5409-44da-b6db-eb6a7b5b3616.f6327.mp3": {
+      "sha256": "e539bcb83db31b9e649c1169023645e372cd976233d2351250293beba9562e30",
+      "bytes": 7984
+    },
+    "wechatgame/subpackages/effects/native/53/538900bb-5712-47d8-9898-3834d02be178.32b70.mp3": {
+      "sha256": "6b6b9b9ad3c930da2acaf79fbdf75b2904406238a2fbceeb77d09255979ca5b2",
+      "bytes": 7148
+    },
+    "wechatgame/subpackages/effects/native/56/56aae6bd-4b6f-4584-bfa6-484767ff8e7d.cc1a3.mp3": {
+      "sha256": "da8b4d9c21f339e2f424ae6c10d764fa695aa5217704539822a59bbbcda5729b",
+      "bytes": 10910
+    },
+    "wechatgame/subpackages/effects/native/5f/5fe1a985-5e57-4a73-9aa8-33f19a8078ff.6ec27.mp3": {
+      "sha256": "764253acc700100b6ecdcd77b162da4ae1b52d39f42b7150f46affc877d0d8b0",
+      "bytes": 6730
+    },
+    "wechatgame/subpackages/effects/native/6d/6d22635c-5785-49df-af90-373edce495b5.c7607.png": {
+      "sha256": "dffc33fbfd21873c4107a23b6b4fbc52744999935fe0d893ccc6085c7c56a65a",
+      "bytes": 190922
+    },
+    "wechatgame/subpackages/effects/native/72/7216394a-476e-4d99-9e26-50b893c44d69.5d44c.mp3": {
+      "sha256": "9ad91ae372d5aec7bf11efbd19c31a5ad571980bafc6ff7f5d79b1054445d77a",
+      "bytes": 7566
+    },
+    "wechatgame/subpackages/effects/native/75/75eae9a9-2c15-400f-981c-1f370ccd5108.46b69.png": {
+      "sha256": "449735dce9c40bc507516ec4e0dd4bfd45087174b6d5fb240bdf2ece84604051",
+      "bytes": 203073
+    },
+    "wechatgame/subpackages/effects/native/7c/7c8c4a0f-b65f-474f-96eb-574f417545e2.fe2ba.mp3": {
+      "sha256": "be147809474118593b05578d1f5fa81fcc310f46d1cd21e3de2c0717b4bd78f0",
+      "bytes": 9656
+    },
+    "wechatgame/subpackages/effects/native/7e/7e5a27cc-7dc7-4814-8b73-1e713382a5e4.43a97.mp3": {
+      "sha256": "f5b42f552676ff1413364ffc06943531571328b8be60be56f240580d4ad68db1",
+      "bytes": 20733
+    },
+    "wechatgame/subpackages/effects/native/80/80dc8926-1305-4fbc-8d84-e59b1603d395.98c1c.mp3": {
+      "sha256": "411c969c0f1b7ed6da5342f2d620620f6bf26d329e70a48e4c3161f725a8bff3",
+      "bytes": 23240
+    },
+    "wechatgame/subpackages/effects/native/93/93359b75-2e2d-454d-9177-d0ae976dd12b.618e2.png": {
+      "sha256": "b77efa7e7a9b74ebf00378dd1fa5c8635111a4d89faca2684ef2ac3dcfa1a55f",
+      "bytes": 172133
+    },
+    "wechatgame/subpackages/effects/native/94/94ed8b1f-d31b-4fb2-add4-6a46b212d63e.23f9a.mp3": {
+      "sha256": "ee1c0ab58999d3dc6ee82ca16abbbb29e9dcef368353fbe84d5ab57877ea7f3e",
+      "bytes": 7148
+    },
+    "wechatgame/subpackages/effects/native/95/95780963-ac07-460c-b0ef-75affbb5730a.05bdc.png": {
+      "sha256": "182e923614575c3c728371a0f70e3cc0946cadc29b901bc606e960ecebc5af6b",
+      "bytes": 245857
+    },
+    "wechatgame/subpackages/effects/native/95/95f95c69-650a-41c6-8389-c51dc81cb63c.56821.mp3": {
+      "sha256": "507220c83f9e4565ca77d3a686789ab5e298c8410515c6f206cded8535d984f7",
+      "bytes": 7148
+    },
+    "wechatgame/subpackages/effects/native/9c/9c4ceeb4-0adf-4d47-9790-b016ad513399.fb099.mp3": {
+      "sha256": "17e8f046270b1b4efbdbb4bf66ccdd1470921ddc0bad11717209316308e713f9",
+      "bytes": 12581
+    },
+    "wechatgame/subpackages/effects/native/9d/9d429ecf-0410-4da0-98b5-33a596d4ed19.50600.mp3": {
+      "sha256": "07fe17f8a190d98232f5206dc258bbaa7d1989f83459e36a850cec1c541f25a0",
+      "bytes": 16761
+    },
+    "wechatgame/subpackages/effects/native/a3/a32d74af-bbb2-4b54-9cf7-3924220c9e8c.ed9bb.png": {
+      "sha256": "37334452b3818ed89e6ec2ddafc854b77e3781956d1da1865386dfc0faae27b2",
+      "bytes": 219771
+    },
+    "wechatgame/subpackages/effects/native/b5/b55f9091-4037-43f3-908b-27968a1a466d.0611a.mp3": {
+      "sha256": "f8336a671aaf0145fa4e528e52d42731fe946030fdd3daaf8e2d9c1a05ef0346",
+      "bytes": 72724
+    },
+    "wechatgame/subpackages/effects/native/c2/c209f0ae-f8d6-4d4c-ac0f-356bc644bcd2.5f94e.mp3": {
+      "sha256": "3611c614ef8e4b78a91793d90140319b3cdffa259f68393462607f1cb35053cd",
+      "bytes": 12581
+    },
+    "wechatgame/subpackages/effects/native/f2/f28fd540-d808-4928-a4bf-00123c8c1056.2ea61.mp3": {
+      "sha256": "844b6b80edf6b100a0f83ec50e860f26fb14d3ab64cd136337cb9ff74d42686a",
+      "bytes": 63908
+    },
+    "wechatgame/subpackages/home/config.7eb90.json": {
+      "sha256": "a721f48076bdf1efae10e9042c39dbd6d9d226208f8e01914187793537563f54",
+      "bytes": 2135
+    },
+    "wechatgame/subpackages/home/game.js": {
+      "sha256": "91e9970eba5f76af1a8585527b6e80352978ac231908ea9e6ec3e139e8f326a5",
+      "bytes": 463
+    },
+    "wechatgame/subpackages/home/import/0e/0e8ae418a.50ae6.json": {
+      "sha256": "65998d71de4a63604d4ef9f8391aca794b472e93f17d4637c39314cbdaf202e0",
+      "bytes": 332
+    },
+    "wechatgame/subpackages/home/import/0f/0f7ee6fff.99cf5.json": {
+      "sha256": "7c23f55d171aace8790b9a5924b26079430d49e73ae91ca45f5f50b85782ea6a",
+      "bytes": 6716
+    },
+    "wechatgame/subpackages/home/import/19/1932afd6-fa1b-44fb-bd02-725044997fcc.42c83.json": {
+      "sha256": "0970686444ffea4d30a71a615cfb6b7671cb5c7abc6991ecbc31d6d700069ded",
+      "bytes": 208
+    },
+    "wechatgame/subpackages/home/import/31/31ba85d7-d565-4c03-9ead-1ea1cc3994d6.37620.json": {
+      "sha256": "53406f4757fa12d6673f5ed55ff0d04207e5f86c91e0416507a8b9b1d38c0e9a",
+      "bytes": 193
+    },
+    "wechatgame/subpackages/home/import/40/40407f18-c113-45e8-b684-f3fb7ceb2ab0.4a8be.json": {
+      "sha256": "4438cb7282bf7c975e29bc7e2802b784c0ec2b85726dd248e2a96a4ea81c3e00",
+      "bytes": 201
+    },
+    "wechatgame/subpackages/home/import/43/43b95c81-43e5-592a-85f9-fcdf105b9c57.fa01d.json": {
+      "sha256": "7e3420effe1fa6441c7286f896ebcb4c6a812c747ee2578a3c99321f559df7e6",
+      "bytes": 136
+    },
+    "wechatgame/subpackages/home/import/64/645991fc-d8c8-4b92-9b81-f3b974c26b24.1aaee.json": {
+      "sha256": "a59b548565ce5b2c57d19619058361eaaa1073e9b7a83d557fb011ac4a9f7af3",
+      "bytes": 201
+    },
+    "wechatgame/subpackages/home/import/6f/6f10b462-abd5-4fdf-a26e-2c306b036afc.66404.json": {
+      "sha256": "94d214ff9aa0590bc56c303ce5e16fb637730aab7f24cd8cd954cd2f83d97f12",
+      "bytes": 202
+    },
+    "wechatgame/subpackages/home/import/7e/7e0f5005-4170-5d21-a17c-114e746b75fa.8fa0b.json": {
+      "sha256": "e98d491adda73e8d8f2c7e6efdd246b11ddd2c862b45a2714018c394f11a992f",
+      "bytes": 9069
+    },
+    "wechatgame/subpackages/home/import/85/85eedcb6-6cd9-4fe5-8f66-9756156d4435.59a89.json": {
+      "sha256": "c9a6b9bee56ecd6beb999a2ce3d76d3730413086bcb07f82b468294214c22787",
+      "bytes": 206
+    },
+    "wechatgame/subpackages/home/import/a6/a6dd33d4-764d-4aa5-81de-c32bcb99f011.05a5c.json": {
+      "sha256": "e5ebddc0c264dbad6253fd4aff63795c09ac95992df73e8d4693245c46fd8121",
+      "bytes": 207
+    },
+    "wechatgame/subpackages/home/import/ac/ac134d45-bd01-4d7d-9314-0e1ac9fae754.ddeac.json": {
+      "sha256": "e7da5de433a7f7314ed5cca0a49aefa18fb89fec3e40ad73bf323002f569b19b",
+      "bytes": 199
+    },
+    "wechatgame/subpackages/home/import/c7/c7c550d4-a80b-41b3-8683-26d5763746db.d69dc.json": {
+      "sha256": "33fa43fd8a8ca5ae1010bd795eac502918516920adc8dd0ab84fe9109be33c9f",
+      "bytes": 202
+    },
+    "wechatgame/subpackages/home/native/04/045f65ef-4daa-4d69-bcff-c30c301225e0.61719.png": {
+      "sha256": "3e158f2ce95d114d1b51cb75efa1f50bb7797992a2eb18ab0149415dda31a205",
+      "bytes": 45003
+    },
+    "wechatgame/subpackages/home/native/07/07c577fa-6bd9-48dc-93cd-1744400c230f.57026.png": {
+      "sha256": "bb80dabbe71c32710a59aeaa15e1c6ebff574cce4d345e908717ab658d0684fd",
+      "bytes": 129544
+    },
+    "wechatgame/subpackages/home/native/10/1056d9bc-da38-461c-9e1b-9a3674536ad4.03e5f.jpg": {
+      "sha256": "e109a39f59b4e0434fb6c0d8dab5b04c76af94d824d7725467e67ecb3c3a1c1b",
+      "bytes": 42327
+    },
+    "wechatgame/subpackages/home/native/20/20b6965e-87a2-4910-887e-21315a5607f0.4f77e.png": {
+      "sha256": "f3a596c30a8316a731da69bc75520c39ad097066293e3452bed23c10368294e6",
+      "bytes": 170492
+    },
+    "wechatgame/subpackages/home/native/43/43b95c81-43e5-592a-85f9-fcdf105b9c57.f4545/zyx_happy_round_body_v1.ttf": {
+      "sha256": "46a772c96daa8a7e78e20eb4e6978aa0419001fd5c2fcc13d9ddc727175c1469",
+      "bytes": 2688660
+    },
+    "wechatgame/subpackages/home/native/4d/4dc428da-fbc9-490f-8f95-f310aa9d381f.54ba3.png": {
+      "sha256": "4c13ef8ebe237743941b9509a134e020239bf351e0f13a970d5fe124f8fd0723",
+      "bytes": 162078
+    },
+    "wechatgame/subpackages/home/native/5a/5a8d8c29-395e-49f6-a882-09abf13f9ffa.f240b.png": {
+      "sha256": "2b18bd8e8641140f1a1f8d92a6840175ef65f34cd3a12ea1042cbadcc1098a08",
+      "bytes": 157875
+    },
+    "wechatgame/subpackages/home/native/93/93d9b1da-6479-4f09-8f5b-fcd057b48f32.a0565.png": {
+      "sha256": "07b41303439653689a1e8e740d238735a2aa55c03ffb6777b5049b1971dc75a6",
+      "bytes": 86857
+    },
+    "wechatgame/subpackages/home/native/9c/9c19d03c-0aee-5654-ac41-d0f649584d2f.875fb.png": {
+      "sha256": "f32b01e71b68eeccad395519bd7634e7ee9f5b5f4564c43d3af1b79c06b65972",
+      "bytes": 57359
+    },
+    "wechatgame/subpackages/home/native/d1/d1ab184a-f229-4bce-a194-3f42f7d7269d.3eda6.png": {
+      "sha256": "a6ed3f4d13e88eafa9456bfb0da0586bf988e8b1e2e409f0ffcd5967a9787f57",
+      "bytes": 173506
+    },
+    "wechatgame/subpackages/home/native/e0/e092ec65-b283-4b2f-a399-189a443b368a.b22a8.png": {
+      "sha256": "f8370275daa32cc576b4fe55a87bfcc1bc4f28258cd7b29be7c1928c0e1bf671",
+      "bytes": 186109
+    }
+  },
+  "treeSha256": "67e2c8f5f36d68092d868538fdfd538daa882d3ddd2615b303a2051d84c16455",
+  "excludedPaths": [
+    "data",
+    "server/data",
+    "server/uploads",
+    "uploads",
+    "web/uploads"
+  ],
+  "skippedCount": 0
+}

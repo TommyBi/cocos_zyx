@@ -1,0 +1,248 @@
+
+> build:web
+> node scripts/clean-build.js web-mobile && npm run validate:assets && env -u ELECTRON_RUN_AS_NODE /Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/MacOS/CocosCreator --path . --build "platform=web-mobile;debug=true;md5Cache=false" --nologin --force
+
+Cleaned generated build: build/web-mobile
+
+> validate:assets
+> node scripts/validate-assets.js
+
+Source asset architecture OK: game in main package, home subpackage, music on CDN; max texture 2048.
+(node:82078) Warning: Accessing non-existent property 'padLevels' of module exports inside circular dependency
+(Use `CocosCreator --trace-warnings ...` to show where the warning was created)
+===== Initializing Editor =====
+arguments: 
+  --path
+  .
+  --build
+  platform=web-mobile;debug=true;md5Cache=false
+  --nologin
+  --force
+
+[82078] protocol editor-framework registered
+[82078] protocol app registered
+[82078] protocol theme registered
+[82078] protocol packages registered
+[82078] Load ~/.CocosCreator/settings.json
+[82078] protocol uuid registerred
+[82078] protocol db registerred
+[82078] protocol thumbnail registerred
+[82078] Initializing Asset Database
+[82078] checking language setting...
+[82078] Language: zh
+[82078] protocol unpack registerred
+[82078] protocol disable-commonjs registerred
+Load profile failed: local://settings.json
+Load profile failed: local://settings.json
+Load profile failed: local://settings.json
+[82078] connected!
+[82078] Check project /Users/liuyang/Documents/private/cocos_zyx
+[82078] Initializing project /Users/liuyang/Documents/private/cocos_zyx
+[82078] adapters loaded
+[82078] asset-db-debugger loaded
+[82078] fb-audience-network loaded
+[82078] fb-live-stream loaded
+[82078] google-play-instant loaded
+[82078] jsb-adapter loaded
+[82078] package-manager loaded
+[82078] runtime-adapters loaded
+[82078] runtime-dev-tools loaded
+[82078] ui-kit-preview-extra loaded
+[82078] ui-kit-preview loaded
+[82078] alipay-minigame loaded
+[82078] assets loaded
+[82078] baidugame-opendata loaded
+[82078] baidugame loaded
+[82078] builder loaded
+[82078] bytedance-opendata loaded
+[82078] bytedance loaded
+[82078] channel-upload-tools loaded
+[82078] cloud-function loaded
+Cocos Service Version 0.6.9
+[82078] cocos-services loaded
+[82078] console loaded
+[82078] curve-editor loaded
+[82078] fb-instant-games loaded
+[82078] game-window loaded
+[82078] google-instant-games loaded
+[82078] hierarchy loaded
+[82078] huawei-agc loaded
+[82078] huawei-runtime loaded
+[82078] inspector loaded
+[82078] cpk-publish loaded
+[82078] keystore loaded
+[82078] link-sure-runtime loaded
+[82078] node-library loaded
+[82078] open-recent-items loaded
+[82078] openharmony loaded
+[82078] oppo-runtime loaded
+[82078] package-asset loaded
+[82078] preferences loaded
+[82078] project-importer loaded
+[82078] project-settings loaded
+[82078] qtt-runtime loaded
+[82078] scene loaded
+[82078] simulator-debugger loaded
+[82078] sprite-editor loaded
+[82078] store loaded
+[82078] taobao-creativeapp loaded
+[82078] taobao-minigame loaded
+[82078] timeline loaded
+[82078] vivo-runtime loaded
+[82078] wechatgame-opendata loaded
+[82078] wechatgame loaded
+[82078] xiaomi-runtime loaded
+[82078] im-plugin loaded
+(node:82078) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+[82078] Initializing Cocos2d
+[82078] Initializing engine extends
+[82078] Cocos Service load base data!
+build jsb-adapter: 2.62ms
+Parse [/Users/liuyang/Documents/private/cocos_zyx/temp/quick-scripts/src/__qc_index__.js]: walk 40  files.
+Parse [/Users/liuyang/Documents/private/cocos_zyx/temp/quick-scripts/src/__qc_index__.js]: 472.412ms
+Generate QUICK_COMPILE_BUNDLE: 24ms
+QuickCompiler compileFinished: 25.311ms
+QuickCompiler rebuild finished: 506.235ms
+Init project script: 584.544ms
+Start to build platform [web-mobile]
+[82078] Start building with options : {
+  "title": "烦恼排排消",
+  "packageName": "org.cocos2d.demo",
+  "startScene": "6864309e-a883-4fbb-af0b-296d2279eef3",
+  "excludeScenes": [],
+  "orientation": {
+    "landscapeRight": false,
+    "landscapeLeft": false,
+    "portrait": true,
+    "upsideDown": true
+  },
+  "webOrientation": "auto",
+  "inlineSpriteFrames": false,
+  "inlineSpriteFrames_native": true,
+  "mainCompressionType": "default",
+  "mainIsRemote": false,
+  "optimizeHotUpdate": false,
+  "md5Cache": false,
+  "encryptJs": true,
+  "xxteaKey": "18a3da4d-dc1b-32",
+  "zipCompressJs": true,
+  "fb-instant-games": {},
+  "android": {
+    "packageName": "org.ball.com",
+    "REMOTE_SERVER_ROOT": ""
+  },
+  "ios": {
+    "packageName": "org.ball.com",
+    "REMOTE_SERVER_ROOT": "",
+    "ios_enable_jit": true
+  },
+  "mac": {
+    "packageName": "org.cocos2d.chip",
+    "REMOTE_SERVER_ROOT": "",
+    "width": 750,
+    "height": 1334
+  },
+  "win32": {
+    "REMOTE_SERVER_ROOT": "",
+    "width": 1280,
+    "height": 720
+  },
+  "android-instant": {
+    "packageName": "org.cocos2d.demo",
+    "REMOTE_SERVER_ROOT": "",
+    "pathPattern": "",
+    "scheme": "https",
+    "host": "",
+    "skipRecord": false,
+    "recordPath": ""
+  },
+  "appBundle": false,
+  "agreements": {},
+  "includeAnySDK": false,
+  "openharmony": {
+    "packageName": "com.cocos.openharmony",
+    "REMOTE_SERVER_ROOT": ""
+  },
+  "platform": "web-mobile",
+  "actualPlatform": "web-mobile",
+  "template": "default",
+  "buildPath": "/Users/liuyang/Documents/private/cocos_zyx/build",
+  "debug": true,
+  "sourceMaps": false,
+  "embedWebDebugger": false,
+  "previewWidth": "1280",
+  "previewHeight": "720",
+  "useDebugKeystore": true,
+  "apiLevel": "",
+  "appABIs": [
+    "armeabi-v7a",
+    "arm64-v8a"
+  ],
+  "vsVersion": "auto",
+  "buildScriptsOnly": false,
+  "dest": "/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile",
+  "excludedModules": [
+    "DragonBones",
+    "MotionStreak",
+    "Native Socket",
+    "PageView",
+    "PageViewIndicator",
+    "ParticleSystem",
+    "TiledMap",
+    "3D",
+    "3D Primitive",
+    "3D Physics/cannon.js",
+    "3D Physics/Builtin",
+    "3D Particle"
+  ],
+  "autoCompile": false,
+  "scenes": [
+    "6864309e-a883-4fbb-af0b-296d2279eef3"
+  ],
+  "project": "/Users/liuyang/Documents/private/cocos_zyx",
+  "projectName": "烦恼排排消",
+  "debugBuildWorker": false
+}
+Builder: do custom process [build-start]
+[82078] Building /Users/liuyang/Documents/private/cocos_zyx
+[82078] Destination /Users/liuyang/Documents/private/cocos_zyx/build/web-mobile
+[82078] Start spawn build-worker
+(node:83027) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+(Use `CocosCreator Helper (Renderer) --trace-deprecation ...` to show where the warning was created)
+[82078] Finish spawn build-worker
+[82078] Delete /Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/**/*
+[82078] Compiling /Users/liuyang/Documents/private/cocos_zyx
+(node:83037) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+(Use `CocosCreator Helper (Renderer) --trace-deprecation ...` to show where the warning was created)
+[82078] Start init build-worker
+[82078] Finish init build-worker
+[82078] Start build-assets in worker
+[82078] 
+--- build-asset: {"root":"db://internal/resources","name":"internal","dest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/internal","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/internal","priority":11,"scenes":[],"compressionType":"merge_all_json"}
+
+[82078] 
+--- build-asset: {"root":"db://assets/bundles/game","name":"game","dest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/game","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/game","priority":7,"scenes":[],"compressionType":"default"}
+
+[82078] 
+--- build-asset: {"root":null,"priority":7,"dest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/main","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/main","name":"main","scenes":["6864309e-a883-4fbb-af0b-296d2279eef3"],"compressionType":"default","optimizeHotUpdate":false,"inlineSpriteFrames":false,"isRemote":false}
+
+[82078] 
+--- build-asset: {"root":"db://assets/bundles/home","name":"home","dest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/home","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/home","priority":6,"scenes":[],"compressionType":"default"}
+
+[82078] 
+--- build-asset: {"root":"db://assets/bundles/effects","name":"effects","dest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/effects","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/effects","priority":5,"scenes":[],"compressionType":"default"}
+
+[82078] 
+--- build-asset: {"root":"db://assets/bundles/music","name":"music","dest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/music","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/assets/music","priority":5,"scenes":[],"compressionType":"default"}
+
+[82078] Finish build-assets in worker
+[82078] Start building plugin scripts
+start gulpping /Users/liuyang/Documents/private/cocos_zyx/assets/plugin/RenderQuality.js to /Users/liuyang/Documents/private/cocos_zyx/build/web-mobile/src/assets/plugin
+finish gulpping /Users/liuyang/Documents/private/cocos_zyx/assets/plugin/RenderQuality.js
+[82078] Finish building plugin scripts
+[82078] Generating main.js from /Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/Resources/static/build-templates/shares/main.js
+[82078] Generating html from /Applications/Cocos/Creator/2.4.13/CocosCreator.app/Contents/Resources/static/build-templates/web-mobile/template-dev/index.html
+Builder: do custom process [before-change-files]
+关闭 worker
+Builder: do custom process [build-finished]
+[82078] Built to "/Users/liuyang/Documents/private/cocos_zyx/build/web-mobile" successfully

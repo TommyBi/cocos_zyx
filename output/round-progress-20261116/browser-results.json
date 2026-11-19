@@ -1,0 +1,32 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "localTailRecovered": true,
+    "randomStateMatched": true,
+    "saveReturnKeepsRound": true,
+    "coldLaunchPromptsAgain": true,
+    "staminaNotChargedAgain": true,
+    "errors": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "localTailRecovered": true,
+    "randomStateMatched": true,
+    "saveReturnKeepsRound": true,
+    "coldLaunchPromptsAgain": true,
+    "staminaNotChargedAgain": true,
+    "errors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "localTailRecovered": true,
+    "randomStateMatched": true,
+    "saveReturnKeepsRound": true,
+    "coldLaunchPromptsAgain": true,
+    "staminaNotChargedAgain": true,
+    "errors": []
+  }
+]

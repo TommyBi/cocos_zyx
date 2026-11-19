@@ -1,0 +1,9 @@
+{
+  "image": "sha256:2406aca78d8d7c67acd454af7f4d8a5a480ee6809fc99c9410b1e7d420c81f3f",
+  "imageRef": "cocos-zyx-staging:20261118-staging-v15-review-025145",
+  "baseImage": "sha256:e6743a984ec3feaf4d16ee79af7ef58129946a41cc301df599eb0836bc038604",
+  "backendTestsPassed": 77,
+  "packageAndLockMatchRuntime": true,
+  "migrationAllTablesUnchanged": true,
+  "sourceTreeSha256": "b8584e61dfe047e5119b387d1b036397cda615b47eab133fa14a5978bc860077"
+}

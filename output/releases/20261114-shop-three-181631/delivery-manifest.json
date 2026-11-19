@@ -1,0 +1,169 @@
+{
+  "releaseId": "20261114-shop-three-181631",
+  "files": {
+    "server-manifest.json": {
+      "bytes": 2525,
+      "sha256": "2a99a59e135d3c4e05b6f445801ba90ae3fd586c1b71eedc8c2425201dde3282"
+    },
+    "wechat-preview-qr.jpg": {
+      "bytes": 46599,
+      "sha256": "71c689f188ab26d5f306b74433389731d8b0f65adf9bd0450b712a4c77646230"
+    },
+    "wechat-build-final.log": {
+      "bytes": 10802,
+      "sha256": "77832219ba9bdf4bd6fe859470eac2212fa3295ae34f355908844495fece16ec"
+    },
+    "deployment-result.json": {
+      "bytes": 1574,
+      "sha256": "7ad1fd0d43dd5d0dc0087ef705607c5bfc79d32f191dc56a3672e697b85b1e0c"
+    },
+    "typecheck-final.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "提审说明.md": {
+      "bytes": 5236,
+      "sha256": "54ace9e591e27fabe52c2ec7c66b15217d8443b741122f2a469ccdf4884ab101"
+    },
+    "shop-browser-final.log": {
+      "bytes": 107,
+      "sha256": "d5cf8eab041ff5aa6ee8feb9672170440cf2086eee448d34671cd9c76213f97d"
+    },
+    "package-checks.json": {
+      "bytes": 182,
+      "sha256": "1ac75ad3b5cdcedf95bb7bda84634a5a37f454d7e0939f3e5bdea035ddf11ae6"
+    },
+    "verify-shop-three.cjs": {
+      "bytes": 8830,
+      "sha256": "f9413d192b5a439962975abcbcd32e2df4e7971a981022697b36a6e70ceecfed"
+    },
+    "server-v2026.11.14.13-20261114-shop-three-181631.tar.gz": {
+      "bytes": 70086,
+      "sha256": "50fd95945b0eae96e059400283517748f852caa186a180183eb6d231742024f4"
+    },
+    "source-v1-to-v2-review.json": {
+      "bytes": 437,
+      "sha256": "c6455901c026197d8333781ad3532ca974d08a660afbd8c6819eadac0d5b8dea"
+    },
+    "web-build-v3.log": {
+      "bytes": 10114,
+      "sha256": "1cb0274fd179daabcf91643818220f5d857fa564d3f73ade18fed55465e0ef74"
+    },
+    "source-v2-to-v3-review.json": {
+      "bytes": 441,
+      "sha256": "71a45b39d32d894caa3c3f6c05336784922d431d818dfcc41332db0a6cc8c6a2"
+    },
+    "old-price-regression.log": {
+      "bytes": 6022,
+      "sha256": "b6db3872018ae8cbbd6e00a4ba08c4970136fca11172032c004c9330daf6fa36"
+    },
+    "source-v3.json": {
+      "bytes": 44044,
+      "sha256": "29c44150943a612e8d1448362d2b3e3f36365484dcd5dbfbb3e60901585d19b1"
+    },
+    "baseline.json": {
+      "bytes": 9908,
+      "sha256": "79d6911a559d0397b9a5da7117fc96e94154a6b8b82288fe744a78d75125d97a"
+    },
+    "wechat-preview-result.json": {
+      "bytes": 514,
+      "sha256": "fd363c823b3bb28c5686d29a6515c94cbbc3b085e36e37c478ff61afcae7a49f"
+    },
+    "wechat-artifact.json": {
+      "bytes": 17859,
+      "sha256": "b877ce014cb767c594549e41ba04c7e71e03b4da4ed3822633082d2ee646b867"
+    },
+    "post-verification-audit.json": {
+      "bytes": 1115,
+      "sha256": "9a74ed9d5acf43309ce71f17a91759fa46ff0c85a9e35760776b07c794149755"
+    },
+    "protocol-smoke.log": {
+      "bytes": 198,
+      "sha256": "4db8419f9fd31f9a74e4028892bd4868185807a7b7173fcf0f771e91dd69b265"
+    },
+    "runtime-manifest.json": {
+      "bytes": 2224,
+      "sha256": "c5026f1f850fa0b2ea3030c8d812ba4be302177b417d7a49393bce0b91b16637"
+    },
+    "migration-rehearsal.json": {
+      "bytes": 453,
+      "sha256": "5fb59969ec00719c1443c688d9a2424d0b69080c93dd62061f237b2764412561"
+    },
+    "wechat-upload-result.json": {
+      "bytes": 618,
+      "sha256": "3c826b7b5e72f8c430233a8866bf08d9bdfd3dd6dcfa3a593afe626c3e33b1c4"
+    },
+    "tests.log": {
+      "bytes": 24741,
+      "sha256": "d4d06cfea4c0244906b2f648d99ed17c59c0c4c2f94f3f8cebb98f1f784d59de"
+    },
+    "wechatgame-v2026.11.14.13.zip": {
+      "bytes": 5098831,
+      "sha256": "bc59388696ea61e50255b550be9a59699f988fba89c5b1f7042995dbaf48d2d1"
+    },
+    "cdn-check.json": {
+      "bytes": 1694,
+      "sha256": "b9242006181cb9b6cbe633b0aa88ca49e5e901307e152dad550947dfd17f52bb"
+    },
+    "live-leaderboard-qa.json": {
+      "bytes": 458,
+      "sha256": "41f9ef5f19354d2af91be8969756b570c9926fbd69fca7482f61e390f00828ce"
+    },
+    "source-v2026.11.14.13-20261114-shop-three-181631.tar.gz": {
+      "bytes": 7621574,
+      "sha256": "ac7ecc4ba5ce4189b76da77bd2467a8bc4f920538af90262eae6a854542ab0cb"
+    },
+    "data-after-switch.json": {
+      "bytes": 880,
+      "sha256": "5cb7f7676a9ed360ec692d10ddb4b0a749c2d624d0643da1833de17ca632def7"
+    },
+    "release-info.json": {
+      "bytes": 3228,
+      "sha256": "84b9e0b6ade74c09ee9927841148d87ae22b4ef2c5aa20b2966a3d071b80f16e"
+    },
+    "live-prices.json": {
+      "bytes": 836,
+      "sha256": "5ff79b38000b3961abcf6ece4752063895554c8cc61aa42e6a50530d70f175fd"
+    },
+    "source-reconciliation.json": {
+      "bytes": 575,
+      "sha256": "d4ca590de9f151d0171542d79b97804af7ef97bf95e3d7a4c2f94545647d7d02"
+    },
+    "build.log": {
+      "bytes": 13798,
+      "sha256": "ad9bf2750a05553760f97c7cd5dbfbee084eab92f809194897a761c60d20f450"
+    },
+    "visual-qa/shop-320x568.png": {
+      "bytes": 218706,
+      "sha256": "685c452f75f76be4ef19b3fd61883ec213f7388b8ce380b3a4fa7856c55999ef"
+    },
+    "visual-qa/shop-insufficient-red.png": {
+      "bytes": 326454,
+      "sha256": "b67adafcc8487d2d96548e40c13f51992a583fc7e21caad41823888b2be2b9d2"
+    },
+    "visual-qa/success-hammer.png": {
+      "bytes": 427412,
+      "sha256": "18dabe3234e8911107a9bc6889098b84cec4fb8e96b913b8b80cf1e8faa2d9c1"
+    },
+    "visual-qa/success-stamina.png": {
+      "bytes": 410537,
+      "sha256": "6e1a4bca5a4719db2205af71227adc5ecef007eec86923d97725cb81970722a9"
+    },
+    "visual-qa/result.json": {
+      "bytes": 6407,
+      "sha256": "6a9f1d6bf3f908f5ede59194723d066faf7625aea99d7f808b94e6dda427f84e"
+    },
+    "visual-qa/shop-390x844.png": {
+      "bytes": 324635,
+      "sha256": "bc2b18ca92c7a71bec51647f8d59883a60b4433ad7c12722355f51aa47e4160d"
+    },
+    "visual-qa/shop-768x1024.png": {
+      "bytes": 748961,
+      "sha256": "a554141fcc9dd016d26f6fb014dcf6f384867aefbc2c0fc0de9a7d89ad12bc62"
+    },
+    "visual-qa/success-magicWand.png": {
+      "bytes": 423225,
+      "sha256": "bf3eff452718622aeb5540544241c32a09ecc947771c8b14365362db64d6fd2b"
+    }
+  }
+}

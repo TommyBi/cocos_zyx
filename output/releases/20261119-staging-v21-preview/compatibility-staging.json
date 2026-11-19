@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "target": "staging",
+  "apiVersion": 26,
+  "results": [
+    {
+      "version": 15,
+      "opened": true,
+      "saved": true,
+      "resumed": true,
+      "actions": 30,
+      "scoreMatched": true
+    },
+    {
+      "version": 20,
+      "opened": true,
+      "saved": true,
+      "resumed": true,
+      "actions": 30,
+      "scoreMatched": true
+    },
+    {
+      "version": 21,
+      "opened": true,
+      "saved": true,
+      "resumed": true,
+      "actions": 18,
+      "scoreMatched": true,
+      "olderClientsCannotTakeOver": true
+    }
+  ]
+}

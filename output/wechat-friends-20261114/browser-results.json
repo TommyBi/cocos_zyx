@@ -1,0 +1,117 @@
+{
+  "simulated": true,
+  "results": [
+    {
+      "width": 390,
+      "height": 844,
+      "card": {
+        "left": 18.2,
+        "top": 326.77439999999996,
+        "right": 304.2,
+        "bottom": 550.3743999999999
+      },
+      "start": {
+        "left": 74.88,
+        "top": 621.1687999999999,
+        "right": 315.12,
+        "bottom": 691.8888000000001
+      },
+      "invite": {
+        "x": 161.2,
+        "y": 532.6944
+      },
+      "requests": [
+        "friend"
+      ],
+      "shares": [
+        {
+          "title": "这一拖，爽翻了！",
+          "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/burst.114f9e07f6f2.jpg",
+          "query": "from=friend_invite"
+        }
+      ],
+      "version": {
+        "left": 253.76,
+        "top": 823.72,
+        "right": 378.56,
+        "bottom": 841.4000000000001
+      },
+      "reopenedPermission": true,
+      "errors": []
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "card": {
+        "left": 15.23238380809596,
+        "top": 215.87406296851572,
+        "right": 249.41529235382305,
+        "bottom": 398.9625187406297
+      },
+      "start": {
+        "left": 61.643178410794604,
+        "top": 436.0059970014992,
+        "right": 258.35682158920537,
+        "bottom": 493.9130434782609
+      },
+      "invite": {
+        "x": 132.32383808095952,
+        "y": 384.48575712143935
+      },
+      "requests": [
+        "friend"
+      ],
+      "shares": [
+        {
+          "title": "快满了？一拖翻盘！",
+          "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/comeback.802a89bfbfe6.jpg",
+          "query": "from=friend_invite"
+        }
+      ],
+      "version": {
+        "left": 208.44377811094455,
+        "top": 551.3943028485756,
+        "right": 310.6326836581709,
+        "bottom": 565.8710644677661
+      },
+      "errors": []
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "card": {
+        "left": 123.01049475262369,
+        "top": 389.1814092953523,
+        "right": 545.1994002998501,
+        "bottom": 719.256371814093
+      },
+      "start": {
+        "left": 206.6806596701649,
+        "top": 786.0389805097451,
+        "right": 561.3193403298351,
+        "bottom": 890.4347826086956
+      },
+      "invite": {
+        "x": 334.10494752623686,
+        "y": 693.1574212893554
+      },
+      "requests": [
+        "friend"
+      ],
+      "shares": [
+        {
+          "title": "快满了？一拖翻盘！",
+          "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/comeback.802a89bfbfe6.jpg",
+          "query": "from=friend_invite"
+        }
+      ],
+      "version": {
+        "left": 528.311844077961,
+        "top": 994.0629685157421,
+        "right": 712.5397301349326,
+        "bottom": 1020.1619190404798
+      },
+      "errors": []
+    }
+  ]
+}

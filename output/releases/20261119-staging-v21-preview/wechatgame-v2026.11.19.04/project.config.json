@@ -1,0 +1,43 @@
+{
+    "description": "项目配置文件。",
+    "miniprogramRoot": "./",
+    "setting": {
+        "urlCheck": true,
+        "es6": true,
+        "postcss": true,
+        "minified": true,
+        "newFeature": false
+    },
+    "compileType": "game",
+    "libVersion": "3.15.2",
+    "appid": "wxdc39c78bfd045896",
+    "projectname": "烦恼排排消",
+    "condition": {
+        "search": {
+            "current": -1,
+            "list": []
+        },
+        "conversation": {
+            "current": -1,
+            "list": []
+        },
+        "game": {
+            "currentL": -1,
+            "list": [],
+            "current": -1
+        },
+        "miniprogram": {
+            "current": -1,
+            "list": []
+        }
+    },
+    "packOptions": {
+        "ignore": [
+            {
+                "type": "folder",
+                "value": "remote"
+            }
+        ],
+        "include": []
+    }
+}

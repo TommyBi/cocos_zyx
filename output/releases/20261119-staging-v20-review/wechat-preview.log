@@ -1,0 +1,14 @@
+[summer-compiler] forkProcess [2026-11-19 14:25:00.354]
+serialize mini-weixin
+[summer-compiler] forkProcess serialize [2026-11-19 14:25:01.366]
+[summer-compiler] forkProcess start [2026-11-19 14:25:01.367]
+[summer-compiler] forkProcess done [2026-11-19 14:25:01.587]
+child process stderr: [BABEL] Note: The code generator has deoptimised the styling of /Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v20-review/wechatgame/cocos/cocos2d-js-min.js as it exceeds the max of 500KB.
+
+child process stdout: getCodeFiles: count: 15, cost: 6700ms.
+
+[info] useCOS parameter:  false
+[info] upload zip buffer size:  8561244
+[info] request url: https://servicewechat.com/wxa/ci/testSourceURL?codeprotect=0&type=miniGame&appid=wxdc39c78bfd045896&version=0.0.1&desc=%E8%A7%A3%E5%8E%8B%E9%94%A4%E5%88%86%E4%BA%AB%E4%B8%8E%E5%8D%95%E5%B1%80%E4%BA%94%E6%AC%A1%E8%A1%A5%E7%BB%99%EF%BC%8CStaging%20%E9%AA%8C%E6%94%B6&robot=1&debugLaunchInfo=%7B%22scene%22%3A1011%7D
+[info] Qrcode image saved, file path: '/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v20-review/wechat-preview-qr.jpg'
+Preview generated {"subPackageInfo":[{"name":"/subpackages/effects/","size":3388458},{"name":"/subpackages/home/","size":3920494},{"name":"__APP__","size":2848217},{"name":"__FULL__","size":10157169}],"pluginInfo":[]}

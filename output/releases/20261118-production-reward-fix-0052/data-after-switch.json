@@ -1,0 +1,54 @@
+{
+  "game_rounds": {
+    "count": 687,
+    "sha256": "79b2373fa8a87a3c232dcb0b28c150216a118c5327baa5f497286b4c6160e3f3"
+  },
+  "players": {
+    "count": 155,
+    "sha256": "8a6278a8c78aa504fd3b5848e52bdfbe1059450b1980a88ca5690d49cc3dba93"
+  },
+  "release_resets": {
+    "count": 1,
+    "sha256": "64fb926e81be63a21b83939af0a516f1ddafd5580cafb58f16d6ce93cd96d06b"
+  },
+  "reward_intents": {
+    "count": 6,
+    "sha256": "a6975e9069987ed56975b80ff6ae1d0bb4fcd2cfd8c80a4270a515a0ba369720"
+  },
+  "risk_admin_events": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "risk_events": {
+    "count": 5,
+    "sha256": "4af720f9f5a1456780ed1f6d2fd2cb343035617819a1c2f0d8ce7fdb4498a72a"
+  },
+  "risk_reviews": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "round_checkpoints": {
+    "count": 3,
+    "sha256": "e12fe400bb525b5d4246872a2233fe943f6cc46491e4cda528160be31c9e1fca"
+  },
+  "round_settlements": {
+    "count": 455,
+    "sha256": "78c1ed94216061b9eee2314f26f84bd9a189741608fabdc3a2b194cb2ebb59b4"
+  },
+  "sqlite_sequence": {
+    "count": 2,
+    "sha256": "2fa946844acc2761da2c834c5037240b53516c04cc0cd1d649e67462e9999412"
+  },
+  "stamina_share_claims": {
+    "count": 7,
+    "sha256": "967b55f050afca94e446a2b7a3553e6e237b437a55c5eaf8a88bb05534673ce4"
+  },
+  "tool_inventory_refunds": {
+    "count": 154,
+    "sha256": "0327dac225bb3e5c0223919a786454a694a88901d1c84bbafb22ccd25c594d25"
+  },
+  "tool_transactions": {
+    "count": 151,
+    "sha256": "f2ce836ae0b81573c0d6d5ef6f321f42d42d3095113db781b0ffce070eda7d65"
+  }
+}

@@ -1,0 +1,35 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.hotfix
+#1 transferring dockerfile: 128B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/cocos-zyx-production:20261118-production-api18-000901
+#2 DONE 0.2s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 188.73kB 0.0s done
+#4 DONE 0.1s
+
+#5 [1/2] FROM docker.io/library/cocos-zyx-production:20261118-production-api18-000901@sha256:e6743a984ec3feaf4d16ee79af7ef58129946a41cc301df599eb0836bc038604
+#5 resolve docker.io/library/cocos-zyx-production:20261118-production-api18-000901@sha256:e6743a984ec3feaf4d16ee79af7ef58129946a41cc301df599eb0836bc038604 0.1s done
+#5 DONE 0.1s
+
+#6 [2/2] COPY server/src /app/src
+#6 DONE 0.1s
+
+#7 exporting to image
+#7 exporting layers 0.1s done
+#7 exporting manifest sha256:7e08e83690faadd755e4a54f921d631630c88ecf25cd156c55d23adff3130925
+#7 exporting manifest sha256:7e08e83690faadd755e4a54f921d631630c88ecf25cd156c55d23adff3130925 0.0s done
+#7 exporting config sha256:e34762134af2329b7cfe7762178377759252bfddcf4e21382f342579ed9ffe32 0.0s done
+#7 exporting attestation manifest sha256:22fa8518191890b06437bf61ac1a70cdfd3b3dbb336136137250aa160e20334d 0.0s done
+#7 exporting manifest list sha256:f8cfc3d5b57beb5cacb6b3da196971febff27fd16ddbb787a3b8888c6ddafef1 0.0s done
+#7 naming to docker.io/library/cocos-zyx-production:20261118-production-reward-fix-0052
+#7 naming to docker.io/library/cocos-zyx-production:20261118-production-reward-fix-0052 done
+#7 unpacking to docker.io/library/cocos-zyx-production:20261118-production-reward-fix-0052 0.1s done
+#7 DONE 0.3s

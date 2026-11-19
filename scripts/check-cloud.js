@@ -24,17 +24,20 @@ async function request(path, body, expected = 200) {
 }
 (async () => {
     const health = (await request('/health')).data;
-    assert.equal(health.apiVersion, 11);
-    assert.equal(health.schemaVersion, 8);
+    assert.equal(health.apiVersion, 15);
+    assert.equal(health.schemaVersion, 10);
     assert.ok(health.capabilities.includes('bean-collection-1pct'));
     assert.ok(health.capabilities.includes('rising-rows-v5'));
     assert.ok(health.capabilities.includes('balloon-rescue-v6'));
     assert.ok(health.capabilities.includes('balloon-blast-v7'));
     assert.ok(health.capabilities.includes('random-rescue-v8'));
+    assert.ok(health.capabilities.includes('rescue-scoring-v9'));
+    assert.ok(health.capabilities.includes('heart-rescue-v10'));
+    assert.ok(health.capabilities.includes('revive-card-v11'));
     const boot = (await request('/players/bootstrap', { deviceId: id, nickname: '发布网络验收', avatarUrl: '' })).data;
     token = boot.token;
     assert.equal(boot.profile.stamina.current, 10);
-    for (const item of ['hammer','magicWand','stamina']) {
+    for (const item of ['hammer','magicWand','stamina','reviveCard']) {
         const rejected = await request('/shop/exchanges', { actionId:`${id}_${item}`, item }, 409);
         assert.equal(rejected.errorCode,'BEANS_INSUFFICIENT');
     }
@@ -62,14 +65,18 @@ async function request(path, body, expected = 200) {
     const v7Start = (await request('/games/start', { roundId: `${id}_v7`, collectionRule: 'progress_v2', rulesVersion: 7 })).data;
     assert.equal(v7Start.rulesVersion, 7);
     assert.equal(v7Start.stamina.current, 6);
-    for (let i = 4; i < 10; i++) await request('/games/start', { roundId: `${id}_${i}`, collectionRule: 'progress_v2', rulesVersion: BOARD_RULES_VERSION });
+    const v8Start = (await request('/games/start', { roundId: `${id}_v8`, collectionRule: 'progress_v2', rulesVersion: 8 })).data;
+    assert.equal(v8Start.rulesVersion, 8);
+    assert.equal(v8Start.stamina.current, 5);
+    for (let i = 5; i < 10; i++) await request('/games/start', { roundId: `${id}_${i}`, collectionRule: 'progress_v2', rulesVersion: BOARD_RULES_VERSION });
     assert.equal((await request('/games/start', { roundId: `${id}_empty`, collectionRule: 'progress_v2', rulesVersion: BOARD_RULES_VERSION }, 429)).errorCode, 'STAMINA_EMPTY');
     const claimId = `share_${id}`;
     assert.equal((await request('/stamina/share-claim', { claimId })).data.stamina.current, 5);
     assert.equal((await request('/stamina/share-claim', { claimId })).data.stamina.current, 5);
     assert.equal((await request('/stamina/share-claim', { claimId: `${claimId}_again` }, 429)).errorCode, 'STAMINA_SHARE_DAILY_LIMIT');
-    await new Promise((resolve) => setTimeout(resolve, Math.max(0, 5100 - (Date.now() - startedAt))));
-    for (const started of [firstStart, v5Start, v6Start, v7Start]) {
+    // 后开的兼容版本对局也必须满5秒；只从首局计时会受网络耗时影响。
+    await new Promise((resolve) => setTimeout(resolve, 5100));
+    for (const started of [firstStart, v5Start, v6Start, v7Start, v8Start]) {
         const board = new BoardEngine();
         board.resetBoard(started.seed, started.isTutorial, started.rulesVersion);
         const settlement = {
@@ -92,5 +99,5 @@ async function request(path, body, expected = 200) {
         await request('/debug/profile', {}, 404);
         await request('/debug/reset', {}, 404);
     }
-    console.log(`PASS [${isProduction ? 'production' : 'staging/local'}]: 建档、V5/V6/V7/V8并行开局及结算/幂等、体力扣减/耗尽、每日分享、排行榜、退役路由${isProduction ? '与生产调试隔离' : ''}`);
+    console.log(`PASS [${isProduction ? 'production' : 'staging/local'}]: 建档、V5/V6/V7/V8/V9并行开局及结算/幂等、体力扣减/耗尽、每日分享、排行榜、退役路由${isProduction ? '与生产调试隔离' : ''}`);
 })().catch((error) => { console.error(error.message); process.exitCode = 1; });

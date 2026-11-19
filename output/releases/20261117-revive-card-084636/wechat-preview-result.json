@@ -1,0 +1,26 @@
+{
+  "version": "2026.11.16.04",
+  "generated": true,
+  "qrcode": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261117-revive-card-084636/wechat-preview-qr.jpg",
+  "uploadedDevelopmentVersion": false,
+  "submittedForReview": false,
+  "completedAt": "2026-11-17T00:52:41.376Z",
+  "subPackageInfo": [
+    {
+      "name": "/subpackages/effects/",
+      "size": 3024172
+    },
+    {
+      "name": "/subpackages/home/",
+      "size": 3920494
+    },
+    {
+      "name": "__APP__",
+      "size": 2844153
+    },
+    {
+      "name": "__FULL__",
+      "size": 9788819
+    }
+  ]
+}

@@ -1,0 +1,254 @@
+{
+  "before": {
+    "score": 50,
+    "turn": 11
+  },
+  "warm": {
+    "seconds": 2.0333,
+    "score": 50,
+    "warm": true
+  },
+  "message": {
+    "texts": [
+      "你的开心在我看来\n远比广告更重要，\n谢谢你9天的喜爱！\n剩下的交给我",
+      "谢谢",
+      "开心豆的留言",
+      ""
+    ],
+    "buttons": [
+      "button_谢谢"
+    ]
+  },
+  "state": {
+    "score": 175,
+    "raw": 20,
+    "actions": [
+      {
+        "type": "rules",
+        "version": 10
+      },
+      {
+        "type": "move",
+        "id": 1,
+        "offset": -2
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "append"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 4,
+        "offset": -1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": -3
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": 3
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": -7
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": 7
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": -7
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": 7
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": -3
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "move",
+        "id": 6,
+        "offset": 3
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      },
+      {
+        "type": "heartOffer",
+        "elapsedMs": 34984
+      },
+      {
+        "type": "heart"
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "rise",
+        "rows": 1
+      },
+      {
+        "type": "settle"
+      },
+      {
+        "type": "finish"
+      }
+    ],
+    "seed": 1,
+    "turn": 12,
+    "movable": true
+  },
+  "errors": []
+}

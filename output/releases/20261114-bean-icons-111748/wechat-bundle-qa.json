@@ -1,0 +1,29 @@
+{
+  "dualLeaderboardIncluded": true,
+  "regularFontAndArtIncluded": true,
+  "moduleCount": 32,
+  "rulesVersion": 10,
+  "balloonFlightSeconds": 15,
+  "scoreBoundary": {
+    "at500": false,
+    "at501": true
+  },
+  "routes": {
+    "develop": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "trial": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "release": "https://api.tcjstory.cn/v1/cocos-zyx"
+  },
+  "appId": "wxdc39c78bfd045896",
+  "libVersion": "3.15.2",
+  "urlCheck": true,
+  "subpackages": [
+    {
+      "name": "effects",
+      "root": "subpackages/effects/"
+    },
+    {
+      "name": "home",
+      "root": "subpackages/home/"
+    }
+  ]
+}

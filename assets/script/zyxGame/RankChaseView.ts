@@ -1,6 +1,7 @@
 import { CloudProfile, LeaderboardEntry } from '../manager/CloudService';
 import { uimanager } from '../manager/UIManager';
 import { loadRemoteTexture } from '../manager/AssetLoader';
+import { audioManager } from '../manager/AudioManager';
 import { getOvertakenRivals, getRankChaseState } from '../dataModule/RankChase';
 import { GAME_RANK_PANEL_WIDTH } from '../manager/ResponsiveLayout';
 import { applyRoundedAvatarMask, createAvatarFrame, createMoodBeanMascot, MOOD_COLORS } from './MoodArt';
@@ -49,6 +50,8 @@ export default class RankChaseView {
     private bookmark: cc.Node;
     private bookmarkReveal = { progress: 0 };
     private bookmarkX = 0;
+    private celebration: cc.Node = null;
+    private celebrationMotion: { progress: number } = null;
 
     constructor(parent: cc.Node, private profile: CloudProfile, snapshot: Promise<LeaderboardEntry[]>, onToggle: () => void) {
         this.root = new cc.Node('rankChase');
@@ -101,7 +104,7 @@ export default class RankChaseView {
             MOOD_COLORS.honey, 255, 12, 26, 27);
         badge.zIndex = 90;
         const me = uimanager.createLabel(badge, '我', 0, 0, 18, MOOD_COLORS.cocoa, 26, 26);
-        uimanager.applyTypography(me, true);
+        uimanager.applyTypography(me);
         this.selfScore = this.createScore(this.self, 0, -50, 26);
         snapshot.then((entries) => {
             if (this.disposed || !cc.isValid(this.root)) return;
@@ -168,6 +171,7 @@ export default class RankChaseView {
 
     public dispose(): void {
         this.disposed = true;
+        this.stopCelebration();
         cc.Tween.stopAllByTarget(this.bookmarkReveal);
         for (const node of [this.root, this.bookmark, this.selfAvatar, this.above, this.below]) cc.Tween.stopAllByTarget(node);
     }
@@ -189,7 +193,7 @@ export default class RankChaseView {
 
     private createScore(parent: cc.Node, value: number, y: number, size: number = 24): cc.Label {
         const label = uimanager.createLabel(parent, String(value), 0, y, size, MOOD_COLORS.cocoa, 80, 34);
-        uimanager.applyTypography(label, true);
+        uimanager.applyTypography(label);
         return label;
     }
 
@@ -243,6 +247,7 @@ export default class RankChaseView {
     }
 
     private playOvertake(): void {
+        this.playCelebration(audioManager.playOvertake());
         cc.Tween.stopAllByTarget(this.above);
         cc.Tween.stopAllByTarget(this.below);
         this.animating = true;
@@ -263,5 +268,73 @@ export default class RankChaseView {
                 cc.tween(this.below).to(0.18, { y: -STEP + ROW_OFFSET, opacity: 170 }, { easing: 'sineOut' }).start();
             })
             .start();
+    }
+
+    private stopCelebration(): void {
+        if (this.celebrationMotion) cc.Tween.stopAllByTarget(this.celebrationMotion);
+        this.celebrationMotion = null;
+        if (this.celebration && cc.isValid(this.celebration)) this.celebration.destroy();
+        this.celebration = null;
+    }
+
+    /** 哑光纸彩带从头像两侧扬起，留出脸部与分数；末段随欢呼渐隐。 */
+    private playCelebration(duration: number): void {
+        this.stopCelebration();
+        const node = new cc.Node('rankVictoryRibbons');
+        this.selfAvatar.addChild(node);
+        node.zIndex = 120;
+        this.celebration = node;
+        const motion = this.celebrationMotion = { progress: 0 };
+        const g = node.addComponent(cc.Graphics);
+        const colors = [new cc.Color(235, 164, 153), new cc.Color(241, 204, 116),
+            new cc.Color(154, 197, 170), new cc.Color(186, 174, 207)];
+        const draw = (): void => {
+            if (this.disposed || !cc.isValid(node)) return;
+            const t = motion.progress;
+            const rise = 1 - Math.pow(1 - Math.min(1, t / 0.18), 3);
+            const drift = Math.max(0, t - 0.18) * 20;
+            node.opacity = Math.round(255 * Math.min(1, (1 - t) / 0.32));
+            g.clear();
+            g.lineCap = cc.Graphics.LineCap.ROUND;
+            for (let i = 0; i < 4; i++) {
+                const side = i % 2 ? 1 : -1;
+                const outer = i > 1 ? 1 : 0;
+                const x = side * (24 + outer * 9);
+                const sway = Math.sin(t * Math.PI * 4 + i) * 3 * rise;
+                g.strokeColor = colors[i]; g.lineWidth = outer ? 4 : 6;
+                g.moveTo(x, 13);
+                g.bezierCurveTo(x + side * 13 * rise, 26 + 40 * rise - drift,
+                    x + side * (27 + sway) * rise, 15 + 53 * rise - drift,
+                    x + side * (11 + sway) * rise, 14 + 31 * rise - drift);
+                g.bezierCurveTo(x + side * (2 + sway) * rise, 12 + 21 * rise - drift,
+                    x + side * (24 + sway) * rise, 6 + 19 * rise - drift,
+                    x + side * (14 + sway) * rise, 3 + 8 * rise - drift);
+                g.stroke();
+            }
+            for (let i = 0; i < 12; i++) {
+                const side = i % 2 ? 1 : -1;
+                const x = side * (29 + (i % 4) * 7) * rise + Math.sin(t * 9 + i) * 3;
+                const y = 24 + (18 + (i % 5) * 8) * rise - drift * (0.8 + i % 3 * 0.3);
+                const angle = i * 1.7 + t * (i % 2 ? 5 : -5);
+                const ux = Math.cos(angle) * 2.8, uy = Math.sin(angle) * 2.8;
+                const vx = -Math.sin(angle) * 1.5, vy = Math.cos(angle) * 1.5;
+                g.fillColor = colors[i % colors.length];
+                g.moveTo(x + ux + vx, y + uy + vy); g.lineTo(x - ux + vx, y - uy + vy);
+                g.lineTo(x - ux - vx, y - uy - vy); g.lineTo(x + ux - vx, y + uy - vy);
+                g.close(); g.fill();
+            }
+            const starY = 37 + 12 * rise - drift * 0.2;
+            for (let i = 0; i < 10; i++) {
+                const angle = Math.PI / 2 + i * Math.PI / 5;
+                const radius = (i % 2 ? 4.5 : 9) * rise;
+                const x = Math.cos(angle) * radius, y = starY + Math.sin(angle) * radius;
+                if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
+            }
+            g.close(); g.fillColor = new cc.Color(250, 218, 134); g.fill();
+            g.strokeColor = new cc.Color(203, 161, 91); g.lineWidth = 1.2; g.stroke();
+        };
+        draw();
+        cc.tween(motion).to(duration, { progress: 1 }, { onUpdate: draw } as any)
+            .call(() => { if (this.celebration === node) this.stopCelebration(); }).start();
     }
 }

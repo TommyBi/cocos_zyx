@@ -339,9 +339,9 @@ function removeTopRows(pieces, rowCount) {
  * @param {Array} actions - 操作序列，每项为 { type: string, ...params }
  * @returns {{ score: number, collectedMoodBeans: number, valid: boolean }}
  */
-function replayRound(seed, isTutorial, actions, rulesVersion) {
+function replayRound(seed, isTutorial, actions, rulesVersion, heartEligible = false) {
   const version = rulesVersion === undefined ? (actions[0]?.type === 'rules' ? actions[0].version : 1) : rulesVersion;
-  if ([2, 3, 4, 5, 6, 7, 8].includes(version)) return require('./replayBoardEngine').replayBoardEngine(seed, isTutorial, actions, version);
+  if (Number.isSafeInteger(version) && version >= 2) return require('./replayBoardEngine').replayBoardEngine(seed, isTutorial, actions, version, heartEligible);
   if (version !== 1 || actions[0]?.type === 'rules') return { score: -1, collectedMoodBeans: -1, valid: false };
   const random = createRandom(seed);
   const nextId = { value: 1 };

@@ -1,0 +1,24 @@
+{
+  "power": {
+    "entries": 36,
+    "valuesMatchCurrentDatabase": true,
+    "tiesAndSelfVerified": true
+  },
+  "beans": {
+    "entries": 24,
+    "valuesMatchCurrentDatabase": true,
+    "tiesAndSelfVerified": true
+  },
+  "authRequired": true,
+  "retiredCumulativeTypeRejected": true,
+  "staging": {
+    "httpStatus": 200,
+    "apiVersion": 13,
+    "healthy": true
+  },
+  "dawn": {
+    "httpStatus": 200,
+    "apiVersion": null,
+    "healthy": true
+  }
+}

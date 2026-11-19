@@ -1,0 +1,39 @@
+{
+  "topology": "HTTP loopback, same verified fixture, alternating baseline and candidate",
+  "node": "v24.19.0",
+  "samplesPerVersion": 90,
+  "iterations": 16,
+  "actions": 146,
+  "results": {
+    "bootstrapWithActive": {
+      "baseline": {
+        "p50Ms": 2.2,
+        "p95Ms": 2.77
+      },
+      "candidate": {
+        "p50Ms": 2.16,
+        "p95Ms": 2.65
+      }
+    },
+    "activeRound": {
+      "baseline": {
+        "p50Ms": 1.97,
+        "p95Ms": 2.42
+      },
+      "candidate": {
+        "p50Ms": 1.96,
+        "p95Ms": 2.43
+      }
+    },
+    "unchangedCheckpoint": {
+      "baseline": {
+        "p50Ms": 69.87,
+        "p95Ms": 83.35
+      },
+      "candidate": {
+        "p50Ms": 2.12,
+        "p95Ms": 2.72
+      }
+    }
+  }
+}

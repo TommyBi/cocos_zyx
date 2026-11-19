@@ -1,0 +1,63 @@
+{
+  "clientVersion": "2026.11.17.05",
+  "rulesVersion": 13,
+  "apiVersion": 17,
+  "schemaVersion": 11,
+  "tests": {
+    "client": 225,
+    "server": 69
+  },
+  "typecheck": "passed",
+  "webBuild": "passed",
+  "wechatBuild": "passed",
+  "gmIsolation": "passed",
+  "mainPackageBytes": 2843978,
+  "mainPackageBudget": 2883584,
+  "viewports": [
+    {
+      "width": 390,
+      "height": 844,
+      "buttonHeight": 96,
+      "buttonGap": 32,
+      "pitifulFaceAndVideo": true,
+      "compactMessage": true,
+      "gapDoesNotClick": true,
+      "userAudioExactBytes": true,
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "buttonHeight": 96,
+      "buttonGap": 32,
+      "pitifulFaceAndVideo": true,
+      "compactMessage": true,
+      "gapDoesNotClick": true,
+      "userAudioExactBytes": true,
+      "pageErrors": []
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "buttonHeight": 96,
+      "buttonGap": 32,
+      "pitifulFaceAndVideo": true,
+      "compactMessage": true,
+      "gapDoesNotClick": true,
+      "userAudioExactBytes": true,
+      "pageErrors": []
+    }
+  ],
+  "audio": {
+    "sound_bomb.mp3": {
+      "bytes": 63908,
+      "sha256": "844b6b80edf6b100a0f83ec50e860f26fb14d3ab64cd136337cb9ff74d42686a"
+    },
+    "sound_sd.mp3": {
+      "bytes": 36571,
+      "sha256": "6788d27a30d364c6ab3342d304974014bbade7d1a0855ffbcf4dc5b9653f0e6e"
+    }
+  },
+  "preview": "http://127.0.0.1:7466/?localApi=1&autostart=1&toolVisuals=1",
+  "status": "local only; no deployment or upload"
+}

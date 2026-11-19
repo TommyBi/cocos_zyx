@@ -1,0 +1,41 @@
+{
+  "items": {
+    "hammer": {
+      "price": 3,
+      "remainingBeans": 6,
+      "quantity": 1,
+      "forgedClientPriceAndQuantityIgnored": true,
+      "duplicateDidNotChargeAgain": true
+    },
+    "magicWand": {
+      "price": 3,
+      "remainingBeans": 3,
+      "quantity": 1,
+      "forgedClientPriceAndQuantityIgnored": true,
+      "duplicateDidNotChargeAgain": true
+    },
+    "stamina": {
+      "price": 3,
+      "remainingBeans": 0,
+      "quantity": 1,
+      "forgedClientPriceAndQuantityIgnored": true,
+      "duplicateDidNotChargeAgain": true
+    }
+  },
+  "insufficientBeansRejected": true,
+  "concurrentOverspendRejected": true,
+  "isolatedAccountsAdded": 2,
+  "finalTestAccountBalances": [
+    0,
+    0
+  ],
+  "testLifetimeBeans": [
+    9,
+    3
+  ],
+  "testBestScores": [
+    0,
+    0
+  ],
+  "productionMutated": false
+}

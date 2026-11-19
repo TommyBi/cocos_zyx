@@ -1,0 +1,42 @@
+{
+  "integrity": "ok",
+  "tables": {
+    "game_rounds": {
+      "before": 282,
+      "after": 292,
+      "existingRowsPreserved": true
+    },
+    "players": {
+      "before": 62,
+      "after": 64,
+      "existingRowsPreserved": true
+    },
+    "release_resets": {
+      "before": 0,
+      "after": 0,
+      "existingRowsPreserved": true
+    },
+    "round_settlements": {
+      "before": 77,
+      "after": 82,
+      "existingRowsPreserved": true
+    },
+    "sqlite_sequence": {
+      "before": 1,
+      "after": 1,
+      "existingRowsPreserved": false
+    },
+    "stamina_share_claims": {
+      "before": 12,
+      "after": 13,
+      "existingRowsPreserved": true
+    },
+    "tool_transactions": {
+      "before": 38,
+      "after": 38,
+      "existingRowsPreserved": true
+    }
+  },
+  "productionGatewayAndSharedSourceUnchanged": true,
+  "testWrites": "Only two new isolated QA accounts; card QA account reset to zero after verifying purchase, saved revival and settlement. Protocol QA account remains zero score/beans. All pre-existing records preserved."
+}

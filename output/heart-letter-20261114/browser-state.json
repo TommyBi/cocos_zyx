@@ -1,0 +1,231 @@
+{
+  "score": 175,
+  "raw": 20,
+  "actions": [
+    {
+      "type": "rules",
+      "version": 10
+    },
+    {
+      "type": "move",
+      "id": 1,
+      "offset": -2
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "append"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 4,
+      "offset": -1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 6,
+      "offset": -3
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 6,
+      "offset": 3
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 6,
+      "offset": -7
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 6,
+      "offset": 7
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 6,
+      "offset": -7
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 6,
+      "offset": 7
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 6,
+      "offset": -3
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "move",
+      "id": 6,
+      "offset": 3
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    },
+    {
+      "type": "heartOffer",
+      "elapsedMs": 34975
+    },
+    {
+      "type": "heart"
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "rise",
+      "rows": 1
+    },
+    {
+      "type": "settle"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "seed": 1,
+  "turn": 12,
+  "movable": true
+}

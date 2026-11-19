@@ -1,0 +1,86 @@
+{
+  "audit-harness-correction.json": {
+    "bytes": 299,
+    "sha256": "2789ff57ef07616fd4b2ba97b778811ae953d6a789a35e7a48e56fd8a6f71195"
+  },
+  "baseline.json": {
+    "bytes": 16695,
+    "sha256": "a5c29298389d7e4b16ccc19e5ec3e4c1037366373f8e47da053eff18534cf971"
+  },
+  "candidate.tar.gz": {
+    "bytes": 98639,
+    "sha256": "304b7363a42559a0597f4c4819658ec7a095ef560ef5b0858290d844c520fc03"
+  },
+  "data-after-switch.json": {
+    "bytes": 1637,
+    "sha256": "d381a90170b122133050937e895bb7864d656b92deb370d0f63e9114a244ed45"
+  },
+  "data-before.json": {
+    "bytes": 1637,
+    "sha256": "d381a90170b122133050937e895bb7864d656b92deb370d0f63e9114a244ed45"
+  },
+  "deployment-result.json": {
+    "bytes": 2792,
+    "sha256": "48bcb8c1761e212f368b72968c8b0a347dbe8bd99dd444175163df6326ff2312"
+  },
+  "final-result.json": {
+    "bytes": 3854,
+    "sha256": "3fb0d80a49f121297b392ebb82e471b1b3c3ea6475bd2e0db9035f7e02ce4b93"
+  },
+  "migration-rehearsal.json": {
+    "bytes": 1830,
+    "sha256": "d784ddb17dc4878488bc5b90bef5e7ef4273901ce969ea9dfa75bf10f3cede10"
+  },
+  "post-verification-audit.json": {
+    "bytes": 5660,
+    "sha256": "a505d12d49897a99e8254925afbaeb96d278d5b5e2b7604f3f5f640b6ffa61d6"
+  },
+  "preflight-result.json": {
+    "bytes": 525,
+    "sha256": "ef91b26aad90b2962b459d62e874ee31cfdd8aa7293522625f06cb7df72aedad"
+  },
+  "production-candidate.diff": {
+    "bytes": 13746,
+    "sha256": "54fb449796c1a00f4fe5979ef055d2eaf45ca890b7b4ae697f47c82d499c924f"
+  },
+  "production-image.override.yml": {
+    "bytes": 268,
+    "sha256": "d7026d67319119f5069473c58bc4b0969e7c1856472ff823e4b73586496ee04e"
+  },
+  "production-smoke-result.json": {
+    "bytes": 841,
+    "sha256": "32bf5d1ac9656a25988295e860d5f2d6bb3970b5430bda581c7b7cc1456c05be"
+  },
+  "production-smoke.log": {
+    "bytes": 649,
+    "sha256": "6cd4f4688d5b1314e95efed8e443830e759c07010364ee6580ef9229bef17015"
+  },
+  "release-info.json": {
+    "bytes": 4284,
+    "sha256": "caf661bc4070fa01f574c8e26cc643db01bc105bc566fbcf72a24e208c2ebe15"
+  },
+  "runtime-manifest.json": {
+    "bytes": 2917,
+    "sha256": "bff480ec3ecce529171dca383b46dbcafc8f475e548d8c4873e6ebfb90b00f04"
+  },
+  "runtime-server-tests.log": {
+    "bytes": 17962,
+    "sha256": "0c90cb164b80bf6f242cacb959eb58127ba7e08b76951ef1ddde1afb9aae47c9"
+  },
+  "server-manifest.json": {
+    "bytes": 7577,
+    "sha256": "eefd803b24140ba3068a42d55c712c6bca349d1a6e190e4b77f1a440a1a68e6c"
+  },
+  "source-reconciliation.json": {
+    "bytes": 1471,
+    "sha256": "fb5d6ac89c5606e972be0b53afddca0b42282894369ac7c2d45e78615aa4684f"
+  },
+  "wechat-release-state.json": {
+    "bytes": 4667,
+    "sha256": "5060dddc3164c0bc52d25bb9a9b3448048d7ae4176861357192a18fbf93828ad"
+  },
+  "发布说明.md": {
+    "bytes": 4479,
+    "sha256": "b422662ae574d139298709602c3e1bda5129a5a5e95bbeb51f2216a135bd3bc1"
+  }
+}

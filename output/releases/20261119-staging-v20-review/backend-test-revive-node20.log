@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: 24豆不足、25豆恰好购买1张，伪造价格数量无效，重复及并发不透支
+ok 1 - 24豆不足、25豆恰好购买1张，伪造价格数量无效，重复及并发不透支
+  ---
+  duration_ms: 1175.672933
+  ...
+# [slow-api] POST /v1/cocos-zyx/games/revive-card 400 1184 {}
+# [slow-api] POST /v1/cocos-zyx/games/revive-card 400 648 {}
+# [slow-api] POST /v1/cocos-zyx/games/revive-card 409 1749 {}
+# [slow-api] POST /v1/cocos-zyx/games/settlements 200 1647 {}
+# Subtest: 第一次失败不能用卡，未失败不能用卡，无卡第二次失败也不产生消费
+ok 2 - 第一次失败不能用卡，未失败不能用卡，无卡第二次失败也不产生消费
+  ---
+  duration_ms: 10177.989159
+  ...
+# [slow-api] POST /v1/cocos-zyx/games/revive-card 200 4394 {}
+# [slow-api] POST /v1/cocos-zyx/games/revive-card 200 4647 {}
+# [slow-api] POST /v1/cocos-zyx/games/checkpoint 200 1292 { validationMs: 1280 }
+# [slow-api] POST /v1/cocos-zyx/games/settlements 200 1211 {}
+# Subtest: 第二次失败用卡原子扣库存并保存完整棋盘；并发、丢响应重试、冷恢复与结算均只认一次
+ok 3 - 第二次失败用卡原子扣库存并保存完整棋盘；并发、丢响应重试、冷恢复与结算均只认一次
+  ---
+  duration_ms: 9967.534105
+  ...
+# Subtest: 无服务端用卡凭据的复活、第二次广告复活、超范围与伪造前缀，保存及最终结算均拒绝
+ok 4 - 无服务端用卡凭据的复活、第二次广告复活、超范围与伪造前缀，保存及最终结算均拒绝
+  ---
+  duration_ms: 2580.787627
+  ...
+# [slow-api] POST /v1/cocos-zyx/games/revive-card 500 2857 {}
+# Subtest: 落盘失败后原请求重试只扣一张，重新登录可见完整复活存档
+ok 5 - 落盘失败后原请求重试只扣一张，重新登录可见完整复活存档
+  ---
+  duration_ms: 4243.202575
+  ...
+# [slow-api] POST /v1/cocos-zyx/games/checkpoint 200 1124 { validationMs: 1111 }
+# [slow-api] POST /v1/cocos-zyx/games/settlements 200 1128 {}
+# Subtest: V10在途存档仍可恢复和结算，不能借新版接口增加一次复活；卡片库存不受影响
+ok 6 - V10在途存档仍可恢复和结算，不能借新版接口增加一次复活；卡片库存不受影响
+  ---
+  duration_ms: 3373.936277
+  ...
+# [slow-api] POST /v1/cocos-zyx/games/settlements 200 794 {}
+# Subtest: 有卡选择结算不消费，也不能跨账号或使用错误会话消费
+ok 7 - 有卡选择结算不消费，也不能跨账号或使用错误会话消费
+  ---
+  duration_ms: 1771.271028
+  ...
+# [slow-api] POST /v1/cocos-zyx/games/revive-card 200 2616 {}
+# [slow-api] POST /v1/cocos-zyx/games/settlements 200 2601 {}
+# Subtest: V12保留广告后卡片各一次的上限，完整复活存档可重放并继续到第三次失败
+ok 8 - V12保留广告后卡片各一次的上限，完整复活存档可重放并继续到第三次失败
+  ---
+  duration_ms: 8596.477068
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42298.799061

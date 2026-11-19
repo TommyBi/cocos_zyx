@@ -1,14 +1,100 @@
 {
-  "releaseId": "20261113-avatar-frame-152504",
-  "stagingBackendReleaseId": "20261113-staging-ui-144730",
-  "evidence": "/private/tmp/zyx-release-20261113-avatar-frame-152504",
-  "delivery": "/Users/liuyang/Documents/private/cocos_zyx/build/cocos-zyx-release-20261113-avatar-frame-152504",
-  "releaseNotes": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261113-avatar-frame-152504/发布说明.md",
-  "wechatZip": "/Users/liuyang/Documents/private/cocos_zyx/build/wechat-review-20261113-avatar-frame-152504.zip",
-  "backendTar": "/Users/liuyang/Documents/private/cocos_zyx/build/cocos-zyx-server-20261113-staging-ui-144730.tar.gz",
+  "releaseId": "20261119-staging-v21-review-05",
+  "clientVersion": "2026.11.19.05",
+  "preparedAt": "2026-11-19T08:19:27.540Z",
   "stagingDeployed": true,
-  "stagingBackendRecreated": false,
-  "productionDeployed": false,
-  "uploadedWeChat": false,
-  "submittedReview": false
+  "stagingUrl": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+  "stagingImage": "sha256:f38d0176811c5c9c1bab124dd219f8e6416754bcf6981b319f46b4049abff635",
+  "stagingContainer": "f112ba1619922c1a2e37e4650a1c7cba819998491cc6bd959f278fd3e4e9b42b",
+  "backup": "/opt/tcjstory/backups/cocos-zyx-staging-20261119-staging-v21-review-05",
+  "rollbackImage": "cocos-zyx-staging:20261119-staging-v21-preview",
+  "composeOverride": "/opt/tcjstory/apps/cocos-zyx/releases/20261119-staging-v21-review-05/staging-image.override.yml",
+  "apiVersion": 26,
+  "schemaVersion": 12,
+  "rulesVersion": 21,
+  "productionDeployedThisRelease": false,
+  "productionCurrentApiVersion": 20,
+  "productionAndGatewayContainersUnchanged": true,
+  "reviewRoutingVerified": {
+    "develop": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "trial": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "release": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "throws": "https://staging-api.tcjstory.cn/v1/cocos-zyx"
+  },
+  "tests": {
+    "client": 263,
+    "server": 80,
+    "typecheck": true
+  },
+  "wechatPreviewGenerated": true,
+  "readyForStagingAcceptance": true,
+  "uploadedWeChat": true,
+  "experienceVersionConfigured": false,
+  "submittedForReview": false,
+  "frontendPublished": false,
+  "phoneVerifiedThisRelease": false,
+  "sourceTreeSha256": "6ca72b30dcea08cb58a421ee2d6adb9a3c1e08b07e0c87ca025e7bba92c58c9b",
+  "backendSourceTreeSha256": "7b4cf1ead6e9e7d8e45b863697b99b3ae4b13d23268a514fe02648b01663df70",
+  "artifactTreeSha256": "e6c6470a342185454ee4e71b0a4882cc004eb3d2b798f34b44b544912a534bb0",
+  "archiveSha256": "ff95157f668fa24467d988c73272712c91695bcc7d417ce4bd35e9cdbfb7cf59",
+  "backendArchiveSha256": "ef4e70991bd1ea9cc45870ffd7d52db900d39077bca28518b48ebd44a4ef2365",
+  "qrcodeSha256": "ea85cca3f09542d7329e43b7f3477453c534e3c265f3d73fc70082237e808a36",
+  "previousWeChatReleaseId": "20261119-staging-v20-review-03",
+  "stagingBackendReleaseId": "20261119-staging-v21-review-05",
+  "stagingRuntimeReused": false,
+  "stagingSmoke": {
+    "passed": true,
+    "apiVersion": 26,
+    "productionApiVersion": 20,
+    "newRoundMs": 85,
+    "cloudResumeMs": 64
+  },
+  "readyForSubmission": true,
+  "wechatUpload": {
+    "subPackageInfo": [
+      {
+        "name": "/subpackages/effects/",
+        "size": 1671108
+      },
+      {
+        "name": "/subpackages/home/",
+        "size": 3920494
+      },
+      {
+        "name": "__APP__",
+        "size": 2844783
+      },
+      {
+        "name": "__FULL__",
+        "size": 8436385
+      }
+    ],
+    "pluginInfo": []
+  },
+  "wechatPreview": {
+    "subPackageInfo": [
+      {
+        "name": "/subpackages/effects/",
+        "size": 1671108
+      },
+      {
+        "name": "/subpackages/home/",
+        "size": 3920494
+      },
+      {
+        "name": "__APP__",
+        "size": 2844783
+      },
+      {
+        "name": "__FULL__",
+        "size": 8436385
+      }
+    ],
+    "pluginInfo": []
+  },
+  "artifactFiles": 115,
+  "archive": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v21-review-05/wechatgame-v2026.11.19.05.zip",
+  "qrcode": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v21-review-05/wechat-preview-qr.jpg",
+  "releaseNotes": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v21-review-05/提审说明.md",
+  "localWeChatProject": "/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame"
 }

@@ -1,0 +1,1178 @@
+{
+  "results": [
+    {
+      "name": "settlement",
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "labels": [
+        {
+          "text": "×1",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 42,
+          "height": 46.8,
+          "bounds": {
+            "x": 386.0858725761773,
+            "y": 504.5103185595568,
+            "width": 38.80055401662048,
+            "height": 43.23490304709139
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 217.3727493074792,
+            "y": 392.1734764542937,
+            "width": 55.42936288088643,
+            "height": 35.10526315789468
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 403.9849376731303,
+            "y": 392.1734764542937,
+            "width": 110.8587257617728,
+            "height": 35.10526315789468
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 274.303324099723,
+            "y": 977.8770775623268,
+            "width": 201.393351800554,
+            "height": 48.038781163434805
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 157.9016620498615,
+            "y": 818.9795706371192,
+            "width": 434.19667590027706,
+            "height": 92.38227146814393
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 227.18836565096953,
+            "y": 717.8209833795014,
+            "width": 295.6232686980609,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "1540",
+          "fontSize": 88,
+          "actualFontSize": 88,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 180.9972299168975,
+            "y": 624.0529778393352,
+            "width": 388.00554016620504,
+            "height": 99.77285318559552
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 208.71191135734074,
+            "y": 566.3140581717452,
+            "width": 332.57617728531847,
+            "height": 45.267313019390485
+          }
+        }
+      ],
+      "gap": 10,
+      "center": 0,
+      "width": 108,
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 327.50588642659284,
+        "width": 517.3407202216067,
+        "height": 707.6481994459833
+      },
+      "win": {
+        "width": 751.5492957746479,
+        "height": 1334
+      }
+    },
+    {
+      "name": "settlement-large",
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "labels": [
+        {
+          "text": "×12345",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 129,
+          "height": 46.8,
+          "bounds": {
+            "x": 345.89958448753464,
+            "y": 504.5103185595568,
+            "width": 119.17313019390576,
+            "height": 43.23490304709139
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 217.3727493074792,
+            "y": 392.1734764542937,
+            "width": 55.42936288088643,
+            "height": 35.10526315789468
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 403.9849376731303,
+            "y": 392.1734764542937,
+            "width": 110.8587257617728,
+            "height": 35.10526315789468
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 274.303324099723,
+            "y": 977.8770775623268,
+            "width": 201.393351800554,
+            "height": 48.038781163434805
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 157.9016620498615,
+            "y": 818.9795706371192,
+            "width": 434.19667590027706,
+            "height": 92.38227146814393
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 227.18836565096953,
+            "y": 717.8209833795014,
+            "width": 295.6232686980609,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "123456789",
+          "fontSize": 88,
+          "actualFontSize": 77,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 180.9972299168975,
+            "y": 624.0529778393352,
+            "width": 388.00554016620504,
+            "height": 99.77285318559552
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 208.71191135734074,
+            "y": 566.3140581717452,
+            "width": 332.57617728531847,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "含结算额外奖励 +10",
+          "fontSize": 26,
+          "actualFontSize": 26,
+          "width": 380,
+          "height": 37,
+          "bounds": {
+            "x": 199.47368421052633,
+            "y": 451.7600415512465,
+            "width": 351.0526315789473,
+            "height": 34.18144044321332
+          }
+        }
+      ],
+      "gap": 10,
+      "center": 0,
+      "width": 195,
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 327.50588642659284,
+        "width": 517.3407202216067,
+        "height": 707.6481994459833
+      },
+      "win": {
+        "width": 751.5492957746479,
+        "height": 1334
+      }
+    },
+    {
+      "name": "settlement-zero",
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "labels": [
+        {
+          "text": "×0",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 42,
+          "height": 46.8,
+          "bounds": {
+            "x": 386.0858725761773,
+            "y": 504.5103185595568,
+            "width": 38.80055401662048,
+            "height": 43.23490304709139
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 217.3727493074792,
+            "y": 392.1734764542937,
+            "width": 55.42936288088643,
+            "height": 35.10526315789468
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 403.9849376731303,
+            "y": 392.1734764542937,
+            "width": 110.8587257617728,
+            "height": 35.10526315789468
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 274.303324099723,
+            "y": 977.8770775623268,
+            "width": 201.393351800554,
+            "height": 48.038781163434805
+          }
+        },
+        {
+          "text": "愿意再试一次，本身就已经很了不起",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 157.9016620498615,
+            "y": 818.9795706371192,
+            "width": 434.19667590027706,
+            "height": 92.38227146814393
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 227.18836565096953,
+            "y": 717.8209833795014,
+            "width": 295.6232686980609,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "1540",
+          "fontSize": 88,
+          "actualFontSize": 88,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 180.9972299168975,
+            "y": 624.0529778393352,
+            "width": 388.00554016620504,
+            "height": 99.77285318559552
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 208.71191135734074,
+            "y": 566.3140581717452,
+            "width": 332.57617728531847,
+            "height": 45.267313019390485
+          }
+        }
+      ],
+      "gap": 10,
+      "center": 0,
+      "width": 108,
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 327.50588642659284,
+        "width": 517.3407202216067,
+        "height": 707.6481994459833
+      },
+      "win": {
+        "width": 751.5492957746479,
+        "height": 1334
+      }
+    },
+    {
+      "name": "settlement",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "labels": [
+        {
+          "text": "×1",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 42,
+          "height": 46.8,
+          "bounds": {
+            "x": 320.21090047393363,
+            "y": 492.6,
+            "width": 42,
+            "height": 46.799999999999955
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 137.58590047393363,
+            "y": 371,
+            "width": 60,
+            "height": 38
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 339.58590047393363,
+            "y": 371,
+            "width": 120,
+            "height": 38
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 199.21090047393363,
+            "y": 1005,
+            "width": 218,
+            "height": 52
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 73.21090047393363,
+            "y": 833,
+            "width": 470,
+            "height": 100
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 148.21090047393363,
+            "y": 723.5,
+            "width": 320,
+            "height": 49
+          }
+        },
+        {
+          "text": "1540",
+          "fontSize": 88,
+          "actualFontSize": 88,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 98.21090047393363,
+            "y": 622,
+            "width": 420,
+            "height": 108
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 128.21090047393363,
+            "y": 559.5,
+            "width": 360,
+            "height": 49
+          }
+        }
+      ],
+      "gap": 10,
+      "center": 0,
+      "width": 108,
+      "bounds": {
+        "x": 28.210900473933634,
+        "y": 301,
+        "width": 560,
+        "height": 766
+      },
+      "win": {
+        "width": 750,
+        "height": 1623.076923076923
+      }
+    },
+    {
+      "name": "settlement-large",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "labels": [
+        {
+          "text": "×12345",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 129,
+          "height": 46.8,
+          "bounds": {
+            "x": 276.71090047393363,
+            "y": 492.6,
+            "width": 129,
+            "height": 46.799999999999955
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 137.58590047393363,
+            "y": 371,
+            "width": 60,
+            "height": 38
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 339.58590047393363,
+            "y": 371,
+            "width": 120,
+            "height": 38
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 199.21090047393363,
+            "y": 1005,
+            "width": 218,
+            "height": 52
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 73.21090047393363,
+            "y": 833,
+            "width": 470,
+            "height": 100
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 148.21090047393363,
+            "y": 723.5,
+            "width": 320,
+            "height": 49
+          }
+        },
+        {
+          "text": "123456789",
+          "fontSize": 88,
+          "actualFontSize": 77,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 98.21090047393363,
+            "y": 622,
+            "width": 420,
+            "height": 108
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 128.21090047393363,
+            "y": 559.5,
+            "width": 360,
+            "height": 49
+          }
+        },
+        {
+          "text": "含结算额外奖励 +10",
+          "fontSize": 26,
+          "actualFontSize": 26,
+          "width": 380,
+          "height": 37,
+          "bounds": {
+            "x": 118.21090047393363,
+            "y": 435.5,
+            "width": 380,
+            "height": 37
+          }
+        }
+      ],
+      "gap": 10,
+      "center": 0,
+      "width": 195,
+      "bounds": {
+        "x": 28.210900473933634,
+        "y": 301,
+        "width": 560,
+        "height": 766
+      },
+      "win": {
+        "width": 750,
+        "height": 1623.076923076923
+      }
+    },
+    {
+      "name": "settlement-zero",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "labels": [
+        {
+          "text": "×0",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 42,
+          "height": 46.8,
+          "bounds": {
+            "x": 320.21090047393363,
+            "y": 492.6,
+            "width": 42,
+            "height": 46.799999999999955
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 137.58590047393363,
+            "y": 371,
+            "width": 60,
+            "height": 38
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 339.58590047393363,
+            "y": 371,
+            "width": 120,
+            "height": 38
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 199.21090047393363,
+            "y": 1005,
+            "width": 218,
+            "height": 52
+          }
+        },
+        {
+          "text": "愿意再试一次，本身就已经很了不起",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 73.21090047393363,
+            "y": 833,
+            "width": 470,
+            "height": 100
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 148.21090047393363,
+            "y": 723.5,
+            "width": 320,
+            "height": 49
+          }
+        },
+        {
+          "text": "1540",
+          "fontSize": 88,
+          "actualFontSize": 88,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 98.21090047393363,
+            "y": 622,
+            "width": 420,
+            "height": 108
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 128.21090047393363,
+            "y": 559.5,
+            "width": 360,
+            "height": 49
+          }
+        }
+      ],
+      "gap": 10,
+      "center": 0,
+      "width": 108,
+      "bounds": {
+        "x": 28.210900473933634,
+        "y": 301,
+        "width": 560,
+        "height": 766
+      },
+      "win": {
+        "width": 750,
+        "height": 1623.076923076923
+      }
+    },
+    {
+      "name": "settlement",
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "labels": [
+        {
+          "text": "×1",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 42,
+          "height": 46.8,
+          "bounds": {
+            "x": 386.0858725761773,
+            "y": 338.8853185595568,
+            "width": 38.80055401662048,
+            "height": 43.23490304709139
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 217.3727493074792,
+            "y": 226.54847645429362,
+            "width": 55.42936288088643,
+            "height": 35.10526315789474
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 403.9849376731303,
+            "y": 226.54847645429362,
+            "width": 110.8587257617728,
+            "height": 35.10526315789474
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 274.303324099723,
+            "y": 812.2520775623268,
+            "width": 201.393351800554,
+            "height": 48.038781163434805
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 157.9016620498615,
+            "y": 653.3545706371192,
+            "width": 434.19667590027706,
+            "height": 92.38227146814393
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 227.18836565096953,
+            "y": 552.1959833795014,
+            "width": 295.6232686980609,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "1540",
+          "fontSize": 88,
+          "actualFontSize": 88,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 180.9972299168975,
+            "y": 458.4279778393352,
+            "width": 388.00554016620504,
+            "height": 99.77285318559552
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 208.71191135734074,
+            "y": 400.68905817174516,
+            "width": 332.57617728531847,
+            "height": 45.2673130193906
+          }
+        }
+      ],
+      "gap": 10,
+      "center": 0,
+      "width": 108,
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 161.88088642659284,
+        "width": 517.3407202216067,
+        "height": 707.6481994459832
+      },
+      "win": {
+        "width": 1000.5,
+        "height": 1334
+      }
+    },
+    {
+      "name": "settlement-large",
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "labels": [
+        {
+          "text": "×12345",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 129,
+          "height": 46.8,
+          "bounds": {
+            "x": 345.89958448753464,
+            "y": 338.8853185595568,
+            "width": 119.17313019390576,
+            "height": 43.23490304709139
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 217.3727493074792,
+            "y": 226.54847645429362,
+            "width": 55.42936288088643,
+            "height": 35.10526315789474
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 403.9849376731303,
+            "y": 226.54847645429362,
+            "width": 110.8587257617728,
+            "height": 35.10526315789474
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 274.303324099723,
+            "y": 812.2520775623268,
+            "width": 201.393351800554,
+            "height": 48.038781163434805
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 157.9016620498615,
+            "y": 653.3545706371192,
+            "width": 434.19667590027706,
+            "height": 92.38227146814393
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 227.18836565096953,
+            "y": 552.1959833795014,
+            "width": 295.6232686980609,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "123456789",
+          "fontSize": 88,
+          "actualFontSize": 77,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 180.9972299168975,
+            "y": 458.4279778393352,
+            "width": 388.00554016620504,
+            "height": 99.77285318559552
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 208.71191135734074,
+            "y": 400.68905817174516,
+            "width": 332.57617728531847,
+            "height": 45.2673130193906
+          }
+        },
+        {
+          "text": "含结算额外奖励 +10",
+          "fontSize": 26,
+          "actualFontSize": 26,
+          "width": 380,
+          "height": 37,
+          "bounds": {
+            "x": 199.47368421052633,
+            "y": 286.1350415512465,
+            "width": 351.0526315789473,
+            "height": 34.18144044321332
+          }
+        }
+      ],
+      "gap": 10,
+      "center": 0,
+      "width": 195,
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 161.88088642659284,
+        "width": 517.3407202216067,
+        "height": 707.6481994459832
+      },
+      "win": {
+        "width": 1000.5,
+        "height": 1334
+      }
+    },
+    {
+      "name": "settlement-zero",
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "labels": [
+        {
+          "text": "×0",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 42,
+          "height": 46.8,
+          "bounds": {
+            "x": 386.0858725761773,
+            "y": 338.8853185595568,
+            "width": 38.80055401662048,
+            "height": 43.23490304709139
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 217.3727493074792,
+            "y": 226.54847645429362,
+            "width": 55.42936288088643,
+            "height": 35.10526315789474
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 403.9849376731303,
+            "y": 226.54847645429362,
+            "width": 110.8587257617728,
+            "height": 35.10526315789474
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 274.303324099723,
+            "y": 812.2520775623268,
+            "width": 201.393351800554,
+            "height": 48.038781163434805
+          }
+        },
+        {
+          "text": "愿意再试一次，本身就已经很了不起",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 157.9016620498615,
+            "y": 653.3545706371192,
+            "width": 434.19667590027706,
+            "height": 92.38227146814393
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 227.18836565096953,
+            "y": 552.1959833795014,
+            "width": 295.6232686980609,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "1540",
+          "fontSize": 88,
+          "actualFontSize": 88,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 180.9972299168975,
+            "y": 458.4279778393352,
+            "width": 388.00554016620504,
+            "height": 99.77285318559552
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 208.71191135734074,
+            "y": 400.68905817174516,
+            "width": 332.57617728531847,
+            "height": 45.2673130193906
+          }
+        }
+      ],
+      "gap": 10,
+      "center": 0,
+      "width": 108,
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 161.88088642659284,
+        "width": 517.3407202216067,
+        "height": 707.6481994459832
+      },
+      "win": {
+        "width": 1000.5,
+        "height": 1334
+      }
+    }
+  ],
+  "errors": []
+}

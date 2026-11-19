@@ -1,0 +1,518 @@
+{
+  "clientVersion": "2026.11.14.11",
+  "scope": "Canvas compatibility fix, local builds and WeChat CI preview",
+  "previewGenerated": true,
+  "developmentVersionUploaded": false,
+  "submittedForReview": false,
+  "backendDeployed": false,
+  "realWeChatFriendsVerified": false,
+  "tests": {
+    "client": 194,
+    "server": 51,
+    "typecheck": "passed",
+    "browserSizes": [
+      "320x568",
+      "390x844",
+      "768x1024"
+    ],
+    "browserData": "simulated friends and sample avatars",
+    "compatibility": {
+      "readOnlyMainCanvas": "passed, 0 size writes",
+      "missingEllipse": "passed",
+      "missingClip": "passed",
+      "avatarDrawException": "passed"
+    }
+  },
+  "mainPackageBytes": 2882172,
+  "mainPackageBudgetBytes": 2883584,
+  "archive": "wechatgame-v2026.11.14.11.zip",
+  "archiveBytes": 5158628,
+  "archiveSha256": "8dff357c67ae17aaca74c3fc824621ba43da3e383c84d630643612b91d7f4abd",
+  "files": [
+    {
+      "path": "adapter-min.js",
+      "bytes": 106418,
+      "sha256": "44c0e1c1311cb51262a8e3d714b3ab5b6c901cad7461ebcff69ce3bc91ccf5bc"
+    },
+    {
+      "path": "assets/game/config.9c13c.json",
+      "bytes": 2170,
+      "sha256": "5c66595b2a6009ed53ca8f660669b0cf7b2f2e51fecfc9be2078564c55663ad3"
+    },
+    {
+      "path": "assets/game/import/06/06d32267-fbf7-5a23-95da-4570854f06ed.91de0.json",
+      "bytes": 78,
+      "sha256": "a6724345199f5ccfe3976679cb518a208dec3449b8d88b57ff8e4a6194fec881"
+    },
+    {
+      "path": "assets/game/import/07/072854a9-7b5b-5d35-87d7-84e42738ecac.1c616.json",
+      "bytes": 200,
+      "sha256": "e8d92b5dbda9ef3a72f4fdaafe5ab86857ed88c8b6be40902e9548c02772ff54"
+    },
+    {
+      "path": "assets/game/import/0e/0edcfa7a-8de5-48b4-aaaa-a76ab594395c.183ba.json",
+      "bytes": 125,
+      "sha256": "8de2ab5fba30b1557ef40f8806e57678696c6f76f57be58ba54803f0d4a1690d"
+    },
+    {
+      "path": "assets/game/import/22/22e2d64d-254e-45c2-a990-9639c297c2e1.72e8c.json",
+      "bytes": 200,
+      "sha256": "5d5a7fac9c9efb0af0c0d793f5d0d7edde9a9477ee2248c619efb9ddb0bbba77"
+    },
+    {
+      "path": "assets/game/import/2e/2efbcb2c-6c27-4243-a8ce-76c97d4ad5da.4b7e7.json",
+      "bytes": 78,
+      "sha256": "570875660023b6a30e927f6fc8a024f5ce329552de5d5ce11c2ae2a3c231bf95"
+    },
+    {
+      "path": "assets/game/import/3d/3d347856-04ad-44e8-8ce7-ac074f2354bf.91de0.json",
+      "bytes": 78,
+      "sha256": "a6724345199f5ccfe3976679cb518a208dec3449b8d88b57ff8e4a6194fec881"
+    },
+    {
+      "path": "assets/game/import/58/583b2b23-747b-562b-92cb-fd949a4f2f65.cde35.json",
+      "bytes": 123,
+      "sha256": "80db132a4203f8f1a7b06015018ba85e4c3113da2a0c523026a20d8c2dfd1c04"
+    },
+    {
+      "path": "assets/game/import/59/5978b47b-823c-5686-8c06-0cfc68f1d3ff.6d35c.json",
+      "bytes": 61117,
+      "sha256": "b9ae620fe9e815c2334fbf032bbca0bb713d9b8a0d431a8617582e0f3ee22e96"
+    },
+    {
+      "path": "assets/game/import/5a/5a621242-e59b-52b8-b571-b9f7a5701218.8fa0b.json",
+      "bytes": 9069,
+      "sha256": "e98d491adda73e8d8f2c7e6efdd246b11ddd2c862b45a2714018c394f11a992f"
+    },
+    {
+      "path": "assets/game/import/64/6452848c-8118-5e56-b7e7-afffd4daad99.91de0.json",
+      "bytes": 78,
+      "sha256": "a6724345199f5ccfe3976679cb518a208dec3449b8d88b57ff8e4a6194fec881"
+    },
+    {
+      "path": "assets/game/import/67/677ac8b3-b496-41a8-858f-235084751d83.c4231.json",
+      "bytes": 124,
+      "sha256": "7316447360feee0938d2be44608bd9203f8b1cd0c0be91374f017f2c5dc5c4eb"
+    },
+    {
+      "path": "assets/game/import/71/71107ed7-8075-572c-a395-7ed0471773b4.91de0.json",
+      "bytes": 78,
+      "sha256": "a6724345199f5ccfe3976679cb518a208dec3449b8d88b57ff8e4a6194fec881"
+    },
+    {
+      "path": "assets/game/import/73/73056f09-cb34-4790-95aa-20675eee7f07.91de0.json",
+      "bytes": 78,
+      "sha256": "a6724345199f5ccfe3976679cb518a208dec3449b8d88b57ff8e4a6194fec881"
+    },
+    {
+      "path": "assets/game/import/76/76b39802-1ddf-4ea1-a68d-27ea74d91453.3ab0d.json",
+      "bytes": 95,
+      "sha256": "ded718748c3dd81d3faace5b7f182ebc348e544cd21e77b650c560aebaa964e5"
+    },
+    {
+      "path": "assets/game/import/85/85d85857-8df5-4ca7-aa30-d71e371504a7.9681a.json",
+      "bytes": 125,
+      "sha256": "7fc64038469e10f8dff559ee5bda6c2e131890b56cfea6ae5269fbc9e33d86aa"
+    },
+    {
+      "path": "assets/game/import/91/916394ef-5984-5f58-bbfc-715ef03ff315.ce3a3.json",
+      "bytes": 3782,
+      "sha256": "1c51ad68f294f3e872ef11ad1f20d6f2d734f1f13970b4375f9165b6c430a4f1"
+    },
+    {
+      "path": "assets/game/import/9b/9bed914a-d6a9-45a6-99a7-e44a0bdf395c.20b83.json",
+      "bytes": 41565,
+      "sha256": "f19e1b02b0cadc75aa8dd8d050968963fd556dde755b03a0257edba7356768bb"
+    },
+    {
+      "path": "assets/game/import/ad/ad951aab-e813-4250-a2d6-fd1ecaab3359.c03d4.json",
+      "bytes": 124,
+      "sha256": "a5e74c1addd94a35fda67c6d8648b1958cce10634ffb2290ddfda9834a268980"
+    },
+    {
+      "path": "assets/game/import/bc/bc4aa7fd-4659-42cc-b1ca-a24aa017355f.2b9b0.json",
+      "bytes": 191,
+      "sha256": "1478ebd962f331073bbf9ff715c835f65914900afdde6be9f5b32e852fcb12d8"
+    },
+    {
+      "path": "assets/game/import/c6/c68e545f-2207-5721-af18-8bf63c0abad3.b99f7.json",
+      "bytes": 217,
+      "sha256": "37c03350422a0181c00d112e7b7486101842c704505b16e4d6f5575fd8198ae1"
+    },
+    {
+      "path": "assets/game/import/ca/ca5e5124-a647-4305-a9e5-b63dbdf49fa9.a94ac.json",
+      "bytes": 198,
+      "sha256": "8072e31e3cef6fbf0f3f6de9815b9456f865eb98335ea75729c3de47afda6fe2"
+    },
+    {
+      "path": "assets/game/import/d7/d7e9aefd-0459-44db-bbf0-faaf8b42813a.17612.json",
+      "bytes": 203,
+      "sha256": "921dc75b12dc67ff11248ec1662f55db4096bb16790c8c4e36141dfc668b6bf6"
+    },
+    {
+      "path": "assets/game/import/dc/dcb4d678-c401-4b4e-9ac3-62dcb5a5637d.7871f.json",
+      "bytes": 78,
+      "sha256": "979731fc05b6dfa915b961ffe71b53c7f5f71fcc68c3051dbf9130e2be80da44"
+    },
+    {
+      "path": "assets/game/import/f0/f0ae1db8-b258-5d17-a599-7e4279be4fb8.7be59.json",
+      "bytes": 203,
+      "sha256": "3b73f713981355558d70ccf920708f8e7df974ea0e545385da8f0a733ad2acfb"
+    },
+    {
+      "path": "assets/game/index.js",
+      "bytes": 463,
+      "sha256": "91e9970eba5f76af1a8585527b6e80352978ac231908ea9e6ec3e139e8f326a5"
+    },
+    {
+      "path": "assets/game/native/06/06d32267-fbf7-5a23-95da-4570854f06ed.27ec9.png",
+      "bytes": 56815,
+      "sha256": "23ca7882b5f62b17b5c276488d1d986e6d2fc5e0d644926f2ac613ff627929d3"
+    },
+    {
+      "path": "assets/game/native/0e/0edcfa7a-8de5-48b4-aaaa-a76ab594395c.5e7d5.mp3",
+      "bytes": 10079,
+      "sha256": "70093f1c94b8f5596c2cac6103ab75c8995bc13f40ee42e3b4cdc6fddd3ba252"
+    },
+    {
+      "path": "assets/game/native/2e/2efbcb2c-6c27-4243-a8ce-76c97d4ad5da.54533.jpg",
+      "bytes": 53756,
+      "sha256": "07da9271614aebb72fce538a62c39d0696127c489a81e1a5cf5b03d3b67b81da"
+    },
+    {
+      "path": "assets/game/native/3d/3d347856-04ad-44e8-8ce7-ac074f2354bf.1a344.png",
+      "bytes": 61698,
+      "sha256": "23eb7a11f78f7d0f06d978822554b42914e56f6d6e06987df09d58f79908850a"
+    },
+    {
+      "path": "assets/game/native/58/583b2b23-747b-562b-92cb-fd949a4f2f65.9412e.wav",
+      "bytes": 38852,
+      "sha256": "41627b53f5208a77648baedf3781abaeea3e47314c853426ea40f317a9cf44bf"
+    },
+    {
+      "path": "assets/game/native/64/6452848c-8118-5e56-b7e7-afffd4daad99.dce65.png",
+      "bytes": 43446,
+      "sha256": "20f857f81028b5b944e830db06415d778b608d5dae925a24e78ce5f2accde3c8"
+    },
+    {
+      "path": "assets/game/native/67/677ac8b3-b496-41a8-858f-235084751d83.a4df7.mp3",
+      "bytes": 5785,
+      "sha256": "1e5d76248bebb1a890df88b06b62f28cba1bd9502cf8b1f1f01ddbf8a0a12c11"
+    },
+    {
+      "path": "assets/game/native/71/71107ed7-8075-572c-a395-7ed0471773b4.76f90.png",
+      "bytes": 307164,
+      "sha256": "2a4471c99606ad2129d8c033a590eea3518182ed029bb227ca9abfadebbdba6f"
+    },
+    {
+      "path": "assets/game/native/73/73056f09-cb34-4790-95aa-20675eee7f07.656f6.png",
+      "bytes": 73018,
+      "sha256": "18c8e16ea3cba5c7b7d721c179f266ed04b5514d79d64ab4f83bebf74673fab4"
+    },
+    {
+      "path": "assets/game/native/76/76b39802-1ddf-4ea1-a68d-27ea74d91453.b7f93.atlas",
+      "bytes": 1220,
+      "sha256": "8ff7c314f53a412ed15461ade2ce9ce5514acd0d68f92ab190f7833b1837c3bd"
+    },
+    {
+      "path": "assets/game/native/85/85d85857-8df5-4ca7-aa30-d71e371504a7.609eb.mp3",
+      "bytes": 8920,
+      "sha256": "1b5f046a53cb57313b8bb2281d4659fc8e27ecfe86bfbd5d30132280cff18b22"
+    },
+    {
+      "path": "assets/game/native/ad/ad951aab-e813-4250-a2d6-fd1ecaab3359.1e306.mp3",
+      "bytes": 41086,
+      "sha256": "4f69ce91c513a89a53ebd9ca0434b9472cfe3c8b260ba06b09028a8ea3fdc2c7"
+    },
+    {
+      "path": "assets/game/native/dc/dcb4d678-c401-4b4e-9ac3-62dcb5a5637d.f4bce.png",
+      "bytes": 25258,
+      "sha256": "151647b3cc18128af1955090c173c583db42c3058afa2b14f741be3605f1cd14"
+    },
+    {
+      "path": "assets/internal/config.e6604.json",
+      "bytes": 1433,
+      "sha256": "86dfb3c26162158dff4bb0848254151631b88ef0ad94b6e737f7435cb148f04c"
+    },
+    {
+      "path": "assets/internal/import/09/0967b326a.1f618.json",
+      "bytes": 57712,
+      "sha256": "b89124ed6ab4421c3e644b4c2f106119d00f287ef4c1e895a510b1c6ea446cd7"
+    },
+    {
+      "path": "assets/internal/index.js",
+      "bytes": 463,
+      "sha256": "91e9970eba5f76af1a8585527b6e80352978ac231908ea9e6ec3e139e8f326a5"
+    },
+    {
+      "path": "assets/internal/native/02/0275e94c-56a7-410f-bd1a-fc7483f7d14a.cea68.png",
+      "bytes": 82,
+      "sha256": "83c9b8ce1937570a40bcedde29457a4ab7865ca1db23a46d2d68e6b1949f3c28"
+    },
+    {
+      "path": "assets/main/config.14ace.json",
+      "bytes": 286,
+      "sha256": "18c6b5d956cfa7fd20ccd5f5f7934413243a33cba9dd408a55f61c9aef9aa590"
+    },
+    {
+      "path": "assets/main/import/68/6864309e-a883-4fbb-af0b-296d2279eef3.ffd1f.json",
+      "bytes": 860,
+      "sha256": "05272a8b2464d74fb0477e6b1ed5591d4938b5b4ab44503b3382c1e926e41ce2"
+    },
+    {
+      "path": "assets/main/index.js",
+      "bytes": 343992,
+      "sha256": "a096199dee8c7ff31a2ab55fad7901976315742a92754142faf1760e43e219ca"
+    },
+    {
+      "path": "ccRequire.js",
+      "bytes": 622,
+      "sha256": "e10e10796aeb9fcf76100257bfb55dfc8cbe0b52bc266180955792f691d76c29"
+    },
+    {
+      "path": "cocos/cocos2d-js-min.js",
+      "bytes": 1508295,
+      "sha256": "c3ebdcf98ab119fd90b28bf3bb985e5b4ba9ff028aa97f2ba3db96d8b6acd092"
+    },
+    {
+      "path": "game.js",
+      "bytes": 483,
+      "sha256": "a3bcd243e64180a95c8ac7b3a4ad663ce468e50a4b5879bccdf764921af87bec"
+    },
+    {
+      "path": "game.json",
+      "bytes": 437,
+      "sha256": "27e3db1edfd520cbdecb92deab1ab5733ffe14899957b68ee54f2b18bb5be316"
+    },
+    {
+      "path": "main.js",
+      "bytes": 2120,
+      "sha256": "4a724217d2bc9f230862fb45f6a82e7b3e36f40913b19ab2fc3f681d179fc629"
+    },
+    {
+      "path": "openDataContext/index.js",
+      "bytes": 7638,
+      "sha256": "308ed6c9a2954f17e7b793e5236ff5db40ff88bcebd1faab50e5d0c5940ade14"
+    },
+    {
+      "path": "openDataContext/ranking.js",
+      "bytes": 1469,
+      "sha256": "e27e87ed9102962a1d1202d1473df1252b7735d130f1d9e9442573474a9ad8fc"
+    },
+    {
+      "path": "project.config.json",
+      "bytes": 917,
+      "sha256": "15a0a8062c1580e4adc24ff2bb2c17ec0d0eeff1b0ade2629114c576ff2dd4df"
+    },
+    {
+      "path": "src/assets/plugin/RenderQuality.js",
+      "bytes": 71,
+      "sha256": "d6d2ed82a3aafec398e845dcb3f8ac6f30dcd7a638b055e03d6000c93f0c4737"
+    },
+    {
+      "path": "src/scripts/music/index.js",
+      "bytes": 463,
+      "sha256": "91e9970eba5f76af1a8585527b6e80352978ac231908ea9e6ec3e139e8f326a5"
+    },
+    {
+      "path": "src/settings.js",
+      "bytes": 474,
+      "sha256": "b19832e8822012ebca8b2caa91d9485f7d1f89b617c96ffc91bbd52ea099c2a8"
+    },
+    {
+      "path": "subpackages/effects/config.6b372.json",
+      "bytes": 1057,
+      "sha256": "41a5986f8383107781c860a846f5b1acbc7824037ce387ebf7820eb3beb9e75d"
+    },
+    {
+      "path": "subpackages/effects/game.js",
+      "bytes": 463,
+      "sha256": "91e9970eba5f76af1a8585527b6e80352978ac231908ea9e6ec3e139e8f326a5"
+    },
+    {
+      "path": "subpackages/effects/import/09/090eebfea.eca8f.json",
+      "bytes": 182,
+      "sha256": "75b21958aa424578f350aed70694e245c7c236e13a8d7586f36ca15d7bbee80f"
+    },
+    {
+      "path": "subpackages/effects/import/5d/5dd9849d-fe95-44f5-9a5d-ac60a1aa1666.dbb41.json",
+      "bytes": 201,
+      "sha256": "23ffd043c67f93fd8756d3a0ee3903a00b4674441a8ce6af7d1eb0ea2a510f13"
+    },
+    {
+      "path": "subpackages/effects/import/88/88116968-f5bf-4228-a01c-6621951871cf.37883.json",
+      "bytes": 197,
+      "sha256": "0f688939299448082d429c5fd34469dd4b9141e2eef9b091d717975519d08d44"
+    },
+    {
+      "path": "subpackages/effects/import/89/8999487d-2729-4ae8-855d-06c015108620.c73bb.json",
+      "bytes": 198,
+      "sha256": "8b66c573b3b4b27870a03562a98b41c1746df4991def687b736ebc844f38fd9f"
+    },
+    {
+      "path": "subpackages/effects/import/cb/cb728672-e3a6-494d-a094-c1ee14fcecf8.d167c.json",
+      "bytes": 199,
+      "sha256": "fc7c49196daf382da27685d0b14d117fe0ffdaec434a154ba102c9fb656d9f80"
+    },
+    {
+      "path": "subpackages/effects/import/e3/e3c979b3-b593-444a-894f-bb3e81cdb28d.3445d.json",
+      "bytes": 206,
+      "sha256": "c087996d98a4a54fc142b1c65ea9ac4ee6d945a71542819c25363e0a2d774600"
+    },
+    {
+      "path": "subpackages/effects/native/6d/6d22635c-5785-49df-af90-373edce495b5.c7607.png",
+      "bytes": 190922,
+      "sha256": "dffc33fbfd21873c4107a23b6b4fbc52744999935fe0d893ccc6085c7c56a65a"
+    },
+    {
+      "path": "subpackages/effects/native/75/75eae9a9-2c15-400f-981c-1f370ccd5108.46b69.png",
+      "bytes": 203073,
+      "sha256": "449735dce9c40bc507516ec4e0dd4bfd45087174b6d5fb240bdf2ece84604051"
+    },
+    {
+      "path": "subpackages/effects/native/93/93359b75-2e2d-454d-9177-d0ae976dd12b.618e2.png",
+      "bytes": 172133,
+      "sha256": "b77efa7e7a9b74ebf00378dd1fa5c8635111a4d89faca2684ef2ac3dcfa1a55f"
+    },
+    {
+      "path": "subpackages/effects/native/95/95780963-ac07-460c-b0ef-75affbb5730a.05bdc.png",
+      "bytes": 245857,
+      "sha256": "182e923614575c3c728371a0f70e3cc0946cadc29b901bc606e960ecebc5af6b"
+    },
+    {
+      "path": "subpackages/effects/native/a3/a32d74af-bbb2-4b54-9cf7-3924220c9e8c.ed9bb.png",
+      "bytes": 219771,
+      "sha256": "37334452b3818ed89e6ec2ddafc854b77e3781956d1da1865386dfc0faae27b2"
+    },
+    {
+      "path": "subpackages/home/config.7eb90.json",
+      "bytes": 2135,
+      "sha256": "a721f48076bdf1efae10e9042c39dbd6d9d226208f8e01914187793537563f54"
+    },
+    {
+      "path": "subpackages/home/game.js",
+      "bytes": 463,
+      "sha256": "91e9970eba5f76af1a8585527b6e80352978ac231908ea9e6ec3e139e8f326a5"
+    },
+    {
+      "path": "subpackages/home/import/0e/0e8ae418a.50ae6.json",
+      "bytes": 332,
+      "sha256": "65998d71de4a63604d4ef9f8391aca794b472e93f17d4637c39314cbdaf202e0"
+    },
+    {
+      "path": "subpackages/home/import/0f/0f7ee6fff.99cf5.json",
+      "bytes": 6716,
+      "sha256": "7c23f55d171aace8790b9a5924b26079430d49e73ae91ca45f5f50b85782ea6a"
+    },
+    {
+      "path": "subpackages/home/import/19/1932afd6-fa1b-44fb-bd02-725044997fcc.42c83.json",
+      "bytes": 208,
+      "sha256": "0970686444ffea4d30a71a615cfb6b7671cb5c7abc6991ecbc31d6d700069ded"
+    },
+    {
+      "path": "subpackages/home/import/31/31ba85d7-d565-4c03-9ead-1ea1cc3994d6.37620.json",
+      "bytes": 193,
+      "sha256": "53406f4757fa12d6673f5ed55ff0d04207e5f86c91e0416507a8b9b1d38c0e9a"
+    },
+    {
+      "path": "subpackages/home/import/40/40407f18-c113-45e8-b684-f3fb7ceb2ab0.4a8be.json",
+      "bytes": 201,
+      "sha256": "4438cb7282bf7c975e29bc7e2802b784c0ec2b85726dd248e2a96a4ea81c3e00"
+    },
+    {
+      "path": "subpackages/home/import/43/43b95c81-43e5-592a-85f9-fcdf105b9c57.fa01d.json",
+      "bytes": 136,
+      "sha256": "7e3420effe1fa6441c7286f896ebcb4c6a812c747ee2578a3c99321f559df7e6"
+    },
+    {
+      "path": "subpackages/home/import/64/645991fc-d8c8-4b92-9b81-f3b974c26b24.1aaee.json",
+      "bytes": 201,
+      "sha256": "a59b548565ce5b2c57d19619058361eaaa1073e9b7a83d557fb011ac4a9f7af3"
+    },
+    {
+      "path": "subpackages/home/import/6f/6f10b462-abd5-4fdf-a26e-2c306b036afc.66404.json",
+      "bytes": 202,
+      "sha256": "94d214ff9aa0590bc56c303ce5e16fb637730aab7f24cd8cd954cd2f83d97f12"
+    },
+    {
+      "path": "subpackages/home/import/7e/7e0f5005-4170-5d21-a17c-114e746b75fa.8fa0b.json",
+      "bytes": 9069,
+      "sha256": "e98d491adda73e8d8f2c7e6efdd246b11ddd2c862b45a2714018c394f11a992f"
+    },
+    {
+      "path": "subpackages/home/import/85/85eedcb6-6cd9-4fe5-8f66-9756156d4435.59a89.json",
+      "bytes": 206,
+      "sha256": "c9a6b9bee56ecd6beb999a2ce3d76d3730413086bcb07f82b468294214c22787"
+    },
+    {
+      "path": "subpackages/home/import/a6/a6dd33d4-764d-4aa5-81de-c32bcb99f011.05a5c.json",
+      "bytes": 207,
+      "sha256": "e5ebddc0c264dbad6253fd4aff63795c09ac95992df73e8d4693245c46fd8121"
+    },
+    {
+      "path": "subpackages/home/import/ac/ac134d45-bd01-4d7d-9314-0e1ac9fae754.ddeac.json",
+      "bytes": 199,
+      "sha256": "e7da5de433a7f7314ed5cca0a49aefa18fb89fec3e40ad73bf323002f569b19b"
+    },
+    {
+      "path": "subpackages/home/import/c7/c7c550d4-a80b-41b3-8683-26d5763746db.d69dc.json",
+      "bytes": 202,
+      "sha256": "33fa43fd8a8ca5ae1010bd795eac502918516920adc8dd0ab84fe9109be33c9f"
+    },
+    {
+      "path": "subpackages/home/native/04/045f65ef-4daa-4d69-bcff-c30c301225e0.61719.png",
+      "bytes": 45003,
+      "sha256": "3e158f2ce95d114d1b51cb75efa1f50bb7797992a2eb18ab0149415dda31a205"
+    },
+    {
+      "path": "subpackages/home/native/07/07c577fa-6bd9-48dc-93cd-1744400c230f.57026.png",
+      "bytes": 129544,
+      "sha256": "bb80dabbe71c32710a59aeaa15e1c6ebff574cce4d345e908717ab658d0684fd"
+    },
+    {
+      "path": "subpackages/home/native/10/1056d9bc-da38-461c-9e1b-9a3674536ad4.03e5f.jpg",
+      "bytes": 42327,
+      "sha256": "e109a39f59b4e0434fb6c0d8dab5b04c76af94d824d7725467e67ecb3c3a1c1b"
+    },
+    {
+      "path": "subpackages/home/native/20/20b6965e-87a2-4910-887e-21315a5607f0.4f77e.png",
+      "bytes": 170492,
+      "sha256": "f3a596c30a8316a731da69bc75520c39ad097066293e3452bed23c10368294e6"
+    },
+    {
+      "path": "subpackages/home/native/43/43b95c81-43e5-592a-85f9-fcdf105b9c57.f4545/zyx_happy_round_body_v1.ttf",
+      "bytes": 2688660,
+      "sha256": "46a772c96daa8a7e78e20eb4e6978aa0419001fd5c2fcc13d9ddc727175c1469"
+    },
+    {
+      "path": "subpackages/home/native/4d/4dc428da-fbc9-490f-8f95-f310aa9d381f.54ba3.png",
+      "bytes": 162078,
+      "sha256": "4c13ef8ebe237743941b9509a134e020239bf351e0f13a970d5fe124f8fd0723"
+    },
+    {
+      "path": "subpackages/home/native/5a/5a8d8c29-395e-49f6-a882-09abf13f9ffa.f240b.png",
+      "bytes": 157875,
+      "sha256": "2b18bd8e8641140f1a1f8d92a6840175ef65f34cd3a12ea1042cbadcc1098a08"
+    },
+    {
+      "path": "subpackages/home/native/93/93d9b1da-6479-4f09-8f5b-fcd057b48f32.a0565.png",
+      "bytes": 86857,
+      "sha256": "07b41303439653689a1e8e740d238735a2aa55c03ffb6777b5049b1971dc75a6"
+    },
+    {
+      "path": "subpackages/home/native/9c/9c19d03c-0aee-5654-ac41-d0f649584d2f.875fb.png",
+      "bytes": 98195,
+      "sha256": "884c8357e83c96292b21abef81e39af52b73de552b35d45884a32e0bd6d975a2"
+    },
+    {
+      "path": "subpackages/home/native/d1/d1ab184a-f229-4bce-a194-3f42f7d7269d.3eda6.png",
+      "bytes": 173506,
+      "sha256": "a6ed3f4d13e88eafa9456bfb0da0586bf988e8b1e2e409f0ffcd5967a9787f57"
+    },
+    {
+      "path": "subpackages/home/native/e0/e092ec65-b283-4b2f-a399-189a443b368a.b22a8.png",
+      "bytes": 186109,
+      "sha256": "f8370275daa32cc576b4fe55a87bfcc1bc4f28258cd7b29be7c1928c0e1bf671"
+    }
+  ]
+}

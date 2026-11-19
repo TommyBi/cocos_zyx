@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "item": "hammer",
+      "requiredBeans": 3,
+      "refusedZeroBalance": true,
+      "clientPriceZeroIgnored": true
+    },
+    {
+      "item": "magicWand",
+      "requiredBeans": 3,
+      "refusedZeroBalance": true,
+      "clientPriceZeroIgnored": true
+    },
+    {
+      "item": "stamina",
+      "requiredBeans": 3,
+      "refusedZeroBalance": true,
+      "clientPriceZeroIgnored": true
+    }
+  ],
+  "source": "Actual production HTTPS insufficient-balance responses; successful debit/quantity/idempotency validated on identical image and Staging",
+  "allPricesThree": true
+}

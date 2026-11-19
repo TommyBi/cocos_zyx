@@ -1,0 +1,25 @@
+f78419eddb7404d46568ba477b5896fe9d0f53c6a08b17ec0e55d2e793bc9e99 sha256:2406aca78d8d7c67acd454af7f4d8a5a480ee6809fc99c9410b1e7d420c81f3f
+3604c503cac9481344a39fa52c827a8b228fec018cbf31681e97e9a53eab9e83 sha256:2406aca78d8d7c67acd454af7f4d8a5a480ee6809fc99c9410b1e7d420c81f3f
+543926df457e8f554209645374d80ead5dc8eeb9dba72789dc7f946486545e32 sha256:af32e97399febea808609119bb21544d0265c58a02836576e32a2d082c262c17
+Files /opt/tcjstory/apps/cocos-zyx/server/src/boardEngine.js and /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src/boardEngine.js differ
+Files /opt/tcjstory/apps/cocos-zyx/server/src/databaseAudit.js and /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src/databaseAudit.js differ
+Only in /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src: defaultNickname.js
+Only in /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src: exportRisk.js
+Files /opt/tcjstory/apps/cocos-zyx/server/src/gameEngine.js and /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src/gameEngine.js differ
+Files /opt/tcjstory/apps/cocos-zyx/server/src/index.js and /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src/index.js differ
+Files /opt/tcjstory/apps/cocos-zyx/server/src/replayBoardEngine.js and /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src/replayBoardEngine.js differ
+Only in /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src: replayService.js
+Only in /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src: replayWorker.js
+Only in /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src: rewardSecurity.js
+Only in /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src: riskControl.js
+Only in /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src: roundProgress.js
+Files /opt/tcjstory/apps/cocos-zyx/server/src/schema.js and /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server/src/schema.js differ
+services:
+  cocos_zyx_api_staging:
+    image: cocos-zyx-staging:20261118-staging-v15-review-025145
+    build:
+      context: /opt/tcjstory/apps/cocos-zyx/releases/20261118-staging-v15-review-025145/server
+    environment:
+      NODE_ENV: staging
+      ENABLE_GM_ROUTES: "1"
+v20.20.2

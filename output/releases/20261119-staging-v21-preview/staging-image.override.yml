@@ -1,0 +1,8 @@
+services:
+  cocos_zyx_api_staging:
+    image: cocos-zyx-staging:20261119-staging-v21-preview
+    build:
+      context: /opt/tcjstory/apps/cocos-zyx/releases/20261119-staging-v21-preview/server
+    environment:
+      NODE_ENV: staging
+      ENABLE_GM_ROUTES: "1"

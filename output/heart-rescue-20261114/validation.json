@@ -1,0 +1,33 @@
+{
+  "clientVersion": "2026.11.14.06",
+  "boardRulesVersion": 10,
+  "apiVersion": 13,
+  "schemaVersion": 8,
+  "tests": {
+    "clientAndModule": 183,
+    "server": 51,
+    "total": 234,
+    "failed": 0,
+    "tipTransitionAfterFinalAdjustment": 19
+  },
+  "checks": {
+    "typescript": true,
+    "sharedEngineSync": true,
+    "webBuild": true,
+    "wechatBuild": true,
+    "assets": true,
+    "wechatGmIsolation": true,
+    "diffWhitespace": true
+  },
+  "wechatMiB": {
+    "main": 2.73,
+    "home": 3.78,
+    "effects": 0.99
+  },
+  "browser": {
+    "fullReplay": "browser-proof.json",
+    "gmAndViewports": "layout-proof.json",
+    "errors": 0
+  },
+  "scope": "Local implementation and builds only; no deployment or WeChat upload."
+}

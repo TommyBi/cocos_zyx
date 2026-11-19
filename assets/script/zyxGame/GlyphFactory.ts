@@ -98,115 +98,50 @@ export function createPauseGlyph(parent: cc.Node, x: number, y: number, scale: n
     return node;
 }
 
-export function decorateActionButton(button: cc.Node, icon: 'video' | 'share' | 'back' | 'restart'): void {
-    const label = button.getChildByName('label');
-    const glyphScale = button.width <= 260 ? 0.7 : 0.78;
-    // 图标和文字作为一个整体居中于按钮。
-    // 图标视觉宽度约 64 * scale，文字宽度由 label 内容决定。
-    const glyphWidth = 64 * glyphScale;
-    const gap = 12;
-    let textWidth = 0;
-    if (label) {
-        const labelComp = label.getComponent(cc.Label);
-        // 强制更新一次以获取真实文字宽度
-        if (labelComp) {
-            uimanager.applyTypography(labelComp, true);
-            (labelComp as any)._updateRenderData && (labelComp as any)._updateRenderData(true);
-        }
-        textWidth = label.width > 0 ? Math.min(label.width, button.width * 0.5) : button.width * 0.3;
+/** 按字形的实际宽度居中排列，文字在左、图标在右，间距固定。 */
+function layoutActionButton(button: cc.Node, glyphWidth: number, fontSize?: number, leading: boolean = false): { x: number; scale: number } {
+    const node = button.getChildByName('label');
+    const label = node.getComponent(cc.Label);
+    if (fontSize) {
+        label.fontSize = fontSize;
+        label.lineHeight = fontSize + 8;
     }
-    const totalWidth = glyphWidth + gap + textWidth;
-    const startX = -totalWidth / 2;
-    const iconX = startX + glyphWidth / 2;
-    const labelX = startX + glyphWidth + gap + textWidth / 2;
-    if (label) {
-        label.x = labelX;
-        label.width = textWidth;
-    }
-    if (icon === 'video') createVideoGlyph(button, iconX, 2, glyphScale);
-    else if (icon === 'share') createShareGlyph(button, iconX, 2, glyphScale);
-    else if (icon === 'back') createBackGlyph(button, iconX, 1, glyphScale);
-    else createRestartGlyph(button, iconX, 1, glyphScale);
+    label.overflow = cc.Label.Overflow.NONE;
+    label.enableWrapText = false;
+    uimanager.applyTypography(label);
+    (label as any)._forceUpdateRenderData();
+    const iconScale = Math.min(1, label.fontSize / 32);
+    const iconWidth = glyphWidth * iconScale;
+    const gap = 8;
+    const width = iconWidth + gap + node.width;
+    const fit = Math.min(1, (button.width - 32) / width);
+    node.scale = fit;
+    node.setPosition((leading ? 1 : -1) * (iconWidth + gap) / 2 * fit, 2);
+    return { x: (leading ? -1 : 1) * (node.width + gap) / 2 * fit, scale: iconScale * fit };
 }
 
-/** 软糖播放键、豆芽回转箭头和小门；保留动作含义，使用游戏自己的暖色轮廓。 */
+export function decorateActionButton(button: cc.Node, icon: 'video' | 'share' | 'back' | 'restart' | 'reviveCard', fontSize?: number): void {
+    const layout = layoutActionButton(button, icon === 'video' || icon === 'share' || icon === 'reviveCard' ? 64 : 44, fontSize, icon === 'video' || icon === 'reviveCard');
+    if (icon === 'reviveCard') {
+        const art = new cc.Node('reviveCardGlyph'); button.addChild(art); art.zIndex = 60;
+        art.setPosition(layout.x, 2);
+        const sprite = art.addComponent(cc.Sprite); sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+        sprite.spriteFrame = getSpriteFrame('effects', ASSET_PATHS.effects.reviveCard);
+        uimanager.fitSpriteFrameInside(art, sprite.spriteFrame, 64 * layout.scale, 48 * layout.scale);
+    } else if (icon === 'video') createVideoGlyph(button, layout.x, 2, layout.scale);
+    else if (icon === 'share') createShareGlyph(button, layout.x, 2, layout.scale);
+    else if (icon === 'back') createBackGlyph(button, layout.x, 2, layout.scale);
+    else createRestartGlyph(button, layout.x, 2, layout.scale);
+}
+
+/** 设置、暂停和结算共用同一套平面线稿图标与图文顺序。 */
 export function decorateSettingsActionButton(button: cc.Node, icon: 'play' | 'restart' | 'exit' | 'done'): void {
-    const labelNode = button.getChildByName('label');
-    const label = labelNode.getComponent(cc.Label);
-    const textWidth = Array.from(label.string).length * label.fontSize + 4;
-    labelNode.width = textWidth;
-    labelNode.height = 48;
-    labelNode.x = -24;
-    label.enableWrapText = false;
-    const node = new cc.Node(`${icon}Glyph`);
-    node.setPosition(textWidth / 2 + 6, 3);
-    node.zIndex = 60;
-    button.addChild(node);
-    const graphics = node.addComponent(cc.Graphics);
-    graphics.lineCap = cc.Graphics.LineCap.ROUND;
-    graphics.lineJoin = cc.Graphics.LineJoin.ROUND;
-    const cream = new cc.Color(255, 249, 220);
-    const outline = new cc.Color(141, 103, 67);
-    const leaf = new cc.Color(136, 184, 105);
-    graphics.fillColor = new cc.Color(88, 61, 55, 35);
-    graphics.ellipse(1, -22, 22, 5);
-    graphics.fill();
-    const face = (x: number, y: number): void => {
-        graphics.fillColor = BUTTON_TEXT_COLOR;
-        graphics.circle(x - 4, y + 3, 1.4); graphics.circle(x + 4, y + 3, 1.4); graphics.fill();
-        graphics.strokeColor = BUTTON_TEXT_COLOR; graphics.lineWidth = 1.4;
-        graphics.arc(x, y - 1, 3, Math.PI, Math.PI * 2); graphics.stroke();
-        graphics.fillColor = new cc.Color(237, 153, 118, 190);
-        graphics.ellipse(x - 7, y, 2.5, 1.5); graphics.ellipse(x + 7, y, 2.5, 1.5); graphics.fill();
-    };
-    if (icon === 'play') {
-        graphics.fillColor = cream; graphics.strokeColor = outline; graphics.lineWidth = 2;
-        graphics.moveTo(-13, -18); graphics.quadraticCurveTo(-20, -21, -20, -12);
-        graphics.lineTo(-20, 13); graphics.quadraticCurveTo(-20, 23, -11, 18);
-        graphics.lineTo(20, 3); graphics.quadraticCurveTo(25, 0, 19, -4);
-        graphics.close(); graphics.fill(); graphics.stroke();
-        face(-7, 0);
-        graphics.fillColor = leaf;
-        graphics.ellipse(-13, 23, 7, 3.5); graphics.ellipse(-3, 25, 6, 3.5); graphics.fill();
-        graphics.strokeColor = new cc.Color(103, 147, 79); graphics.lineWidth = 1.5;
-        graphics.moveTo(-9, 18); graphics.quadraticCurveTo(-8, 22, -5, 25); graphics.stroke();
-        graphics.fillColor = cc.Color.WHITE; graphics.ellipse(-15, 12, 2, 4); graphics.fill();
-    } else if (icon === 'restart') {
-        for (const stroke of [{ color: outline, width: 8 }, { color: cream, width: 5 }]) {
-            graphics.strokeColor = stroke.color; graphics.lineWidth = stroke.width;
-            graphics.moveTo(13, 15);
-            graphics.bezierCurveTo(-4, 27, -25, 12, -19, -7);
-            graphics.bezierCurveTo(-13, -26, 12, -24, 20, -7); graphics.stroke();
-        }
-        graphics.fillColor = cream; graphics.strokeColor = outline; graphics.lineWidth = 1.8;
-        graphics.moveTo(12, -5); graphics.quadraticCurveTo(9, -5, 12, -2);
-        graphics.lineTo(19, 7); graphics.quadraticCurveTo(21, 9, 22, 5);
-        graphics.lineTo(27, -5); graphics.quadraticCurveTo(29, -8, 25, -7);
-        graphics.close(); graphics.fill(); graphics.stroke();
-        graphics.fillColor = new cc.Color(255, 216, 111);
-        graphics.ellipse(0, -1, 10, 12); graphics.fill();
-        face(0, -1);
-        graphics.fillColor = leaf;
-        graphics.ellipse(-4, 12, 5, 2.8); graphics.ellipse(4, 14, 5, 2.8); graphics.fill();
-    } else if (icon === 'exit') {
-        graphics.fillColor = cream; graphics.strokeColor = outline; graphics.lineWidth = 2;
-        graphics.roundRect(-22, -20, 30, 43, 9); graphics.fill(); graphics.stroke();
-        graphics.fillColor = new cc.Color(250, 213, 139);
-        graphics.roundRect(-16, -16, 18, 33, 6); graphics.fill();
-        face(-7, 5);
-        graphics.fillColor = outline; graphics.circle(-1, -8, 1.6); graphics.fill();
-        for (const stroke of [{ color: outline, width: 8 }, { color: new cc.Color(213, 235, 172), width: 5 }]) {
-            graphics.strokeColor = stroke.color; graphics.lineWidth = stroke.width;
-            graphics.moveTo(4, -3); graphics.lineTo(24, -3);
-            graphics.moveTo(16, 5); graphics.lineTo(24, -3); graphics.lineTo(16, -11); graphics.stroke();
-        }
-        graphics.fillColor = leaf; graphics.ellipse(-16, 25, 5, 2.5); graphics.fill();
-    } else {
-        graphics.fillColor = cream; graphics.strokeColor = outline; graphics.lineWidth = 2;
-        graphics.circle(0, 0, 22); graphics.fill(); graphics.stroke();
-        graphics.strokeColor = leaf; graphics.lineWidth = 5;
-        graphics.moveTo(-12, 0); graphics.lineTo(-3, -9); graphics.lineTo(13, 11); graphics.stroke();
+    if (icon === 'restart') {
+        decorateActionButton(button, 'restart');
+        return;
     }
+    const layout = layoutActionButton(button, 44);
+    createNavigationGlyph(button, icon, layout.x, 2, layout.scale);
 }
 
 /** 保留：激励视频恢复后，decorateActionButton('video') 仍可直接使用。 */
@@ -294,73 +229,42 @@ export function createShareGlyph(parent: cc.Node, x: number, y: number, scale: n
     return node;
 }
 
-/** 返回动作使用单义的左箭头，不再用容易被理解成“回首页”的房屋。 */
+/** 导航动作统一使用暖棕细线与圆滑曲线，不附加小底板。 */
+function createNavigationGlyph(parent: cc.Node, icon: 'back' | 'restart' | 'play' | 'exit' | 'done', x: number, y: number, scale: number): cc.Node {
+    const node = new cc.Node(`${icon}Glyph`);
+    node.setPosition(x, y); node.scale = scale; node.zIndex = 60; parent.addChild(node);
+    const g = node.addComponent(cc.Graphics);
+    g.lineCap = cc.Graphics.LineCap.ROUND; g.lineJoin = cc.Graphics.LineJoin.ROUND;
+    g.strokeColor = BUTTON_TEXT_COLOR; g.fillColor = new cc.Color(255, 247, 222); g.lineWidth = 2.8;
+    if (icon === 'restart') {
+        g.moveTo(10, 10);
+        g.bezierCurveTo(4, 16, -5, 16, -10, 10);
+        g.bezierCurveTo(-16, 4, -16, -4, -10, -10);
+        g.bezierCurveTo(-4, -16, 5, -16, 10, -10);
+        g.bezierCurveTo(13, -7, 14, -3, 14, 2);
+        g.stroke();
+        g.moveTo(8, -3); g.lineTo(14, 3); g.lineTo(20, -3); g.stroke();
+    } else if (icon === 'play') {
+        g.moveTo(-8, -13); g.lineTo(12, -2); g.quadraticCurveTo(15, 0, 12, 2);
+        g.lineTo(-8, 13); g.quadraticCurveTo(-12, 15, -12, 11);
+        g.lineTo(-12, -11); g.quadraticCurveTo(-12, -15, -8, -13);
+        g.close(); g.fill(); g.stroke();
+    } else if (icon === 'exit') {
+        g.moveTo(2, 14); g.lineTo(-11, 14); g.quadraticCurveTo(-15, 14, -15, 10);
+        g.lineTo(-15, -10); g.quadraticCurveTo(-15, -14, -11, -14); g.lineTo(2, -14); g.stroke();
+        g.moveTo(-4, 0); g.lineTo(17, 0); g.moveTo(10, 7); g.lineTo(17, 0); g.lineTo(10, -7); g.stroke();
+    } else if (icon === 'back') {
+        g.moveTo(14, 0); g.lineTo(-14, 0); g.moveTo(-5, 9); g.lineTo(-14, 0); g.lineTo(-5, -9); g.stroke();
+    } else {
+        g.moveTo(-13, 0); g.lineTo(-4, -9); g.lineTo(14, 11); g.stroke();
+    }
+    return node;
+}
+
 export function createBackGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
-    const node = new cc.Node('backGlyph');
-    node.setPosition(x, y);
-    node.scale = scale;
-    node.zIndex = 60;
-    parent.addChild(node);
-    const graphics = node.addComponent(cc.Graphics);
-    drawActionGlyphPlate(graphics);
-    graphics.strokeColor = new cc.Color(119, 78, 66);
-    graphics.lineWidth = 7;
-    graphics.lineCap = cc.Graphics.LineCap.ROUND;
-    graphics.moveTo(14, 0);
-    graphics.lineTo(-13, 0);
-    graphics.moveTo(-3, 10);
-    graphics.lineTo(-14, 0);
-    graphics.lineTo(-3, -10);
-    graphics.stroke();
-    graphics.strokeColor = new cc.Color(239, 133, 104);
-    graphics.lineWidth = 4;
-    graphics.moveTo(14, 0);
-    graphics.lineTo(-13, 0);
-    graphics.moveTo(-3, 10);
-    graphics.lineTo(-14, 0);
-    graphics.lineTo(-3, -10);
-    graphics.stroke();
-    return node;
+    return createNavigationGlyph(parent, 'back', x, y, scale);
 }
 
-/** 两段首尾相接的循环箭头明确表达“重新开始”，避免弧线看成笑脸。 */
 export function createRestartGlyph(parent: cc.Node, x: number, y: number, scale: number = 1): cc.Node {
-    const node = new cc.Node('restartGlyph');
-    node.setPosition(x, y);
-    node.scale = scale;
-    node.zIndex = 60;
-    parent.addChild(node);
-    const graphics = node.addComponent(cc.Graphics);
-    drawActionGlyphPlate(graphics);
-    graphics.strokeColor = new cc.Color(105, 181, 129);
-    graphics.fillColor = new cc.Color(105, 181, 129);
-    graphics.lineWidth = 4.6;
-    graphics.lineCap = cc.Graphics.LineCap.ROUND;
-    graphics.moveTo(-14, 4);
-    graphics.bezierCurveTo(-8, 15, 8, 15, 14, 4);
-    graphics.moveTo(14, -4);
-    graphics.bezierCurveTo(8, -15, -8, -15, -14, -4);
-    graphics.stroke();
-    graphics.moveTo(14, 4);
-    graphics.lineTo(5, 6);
-    graphics.lineTo(11, -4);
-    graphics.close();
-    graphics.moveTo(-14, -4);
-    graphics.lineTo(-5, -6);
-    graphics.lineTo(-11, 4);
-    graphics.close();
-    graphics.fill();
-    return node;
-}
-
-function drawActionGlyphPlate(graphics: cc.Graphics): void {
-    graphics.fillColor = new cc.Color(83, 54, 47, 48);
-    graphics.roundRect(-21, -20, 44, 35, 9);
-    graphics.fill();
-    graphics.fillColor = new cc.Color(255, 244, 214);
-    graphics.strokeColor = new cc.Color(119, 78, 66);
-    graphics.lineWidth = 2.5;
-    graphics.roundRect(-22, -18, 44, 36, 9);
-    graphics.fill();
-    graphics.stroke();
+    return createNavigationGlyph(parent, 'restart', x, y, scale);
 }

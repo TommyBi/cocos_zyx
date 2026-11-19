@@ -1,0 +1,38 @@
+{
+  "clientVersion": "2026.11.18.04",
+  "voiceVersion": "v3",
+  "checks": {
+    "audioManagerTests": 13,
+    "webBuild": true,
+    "wechatBuild": true,
+    "wechatGmIsolation": true,
+    "actualWebAudioOutputFourClips": true,
+    "pageErrors": 0
+  },
+  "browserResults": "browser-results.json",
+  "recipe": "voice-recipe-v3.json",
+  "assets": [
+    {
+      "path": "assets/bundles/effects/sound/combo_good_v3.mp3",
+      "sha256": "527c84a4128e47c907fcf30de4b051ecef2f44fa87b23edfab8aa10346b07c4f",
+      "bytes": 7148
+    },
+    {
+      "path": "assets/bundles/effects/sound/combo_great_v3.mp3",
+      "sha256": "ee1c0ab58999d3dc6ee82ca16abbbb29e9dcef368353fbe84d5ab57877ea7f3e",
+      "bytes": 7148
+    },
+    {
+      "path": "assets/bundles/effects/sound/combo_perfect_v3.mp3",
+      "sha256": "3611c614ef8e4b78a91793d90140319b3cdffa259f68393462607f1cb35053cd",
+      "bytes": 12581
+    },
+    {
+      "path": "assets/bundles/effects/sound/combo_wow_v3.mp3",
+      "sha256": "23354e647da7e3f3e6c3e3374b10b59e0fa2d5c7662b1b03a6e52d3161f151ff",
+      "bytes": 7984
+    }
+  ],
+  "productionChanged": false,
+  "uploaded": false
+}

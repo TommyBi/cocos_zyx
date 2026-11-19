@@ -1,0 +1,238 @@
+--- baseline/assets/script/dataModule/BoardEngine.ts
++++ assets/script/dataModule/BoardEngine.ts
+@@ -1,7 +1,7 @@
+ /** 纯棋盘规则。客户端直接导入；服务端使用脚本生成的同源 CommonJS 产物。 */
+ export const BOARD_ROWS = 10;
+ export const BOARD_COLS = 8;
+-export const BOARD_RULES_VERSION = 11;
++export const BOARD_RULES_VERSION = 12;
+ export const ROUND_RESCUE_COOLDOWN_MS = 60 * 1000;
+ export type RoundRescueKind = 'balloon' | 'clear';
+ export const MAX_BOARD_BOMBS = 3;
+@@ -19,9 +19,14 @@
+     collectibleCell: number;
+     /** 炸弹附着在普通横块中央；不参与随机出块。 */
+     bomb?: boolean;
++    lightning?: boolean;
+ };
+ 
++export type LightningDischarge = { source: BoardPiece; targets: { original: BoardPiece; fragments: BoardPiece[] }[] };
++export type RoundToolState = { hammer: { acquired: number; used: number; owned: number }; magicWand: { acquired: number; used: number; owned: number } };
++
+ export type NextPiece = {
++    lightning?: boolean;
+     col: number;
+     size: number;
+     color: number;
+@@ -136,11 +141,26 @@
+     public heartRescueEligible = false;
+     private heartAvailable = false;
+     private heartOffered = false;
++    public hammerUses = 0;
++    public wandUses = 0;
++    public rescueOfferCounts = { balloon: 0, clear: 0 };
++    private pendingLightningCount = 0;
++    private lightningEffects: LightningDischarge[] = [];
++
++    public takeLightningEffects(): LightningDischarge[] {
++        const effects = this.lightningEffects;
++        this.lightningEffects = [];
++        return effects;
++    }
+ 
+     protected saveToolInventory(): void {}
+ 
+     public resetBoard(seed: number, tutorial: boolean, rulesVersion: number = BOARD_RULES_VERSION, heartEligible: boolean = false): void {
+         this.rulesVersion = rulesVersion;
++        this.hammerUses = this.wandUses = this.pendingLightningCount = 0;
++        this.rescueOfferCounts = { balloon: 0, clear: 0 };
++        this.lightningEffects = [];
++        if (rulesVersion >= 12) this.hammerCount = this.colorPurifierCount = 0;
+         this.heartRescueEligible = heartEligible;
+         this.score = this.combo = this.turn = this.moveCount = 0;
+         this.difficultyActionCount = 0;
+@@ -232,11 +252,14 @@
+     }
+ 
+     public useHammer(id: number): boolean {
+-        if (this.hammerCount <= 0 || !this.getPiece(id)) return false;
++        if (this.hammerCount <= 0 || !this.getPiece(id) || (this.rulesVersion >= 12 && this.hammerUses >= 3)) return false;
+         this.beginPlayerAction();
++        const removed = this.getPiece(id);
++        this.hammerUses++;
+         this.hammerCount--;
+         this.saveToolInventory();
+         this.pieces = this.pieces.filter((piece) => piece.id !== id);
++        this.dischargeLightning([removed]);
+         this.addToolScore(1);
+         this.roundActions.push({ type: 'hammer', id });
+         return true;
+@@ -248,18 +271,21 @@
+     }
+ 
+     public useColorPurifier(color: number): number[] {
+-        if (this.colorPurifierCount <= 0) return [];
++        if (this.colorPurifierCount <= 0 || (this.rulesVersion >= 12 && this.wandUses >= 1)) return [];
+         const removedPieceIds = this.pieces
+             .filter((piece) => piece.color === color)
+             .map((piece) => piece.id);
+         if (removedPieceIds.length === 0) return [];
+ 
+         this.beginPlayerAction();
++        this.wandUses++;
+         this.colorPurifierCount--;
+         this.saveToolInventory();
+         const removedSet: { [key: number]: boolean } = {};
+         removedPieceIds.forEach((id) => removedSet[id] = true);
++        const removed = this.pieces.filter(piece => removedSet[piece.id]);
+         this.pieces = this.pieces.filter((piece) => !removedSet[piece.id]);
++        this.dischargeLightning(removed);
+         this.addToolScore(removedPieceIds.length);
+         this.roundActions.push({ type: 'purify', color });
+         return removedPieceIds;
+@@ -296,6 +322,7 @@
+ 
+     public canOfferRoundRescue(elapsedMs: number): boolean {
+         return this.rulesVersion >= 8 && !this.rescueKind && !this.heartAvailable && this.score > 500 && this.getBoardHeight() > 6
++            && (this.rulesVersion < 12 || this.rescueOfferCounts.balloon < 4 || this.rescueOfferCounts.clear < 4)
+             && !this.isGameOver() && Number.isSafeInteger(elapsedMs) && elapsedMs >= 0
+             && elapsedMs - this.rescueLastOfferedAt >= ROUND_RESCUE_COOLDOWN_MS;
+     }
+@@ -303,7 +330,10 @@
+     /** 两种救场共用出现条件和冷却；用对局种子随机选择，重放可验证。 */
+     public offerRoundRescue(elapsedMs: number): RoundRescueKind {
+         if (!this.canOfferRoundRescue(elapsedMs)) return null;
+-        this.rescueKind = this.random() < 0.5 ? 'balloon' : 'clear';
++        const roll = this.random();
++        this.rescueKind = this.rulesVersion >= 12 && this.rescueOfferCounts.balloon >= 4 ? 'clear'
++            : this.rulesVersion >= 12 && this.rescueOfferCounts.clear >= 4 ? 'balloon' : roll < 0.5 ? 'balloon' : 'clear';
++        this.rescueOfferCounts[this.rescueKind]++;
+         this.rescueLastOfferedAt = elapsedMs;
+         this.roundActions.push({ type: 'rescueOffer', elapsedMs, kind: this.rescueKind });
+         return this.rescueKind;
+@@ -322,7 +352,9 @@
+         this.rescueKind = null;
+         this.beginPlayerAction();
+         const ids = this.pieces.map(piece => piece.id);
++        const removed = this.pieces.slice();
+         this.pieces = [];
++        this.dischargeLightning(removed);
+         this.addToolScore(ids.length);
+         if (this.rulesVersion >= 9) this.rescueRiseRows = 2;
+         this.roundActions.push({ type: 'rescueClear' });
+@@ -491,6 +523,28 @@
+         if (!this.comboActionCleared && !this.actionBlast) this.combo = 0;
+         this.recentMisses = this.comboActionCleared || this.actionBlast ? 0 : this.recentMisses + 1;
+         const rewards: BoardPiece[] = [];
++        // 新闪电在当前连锁完成后出生，不参与产生它的消除；不与炸弹共用宿主。
++        while (this.pendingLightningCount > 0) {
++            const candidates = this.pieces.filter(piece => piece.size === 1 && !piece.bomb && !piece.lightning);
++            if (!candidates.length) {
++                // 没有安全宿主时出现在已展示的下一排，不拆当前长块制造未结算悬空。
++                const next = this.nextPieces.find(piece => !piece.lightning);
++                if (!next) break;
++                const cells: NextPiece[] = [];
++                for (let cell = 0; cell < next.size; cell++) cells.push({ ...next, col: next.col + cell, size: 1,
++                    stampMood: cell === next.stampCell ? next.stampMood : 0, stampCell: 0,
++                    collectibleType: cell === next.collectibleCell ? next.collectibleType : 0, collectibleCell: 0,
++                    lightning: cell === 0 });
++                this.nextPieces.splice(this.nextPieces.indexOf(next), 1, ...cells);
++                this.pendingLightningCount--;
++                continue;
++            }
++            const target = candidates[Math.floor(this.random() * candidates.length)];
++            const cell = target;
++            cell.lightning = true;
++            rewards.push(cell);
++            this.pendingLightningCount--;
++        }
+         const count = (this.actionRows >= 2 ? 1 : 0) + (this.pendingComboBomb ? 1 : 0);
+         for (let index = 0; index < count; index++) {
+             const bomb = this.awardBomb(2);
+@@ -522,7 +576,7 @@
+ 
+     public awardBomb(clearedRows: number): BoardPiece {
+         if (clearedRows < 2 || this.pieces.filter((piece) => piece.bomb).length >= MAX_BOARD_BOMBS) return null;
+-        const eligible = this.pieces.filter(piece => !piece.bomb);
++        const eligible = this.pieces.filter(piece => !piece.bomb && (this.rulesVersion < 12 || !piece.lightning));
+         let target = this.rulesVersion >= 6 ? eligible[Math.floor(this.random() * eligible.length)]
+             : eligible.sort((a, b) => b.row - a.row || a.col - b.col || a.id - b.id)[0];
+         if (!target) {
+@@ -581,6 +635,7 @@
+         const removedPieces = this.pieces.filter((piece) => removed.has(piece.id));
+         const moods = removedPieces.filter((piece) => piece.stampMood > 0).map((piece) => piece.stampMood);
+         this.pieces = this.pieces.filter((piece) => !removed.has(piece.id));
++        this.dischargeLightning(removedPieces);
+         this.roundCollectedMoodBeans += moods.length;
+         if (queue.length) this.actionBlast = true;
+         const blastIds = new Set<number>();
+@@ -631,6 +686,8 @@
+         result.gainedScore += baseScore;
+         this.score += baseScore;
+         this.roundClearedRows += fullRows.length;
++        if (this.rulesVersion >= 12) this.pendingLightningCount += Math.floor(this.roundClearedRows / 20)
++            - Math.floor((this.roundClearedRows - fullRows.length) / 20);
+         this.bestScore = Math.max(this.bestScore, this.score);
+         return result;
+     }
+@@ -641,7 +698,7 @@
+         if (recordAction) this.roundActions.push({ type: 'append' });
+         for (const piece of this.pieces) piece.row--;
+         for (const next of this.nextPieces) {
+-            this.pieces.push(this.createPiece(
++            const piece = this.createPiece(
+                 BOARD_ROWS - 1,
+                 next.col,
+                 next.size,
+@@ -650,7 +707,9 @@
+                 next.stampCell,
+                 next.collectibleType,
+                 next.collectibleCell,
+-            ));
++            );
++            if (next.lightning) piece.lightning = true;
++            this.pieces.push(piece);
+         }
+         this.turn++;
+         if (this.rulesVersion >= 5 && this.secondNextPieces.length) {
+@@ -693,6 +752,31 @@
+         });
+     }
+ 
++    /** 保留总占格；原ID、表情、收藏物和旧炸弹各自只落在一个对应单格上。 */
++    private splitPiece(piece: BoardPiece): BoardPiece[] {
++        this.nextId = Math.max(this.nextId, ...this.pieces.map(item => item.id + 1));
++        const fragments: BoardPiece[] = [];
++        for (let cell = 0; cell < piece.size; cell++) {
++            fragments.push({ ...piece, id: cell === 0 ? piece.id : this.nextId++, col: piece.col + cell, size: 1,
++                stampMood: piece.stampCell === cell ? piece.stampMood : 0, stampCell: 0,
++                collectibleType: piece.collectibleCell === cell ? piece.collectibleType : 0, collectibleCell: 0,
++                bomb: !!piece.bomb && cell === Math.floor(piece.size / 2), lightning: false });
++        }
++        const index = this.pieces.findIndex(item => item.id === piece.id);
++        this.pieces.splice(index, 1, ...fragments);
++        return fragments;
++    }
++
++    /** 爆炸闭包先完整移除；每个被消除的闪电只向仍存活的长块放电一次。 */
++    private dischargeLightning(removed: BoardPiece[]): void {
++        if (this.rulesVersion < 12) return;
++        for (const source of removed.filter(piece => piece.lightning)) {
++            const candidates = this.shuffle(this.pieces.filter(piece => piece.size > 1 && !piece.lightning));
++            const targets = candidates.slice(0, 3).map(piece => ({ original: { ...piece }, fragments: this.splitPiece(piece).map(cell => ({ ...cell })) }));
++            this.lightningEffects.push({ source: { ...source }, targets });
++        }
++    }
++
+     private findFullRows(): number[] {
+         const fullRows: number[] = [];
+         for (let row = 0; row < BOARD_ROWS; row++) {
+@@ -739,6 +823,8 @@
+ 
+     private preview(pieces: BoardPiece[]): { pieces: BoardPiece[]; rows: number; waves: number } {
+         const simulation = new BoardEngine();
++        simulation.rulesVersion = this.rulesVersion;
++        simulation.randomState = this.randomState;
+         simulation.pieces = pieces.map((piece) => ({ ...piece }));
+         let rows = 0;
+         let waves = 0;

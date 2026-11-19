@@ -1,0 +1,5 @@
+
+> check:wechat-gm
+> node scripts/check-wechat-gm.js
+
+微信产物 GM 检查通过：gmFloatingBubble / GM 补给 / debug/profile / debug/reset 均无结果

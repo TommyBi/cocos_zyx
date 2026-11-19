@@ -1,0 +1,33 @@
+sha256:0b1a657cc74a95a8cf5fc075eb59cc4f0ef423840ce93558eee6f5ddd4336ea3
+ Container tcjstory-cocos-zyx-staging-cocos_zyx_api_staging-1 Stopping 
+ Container tcjstory-cocos-zyx-staging-cocos_zyx_api_staging-1 Stopped 
+ Container tcjstory-cocos-zyx-staging-cocos_zyx_api_staging-1 Recreate 
+ Container tcjstory-cocos-zyx-staging-cocos_zyx_api_staging-1 Recreated 
+ Container tcjstory-cocos-zyx-staging-cocos_zyx_api_staging-1 Starting 
+ Container tcjstory-cocos-zyx-staging-cocos_zyx_api_staging-1 Started 
+curl: (22) The requested URL returned error: 502
+{"preserved":{"players":{"count":71,"sha256":"abb2ff9ead62893650465e68e46a452ecc11daf6b892928302323bbce2a5085b"},"settlements":{"count":101,"sha256":"539ddecdf380203ba324d909c0d6e8d70ee41ac3d962033edf5b37ea89ef50b5"},"leaderboard":{"count":71,"sha256":"1f2646ee52fa1d4beb6ad7a10d0bf66fba329cda029cb0ccb7120c348ce760c3"}},"integrity":"ok","retiredTables":0}
+{"preserved":true,"tables":{"game_rounds":{"rows":321,"sha256":"631aa4b2065f884b671d7fd5971709d0d67d77a94f4a2d3ccad95837e606bb21"},"players":{"rows":71,"sha256":"1f67e83468062ea828dfee8895c541333f54eaf3a0ac98127df3012ab1cc444e"},"release_resets":{"rows":0,"sha256":"4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"},"reward_intents":{"rows":3,"sha256":"071379fccca818cc67a0fa4ae21cfc2b0561b0b576e6f9df7ae941fbcc75c99a"},"risk_admin_events":{"rows":0,"sha256":"4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"},"risk_events":{"rows":4,"sha256":"222dfa6a6f61bcf1cb083475f0141372526aa5869e9b68336ab3db557a7f0301"},"risk_reviews":{"rows":0,"sha256":"4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"},"round_checkpoints":{"rows":8,"sha256":"1053dccdb0ea0addad512a18b322fd600e8d5a2ac0adc0711ae17e33cb14ee9e"},"round_settlements":{"rows":101,"sha256":"2f54b5dcbff43bdc985d46f7b78e117def8e38eb239ceb6dfd05724593feae0c"},"sqlite_sequence":{"rows":2,"sha256":"f6468e4c9c927dd65d13de76570393653c0fd26c6dececba70d2b6222169deee"},"stamina_share_claims":{"rows":14,"sha256":"40e3d5fb38f904b232b7be091b121325a9fa26c36363d2ed63a532faa3158979"},"tool_inventory_refunds":{"rows":64,"sha256":"b483a8aec248bb882ddd8b1c0e04113997e5d4553bd683568374b1a3c6454167"},"tool_transactions":{"rows":41,"sha256":"81d2feffecbe87d96e0360ec563f12394d31668eb382c6860dbe912d9626932e"}},"schemaVersion":12}
+1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9  package.json
+97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868  package-lock.json
+8b1c3352eb9404c0a8f258b4d4a57629c7d89e6900a1fb408ad444f1a7bf79d5  src/boardEngine.js
+0d7f91cc058f19d9fb85e4ddf5750e59deeff34f47ee005264d5fa59992bb009  src/databaseAudit.js
+09d2ed5a2c9a2898b591697e34d4ca671cc57d29c43dc8fa9949c6ce534ae4e0  src/defaultNickname.js
+7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7  src/economyConfig.js
+ab3c49c78299b3cf7aecda95fa2d9277969e80893be58e4c630e1b2a446693e4  src/exportRisk.js
+a2144e24578226532f031e114f5966ac705a92f0c6aed26d49ef74fab1698546  src/gameEngine.js
+19cf093f4839edf091b824fa79c573a1d933d51edb9fb7abd1217f6f06f004a7  src/index.js
+3c22c2acf20aa9bc8a43e32827958263db1793fa169050b74d8066d13e7ba55c  src/replayBoardEngine.js
+c26834a21f4aba81ede6c2c4110a926c858909edd4f5b36a6b211d77ee84f1df  src/replayService.js
+16c8984728cbd1dcc27c4671e68438a612b65828b8acaaad8d58b152a5390548  src/replayWorker.js
+50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b  src/resetProgress.js
+0b9e0d1e784550a0aa5e44361c1ec8394638247bddd296c0123ae9989c3fdbe6  src/rewardSecurity.js
+751042e7f73ede81dbfed67e266366dadc9c92bfd36bf2ba124149953ec6cc7f  src/riskControl.js
+6ea4abb7d2a8f6e394bce5a317943dbd7de54423826a130bb3758408a4681240  src/roundProgress.js
+fa7915b2ca0166ad190238fc3cf9cfda9fa0443abee24cce196e6e263f50f100  src/schema.js
+1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed  src/wechatAuth.js
+1d635f804afdd72ee3b83dea49a2bb85315a0c11277de9965e5779bd619f4b74 sha256:0b1a657cc74a95a8cf5fc075eb59cc4f0ef423840ce93558eee6f5ddd4336ea3
+3604c503cac9481344a39fa52c827a8b228fec018cbf31681e97e9a53eab9e83 sha256:2406aca78d8d7c67acd454af7f4d8a5a480ee6809fc99c9410b1e7d420c81f3f
+543926df457e8f554209645374d80ead5dc8eeb9dba72789dc7f946486545e32 sha256:af32e97399febea808609119bb21544d0265c58a02836576e32a2d082c262c17
+{"code":0,"data":{"ok":true,"service":"cocos-zyx-cloud","apiVersion":25,"schemaVersion":12,"capabilities":["wechat-login","stamina","round-start","settlement","power-leaderboard","bean-balance-leaderboard","daily-share","bean-collection-progress","adaptive-combo-v2","bean-collection-1pct","bean-tool-shop","difficulty-ramp-2x","difficulty-pressure-v4","rising-rows-v5","balloon-rescue-v6","balloon-blast-v7","random-rescue-v8","rescue-scoring-v9","heart-rescue-v10","round-checkpoints-v1","revive-card-v11","round-tools-lightning-v12","rising-specials-lightning-v13","reward-intents-v1","security-audit-v1","round-tool-three-video-v14","lightning-ten-rows-v15","auto-rescue-v16","difficulty-waves-v17","scoring-waves-v18","tap-lightning-v19","round-tool-share-v20"],"checkedAt":"2026-11-19T06:29:24.657Z"}}
+Staging snapshot and runtime verified. Backup: /opt/tcjstory/backups/cocos-zyx-staging-20261119-staging-v20-review

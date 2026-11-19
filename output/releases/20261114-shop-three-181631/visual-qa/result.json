@@ -1,0 +1,288 @@
+{
+  "sizes": [
+    {
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "layout": {
+        "viewport": {
+          "w": 751.5492957746479,
+          "h": 1334
+        },
+        "panel": {
+          "x": 55.774647887323965,
+          "y": 117,
+          "w": 640,
+          "h": 1100
+        },
+        "items": [
+          {
+            "item": "hammer",
+            "height": 84,
+            "iconWidth": 50,
+            "hasSprite": true,
+            "labels": [
+              "兑换",
+              "3"
+            ],
+            "price": "3",
+            "color": "287638",
+            "order": [
+              "shopPurchaseText",
+              "shopPrice",
+              "shopCurrencyIcon"
+            ],
+            "center": 0,
+            "cardY": 284,
+            "cardHeight": 266
+          },
+          {
+            "item": "magicWand",
+            "height": 84,
+            "iconWidth": 50,
+            "hasSprite": true,
+            "labels": [
+              "兑换",
+              "3"
+            ],
+            "price": "3",
+            "color": "287638",
+            "order": [
+              "shopPurchaseText",
+              "shopPrice",
+              "shopCurrencyIcon"
+            ],
+            "center": 0,
+            "cardY": -18,
+            "cardHeight": 266
+          },
+          {
+            "item": "stamina",
+            "height": 84,
+            "iconWidth": 50,
+            "hasSprite": true,
+            "labels": [
+              "兑换",
+              "3"
+            ],
+            "price": "3",
+            "color": "287638",
+            "order": [
+              "shopPurchaseText",
+              "shopPrice",
+              "shopCurrencyIcon"
+            ],
+            "center": 0,
+            "cardY": -320,
+            "cardHeight": 266
+          }
+        ]
+      }
+    },
+    {
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "layout": {
+        "viewport": {
+          "w": 750,
+          "h": 1623.076923076923
+        },
+        "panel": {
+          "x": 55,
+          "y": 261.53846153846155,
+          "w": 640,
+          "h": 1100
+        },
+        "items": [
+          {
+            "item": "hammer",
+            "height": 84,
+            "iconWidth": 50,
+            "hasSprite": true,
+            "labels": [
+              "兑换",
+              "3"
+            ],
+            "price": "3",
+            "color": "287638",
+            "order": [
+              "shopPurchaseText",
+              "shopPrice",
+              "shopCurrencyIcon"
+            ],
+            "center": 0,
+            "cardY": 284,
+            "cardHeight": 266
+          },
+          {
+            "item": "magicWand",
+            "height": 84,
+            "iconWidth": 50,
+            "hasSprite": true,
+            "labels": [
+              "兑换",
+              "3"
+            ],
+            "price": "3",
+            "color": "287638",
+            "order": [
+              "shopPurchaseText",
+              "shopPrice",
+              "shopCurrencyIcon"
+            ],
+            "center": 0,
+            "cardY": -18,
+            "cardHeight": 266
+          },
+          {
+            "item": "stamina",
+            "height": 84,
+            "iconWidth": 50,
+            "hasSprite": true,
+            "labels": [
+              "兑换",
+              "3"
+            ],
+            "price": "3",
+            "color": "287638",
+            "order": [
+              "shopPurchaseText",
+              "shopPrice",
+              "shopCurrencyIcon"
+            ],
+            "center": 0,
+            "cardY": -320,
+            "cardHeight": 266
+          }
+        ]
+      }
+    },
+    {
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "layout": {
+        "viewport": {
+          "w": 1000.5,
+          "h": 1334
+        },
+        "panel": {
+          "x": 180.25,
+          "y": 117,
+          "w": 640,
+          "h": 1100
+        },
+        "items": [
+          {
+            "item": "hammer",
+            "height": 84,
+            "iconWidth": 50,
+            "hasSprite": true,
+            "labels": [
+              "兑换",
+              "3"
+            ],
+            "price": "3",
+            "color": "287638",
+            "order": [
+              "shopPurchaseText",
+              "shopPrice",
+              "shopCurrencyIcon"
+            ],
+            "center": 0,
+            "cardY": 284,
+            "cardHeight": 266
+          },
+          {
+            "item": "magicWand",
+            "height": 84,
+            "iconWidth": 50,
+            "hasSprite": true,
+            "labels": [
+              "兑换",
+              "3"
+            ],
+            "price": "3",
+            "color": "287638",
+            "order": [
+              "shopPurchaseText",
+              "shopPrice",
+              "shopCurrencyIcon"
+            ],
+            "center": 0,
+            "cardY": -18,
+            "cardHeight": 266
+          },
+          {
+            "item": "stamina",
+            "height": 84,
+            "iconWidth": 50,
+            "hasSprite": true,
+            "labels": [
+              "兑换",
+              "3"
+            ],
+            "price": "3",
+            "color": "287638",
+            "order": [
+              "shopPurchaseText",
+              "shopPrice",
+              "shopCurrencyIcon"
+            ],
+            "center": 0,
+            "cardY": -320,
+            "cardHeight": 266
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "exchanges": [
+    {
+      "request": {
+        "actionId": "shop_1794653041627_2kxxv8",
+        "item": "hammer"
+      },
+      "status": 200,
+      "price": 3,
+      "duplicate": false
+    },
+    {
+      "request": {
+        "actionId": "shop_1794653041627_2kxxv8",
+        "item": "hammer"
+      },
+      "status": 200,
+      "price": 3,
+      "duplicate": true
+    },
+    {
+      "request": {
+        "actionId": "shop_1794653042618_5w2or6",
+        "item": "magicWand"
+      },
+      "status": 200,
+      "price": 3,
+      "duplicate": false
+    },
+    {
+      "request": {
+        "actionId": "shop_1794653043537_r5miy",
+        "item": "stamina"
+      },
+      "status": 200,
+      "price": 3,
+      "duplicate": false
+    }
+  ],
+  "retryDidNotChargeTwice": true,
+  "insufficientDidNotSendExchange": true,
+  "staminaGained": 1,
+  "priceRedWhenInsufficient": true,
+  "priceGreenWhenSufficient": true
+}

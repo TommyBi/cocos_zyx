@@ -10,8 +10,9 @@ const initSqlJs = require('sql.js');
 
 const economy = require('./economyConfig');
 const { migrateSchema } = require('./schema');
-const { replayRound } = require('./gameEngine');
-const { BOARD_RULES_VERSION } = require('./boardEngine');
+const { verifyReplay } = require('./replayService');
+const { BOARD_RULES_VERSION, getRoundToolLimit } = require('./boardEngine');
+const { createRoundProgress, hasRescueTimestamp } = require('./roundProgress');
 const { exchangeWeChatLoginCode } = require('./wechatAuth');
 const { createDefaultNickname } = require('./defaultNickname');
 
@@ -20,10 +21,24 @@ const port = Number(process.env.PORT || 8080);
 let dbPath = path.resolve(process.env.DB_PATH || path.join(__dirname, '..', 'data', 'game.sqlite'));
 const chinaOffsetMs = 8 * 60 * 60 * 1000;
 let db;
+let risk = null;
+let rewards = null;
 
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet());
 app.use(cors());
+app.use((req, res, next) => {
+  res.locals.auditRequest = req;
+  res.setHeader('Cache-Control', 'no-store');
+  const started = performance.now();
+  res.once('finish', () => {
+    const durationMs = Math.round(performance.now() - started);
+    if (durationMs >= 250 && req.route) {
+      console.info('[slow-api]', req.method, req.route.path, res.statusCode, durationMs, res.locals.timing || {});
+    }
+  });
+  next();
+});
 // 长局可获得多颗豆子，需要保留完整重放操作，不能因旧 32KB 上限丢弃结算。
 app.use(express.json({ limit: '2mb' }));
 app.use((req, res, next) => {
@@ -41,6 +56,7 @@ function fail(res, message, status = 400, errorCode) {
   const body = { code: status, message };
   // 稳定业务错误码：客户端按错误码区分“记录本身不可重试”与可恢复错误，不只依赖 HTTP 状态段。
   if (errorCode) body.errorCode = errorCode;
+  if (risk && status < 500) risk.record(res.locals.auditRequest, res.locals.auditUser, errorCode);
   res.status(status).json(body);
 }
 
@@ -81,7 +97,8 @@ function persistNow() {
     const tmpPath = `${dbPath}.tmp`;
     const fd = fs.openSync(tmpPath, 'w');
     try {
-      fs.writeFileSync(fd, Buffer.from(db.export()));
+      const bytes = db.export();
+      fs.writeFileSync(fd, Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength));
       fs.fsyncSync(fd);
     } finally {
       fs.closeSync(fd);
@@ -215,6 +232,14 @@ function getStaminaState(user, at = now()) {
   };
 }
 
+// 按服务端实际开局顺序，每5局一次；rowid保证重试及后续新开局不会改变旧凭证资格。
+function heartRescueEligible(playerId, roundId) {
+  const round = get('SELECT rowid AS ordinal FROM game_rounds WHERE player_id = ? AND round_id = ?', [playerId, roundId]);
+  if (!round) return false;
+  const row = get('SELECT COUNT(*) AS count FROM game_rounds WHERE player_id = ? AND rowid <= ?', [playerId, round.ordinal]);
+  return Number(row.count) > 0 && Number(row.count) % 5 === 0;
+}
+
 function safeProfile(user) {
   const gameCountRow = get('SELECT COUNT(*) AS count FROM round_settlements WHERE player_id = ?', [user.player_id]);
   return {
@@ -226,7 +251,7 @@ function safeProfile(user) {
     experience: user.experience,
     moodBeanBalance: user.mood_bean_balance,
     assetRevision: user.asset_revision,
-    inventory: { hammer: user.hammer_count, magicWand: user.wand_count },
+    inventory: { hammer: user.hammer_count, magicWand: user.wand_count, reviveCard: user.revive_card_count },
     totalMoodBeans: user.total_mood_beans,
     highestSingleGameScore: user.highest_single_game_score,
     gameCount: Number(gameCountRow && gameCountRow.count) || 0,
@@ -240,12 +265,17 @@ function findUser(token) {
 }
 
 function authenticate(req, res) {
-  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '') || String(req.query.token || '');
+  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   const user = findUser(token);
   if (!user) {
     fail(res, '登录已失效，请重新进入游戏', 401, 'UNAUTHORIZED');
     return null;
   }
+  res.locals.auditUser = user;
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_GUEST_ACCOUNTS !== '1' && !user.wechat_openid) {
+    fail(res, '请通过微信重新登录', 401, 'WECHAT_LOGIN_REQUIRED'); return null;
+  }
+  if (risk && !risk.guard(req, res, user)) return null;
   return user;
 }
 
@@ -297,18 +327,27 @@ function leaderboard(user, type = 'power') {
     rank, bestScore, moodBeanBalance, value, onBoard } };
 }
 
+risk = require('./riskControl').createRiskControl({ app, get, all, run, ensurePersisted, now, fail });
+
 app.get(['/health', '/v1/cocos-zyx/health'], (_req, res) => {
-  ok(res, { ok: true, service: 'cocos-zyx-cloud', apiVersion: 11, schemaVersion: 8, capabilities: ['wechat-login', 'stamina', 'round-start', 'settlement', 'power-leaderboard', 'bean-balance-leaderboard', 'daily-share', 'bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'], checkedAt: new Date().toISOString() });
+  ok(res, { ok: true, service: 'cocos-zyx-cloud', apiVersion: 26, schemaVersion: 12, capabilities: ['wechat-login', 'stamina', 'round-start', 'settlement', 'power-leaderboard', 'bean-balance-leaderboard', 'daily-share', 'bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8', 'rescue-scoring-v9', 'heart-rescue-v10', 'round-checkpoints-v1', 'revive-card-v11', 'round-tools-lightning-v12', 'rising-specials-lightning-v13', 'reward-intents-v1', 'security-audit-v1', 'round-tool-three-video-v14', 'lightning-ten-rows-v15', 'auto-rescue-v16', 'difficulty-waves-v17', 'scoring-waves-v18', 'tap-lightning-v19', 'round-tool-share-v20', 'short-opening-v21'], checkedAt: new Date().toISOString() });
 });
 
 app.post('/v1/cocos-zyx/players/bootstrap', async (req, res) => {
   try {
     const deviceId = stringValue(req.body.deviceId, 128);
     const loginCode = stringValue(req.body.loginCode, 128);
+    if ((process.env.NODE_ENV === 'production' || process.env.SECURITY_ENFORCE_LIMITS === '1')
+      && !risk.allow('bootstrap:' + req.socket.remoteAddress, 60, 60000)) return fail(res, '登录请求过于频繁', 429, 'RATE_LIMITED');
+    if (process.env.NODE_ENV === 'production' && process.env.ALLOW_GUEST_ACCOUNTS !== '1' && !loginCode)
+      return fail(res, '请通过微信登录', 401, 'WECHAT_LOGIN_REQUIRED');
     if (!deviceId) return fail(res, '缺少设备标识', 400, 'DEVICE_ID_REQUIRED');
 
     // 微信端只信任服务端用一次性 code 换回的 openid；Web 预览才单独使用 deviceId。
-    const wechatOpenId = loginCode ? await exchangeWeChatLoginCode(loginCode) : '';
+    const loginStarted = performance.now();
+    const wechatOpenId = loginCode ? await exchangeWeChatLoginCode(loginCode).finally(() => {
+      res.locals.timing = { wechatLoginMs: Math.round(performance.now() - loginStarted) };
+    }) : '';
     const deviceUser = get('SELECT * FROM players WHERE device_id = ?', [deviceId]);
     if (!wechatOpenId && deviceUser && deviceUser.wechat_openid) {
       return fail(res, '请通过微信重新登录', 401, 'WECHAT_LOGIN_REQUIRED');
@@ -317,6 +356,12 @@ app.post('/v1/cocos-zyx/players/bootstrap', async (req, res) => {
       ? get('SELECT * FROM players WHERE wechat_openid = ?', [wechatOpenId])
       : deviceUser;
 
+    // 设备ID不是所有权凭据：首次绑定必须同时持有原设备账号令牌。
+    const deviceToken = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (!user && wechatOpenId && deviceUser && !deviceUser.wechat_openid && deviceToken !== deviceUser.token)
+      return fail(res, '需要原设备账号凭据，请更新游戏后重试', 401, 'DEVICE_CLAIM_REQUIRED');
+    if (!wechatOpenId && deviceUser && (process.env.NODE_ENV === 'production' || process.env.REQUIRE_DEVICE_TOKEN === '1') && deviceToken !== deviceUser.token)
+      return fail(res, '设备账号凭据已失效', 401, 'UNAUTHORIZED');
     // 旧账号首次微信登录时原地绑定，保留 playerId、资产、分数和历史对局。
     if (!user && wechatOpenId && deviceUser && !deviceUser.wechat_openid) {
       run('UPDATE players SET wechat_openid = ?, updated_at = ?, asset_revision = asset_revision + 1 WHERE player_id = ?',
@@ -343,12 +388,18 @@ app.post('/v1/cocos-zyx/players/bootstrap', async (req, res) => {
       if (user.nickname === '解忧玩家' || user.nickname === '顺心朋友') {
         run('UPDATE players SET nickname = ?, updated_at = ?, asset_revision = asset_revision + 1 WHERE player_id = ?',
           [createDefaultNickname(), now(), user.player_id]);
+        user = get('SELECT * FROM players WHERE player_id = ?', [user.player_id]);
       }
       // 建档落盘失败后的重试会走到这里：必须先把内存中的档案可靠写盘才能返回 2xx。
       if (persistDirty || persistPending) ensurePersisted();
-      user = get('SELECT * FROM players WHERE player_id = ?', [user.player_id]);
     }
-    ok(res, { token: user.token, serverTime: new Date().toISOString(), profile: safeProfile(user) });
+    if (req.body.securityProtocol === 1 && user.security_version !== 1) {
+      run('UPDATE players SET security_version=1 WHERE player_id=?', [user.player_id]); ensurePersisted();
+    }
+    ok(res, { token: user.token, serverTime: new Date().toISOString(), profile: safeProfile(user),
+      ...(req.body.includeRoundStart === true ? { roundStart: { rulesVersion: BOARD_RULES_VERSION,
+        collectionRule: economy.MOOD_COLLECTION_RULE, resumeProtocol: 1, securityProtocol: 1 } } : {}),
+      ...(req.body.includeActiveRound === true ? { activeRound: progress.activeSummary(user.player_id) } : {}) });
   } catch (error) {
     fail(res, error.message || '初始化玩家失败', error.status || 500, error.errorCode);
   }
@@ -374,6 +425,21 @@ app.post('/v1/cocos-zyx/players/profile', (req, res) => {
   }
 });
 
+function roundToolState(playerId, roundId) {
+  const state = {};
+  for (const item of ['hammer', 'magicWand']) {
+    const row = get(`SELECT SUM(CASE WHEN kind = 'reward' THEN 1 ELSE 0 END) AS acquired,
+      SUM(CASE WHEN kind = 'use' THEN 1 ELSE 0 END) AS used FROM tool_transactions
+      WHERE player_id = ? AND round_id = ? AND item = ?`, [playerId, roundId, item]);
+    const acquired = row.acquired || 0, used = row.used || 0;
+    state[item] = { acquired, used, owned: Math.max(0, acquired - used) };
+  }
+  return state;
+}
+const progress = createRoundProgress({ app, get, run, withTransaction, ensurePersisted, authenticate, ok, fail, now, heartRescueEligible, safeProfile, roundToolState,
+  validateRewards: (round, actions) => rewards.checkActions(round, actions) });
+rewards = require('./rewardSecurity').createRewardSecurity({ app, get, all, run, withTransaction, ensurePersisted, authenticate, ok, fail, now, progress, roundToolState });
+
 /** 入局凭证由服务端记录，体力在这里扣除；同一 roundId 重试不会重复扣点。 */
 app.post('/v1/cocos-zyx/games/start', (req, res) => {
   try {
@@ -383,35 +449,51 @@ app.post('/v1/cocos-zyx/games/start', (req, res) => {
     if (!roundId) return fail(res, '缺少对局标识', 400, 'ROUND_ID_INVALID');
     const collectionRule = req.body.collectionRule || 'legacy';
     const rulesVersion = req.body.rulesVersion === undefined ? 1 : Number(req.body.rulesVersion);
-    if (![1, 2, 3, 4, 5, 6, 7, BOARD_RULES_VERSION].includes(rulesVersion)) return fail(res, '不支持的棋盘规则', 400, 'BOARD_RULES_UNSUPPORTED');
+    if (!Number.isInteger(rulesVersion) || rulesVersion < 1 || rulesVersion > BOARD_RULES_VERSION) return fail(res, '不支持的棋盘规则', 400, 'BOARD_RULES_UNSUPPORTED');
     if (!['legacy', 'progress_v1', economy.MOOD_COLLECTION_RULE].includes(collectionRule)) return fail(res, '不支持的收集规则', 400, 'COLLECTION_RULE_UNSUPPORTED');
 
-    const existing = get('SELECT status, seed, is_tutorial, collection_rule, rules_version, tool_rules_version FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
+    const existing = get('SELECT * FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
     if (existing) {
       if (existing.status !== 'active') return fail(res, '此对局已结算', 409, 'ROUND_ALREADY_SETTLED');
       if (existing.rules_version !== rulesVersion) return fail(res, '对局棋盘规则不一致', 409, 'BOARD_RULES_UNSUPPORTED');
       if (existing.collection_rule !== collectionRule) return fail(res, '对局收集规则不一致', 409, 'ROUND_COLLECTION_RULE_CONFLICT');
+      const saved = progress.checkpoint(user.player_id, roundId);
+      if (saved && (req.body.resumeProtocol !== 1 || saved.resume_generation > 0 || JSON.parse(saved.actions_json).length > 1)) return fail(res, '已有保存进度，请继续上局', 409, 'ROUND_RESUME_REQUIRED');
       ensurePersisted();
       const fresh = get('SELECT * FROM players WHERE player_id = ?', [user.player_id]);
       return ok(res, {
         roundId,
         duplicate: true,
+        ...(saved ? { sessionToken: saved.session_token, generation: saved.resume_generation, startedAt: existing.started_at } : {}),
         stamina: getStaminaState(fresh),
         seed: existing.seed,
         isTutorial: !!existing.is_tutorial,
         collectionRule: existing.collection_rule,
         rulesVersion: existing.rules_version,
+        heartRescueEligible: existing.rules_version >= 10 && heartRescueEligible(user.player_id, roundId),
         profile: safeProfile(fresh),
       });
     }
 
-    // 滚动发布期间保留V5/V6/V7与当前V8新开局；更早协议仅供历史局补传。
+    // 滚动发布期间保留支持的旧客户端开局；更早协议仅供历史局补传。
     // 都必须使用当前收集规则、服务端种子及完整重放，不开放旧奖励协议。
-    if ((![5, 6, 7, BOARD_RULES_VERSION].includes(rulesVersion) || collectionRule !== economy.MOOD_COLLECTION_RULE)
+    if ((rulesVersion < 5 || collectionRule !== economy.MOOD_COLLECTION_RULE)
       && process.env.ALLOW_LEGACY_ROUND_STARTS !== '1') {
       return fail(res, '请更新游戏后重新开始', 400, 'COLLECTION_RULE_UNSUPPORTED');
     }
 
+    const resumable = req.body.resumeProtocol === 1;
+    if (req.body.resumeProtocol !== undefined && (!resumable || rulesVersion < 10)) return fail(res, '不支持的保存协议', 400, 'BOARD_RULES_UNSUPPORTED');
+    const secureRound = req.body.securityProtocol === 1;
+    if (!secureRound && (process.env.REQUIRE_SECURITY_PROTOCOL === '1' || (rulesVersion >= 13 && process.env.ALLOW_LEGACY_ROUND_STARTS !== '1')))
+      return fail(res, '请更新游戏以使用安全核验协议', 400, 'SECURITY_PROTOCOL_REQUIRED');
+    const previous = progress.active(user.player_id);
+    if (previous) {
+      const saved = progress.checkpoint(user.player_id, previous.round_id);
+      if (!resumable || req.body.replaceRoundId !== previous.round_id || req.body.replacementGeneration !== saved.resume_generation)
+        return fail(res, '还有未结算的对局，可以继续上局', 409, 'ROUND_RESUME_REQUIRED');
+      if (req.body.replaceSessionToken !== saved.session_token) return fail(res, '这局已在别处继续，请返回首页重新确认', 409, 'ROUND_SESSION_CONFLICT');
+    }
     const startedAt = now();
     const state = getStaminaState(user, startedAt);
     if (state.current < economy.STAMINA_COST_PER_ROUND) {
@@ -432,15 +514,24 @@ app.post('/v1/cocos-zyx/games/start', (req, res) => {
 
     let stamina;
     withTransaction(() => {
+      // 旧客户端在升级后补领的库存，进入V12前同样折算；清零与凭据同事务，不重复返还。
+      if (rulesVersion >= 12 && (user.hammer_count > 0 || user.wand_count > 0)) {
+        const beans = (user.hammer_count + user.wand_count) * 3;
+        run('INSERT OR IGNORE INTO tool_inventory_refunds (player_id, hammer_count, wand_count, awarded_beans, created_at) VALUES (?, 0, 0, 0, ?)', [user.player_id, startedAt]);
+        run('UPDATE tool_inventory_refunds SET hammer_count = hammer_count + ?, wand_count = wand_count + ?, awarded_beans = awarded_beans + ? WHERE player_id = ?', [user.hammer_count, user.wand_count, beans, user.player_id]);
+        run('UPDATE players SET mood_bean_balance = mood_bean_balance + ?, hammer_count = 0, wand_count = 0 WHERE player_id = ?', [beans, user.player_id]);
+      }
       const spent = state.current - economy.STAMINA_COST_PER_ROUND;
       run('UPDATE players SET stamina_current = ?, stamina_updated_at = ?, updated_at = ?, asset_revision = asset_revision + 1 WHERE player_id = ?',
         [spent, state.updatedAt, startedAt, user.player_id]);
-      run('INSERT INTO game_rounds (player_id, round_id, started_at, status, seed, is_tutorial, collection_rule, rules_version, tool_rules_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)',
-        [user.player_id, roundId, startedAt, 'active', seed, isTutorial ? 1 : 0, collectionRule, rulesVersion]);
+      run('INSERT INTO game_rounds (player_id, round_id, started_at, status, seed, is_tutorial, collection_rule, rules_version, tool_rules_version, security_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
+        [user.player_id, roundId, startedAt, 'active', seed, isTutorial ? 1 : 0, collectionRule, rulesVersion, secureRound ? 1 : 0]);
+      if (resumable) progress.initialize(user.player_id, roundId, rulesVersion);
+      if (previous) run("UPDATE game_rounds SET status = 'abandoned' WHERE player_id = ? AND round_id = ?", [user.player_id, previous.round_id]);
       stamina = getStaminaState({ player_id: user.player_id, stamina_current: spent, stamina_updated_at: state.updatedAt }, startedAt);
     });
     ensurePersisted();
-    ok(res, { roundId, stamina, seed, isTutorial, collectionRule, rulesVersion, profile: safeProfile(get('SELECT * FROM players WHERE player_id = ?', [user.player_id])) });
+    ok(res, { roundId, stamina, seed, isTutorial, collectionRule, rulesVersion, ...(resumable ? { sessionToken: progress.checkpoint(user.player_id, roundId).session_token, generation: 0, startedAt } : {}), heartRescueEligible: rulesVersion >= 10 && heartRescueEligible(user.player_id, roundId), profile: safeProfile(get('SELECT * FROM players WHERE player_id = ?', [user.player_id])) });
   } catch (error) {
     fail(res, error.message || '开始对局失败', 500);
   }
@@ -476,6 +567,7 @@ app.post('/v1/cocos-zyx/stamina/share-claim', (req, res) => {
     }
     const state = getStaminaState(user, claimedAt);
     withTransaction(() => {
+      rewards.consume(req, user, 'stamina', null, claimId);
       run('UPDATE players SET stamina_current = ?, stamina_updated_at = ?, updated_at = ?, asset_revision = asset_revision + 1 WHERE player_id = ?',
         [state.current + economy.STAMINA_SHARE_REWARD, state.updatedAt, claimedAt, user.player_id]);
       run('INSERT INTO stamina_share_claims (player_id, day_key, claim_id, claimed_at) VALUES (?, ?, ?, ?)',
@@ -485,16 +577,17 @@ app.post('/v1/cocos-zyx/stamina/share-claim', (req, res) => {
     const fresh = get('SELECT * FROM players WHERE player_id = ?', [user.player_id]);
     ok(res, { awarded: economy.STAMINA_SHARE_REWARD, stamina: getStaminaState(fresh, claimedAt) });
   } catch (error) {
-    fail(res, error.message || '领取分享体力失败', 500);
+    fail(res, error.message || '领取分享体力失败', error.status || 500, error.businessCode);
   }
 });
 
 /** 固定商品表；客户端不能指定价格、数量或库存基线。 */
 const TOOL_COLUMNS = { hammer: 'hammer_count', magicWand: 'wand_count' };
-const SHOP_PRICES = { hammer: 20, magicWand: 20, stamina: 5 };
-function transactTool(req, res, kind) {
+const SHOP_PRICES = { stamina: 3, reviveCard: 25 };
+const INVENTORY_COLUMNS = { ...TOOL_COLUMNS, reviveCard: 'revive_card_count' };
+async function transactTool(req, res, kind) {
   try {
-    const user = authenticate(req, res);
+    let user = authenticate(req, res);
     if (!user) return;
     const { actionId, item } = req.body;
     if (typeof actionId !== 'string' || !/^[a-zA-Z0-9_:.-]{8,160}$/.test(actionId)
@@ -502,6 +595,7 @@ function transactTool(req, res, kind) {
       return fail(res, '兑换或道具参数无效', 400, 'TOOL_REQUEST_INVALID');
     }
     const roundId = kind === 'exchange' ? '' : req.body.roundId;
+    if (kind !== 'exchange' && !progress.guard(user.player_id, roundId, req.body.sessionToken, res)) return;
     const actionIndex = kind === 'use' ? req.body.actionIndex : -1;
     const target = kind === 'use' ? req.body.target : -1;
     if (kind !== 'exchange' && (typeof roundId !== 'string' || roundId.length > 96 || !roundId)) {
@@ -518,33 +612,58 @@ function transactTool(req, res, kind) {
         return fail(res, '同一操作内容不一致', 409, 'TOOL_PAYLOAD_CONFLICT');
       }
       ensurePersisted();
-      return ok(res, { duplicate: true, item, price: kind === 'exchange' ? SHOP_PRICES[item] : 0, profile: safeProfile(user) });
+      return ok(res, { duplicate: true, item, price: kind === 'exchange' ? SHOP_PRICES[item] : 0, profile: safeProfile(user),
+        ...(kind !== 'exchange' ? { roundTools: roundToolState(user.player_id, roundId) } : {}) });
     }
+    let roundScoped = false;
+    let round;
     if (kind !== 'exchange') {
-      const round = get('SELECT * FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
+      round = get('SELECT * FROM game_rounds WHERE player_id=? AND round_id=?', [user.player_id, roundId]);
       if (!round || round.status !== 'active' || round.started_at < now() - economy.MAX_OFFLINE_SETTLEMENT_AGE_MS) {
         return fail(res, '当前对局不可使用道具', 409, 'ROUND_NOT_ACTIVE');
       }
+      if (kind === 'use' && rewards.secure(round)) {
+        if (!Array.isArray(req.body.actions) || actionIndex !== req.body.actions.length) return fail(res, '缺少当前操作核验信息', 400, 'TOOL_PROOF_REQUIRED');
+        const verified = await progress.validate(round, progress.checkpoint(user.player_id, roundId), req.body.actions, req.body.elapsedMs, true, true);
+        const board = verified.replay && verified.replay.board;
+        if (!board || board.isGameOver() || (item === 'hammer' ? !board.getPiece(target) : !board.pieces.some(piece => piece.color === target)))
+          return fail(res, '当前道具目标不存在', 400, 'TOOL_PROOF_REQUIRED');
+        const concurrent = get('SELECT * FROM tool_transactions WHERE player_id=? AND action_id=?', [user.player_id, actionId]);
+        if (concurrent) {
+          if (concurrent.kind !== kind || concurrent.item !== item || concurrent.round_id !== roundId || concurrent.action_index !== actionIndex || concurrent.target !== target)
+            return fail(res, '同一操作内容不一致', 409, 'TOOL_PAYLOAD_CONFLICT');
+          ensurePersisted(); return ok(res, { duplicate: true, item, price: 0, profile: safeProfile(get('SELECT * FROM players WHERE player_id=?', [user.player_id])), roundTools: roundToolState(user.player_id, roundId) });
+        }
+        user = get('SELECT * FROM players WHERE player_id=?', [user.player_id]);
+      }
+    }
+    if (kind !== 'exchange') {
+      roundScoped = round.rules_version >= 12;
+      const tool = roundToolState(user.player_id, roundId)[item];
       if (kind === 'reward') {
         // 分享/广告补给沿用现有客户端完成回调，每局每种最多三次，限制重复伪造领取。
         const claims = get("SELECT COUNT(*) AS count FROM tool_transactions WHERE player_id = ? AND round_id = ? AND item = ? AND kind = 'reward'", [user.player_id, roundId, item]);
-        if (claims.count >= 3) return fail(res, '本局该道具的三次补给已领完', 409, 'TOOL_REWARD_LIMIT');
+        const limit = getRoundToolLimit(item, round.rules_version);
+        if (claims.count >= limit) return fail(res, `每局仅可获得${limit}次`, 409, 'TOOL_REWARD_LIMIT');
+        if (roundScoped && tool.owned > 0) return fail(res, '请先使用已领取的道具', 409, 'TOOL_ALREADY_OWNED');
       } else if (get("SELECT 1 FROM tool_transactions WHERE player_id = ? AND round_id = ? AND action_index = ? AND kind = 'use'", [user.player_id, roundId, actionIndex])) {
         return fail(res, '这一步已经使用过道具', 409, 'TOOL_PAYLOAD_CONFLICT');
       }
+      if (kind === 'use' && roundScoped && tool.owned < 1) return fail(res, '请先领取本局道具', 409, 'TOOL_INSUFFICIENT');
     }
-    const column = TOOL_COLUMNS[item];
+    const column = INVENTORY_COLUMNS[item];
     const price = kind === 'exchange' ? SHOP_PRICES[item] : 0;
     if (kind === 'exchange' && user.mood_bean_balance < price) return fail(res, `开心豆不足，需要 ${price} 颗`, 409, 'BEANS_INSUFFICIENT');
-    if (kind === 'use' && user[column] < 1) return fail(res, '道具库存不足', 409, 'TOOL_INSUFFICIENT');
+    if (kind === 'use' && !roundScoped && user[column] < 1) return fail(res, '道具库存不足', 409, 'TOOL_INSUFFICIENT');
     withTransaction(() => {
+      if (kind === 'reward') rewards.consume(req, user, item === 'hammer' ? 'hammer' : 'tool', round, actionId);
       const delta = kind === 'use' ? -1 : 1;
       if (item === 'stamina') {
         const at = now();
         const state = getStaminaState(user, at);
         run('UPDATE players SET mood_bean_balance = mood_bean_balance - ?, stamina_current = ?, stamina_updated_at = ?, asset_revision = asset_revision + 1, updated_at = ? WHERE player_id = ?',
           [price, state.current + 1, state.updatedAt, at, user.player_id]);
-      } else {
+      } else if (!roundScoped) {
         run(`UPDATE players SET mood_bean_balance = mood_bean_balance - ?, ${column} = ${column} + ?, asset_revision = asset_revision + 1, updated_at = ? WHERE player_id = ?`,
           [price, delta, now(), user.player_id]);
       }
@@ -552,22 +671,24 @@ function transactTool(req, res, kind) {
         [user.player_id, actionId, kind, item, roundId, actionIndex, target, now()]);
     });
     ensurePersisted();
-    ok(res, { item, price, profile: safeProfile(get('SELECT * FROM players WHERE player_id = ?', [user.player_id])) });
-  } catch (error) { fail(res, error.message || '道具操作未确认，请重试', 500); }
+    ok(res, { item, price, profile: safeProfile(get('SELECT * FROM players WHERE player_id = ?', [user.player_id])),
+      ...(kind !== 'exchange' ? { roundTools: roundToolState(user.player_id, roundId) } : {}) });
+  } catch (error) { fail(res, error.message || '道具操作未确认，请重试', error.status || 500, error.businessCode); }
 }
 app.post('/v1/cocos-zyx/shop/exchanges', (req, res) => transactTool(req, res, 'exchange'));
 app.post('/v1/cocos-zyx/games/tools/use', (req, res) => transactTool(req, res, 'use'));
 app.post('/v1/cocos-zyx/games/tools/reward', (req, res) => transactTool(req, res, 'reward'));
 
-app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
+app.post('/v1/cocos-zyx/games/settlements', async (req, res) => {
   try {
-    const user = authenticate(req, res);
+    let user = authenticate(req, res);
     if (!user) return;
     const roundId = stringValue(req.body.roundId, 96);
     if (!roundId) return fail(res, '缺少对局标识');
-    const startedAt = Number(req.body.startedAt);
-    const endedAt = Number(req.body.endedAt);
-    const score = clampInt(req.body.score, 0, 1000000);
+    const startedAt = req.body.startedAt;
+    const endedAt = req.body.endedAt;
+    const score = req.body.score;
+    if (!Number.isSafeInteger(score) || score < 0 || score > 1000000) return fail(res, '分数格式或范围异常', 400, 'REPLAY_INVALID');
     // 历史字段名表示带表情块原始数，不是奖励豆子数。
     const collectedMoodBeanCount = Number(req.body.collectedMoodBeanCount);
     if (!Number.isSafeInteger(collectedMoodBeanCount) || collectedMoodBeanCount < 0
@@ -587,11 +708,13 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
       return fail(res, '同一对局标识的请求内容不一致', 409, 'ROUND_PAYLOAD_CONFLICT');
     }
 
-    const startedRound = get('SELECT started_at, status, seed, is_tutorial, collection_rule, rules_version, tool_rules_version FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
+    const startedRound = get('SELECT * FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
     if (!startedRound) return fail(res, '对局未在服务端开始', 409, 'ROUND_NOT_STARTED');
     if (startedRound.status !== 'active') return fail(res, '此对局已结算', 409, 'ROUND_ALREADY_SETTLED');
+    const checked = await progress.checkSettlement(startedRound, req, res);
+    if (!checked) return;
 
-    if (!Number.isFinite(startedAt) || !Number.isFinite(endedAt)) return fail(res, '对局时间异常', 400, 'INVALID_ROUND_TIME');
+    if (!Number.isSafeInteger(startedAt) || !Number.isSafeInteger(endedAt)) return fail(res, '对局时间异常', 400, 'INVALID_ROUND_TIME');
     const duration = endedAt - startedAt;
     if (duration < economy.MIN_ROUND_DURATION_MS || duration > economy.MAX_ROUND_DURATION_MS) return fail(res, '对局时长异常', 400, 'INVALID_ROUND_DURATION');
     if (endedAt > now() + economy.MAX_FUTURE_SKEW_MS) return fail(res, '对局时间异常', 400, 'INVALID_ROUND_TIME');
@@ -604,14 +727,15 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
     if (actions.length > 100000) return fail(res, '操作序列过长', 400, 'REPLAY_INVALID');
     if (startedRound.rules_version >= 5) {
       // V8由棋盘重放逐次检查两种提示的共享60秒CD，不设整局次数上限。
-      // 旧协议按对局时长检查总量；复活仍每局一次且固定清理顶部8排。
+      // 旧协议按对局时长检查总量；广告复活每局一次，V11额外一张卡，均固定清理顶部8排。
       const clearCount = actions.filter(action => action && ['clear', 'balloonOffer', 'rescueOffer'].includes(action.type)).length;
       const revives = actions.filter(action => action && action.type === 'revive');
+      const cards = actions.filter(action => action && action.type === 'reviveCard');
       const elapsed = Math.max(0, Math.min(duration, now() - startedRound.started_at));
-      if ((startedRound.rules_version < 8 && clearCount > 1 + Math.floor(elapsed / 60000)) || revives.length > 1
-        || (startedRound.rules_version >= 8 && actions.some(action => action && action.type === 'rescueOffer'
+      if ((startedRound.rules_version < 8 && clearCount > 1 + Math.floor(elapsed / 60000)) || revives.length > 1 || cards.length > (startedRound.rules_version >= 11 ? 1 : 0)
+        || (startedRound.rules_version >= 8 && actions.some(action => action && hasRescueTimestamp(action.type, startedRound.rules_version)
           && (!Number.isSafeInteger(action.elapsedMs) || action.elapsedMs < 0 || action.elapsedMs > elapsed)))
-        || revives.some(action => action.rowCount !== 8)) {
+        || [...revives, ...cards].some(action => action.rowCount !== 8)) {
         return fail(res, '救场次数或范围异常', 400, 'REPLAY_INVALID');
       }
     }
@@ -619,11 +743,11 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
     if (startedRound.tool_rules_version === 1) {
       for (let index = 0; index < actions.length; index++) {
         const action = actions[index];
-        if (!action || !['hammer', 'purify'].includes(action.type)) continue;
+        if (!action || !['hammer', 'purify', 'reviveCard'].includes(action.type)) continue;
         const use = get("SELECT item, target FROM tool_transactions WHERE player_id = ? AND round_id = ? AND kind = 'use' AND action_index = ?",
           [user.player_id, roundId, index]);
-        if (!use || use.item !== (action.type === 'hammer' ? 'hammer' : 'magicWand')
-          || use.target !== (action.type === 'hammer' ? action.id : action.color)) {
+        if (!use || use.item !== (action.type === 'reviveCard' ? 'reviveCard' : action.type === 'hammer' ? 'hammer' : 'magicWand')
+          || use.target !== (action.type === 'reviveCard' ? 8 : action.type === 'hammer' ? action.id : action.color)) {
           return fail(res, '道具使用记录未确认', 400, 'REPLAY_INVALID');
         }
       }
@@ -635,7 +759,8 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
     }
     if (!progressRule && collectedMoodBeanCount > economy.MAX_COLLECTED_MOOD_BEANS_PER_ROUND) return fail(res, '收集数量异常', 400, 'COLLECTION_COUNT_INVALID');
     if (actions.length > 0 && startedRound.seed) {
-      const replayResult = replayRound(startedRound.seed, !!startedRound.is_tutorial, actions, startedRound.rules_version);
+      const replayResult = checked.replay || await verifyReplay({ seed: startedRound.seed, tutorial: !!startedRound.is_tutorial, actions,
+        version: startedRound.rules_version, heartEligible: startedRound.rules_version >= 10 && heartRescueEligible(user.player_id, roundId) });
       if (!replayResult.valid) {
         return fail(res, '操作序列校验失败', 400, 'REPLAY_INVALID');
       }
@@ -645,6 +770,16 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
       }
     }
 
+    // 重放期间其他请求可能已结算/续玩/消费资产，不能用异步前的状态再次入账。
+    const committed = get('SELECT * FROM round_settlements WHERE player_id=? AND round_id=?', [user.player_id, roundId]);
+    if (committed) {
+      if (committed.payload_json !== payloadJson) return fail(res, '同一对局标识的请求内容不一致', 409, 'ROUND_PAYLOAD_CONFLICT');
+      ensurePersisted(); return ok(res, { duplicate: true, ...JSON.parse(committed.result_json) });
+    }
+    const currentRound = get('SELECT * FROM game_rounds WHERE player_id=? AND round_id=?', [user.player_id, roundId]);
+    if (currentRound.status !== 'active') return fail(res, '此对局状态已更新', 409, 'ROUND_NOT_ACTIVE');
+    if (!progress.guard(user.player_id, roundId, req.body.sessionToken, res)) return;
+    user = get('SELECT * FROM players WHERE player_id=?', [user.player_id]);
     const settledAt = now();
     // 每局独立换算整颗开心豆；保留旧客户端与历史开局的结算协议。
     const baseMoodBeans = progressRule ? economy.collectedBlocksToBeans(collectedMoodBeanCount, startedRound.collection_rule) : collectedMoodBeanCount;
@@ -685,7 +820,7 @@ app.post('/v1/cocos-zyx/games/settlements', (req, res) => {
     ensurePersisted();
     ok(res, resultData);
   } catch (error) {
-    fail(res, error.message || '对局结算失败', 500);
+    fail(res, error.message || '对局结算失败', error.status || 500, error.businessCode);
   }
 });
 
@@ -744,12 +879,13 @@ app.post('/v1/cocos-zyx/debug/reset', (req, res) => {
     withTransaction(() => {
       run(
         `UPDATE players SET level = 1, experience = 0, mood_bean_balance = 0,
-         total_mood_beans = 0, highest_single_game_score = 0, hammer_count = 0, wand_count = 0,
+         total_mood_beans = 0, highest_single_game_score = 0, hammer_count = 0, wand_count = 0, revive_card_count = 0,
          stamina_current = ?, stamina_updated_at = ?, updated_at = ?, asset_revision = asset_revision + 1 WHERE player_id = ?`,
         [economy.STAMINA_MAX, updatedAt, updatedAt, user.player_id],
       );
       run('DELETE FROM round_settlements WHERE player_id = ?', [user.player_id]);
       run('DELETE FROM game_rounds WHERE player_id = ?', [user.player_id]);
+      run('DELETE FROM round_checkpoints WHERE player_id = ?', [user.player_id]);
       run('DELETE FROM stamina_share_claims WHERE player_id = ?', [user.player_id]);
       run('DELETE FROM tool_transactions WHERE player_id = ?', [user.player_id]);
     });

@@ -47,8 +47,8 @@ async function renderLeaderboard(): Promise<void> {
         tabs.forEach(tab => {
             const active = tab.type === type;
             const fill = active ? (type === 'beans' ? LEAF : GOLD) : new cc.Color(255, 239, 206);
-            uimanager.drawRect(tab.node, 286, 54, fill, 18);
-            if (active) uimanager.drawButtonSurface(tab.node, 286, 54, fill, 18);
+            uimanager.drawRect(tab.node, 286, 70, fill, 18);
+            if (active) uimanager.drawButtonSurface(tab.node, 286, 70, fill, 18);
         });
         clearBody();
         text(body, '正在查看排行榜…', 0, top - 380, 24, 480, 42).node.name = 'leaderboardLoading';
@@ -83,17 +83,23 @@ async function renderLeaderboard(): Promise<void> {
         const title = art(panel, 'leaderboardTitle', ASSET_PATHS.home.leaderboardTitle, 420, 140, 0, top - 4);
         title.addComponent(cc.BlockInputEvents);
         // 依据奖杯右侧牌匾的可用区域对齐，并补偿圆体的视觉基线。
-        text(title, '排行榜', 34, 0, 38, 246, 54).node.name = 'leaderboardTitleText';
-        const track = uimanager.createRect(panel, 'leaderboardTabs', LIST_WIDTH, 64,
-            new cc.Color(228, 193, 137), 255, 22, 0, top - 92);
+        text(title, '排行榜', 34, 0, 44, 246, 54).node.name = 'leaderboardTitleText';
+        const track = uimanager.createRect(panel, 'leaderboardTabs', LIST_WIDTH, 80,
+            new cc.Color(228, 193, 137), 255, 22, 0, top - 100);
         track.addComponent(cc.BlockInputEvents);
         for (const type of ['power', 'beans'] as LeaderboardType[]) {
-            const tab = uimanager.createRect(track, 'leaderboardTab_' + type, 286, 54,
+            const tab = uimanager.createRect(track, 'leaderboardTab_' + type, 286, 70,
                 CREAM, 255, 18, type === 'power' ? -145 : 145, 2);
             tab.addComponent(cc.Button);
-            if (type === 'beans') createMoodBeanMascot(tab, -64, 0, 34);
-            else createTrophy(tab, -64, 0, 34);
-            text(tab, type === 'power' ? '积分榜' : '开心榜', 20, 0, 28, 160, 42);
+            const caption = text(tab, type === 'power' ? '积分榜' : '开心榜', 0, 0, 25, 160, 46);
+            caption.overflow = cc.Label.Overflow.NONE;
+            uimanager.applyTypography(caption);
+            (caption as any)._forceUpdateRenderData();
+            const iconSize = 46, gap = 10;
+            const iconX = -(caption.node.width + gap) / 2;
+            caption.node.x = (iconSize + gap) / 2;
+            if (type === 'beans') createMoodBeanMascot(tab, iconX, 0, iconSize);
+            else createTrophy(tab, iconX, 0, iconSize);
             tab.on(cc.Node.EventType.TOUCH_END, () => { void select(type); });
             tabs.push({ type, node: tab });
         }
@@ -110,7 +116,7 @@ function text(parent: cc.Node, value: string, x: number, y: number, size: number
     width: number, height: number = 40, nickname: boolean = false): cc.Label {
     const label = uimanager.createLabel(parent, value, x, y, size, BUTTON_TEXT_COLOR, width, height);
     label.enableWrapText = false;
-    uimanager.applyTypography(label, !nickname);
+    uimanager.applyTypography(label);
     if (nickname) label.node.name = 'leaderNickname';
     return label;
 }
@@ -134,6 +140,7 @@ function art(parent: cc.Node, name: string, path: string, width: number, height:
 
 function createTrophy(parent: cc.Node, x: number, y: number, size: number): void {
     const node = art(parent, 'leaderboardTrophy', ASSET_PATHS.home.rankEntry, size, size, x, y);
+    node.getComponent(cc.Sprite).trim = true;
     const frame = node.getComponent(cc.Sprite).spriteFrame;
     uimanager.fitSpriteFrameInside(node, frame, size, size);
 }
@@ -188,6 +195,7 @@ function createValue(parent: cc.Node, value: number, type: LeaderboardType, x: n
     }
     const label = text(group, number(value), 0, 0, size, 1, size + 12);
     label.overflow = cc.Label.Overflow.NONE;
+    uimanager.applyTypography(label);
     label.horizontalAlign = cc.Label.HorizontalAlign.LEFT;
     const fit = (): void => {
         if (!cc.isValid(group, true)) return;

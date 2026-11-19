@@ -7,6 +7,7 @@ const { execFileSync } = require('node:child_process');
 let cloud;
 let platform;
 let store;
+const waveCapabilities = ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8', 'rescue-scoring-v9', 'heart-rescue-v10', 'round-checkpoints-v1', 'revive-card-v11', 'round-tools-lightning-v12', 'rising-specials-lightning-v13', 'lightning-ten-rows-v15', 'round-tool-three-video-v14', 'reward-intents-v1', 'security-audit-v1', 'auto-rescue-v16', 'difficulty-waves-v17', 'scoring-waves-v18', 'tap-lightning-v19', 'round-tool-share-v20', 'short-opening-v21'];
 test.before(() => {
     const out = fs.mkdtempSync(path.join(os.tmpdir(), 'zyx-cloud-'));
     try {
@@ -83,6 +84,45 @@ test('后端未支持进度规则时在扣体力前停止开局', async () => {
     assert.ok(requests[0].endsWith('/health'));
 });
 
+test('同次登录已确认开局协议时少一次探测，切环境或账号后仍需验证', async () => {
+    const requests = [];
+    let envVersion = 'develop';
+    global.wx = {
+        getAccountInfoSync: () => ({ miniProgram: { envVersion } }),
+        request(options) {
+            requests.push(new URL(options.url).pathname.split('/').pop());
+            const rule = { rulesVersion: 21, collectionRule: 'progress_v2' };
+            const result = options.url.endsWith('/players/bootstrap')
+                ? { token: 'confirmed-token', profile: { playerId: 'p1' }, roundStart: { ...rule, resumeProtocol: 1, securityProtocol: 1 } }
+                : options.url.endsWith('/health') ? { capabilities: [] } : { ...rule, sessionToken: 'session', roundId: 'round_x' };
+            options.success({ statusCode: 200, data: { code: 0, data: result } });
+        },
+    };
+    const client = new cloud.default();
+    await client.bootstrap('', '');
+    await client.startRound('round_x');
+    assert.deepEqual(requests, ['bootstrap', 'start']);
+    envVersion = 'release';
+    await assert.rejects(client.startRound('round_y'), /游戏服务更新中/);
+    envVersion = 'develop';
+    store.set('zyx_cloud_token', 'different-token');
+    await assert.rejects(client.startRound('round_z'), /游戏服务更新中/);
+    assert.deepEqual(requests, ['bootstrap', 'start', 'health', 'health']);
+});
+
+test('401 自动登录返回另一账号时不重放写请求', async () => {
+    const requests = [];
+    store.set('zyx_cloud_token', 'old-account');
+    global.wx = { request(options) {
+        requests.push(new URL(options.url).pathname.split('/').pop());
+        if (options.url.endsWith('/players/bootstrap')) {
+            options.success({ statusCode: 200, data: { code: 0, data: { token: 'new-account' } } });
+        } else options.success({ statusCode: 401, data: { code: 401, message: 'expired' } });
+    } };
+    await assert.rejects(new cloud.default().exchangeTool('old-claim', 'reviveCard'), error => error.businessCode === 'ACCOUNT_CHANGED');
+    assert.deepEqual(requests, ['exchanges', 'bootstrap']);
+});
+
 test('服务端缺少双倍升难能力时不扣体力开局', async () => {
     const requests = [];
     global.wx = { request(options) {
@@ -126,10 +166,11 @@ test('微信正式版（release）使用 Production API', async () => {
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'release' } }),
         request: (options) => {
-            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'] } } }); return; }
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: waveCapabilities } } }); return; }
             assert.equal(options.url, 'https://api.tcjstory.cn/v1/cocos-zyx/games/start');
             assert.equal(options.header.Authorization, 'Bearer test-token');
-            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 8, stamina: { current: 29 } } } });
+            assert.equal(options.data.rulesVersion, 21);
+            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', sessionToken: 'test-session-token', collectionRule: 'progress_v2', rulesVersion: 21, stamina: { current: 29 } } } });
         },
     };
     assert.equal(cloud.getEnvName(), 'production');
@@ -137,14 +178,22 @@ test('微信正式版（release）使用 Production API', async () => {
     assert.equal((await cloud.cloudService.startRound('test')).stamina.current, 29);
 });
 
+test('固定提审包即使被微信标记为 release 也只能连 Staging', () => {
+    global.wx = { request() {}, getAccountInfoSync: () => ({ miniProgram: { envVersion: 'release' } }) };
+    global.window = { __ZYX_WECHAT_REVIEW_BUILD__: true };
+    try { assert.equal(cloud.getApiBase(), 'https://staging-api.tcjstory.cn/v1/cocos-zyx'); }
+    finally { delete global.window; }
+    assert.equal(cloud.getApiBase(), 'https://api.tcjstory.cn/v1/cocos-zyx');
+});
+
 test('微信体验版（trial）使用 Staging API', async () => {
     store.set('zyx_cloud_token', 'test-token');
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'trial' } }),
         request: (options) => {
-            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'] } } }); return; }
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: waveCapabilities } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/games/start');
-            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 8, stamina: { current: 29 } } } });
+            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', sessionToken: 'test-session-token', collectionRule: 'progress_v2', rulesVersion: 21, stamina: { current: 29 } } } });
         },
     };
     assert.equal(cloud.getEnvName(), 'staging');
@@ -157,9 +206,9 @@ test('微信开发版（develop）使用 Staging API', async () => {
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'develop' } }),
         request: (options) => {
-            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'] } } }); return; }
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: waveCapabilities } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/games/start');
-            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', collectionRule: 'progress_v2', rulesVersion: 8, stamina: { current: 29 } } } });
+            options.success({ statusCode: 200, data: { code: 0, data: { roundId: 'test', sessionToken: 'test-session-token', collectionRule: 'progress_v2', rulesVersion: 21, stamina: { current: 29 } } } });
         },
     };
     assert.equal(cloud.getEnvName(), 'staging');
@@ -172,12 +221,27 @@ test('微信 getAccountInfoSync 不可用时安全兜底到 Production', () => {
     assert.equal(cloud.getEnvName(), 'production');
 });
 
+test('V21客户端遇到只支持V20的服务不扣体力开局', async () => {
+    store.set('zyx_cloud_token', 'test-token');
+    const requests = [];
+    global.wx = {
+        getAccountInfoSync: () => ({ miniProgram: { envVersion: 'trial' } }),
+        request: options => {
+            requests.push(options.url);
+            options.success({ statusCode: 200, data: { code: 0, data: { capabilities: waveCapabilities.filter(capability => capability !== 'short-opening-v21') } } });
+        },
+    };
+    await assert.rejects(cloud.cloudService.startRound('needs_v21'), /游戏服务更新中/);
+    assert.equal(requests.length, 1);
+    assert.ok(requests[0].endsWith('/health'));
+});
+
 test('资料更新只走独立接口并携带微信昵称头像', async () => {
     store.set('zyx_cloud_token', 'test-token');
     global.wx = {
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'trial' } }),
         request: (options) => {
-            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'] } } }); return; }
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8', 'rescue-scoring-v9', 'heart-rescue-v10', 'round-checkpoints-v1', 'revive-card-v11', 'round-tools-lightning-v12', 'rising-specials-lightning-v13', 'round-tool-three-video-v14', 'lightning-ten-rows-v15', 'reward-intents-v1', 'security-audit-v1'] } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/players/profile');
             assert.deepEqual(options.data, { nickname: '微信玩家', avatarUrl: 'https://thirdwx.qlogo.cn/avatar.png' });
             options.success({ statusCode: 200, data: { code: 0, data: { profile: { nickname: '微信玩家' } } } });
@@ -194,7 +258,7 @@ test('微信建档携带一次性 loginCode，清缓存后 deviceId 改变仍提
         getAccountInfoSync: () => ({ miniProgram: { envVersion: 'develop' } }),
         login: (options) => options.success({ code: `login_code_${++loginSeq}` }),
         request: (options) => {
-            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8'] } } }); return; }
+            if (options.url.endsWith('/health')) { options.success({ statusCode: 200, data: { code: 0, data: { capabilities: ['bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8', 'rescue-scoring-v9', 'heart-rescue-v10', 'round-checkpoints-v1', 'revive-card-v11', 'round-tools-lightning-v12', 'rising-specials-lightning-v13', 'round-tool-three-video-v14', 'lightning-ten-rows-v15', 'reward-intents-v1', 'security-audit-v1'] } } }); return; }
             assert.equal(options.url, 'https://staging-api.tcjstory.cn/v1/cocos-zyx/players/bootstrap');
             bodies.push(options.data);
             options.success({ statusCode: 200, data: { code: 0, data: { token: `token_${loginSeq}`, profile: { playerId: 'stable_player' } } } });

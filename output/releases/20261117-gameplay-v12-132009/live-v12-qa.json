@@ -1,0 +1,16 @@
+{
+  "prices": {
+    "stamina": 3,
+    "reviveCard": 25
+  },
+  "removedToolsRejected": true,
+  "perRoundHammer3": true,
+  "wand1": true,
+  "rewardAndUseIdempotency": true,
+  "heldToolAndQuotaResumed": true,
+  "staleSessionRejected": true,
+  "finalReplaySettlement": true,
+  "cardConcurrencyIdempotent": true,
+  "twoRevivesMaximum": true,
+  "testAccountResetToZero": true
+}

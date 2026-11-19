@@ -6,7 +6,7 @@ const piece = (id, row, col, size = 1) => ({ id, row, col, size, color: 1, stamp
     stampCell: 0, collectibleType: 0, collectibleCell: 0 });
 
 test('V8两种救场共用分数高度条件和60秒CD，不限总次数、超时拒绝也占CD', () => {
-    const b = new BoardEngine(); b.resetBoard(42, false);
+    const b = new BoardEngine(); b.resetBoard(42, false, 8);
     b.pieces = [piece(1, 3, 0)]; b.score = 500;
     assert.equal(b.offerRoundRescue(0), null);
     b.score = 501; b.pieces[0].row = 4; assert.equal(b.offerRoundRescue(0), null);
@@ -26,9 +26,46 @@ test('V8两种救场共用分数高度条件和60秒CD，不限总次数、超�
     for (const elapsed of [-1, 1.5, NaN, Infinity]) assert.equal(b.offerRoundRescue(elapsed), null);
 });
 
+test('V16从底部第7排起不看分数，先清屏后气球；两者共享退场后20秒冷却', () => {
+    const board = new BoardEngine(); board.resetBoard(42, false, 16);
+    board.pieces = [piece(1, 4, 0), piece(2, 9, 2)];
+    assert.equal(board.offerRoundRescue(20000), null, '第6排不触发');
+    board.pieces[0].row = 3;
+    assert.equal(board.offerRoundRescue(19999), null);
+    assert.equal(board.offerRoundRescue(20000), 'clear');
+    assert.equal(board.offerRoundRescue(70000), null, '已有提示不能同时出现另一个');
+    assert.equal(board.dismissRoundRescue(19999), false);
+    assert.equal(board.dismissRoundRescue(71000), true);
+    assert.deepEqual(board.roundActions.at(-1), { type: 'rescueDismiss', elapsedMs: 71000 });
+    assert.equal(board.offerRoundRescue(90999), null);
+    assert.equal(board.offerRoundRescue(91000), 'balloon');
+    assert.equal(board.applyBalloonRescue(90000), null);
+    assert.ok(board.applyBalloonRescue(115000));
+    assert.deepEqual(board.roundActions.at(-1), { type: 'balloon', elapsedMs: 115000 });
+    board.finishPlayerAction();
+    board.pieces = [piece(3, 3, 0)];
+    assert.equal(board.offerRoundRescue(134999), null);
+    assert.equal(board.offerRoundRescue(135000), 'clear');
+    assert.ok(board.applyClearRescue(170000));
+    assert.deepEqual(board.roundActions.at(-1), { type: 'rescueClear', elapsedMs: 170000 });
+    assert.equal(board.getRoundRescueReadyAt(), 190000);
+});
+
+test('V15仍按出现时刻计算30秒，旧局不需要记录退场时刻', () => {
+    const board = new BoardEngine(); board.resetBoard(42, false, 15);
+    board.pieces = [piece(1, 3, 0)];
+    assert.equal(board.offerRoundRescue(40000), null);
+    board.score = 501;
+    assert.ok(board.offerRoundRescue(40000));
+    assert.equal(board.dismissRoundRescue(), true);
+    assert.deepEqual(board.roundActions.at(-1), { type: 'rescueDismiss' });
+    assert.equal(board.offerRoundRescue(69999), null);
+    assert.ok(board.offerRoundRescue(70000));
+});
+
 test('V8救场只能兑换抽中的类型一次，出现后降低高度仍可兑现，清屏沿用原补排规则', () => {
     for (const kind of ['balloon', 'clear']) {
-        const b = new BoardEngine(); b.resetBoard(42, false); b.score = 501;
+        const b = new BoardEngine(); b.resetBoard(42, false, 8); b.score = 501;
         b.pieces = [piece(1, 3, 0), piece(2, 9, 2)];
         b.random = () => kind === 'balloon' ? 0.25 : 0.75;
         assert.equal(b.offerRoundRescue(0), kind);
@@ -47,7 +84,7 @@ test('V8救场只能兑换抽中的类型一次，出现后降低高度仍可兑
 });
 
 test('V6双排只允许最高点不超过底部第4排，前25次仍为单排', () => {
-    const b = new BoardEngine();
+    const b = new BoardEngine(); b.resetBoard(42, false, 6);
     for (const actions of [26, 40, 55, 500]) {
         b.difficultyActionCount = actions;
         for (const [row, expected] of [[6, 2], [5, 1], [1, 1]]) {
@@ -86,7 +123,7 @@ test('热气球投弹与普通炸弹范围一致，覆盖相邻和斜角色块�
         piece(4, 7, 5)];
     const b = new BoardEngine(); b.rulesVersion = 7; b.pieces = pieces.map(p => ({ ...p })); b.balloonAvailable = true;
     b.shuffle = values => values;
-    const normal = new BoardEngine(); normal.pieces = pieces.map(p => ({ ...p, bomb: p.id === 1 || p.bomb }));
+    const normal = new BoardEngine(); normal.rulesVersion = 7; normal.pieces = pieces.map(p => ({ ...p, bomb: p.id === 1 || p.bomb }));
     const expected = normal.detonateBomb(1);
     const result = b.applyBalloonRescue();
     assert.deepEqual(result, expected);
@@ -116,7 +153,7 @@ test('多枚气球炸弹重叠范围只消除和收集一次，长块按爆心�
 });
 
 test('随机炸弹覆盖所有列，单格左右对称，不再把余数固定塞在最右', () => {
-    const b = new BoardEngine();
+    const b = new BoardEngine(); b.rulesVersion = 12;
     const bombs = Array(8).fill(0), singles = Array(8).fill(0), gaps = Array(8).fill(0);
     for (let i = 1; i <= 4096; i++) {
         b.randomState = Math.imul(i, 0x9e3779b1) >>> 0;

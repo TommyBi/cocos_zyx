@@ -1,0 +1,11 @@
+{
+  "correctedAt": "2026-11-17T19:27:13.402524+00:00",
+  "changeType": "release-policy and metadata only",
+  "originalStatementRetracted": "Production API20 must be deployed before review submission",
+  "productionDeploymentExecuted": false,
+  "runtimeAndWeChatArtifactChanges": false,
+  "productionApiVersion": 18,
+  "policySha256": "5fe3be12e01fd8c052556567809fa588d6c569bbad0548938e6ea79848d0adc6",
+  "reviewRoutingVerified": false,
+  "readinessReason": "Audit routing isolation and device/console verification; not Production upgrade"
+}

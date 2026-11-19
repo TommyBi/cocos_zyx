@@ -31,11 +31,11 @@ test.before(() => {
         ], { cwd: repoRoot, stdio: 'pipe' });
     } catch (_) { /* 独立编译不载入 Cocos 类型，检查生成的 JS 行为。 */ }
 
-    shareReward = require(path.join(out, 'ShareReward.js'));
-    shareCards = require(path.join(out, 'ShareConfig.js')).SHARE_CARDS;
-    const compiledPath = path.join(out, 'ShareReward.js');
+    shareReward = require(path.join(out, 'manager', 'ShareReward.js'));
+    shareCards = require(path.join(out, 'manager', 'ShareConfig.js')).SHARE_CARDS;
+    const compiledPath = path.join(out, 'manager', 'ShareReward.js');
     compiledSharePath = compiledPath;
-    const enabledPath = path.join(out, 'ShareReward.enabled.js');
+    const enabledPath = path.join(out, 'manager', 'ShareReward.enabled.js');
     const enabledSource = fs.readFileSync(compiledPath, 'utf8')
         .replace('exports.REWARDED_VIDEO_ENABLED = false;', 'exports.REWARDED_VIDEO_ENABLED = true;')
         .replace("exports.REWARDED_VIDEO_AD_UNIT_ID = '';", "exports.REWARDED_VIDEO_AD_UNIT_ID = 'adunit-test';");
@@ -45,6 +45,26 @@ test.before(() => {
 
 test.afterEach(() => {
     delete global.wx;
+});
+
+test('V20 解压锤分享，魔法棒仍是视频，V19 锤子仍走视频', () => {
+    assert.equal(shareReward.getRewardOfferIcon('hammer', 20), 'share');
+    assert.equal(shareReward.getRewardOfferIcon('hammer', 19), 'video');
+    assert.equal(shareReward.getRewardOfferIcon('tool', 20), 'video');
+    assert.match(shareReward.getRewardOfferFailToast('tool', 'hammer', 20), /分享/);
+});
+
+test('好友邀请直接唤起分享，不依赖奖励通道或成功回调', () => {
+    const reward = freshShareModule('invite');
+    const messages = [];
+    global.wx = { shareAppMessage: message => messages.push(message),
+        onShow: () => assert.fail('邀请不应注册奖励回前台监听'),
+        createRewardedVideoAd: () => assert.fail('邀请不应进入广告') };
+    reward.inviteWeChatFriends();
+    assert.equal(messages.length, 1);
+    assert.equal(messages[0].query, 'from=friend_invite');
+    assert.ok(shareCards.some(card => card.title === messages[0].title));
+    assert.equal(messages[0].success, undefined);
 });
 
 test('默认关闭激励视频，每次奖励分享随机选择匹配的 CDN 图片和原图文案', () => {
@@ -206,6 +226,37 @@ test('下载失败不发奖励、不拉起无图分享，下次允许重新下�
     } finally { Date.now = realNow; Math.random = realRandom; }
 });
 
+test('激励视频先立刻唤起，完整播放后才等待服务端确认发奖', async () => {
+    const reward = freshShareModule('parallel-proof');
+    const calls = [];
+    let close, confirm;
+    global.wx = { createRewardedVideoAd: () => ({
+        onClose: callback => { close = callback; }, onError: () => undefined,
+        offClose: () => undefined, offError: () => undefined,
+        show: () => { calls.push('show'); return Promise.resolve(); },
+    }) };
+    const attempt = reward.playVerifiedRewardVideo('机会', 'rescue',
+        () => { calls.push('prepare'); return new Promise(resolve => { confirm = resolve; }); },
+        async intent => { calls.push(intent.intentId); });
+    assert.deepEqual(calls, ['show']);
+    await Promise.resolve();
+    close({ isEnded: true });
+    assert.deepEqual(calls, ['show', 'prepare']);
+    confirm({ intentId: 'complete', completed: false, minClaimAt: 0 });
+    assert.equal(await attempt, true);
+    assert.deepEqual(calls, ['show', 'prepare', 'complete']);
+
+    const abandoned = reward.playVerifiedRewardVideo('机会', 'rescue',
+        () => Promise.reject(new Error('timeout')), async () => assert.fail('中途关闭不确认奖励'));
+    close({ isEnded: false });
+    assert.equal(await abandoned, false);
+
+    const unverified = reward.playVerifiedRewardVideo('机会', 'rescue',
+        () => Promise.reject(new Error('proof rejected')), async () => assert.fail('未获核验不发奖'));
+    close({ isEnded: true });
+    await assert.rejects(unverified, /proof rejected/);
+});
+
 test('开启后使用集中配置的广告位，完整观看只发放一次奖励', () => {
     let closeHandler;
     let offCloseCount = 0;
@@ -283,8 +334,9 @@ test('首次展示失败会先加载再重试，重试成功后等待完整观�
 test('五个奖励点位全部接入统一双通道，不再直接调用分享或保留旧开关', () => {
     const game = fs.readFileSync(path.join(repoRoot, 'assets/script/zyxGame/ZyxGame.ts'), 'utf8');
     const main = fs.readFileSync(path.join(repoRoot, 'assets/script/GameMainScene.ts'), 'utf8');
-    assert.equal((game.match(/this\.showRewardOffer\(/g) || []).length, 4);
-    assert.match(game, /private showRewardOffer[\s\S]*?requestRewardOffer\(onResult\)/);
+    assert.match(game, /const placement = hammer \? 'hammer' : 'tool';/);
+    assert.equal((game.match(/this\.showRewardOffer\(/g) || []).length, 3);
+    assert.match(game, /private showRewardOffer[\s\S]*?playVerifiedRewardVideo\('一次机会', placement/);
     assert.match(main, /requestRewardOffer\(\(rewarded\)/);
     for (const source of [game, main]) {
         assert.doesNotMatch(source, /requestShareReward|USE_SHARE_INSTEAD_OF_VIDEO|showRewardedVideo/);
@@ -300,4 +352,21 @@ test('两种救场共用随机入口，气球投弹等待200ms，普通消行沿
     const eliminate = game.slice(game.indexOf('private animateElimination('), game.indexOf('private playMoodCollect('));
     assert.doesNotMatch(eliminate, /showToast/);
     assert.match(eliminate, /this\.animateRowShatter\(result\.removedPieceIds, result\.detonatedBombs\)/);
+});
+
+test('局内道具显式分流广告位；魔法棒/复活/救场不回退分享，缺失完成状态不发奖', () => {
+    const expected = { hammer: 'adunit-3251cf42a96b9395', tool: 'adunit-3251cf42a96b9395', revive: 'adunit-cb541c6faf1e1889', rescue: 'adunit-285b01479c4638f5' };
+    for (const [placement, id] of Object.entries(expected)) {
+        const reward = freshShareModule('slot-' + placement), results = []; let close;
+        global.wx = { shareAppMessage: () => assert.fail('视频点位不应调用分享'),
+            createRewardedVideoAd: options => { assert.equal(options.adUnitId, id); return {
+                onClose: callback => { close = callback; }, onError: () => {}, offClose: () => {}, offError: () => {}, show: () => Promise.resolve(),
+            }; } };
+        reward.requestRewardOffer(value => results.push(value), '机会', placement);
+        close(undefined); close({ isEnded: true }); assert.deepEqual(results, [false]);
+        reward.requestRewardOffer(value => results.push(value), '机会', placement);
+        close({ isEnded: true }); close({ isEnded: true }); assert.deepEqual(results, [false, true]);
+        assert.equal(reward.getRewardOfferIcon(placement), 'video');
+    }
+    assert.equal(shareReward.getRewardOfferIcon('hammer'), 'video');
 });

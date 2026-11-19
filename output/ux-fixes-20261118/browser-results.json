@@ -1,0 +1,41 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "cancelledVideoNoReward": true,
+    "toolVideoClaimsAndUsesEach": 3,
+    "autoSelected": true,
+    "coldResume": true,
+    "startDirectResume": true,
+    "networkDirectResume": true,
+    "staminaPreserved": true,
+    "balloonGap": 48,
+    "pageErrors": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "cancelledVideoNoReward": true,
+    "toolVideoClaimsAndUsesEach": 3,
+    "autoSelected": true,
+    "coldResume": true,
+    "startDirectResume": true,
+    "networkDirectResume": true,
+    "staminaPreserved": true,
+    "balloonGap": 48,
+    "pageErrors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "cancelledVideoNoReward": true,
+    "toolVideoClaimsAndUsesEach": 3,
+    "autoSelected": true,
+    "coldResume": true,
+    "startDirectResume": true,
+    "networkDirectResume": true,
+    "staminaPreserved": true,
+    "balloonGap": 48,
+    "pageErrors": []
+  }
+]

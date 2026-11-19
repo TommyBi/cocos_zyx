@@ -46,7 +46,7 @@ function harness(deps = {}, storage = {}) {
                 tweens.push(tween); return tween;
             },
         },
-        require: (name) => name.endsWith('ResponsiveLayout') ? responsiveLayout : deps[name] || {},
+        require: (name) => name.endsWith('ResponsiveLayout') ? responsiveLayout : deps[name] || (name.endsWith('RoundProgress') ? { roundProgress: { token: 'test-session' } } : {}),
     });
     const game = new exported.default();
     game.node = { isValid: true, width: 750 };
@@ -55,6 +55,33 @@ function harness(deps = {}, storage = {}) {
     game.setToolSelectionMode = () => events.push('selection');
     return { game, tweens, events, prompt, drawer, explanation, mask };
 }
+
+test('底部提示完整8秒周期：渐入1.5秒、停留5秒、渐出1.5秒；暂停冻结', () => {
+    const { game } = harness({ '../dataModule/ZyxGameModule': { zyxGameModule: { challengeCount: 20 } } });
+    game.moodStageLabel = { string: '', node: { opacity: 0 } };
+    game.isTutorialGuidedStep = () => false;
+    game.updateRotatingTip(0.75); assert.ok(Math.abs(game.moodStageLabel.node.opacity - 128) <= 1);
+    game.hintHand = {}; // 自动引导不打断提示的完整渐变周期。
+    game.updateRotatingTip(0.75); assert.equal(game.moodStageLabel.node.opacity, 255);
+    game.updateRotatingTip(5); assert.equal(game.moodStageLabel.node.opacity, 255);
+    game.pauseMenuOpen = true; game.updateRotatingTip(10); assert.equal(game.tipSeconds, 6.5);
+    game.pauseMenuOpen = false; game.updateRotatingTip(0.75);
+    assert.ok(Math.abs(game.moodStageLabel.node.opacity - 128) <= 1);
+    const text = game.moodStageLabel.string;
+    game.updateRotatingTip(0.75); assert.equal(game.moodStageLabel.node.opacity, 0);
+    assert.notEqual(game.moodStageLabel.string, text);
+});
+
+test('免费气球点击谢谢后立即锁住操作，投心及补排完成前不能拖拽', () => {
+    const { game } = harness({ '../dataModule/ZyxGameModule': { zyxGameModule: { getBalloonTargets: () => [] } } });
+    game.rescueBalloon = { root: { convertToWorldSpaceAR: p => p } };
+    game.pieceLayer = { convertToNodeSpaceAR: p => p };
+    game.warmBalloonActive = true;
+    game.scheduleOnce = () => {};
+    game.applyRoundRescue();
+    assert.equal(game.locked, true);
+    assert.equal(game.balloonPhase, 'bombing');
+});
 
 test('右侧我可以只收起说明和遮罩，倒计时按钮保留；另点按钮才请求分享', () => {
     const { game, tweens, events, prompt, explanation, drawer, mask } = harness();
@@ -159,6 +186,36 @@ test('普通掉落锁不延长热气球飞行，暂停菜单和分享才暂停�
     assert.deepEqual(calls, [true, false, false]);
 });
 
+test('V16闲置自动检测，不符合就等20秒，暂停和结算演出不弹救场', () => {
+    const rules = require('../../server/src/boardEngine');
+    const board = new rules.default(); board.resetBoard(42, false, 16);
+    board.pieces = [{ id: 1, row: 4, col: 0, size: 1 }];
+    const { game, prompt } = harness({ '../dataModule/ZyxGameModule': { ...rules, zyxGameModule: board },
+        './RescueBalloon': { RescueBalloon: class { update() { return false; } } } });
+    let clock = 0;
+    game.getRoundElapsedMs = () => clock;
+    game.captureProgress = game.updateRotatingTip = game.markInteraction = () => {};
+    game.isTutorialGuidedStep = () => false;
+    game.showScreenClearRescuePrompt = () => { game.roundRescuePrompt = prompt; };
+    const frame = (time) => { clock = time; game.update(0); };
+    frame(19999); assert.equal(game.roundRescueRetryAt, 0);
+    frame(20000); assert.equal(game.roundRescueRetryAt, 40000);
+    board.pieces[0].row = 3;
+    frame(39999); assert.equal(game.roundRescuePrompt, null);
+    game.pauseMenuOpen = true;
+    frame(40000); assert.equal(game.roundRescuePrompt, null);
+    game.pauseMenuOpen = false;
+    game.locked = true;
+    frame(40600); assert.equal(game.roundRescuePrompt, null);
+    game.locked = false;
+    frame(40700); assert.equal(game.roundRescuePrompt, prompt);
+    frame(52000); game.dismissRoundRescuePrompt(false);
+    assert.equal(game.roundRescueRetryAt, 72000);
+    frame(71999); assert.equal(game.rescueBalloon, null);
+    frame(72000); assert.ok(game.rescueBalloon);
+    assert.deepEqual(board.roundActions.filter(action => action.type === 'rescueOffer').map(action => action.kind), ['clear', 'balloon']);
+});
+
 test('气球全部落地200ms后同步播放标准范围爆炸，全部受击块使用同一爆破结果', () => {
     const blasts = [], shatters = [], scheduled = [], drops = [];
     const targets = [{id: 1, row: 5, col: 2, size: 1}, {id: 2, row: 6, col: 3, size: 1}];
@@ -180,6 +237,7 @@ test('气球全部落地200ms后同步播放标准范围爆炸，全部受击块
     game.getPiecePosition = (row, col) => ({x: col * 76, y: -row * 76});
     game.scheduleOnce = (callback, delay) => scheduled.push({callback, delay});
     game.animateRowShatter = (...args) => shatters.push(args);
+    game.playToolScoreFeedback = () => {};
     game.applyRoundRescue();
     assert.equal(applied, 0); assert.equal(game.locked, true);
     const lastLanding = Math.max(...tweens.map((tween, index) => index * 0.13 + tween.moves[0].duration));
@@ -192,6 +250,35 @@ test('气球全部落地200ms后同步播放标准范围爆炸，全部受击块
     assert.deepEqual(shatters, [[result.removedPieceIds, result.detonatedBombs, true]]);
     assert.equal(scheduled[1].delay, 1.18);
     assert.equal(game.locked, true, '演出结束前保持输入保护');
+    game.resolveStableBoard = cb => cb();
+    game.dismissRoundRescuePrompt = () => { game.balloonPhase = 'none'; };
+    let refill;
+    game.appendNextRowAndResolve = value => { refill = value; };
+    scheduled[1].callback();
+    assert.equal(refill, false, '气球结束后进入固定升排，不能走最低四排补齐流程');
+});
+
+test('闪电演出完成后才展示加分、一次补排，不走四排补齐', () => {
+    const board = { score: 100, applyClearRescue() { this.score += 15; return [1, 2, 3]; } };
+    const sounds=[];
+    const { game } = harness({ '../dataModule/ZyxGameModule': { zyxGameModule: board },
+        '../manager/AudioManager': {audioManager:{playSound:name=>sounds.push(name)}} });
+    const events = []; let complete;
+    game.dismissRoundRescuePrompt = () => {};
+    game.playEmergencyLightning = () => events.push('flash');
+    game.playEmergencyClouds = () => {};
+    game.animateEmergencyShatter = ids => assert.deepEqual(ids, [1, 2, 3]);
+    game.scheduleOnce = cb => { complete = cb; };
+    game.playToolScoreFeedback = score => events.push(['score', score]);
+    game.resolveStableBoard = cb => cb(); game.updateHud = () => {};
+    game.appendNextRowAndResolve = refill => events.push(['rise', refill]);
+    game.applyScreenClearRescue();
+    assert.deepEqual(sounds,['emergencyLightning']);
+    assert.equal(game.locked, true); assert.deepEqual(events, ['flash']);
+    complete();
+    assert.deepEqual(events, ['flash', ['score', 15], ['rise', false]]);
+    game.playEmergencyClearEffect([1, 2, 3], () => {});
+    assert.deepEqual(sounds,['emergencyLightning']);
 });
 
 test('矢量序列飞行恰好15秒，暂停保留姿态、时间与剩余航程，出口淡隐', () => {
@@ -379,4 +466,36 @@ test('道具永久业务错误取消选择并解锁，不陷入只能重复确�
         assert.equal(await game.confirmToolUse('hammer',1,()=>retries++),null);
         assert.equal(game.locked,false);assert.equal(retries,0);assert.equal(messages.length,1);
     }
+});
+
+
+test('暂停时间不写入保存时长，后台时间只在未暂停时扣除，避免双重扣减', () => {
+    const captured=[];const clock=Date.now();
+    const board={cloudRoundId:'r',roundActions:[{type:'rules',version:10},{type:'finish'}],difficultyActionCount:1,
+        roundStartedAt:clock-400000,canCheckpoint:()=>true,isTutorialRound:()=>false};
+    const {game}=harness({'../dataModule/ZyxGameModule':{zyxGameModule:board},
+        '../manager/RoundProgress':{roundProgress:{roundId:'r',capture:(...args)=>captured.push(args)}}});
+    game.pauseMenuOpen=true;game.pauseStartedAt=clock-300000;
+    game.captureProgress(true);assert.ok(Math.abs(captured[0][2]-100000)<100);
+    game.resumeAfterBackground(60000);assert.equal(board.roundStartedAt,clock-400000);
+    game.pauseMenuOpen=false;game.resumeAfterBackground(60000);assert.equal(board.roundStartedAt,clock-340000);
+});
+
+test('进入锁定立即取消所有已按住色块和道具拖拽，重复锁定不改动演出位置', () => {
+    const {game}=harness();let cancelled=0,destroyed=0;
+    game.pieceLayer={children:[{getComponent:()=>({cancelTouch(){cancelled++;}})},{getComponent:()=>null}]};
+    game.toolTouchStart={x:1,y:2};game.toolDragging=true;game.hammerButton={scale:.96};
+    game.toolDragFollower={isValid:true,destroy(){destroyed++;}};
+    game.locked=true;assert.equal(cancelled,1);assert.equal(destroyed,1);assert.equal(game.toolTouchStart,null);assert.equal(game.toolDragging,false);assert.equal(game.hammerButton.scale,1);
+    game.locked=true;assert.equal(cancelled,1,'同一演出内重复锁定不能覆盖位置');
+});
+
+test('放电缩短三分之一且持有独立锁，逻辑提前解锁仍不能穿透炸弹或放电尾部', () => {
+    const {game}=harness();const scheduled=[];let completed=0;
+    game.scheduleOnce=(callback,seconds)=>scheduled.push({callback,seconds});game.renderBoard=()=>{};game.updateHud=()=>{};
+    game.playLightningDischarges([],()=>completed++);
+    assert.equal(game.lightningAnimationLocks,1);assert.ok(Math.abs(scheduled[0].seconds-(2/3+.02))<1e-9);
+    game.locked=false;assert.equal(game.locked,true);
+    game.bombAnimationLocks=1;scheduled[0].callback();assert.equal(game.lightningAnimationLocks,0);assert.equal(completed,1);assert.equal(game.locked,true);
+    game.bombAnimationLocks=0;assert.equal(game.locked,false);
 });

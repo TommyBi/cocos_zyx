@@ -1,0 +1,9 @@
+{
+  "files": 99,
+  "mainBytes": 2867102,
+  "budgetBytes": 2883584,
+  "archiveSha256": "356db0f9e5f850629f4ae14dcb0d849e17e7d200d0b90cb4fa00a4e532ab79cd",
+  "archiveFilesVerified": true,
+  "openDataMatchesFrozenSource": true,
+  "sourceAndBackendExcludeSecretsAndData": true
+}

@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "target": "candidate image",
+  "apiVersion": 26,
+  "results": [
+    {
+      "version": 15,
+      "opened": true,
+      "saved": true,
+      "resumed": true,
+      "actions": 30,
+      "scoreMatched": true,
+      "settled": true,
+      "duplicateSettlement": true
+    },
+    {
+      "version": 20,
+      "opened": true,
+      "saved": true,
+      "resumed": true,
+      "actions": 25,
+      "scoreMatched": true,
+      "settled": true,
+      "duplicateSettlement": true
+    },
+    {
+      "version": 21,
+      "opened": true,
+      "saved": true,
+      "resumed": true,
+      "actions": 20,
+      "scoreMatched": true,
+      "settled": true,
+      "duplicateSettlement": true,
+      "olderClientsCannotTakeOver": true
+    }
+  ]
+}

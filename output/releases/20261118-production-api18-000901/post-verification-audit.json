@@ -1,0 +1,75 @@
+{
+  "allPreexistingRowsPreserved": true,
+  "normalLiveActivityExactlyReconciled": [
+    {
+      "normalNewRoundStarts": 1,
+      "columnsExactlyExplained": [
+        "stamina_current",
+        "stamina_updated_at",
+        "updated_at",
+        "asset_revision"
+      ]
+    }
+  ],
+  "preexistingRowsVerified": {
+    "game_rounds": 676,
+    "players": 154,
+    "release_resets": 1,
+    "reward_intents": 0,
+    "risk_admin_events": 0,
+    "risk_events": 0,
+    "risk_reviews": 0,
+    "round_checkpoints": 0,
+    "round_settlements": 446,
+    "stamina_share_claims": 7,
+    "tool_inventory_refunds": 154,
+    "tool_transactions": 149
+  },
+  "probeSettledVersions": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+  ],
+  "probeNoDuplicateEconomyWrites": true,
+  "probeScoreAndBeans": 0,
+  "probeRiskEvents": [
+    {
+      "code": "SECURITY_PROTOCOL_REQUIRED",
+      "weight": 0,
+      "occurrences": 2
+    },
+    {
+      "code": "ROUND_SESSION_CONFLICT",
+      "weight": 0,
+      "occurrences": 1
+    },
+    {
+      "code": "REWARD_TOO_EARLY",
+      "weight": 10,
+      "occurrences": 1
+    }
+  ],
+  "otherContainersAndConfigsUnchanged": true,
+  "integrity": "ok",
+  "tableCounts": {
+    "game_rounds": 686,
+    "players": 155,
+    "release_resets": 1,
+    "reward_intents": 1,
+    "risk_admin_events": 0,
+    "risk_events": 3,
+    "risk_reviews": 0,
+    "round_checkpoints": 2,
+    "round_settlements": 455,
+    "sqlite_sequence": 2,
+    "stamina_share_claims": 7,
+    "tool_inventory_refunds": 154,
+    "tool_transactions": 150
+  }
+}

@@ -1,0 +1,172 @@
+--- production/src/boardEngine.js
++++ candidate/src/boardEngine.js
+@@ -5,8 +5,8 @@
+ /** 纯棋盘规则。客户端直接导入；服务端使用脚本生成的同源 CommonJS 产物。 */
+ exports.BOARD_ROWS = 10;
+ exports.BOARD_COLS = 8;
+-exports.BOARD_RULES_VERSION = 13;
+-exports.ROUND_RESCUE_COOLDOWN_MS = 60 * 1000;
++exports.BOARD_RULES_VERSION = 15;
++exports.ROUND_RESCUE_COOLDOWN_MS = 30 * 1000;
+ exports.MAX_BOARD_BOMBS = 3;
+ exports.MAX_ACTION_APPENDS = 5;
+ class BoardEngine {
+@@ -79,7 +79,7 @@
+         this.actionRows = 0;
+         this.balloonAvailable = false;
+         this.rescueKind = null;
+-        this.rescueLastOfferedAt = -exports.ROUND_RESCUE_COOLDOWN_MS;
++        this.rescueLastOfferedAt = -(rulesVersion >= 14 ? exports.ROUND_RESCUE_COOLDOWN_MS : 60000);
+         this.rescueRiseRows = 0;
+         this.heartAvailable = this.heartOffered = false;
+         this.nextId = 1;
+@@ -180,7 +180,7 @@
+         this.saveToolInventory();
+     }
+     useColorPurifier(color) {
+-        if (this.colorPurifierCount <= 0 || (this.rulesVersion >= 12 && this.wandUses >= 1))
++        if (this.colorPurifierCount <= 0 || (this.rulesVersion >= 12 && this.wandUses >= (this.rulesVersion >= 14 ? 3 : 1)))
+             return [];
+         const removedPieceIds = this.pieces
+             .filter((piece) => piece.color === color)
+@@ -226,7 +226,7 @@
+         return this.rulesVersion >= 8 && !this.rescueKind && !this.heartAvailable && this.score > 500 && this.getBoardHeight() > 6
+             && (this.rulesVersion < 12 || this.rescueOfferCounts.balloon < 4 || this.rescueOfferCounts.clear < 4)
+             && !this.isGameOver() && Number.isSafeInteger(elapsedMs) && elapsedMs >= 0
+-            && elapsedMs - this.rescueLastOfferedAt >= exports.ROUND_RESCUE_COOLDOWN_MS;
++            && elapsedMs - this.rescueLastOfferedAt >= (this.rulesVersion >= 14 ? exports.ROUND_RESCUE_COOLDOWN_MS : 60000);
+     }
+     /** 两种救场共用出现条件和冷却；用对局种子随机选择，重放可验证。 */
+     offerRoundRescue(elapsedMs) {
+@@ -607,9 +607,11 @@
+         result.gainedScore += baseScore;
+         this.score += baseScore;
+         this.roundClearedRows += fullRows.length;
+-        if (this.rulesVersion >= 12)
+-            this.pendingLightningCount += Math.floor(this.roundClearedRows / 20)
+-                - Math.floor((this.roundClearedRows - fullRows.length) / 20);
++        if (this.rulesVersion >= 12) {
++            const lightningInterval = this.rulesVersion >= 15 ? 10 : 20;
++            this.pendingLightningCount += Math.floor(this.roundClearedRows / lightningInterval)
++                - Math.floor((this.roundClearedRows - fullRows.length) / lightningInterval);
++        }
+         this.bestScore = Math.max(this.bestScore, this.score);
+         return result;
+     }
+--- production/src/gameEngine.js
++++ candidate/src/gameEngine.js
+@@ -341,7 +341,7 @@
+  */
+ function replayRound(seed, isTutorial, actions, rulesVersion, heartEligible = false) {
+   const version = rulesVersion === undefined ? (actions[0]?.type === 'rules' ? actions[0].version : 1) : rulesVersion;
+-  if ([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].includes(version)) return require('./replayBoardEngine').replayBoardEngine(seed, isTutorial, actions, version, heartEligible);
++  if ([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].includes(version)) return require('./replayBoardEngine').replayBoardEngine(seed, isTutorial, actions, version, heartEligible);
+   if (version !== 1 || actions[0]?.type === 'rules') return { score: -1, collectedMoodBeans: -1, valid: false };
+   const random = createRandom(seed);
+   const nextId = { value: 1 };
+--- production/src/index.js
++++ candidate/src/index.js
+@@ -321,7 +321,7 @@
+ risk = require('./riskControl').createRiskControl({ app, get, all, run, ensurePersisted, now, fail });
+ 
+ app.get(['/health', '/v1/cocos-zyx/health'], (_req, res) => {
+-  ok(res, { ok: true, service: 'cocos-zyx-cloud', apiVersion: 18, schemaVersion: 12, capabilities: ['wechat-login', 'stamina', 'round-start', 'settlement', 'power-leaderboard', 'bean-balance-leaderboard', 'daily-share', 'bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8', 'rescue-scoring-v9', 'heart-rescue-v10', 'round-checkpoints-v1', 'revive-card-v11', 'round-tools-lightning-v12', 'rising-specials-lightning-v13', 'reward-intents-v1', 'security-audit-v1'], checkedAt: new Date().toISOString() });
++  ok(res, { ok: true, service: 'cocos-zyx-cloud', apiVersion: 20, schemaVersion: 12, capabilities: ['wechat-login', 'stamina', 'round-start', 'settlement', 'power-leaderboard', 'bean-balance-leaderboard', 'daily-share', 'bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8', 'rescue-scoring-v9', 'heart-rescue-v10', 'round-checkpoints-v1', 'revive-card-v11', 'round-tools-lightning-v12', 'rising-specials-lightning-v13', 'reward-intents-v1', 'security-audit-v1', 'round-tool-three-video-v14', 'lightning-ten-rows-v15'], checkedAt: new Date().toISOString() });
+ });
+ 
+ app.post('/v1/cocos-zyx/players/bootstrap', async (req, res) => {
+@@ -434,7 +434,7 @@
+     if (!roundId) return fail(res, '缺少对局标识', 400, 'ROUND_ID_INVALID');
+     const collectionRule = req.body.collectionRule || 'legacy';
+     const rulesVersion = req.body.rulesVersion === undefined ? 1 : Number(req.body.rulesVersion);
+-    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, BOARD_RULES_VERSION].includes(rulesVersion)) return fail(res, '不支持的棋盘规则', 400, 'BOARD_RULES_UNSUPPORTED');
++    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, BOARD_RULES_VERSION].includes(rulesVersion)) return fail(res, '不支持的棋盘规则', 400, 'BOARD_RULES_UNSUPPORTED');
+     if (!['legacy', 'progress_v1', economy.MOOD_COLLECTION_RULE].includes(collectionRule)) return fail(res, '不支持的收集规则', 400, 'COLLECTION_RULE_UNSUPPORTED');
+ 
+     const existing = get('SELECT * FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
+@@ -462,13 +462,13 @@
+ 
+     // 滚动发布期间保留V5–V10与当前V11新开局；更早协议仅供历史局补传。
+     // 都必须使用当前收集规则、服务端种子及完整重放，不开放旧奖励协议。
+-    if ((![5, 6, 7, 8, 9, 10, 11, 12, BOARD_RULES_VERSION].includes(rulesVersion) || collectionRule !== economy.MOOD_COLLECTION_RULE)
++    if ((![5, 6, 7, 8, 9, 10, 11, 12, 13, 14, BOARD_RULES_VERSION].includes(rulesVersion) || collectionRule !== economy.MOOD_COLLECTION_RULE)
+       && process.env.ALLOW_LEGACY_ROUND_STARTS !== '1') {
+       return fail(res, '请更新游戏后重新开始', 400, 'COLLECTION_RULE_UNSUPPORTED');
+     }
+ 
+     const resumable = req.body.resumeProtocol === 1;
+-    if (req.body.resumeProtocol !== undefined && (!resumable || ![10, 11, 12, BOARD_RULES_VERSION].includes(rulesVersion))) return fail(res, '不支持的保存协议', 400, 'BOARD_RULES_UNSUPPORTED');
++    if (req.body.resumeProtocol !== undefined && (!resumable || ![10, 11, 12, 13, 14, BOARD_RULES_VERSION].includes(rulesVersion))) return fail(res, '不支持的保存协议', 400, 'BOARD_RULES_UNSUPPORTED');
+     const secureRound = req.body.securityProtocol === 1;
+     if (!secureRound && (process.env.REQUIRE_SECURITY_PROTOCOL === '1' || (rulesVersion >= 13 && process.env.ALLOW_LEGACY_ROUND_STARTS !== '1')))
+       return fail(res, '请更新游戏以使用安全核验协议', 400, 'SECURITY_PROTOCOL_REQUIRED');
+@@ -628,7 +628,7 @@
+       if (kind === 'reward') {
+         // 分享/广告补给沿用现有客户端完成回调，每局每种最多三次，限制重复伪造领取。
+         const claims = get("SELECT COUNT(*) AS count FROM tool_transactions WHERE player_id = ? AND round_id = ? AND item = ? AND kind = 'reward'", [user.player_id, roundId, item]);
+-        const limit = roundScoped && item === 'magicWand' ? 1 : 3;
++        const limit = roundScoped && round.rules_version < 14 && item === 'magicWand' ? 1 : 3;
+         if (claims.count >= limit) return fail(res, `每局仅可获得${limit}次`, 409, 'TOOL_REWARD_LIMIT');
+         if (roundScoped && tool.owned > 0) return fail(res, '请先使用已领取的道具', 409, 'TOOL_ALREADY_OWNED');
+       } else if (get("SELECT 1 FROM tool_transactions WHERE player_id = ? AND round_id = ? AND action_index = ? AND kind = 'use'", [user.player_id, roundId, actionIndex])) {
+--- production/src/replayBoardEngine.js
++++ candidate/src/replayBoardEngine.js
+@@ -1,9 +1,9 @@
+-/** V2–V13 重放同一纯棋盘引擎，按对局版本保留难度曲线与 settle/finish 边界。 */
++/** V2–V15 重放同一纯棋盘引擎，按对局版本保留难度曲线与 settle/finish 边界。 */
+ const { default: BoardEngine, BOARD_RULES_VERSION } = require('./boardEngine');
+ function replayBoardEngine(seed, tutorial, actions, rulesVersion, heartEligible = false, checkpoint = false, includeBoard = false, strict = false) {
+     const invalid = { score: -1, collectedMoodBeans: -1, valid: false };
+     if (!Array.isArray(actions) || actions[0]?.type !== 'rules'
+-        || ![2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, BOARD_RULES_VERSION].includes(rulesVersion) || actions[0].version !== rulesVersion) return invalid;
++        || ![2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, BOARD_RULES_VERSION].includes(rulesVersion) || actions[0].version !== rulesVersion) return invalid;
+     const board = new BoardEngine();
+     board.resetBoard(seed, tutorial, actions[0].version, heartEligible);
+     let openingRemaining = 0;
+--- production/src/rewardSecurity.js
++++ candidate/src/rewardSecurity.js
+@@ -24,8 +24,8 @@
+     if (intent.consumed_at && intent.claim_key !== claimKey) throw error('这份奖励已领取', 'REWARD_PROOF_INVALID', 400);
+     if (!intent.consumed_at) run('UPDATE reward_intents SET consumed_at=?,claim_key=? WHERE intent_id=? AND consumed_at IS NULL', [now(), claimKey, id]);
+   }
+-  function delay(placement) {
+-    const video = ['tool', 'revive', 'rescue'].includes(placement), floor = video ? 5000 : 3000;
++  function delay(placement, round) {
++    const video = (['tool', 'revive', 'rescue'].includes(placement) || (placement === 'hammer' && round && round.rules_version >= 14)), floor = video ? 5000 : 3000;
+     const configured = Number(process.env[video ? 'REWARD_MIN_VIDEO_MS' : 'REWARD_MIN_SHARE_MS']);
+     return Number.isFinite(configured) && configured >= 0 ? (process.env.NODE_ENV === 'production' ? Math.max(floor, configured) : configured) : floor;
+   }
+@@ -54,7 +54,7 @@
+         } else {
+           const item = placement === 'tool' ? 'magicWand' : 'hammer', tool = roundToolState(user.player_id, round.round_id)[item];
+           if (tool.owned) throw error('请先使用已领取的道具', 'TOOL_ALREADY_OWNED');
+-          if (tool.acquired >= (placement === 'tool' ? 1 : 3)) throw error('本局领取机会已用完', 'TOOL_REWARD_LIMIT');
++          if (tool.acquired >= (placement === 'tool' && round.rules_version < 14 ? 1 : 3)) throw error('本局领取机会已用完', 'TOOL_REWARD_LIMIT');
+           if (board.isGameOver() || !board.canCheckpoint()) throw error('请在正常对局中领取', 'REWARD_CONTEXT_INVALID', 400);
+         }
+       }
+@@ -65,11 +65,11 @@
+         if (result) progress.write(round, result);
+         let intent = get('SELECT * FROM reward_intents WHERE player_id=? AND round_id=? AND placement=? AND action_index=?', [user.player_id, roundId, placement, index]);
+         if (intent && !intent.completed_at && (intent.expires_at < now() || intent.session_hash !== sessionHash)) {
+-          run('UPDATE reward_intents SET issued_at=?,min_claim_at=?,expires_at=?,session_hash=? WHERE intent_id=? AND completed_at IS NULL', [now(), now() + delay(placement), now() + 900000, sessionHash, intent.intent_id]);
++          run('UPDATE reward_intents SET issued_at=?,min_claim_at=?,expires_at=?,session_hash=? WHERE intent_id=? AND completed_at IS NULL', [now(), now() + delay(placement, round), now() + 900000, sessionHash, intent.intent_id]);
+         } else if (!intent) {
+           intent = { intent_id: crypto.randomBytes(24).toString('hex') };
+           run(`INSERT INTO reward_intents(intent_id,player_id,round_id,placement,action_index,effect_type,session_hash,issued_at,min_claim_at,expires_at)
+-            VALUES(?,?,?,?,?,?,?,?,?,?)`, [intent.intent_id, user.player_id, roundId, placement, index, effectType, sessionHash, now(), now() + delay(placement), now() + 900000]);
++            VALUES(?,?,?,?,?,?,?,?,?,?)`, [intent.intent_id, user.player_id, roundId, placement, index, effectType, sessionHash, now(), now() + delay(placement, round), now() + 900000]);
+         }
+         intentId = intent.intent_id;
+       });
+--- production/src/roundProgress.js
++++ candidate/src/roundProgress.js
+@@ -180,7 +180,7 @@
+     try {
+       const user = authenticate(req, res); if (!user) return;
+       const round = roundFor(user.player_id, req.body.roundId); assertLive(round);
+-      if (![10, 11, 12, BOARD_RULES_VERSION].includes(round.rules_version)) throw invalid('请使用兼容版本继续这局', 'BOARD_RULES_UNSUPPORTED', 409);
++      if (![10, 11, 12, 13, 14, BOARD_RULES_VERSION].includes(round.rules_version)) throw invalid('请使用兼容版本继续这局', 'BOARD_RULES_UNSUPPORTED', 409);
+       const saved = checkpoint(user.player_id, round.round_id);
+       if (!saved) throw invalid('这局没有可恢复存档');
+       const { requestId, expectedGeneration } = req.body;

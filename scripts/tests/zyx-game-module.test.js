@@ -60,19 +60,16 @@ test.before(() => {
   boardRulesVersion = moduleExports.BOARD_RULES_VERSION;
 });
 
-test('乱序结算回执不能覆盖兑换后的余额和库存，开局和刷新也不返还已用道具', () => {
-  const store = installCcStub();
-  const module = createModule(store);
+test('V12云端余额乱序不回滚，本局道具不受账号库存刷新影响，也不会带入下一局', () => {
+  const store = installCcStub(); const module = createModule(store);
   const base = { playerId: 'shop-player', level: 1, experience: 0, highestSingleGameScore: 100 };
-  module.applyCloudProfile({ ...base, assetRevision: 4, moodBeanBalance: 40, inventory: { hammer: 0, magicWand: 0 } });
-  module.applyCloudProfile({ ...base, assetRevision: 5, moodBeanBalance: 20, inventory: { hammer: 1, magicWand: 0 } });
+  module.applyCloudProfile({ ...base, assetRevision: 5, moodBeanBalance: 20, inventory: { hammer: 9, magicWand: 9 } });
+  assert.equal(module.hammerCount, 0);
+  module.applyRoundTools({ hammer: { acquired: 1, used: 0, owned: 1 }, magicWand: { acquired: 0, used: 0, owned: 0 } });
   assert.equal(module.applyCloudProfile({ ...base, assetRevision: 4, moodBeanBalance: 40, inventory: { hammer: 0, magicWand: 0 } }), false);
-  assert.equal(module.moodBeanBalance, 20); assert.equal(module.hammerCount, 1);
-  assert.equal(module.applyCloudProfile({ ...base, moodBeanBalance: 999 }), false, '迁移前无版本回执也应忽略');
-  module.resetRound(); assert.equal(module.hammerCount, 1);
-  module.applyCloudProfile({ ...base, assetRevision: 6, moodBeanBalance: 20, inventory: { hammer: 0, magicWand: 0 } });
-  module.resetRound(); assert.equal(module.hammerCount, 0);
-  assert.equal(store.get('zyx_hammer_inventory'), '0');
+  module.applyCloudProfile({ ...base, assetRevision: 6, moodBeanBalance: 23, inventory: { hammer: 0, magicWand: 0 } });
+  assert.equal(module.hammerCount, 1); assert.equal(module.moodBeanBalance, 23);
+  module.resetRound(); assert.equal(module.hammerCount, 0); assert.equal(module.roundToolClaims.hammer, 0);
 });
 
 function createModule(store) {
@@ -385,7 +382,7 @@ test('暂停重开不保存最高分：消除过程中只更新内存，只有�
   assert.strictEqual(module.startingBestScore, 100);
 
   // 模拟局内打到 200 分：构造满行消除。
-  module.score = 190;
+  module.score = 188;
   // 放一个 size=8 的 piece 在 row 9（底部行），col 0，覆盖整行；stampMood=1 使消除时收集豆。
   module.pieces.push({
     id: 999, row: 9, col: 0, size: 8, color: 1,
@@ -425,7 +422,7 @@ function boardPiece(id, row, col, size, extra = {}) {
   return { id, row, col, size, color: 1, stampMood: 1, stampCell: 0, collectibleType: 0, collectibleCell: 0, ...extra };
 }
 
-test('连续成功操作递增到 5 倍，无消除的有效操作后归零', () => {
+test('连续成功操作依次升到 1/2/4/8/10 倍，无消除的有效操作后归零', () => {
   const module = createModule(installCcStub());
   module.resetRound();
   for (let action = 1; action <= 7; action++) {
@@ -433,7 +430,7 @@ test('连续成功操作递增到 5 倍，无消除的有效操作后归零', ()
     module.pieces = [boardPiece(action, 9, 0, 8)];
     const result = module.eliminateFullRows();
     assert.strictEqual(result.combo, Math.min(action, 5));
-    assert.strictEqual(result.gainedScore, 10 * Math.min(action, 5));
+    assert.strictEqual(result.gainedScore, [12, 24, 48, 96, 120][Math.min(action, 5) - 1]);
     module.finishPlayerAction();
   }
   module.beginPlayerAction();
@@ -443,12 +440,12 @@ test('连续成功操作递增到 5 倍，无消除的有效操作后归零', ()
   assert.strictEqual(module.combo, 0);
   module.beginPlayerAction();
   module.pieces = [boardPiece(101, 9, 0, 8)];
-  assert.strictEqual(module.eliminateFullRows().gainedScore, 10);
+  assert.strictEqual(module.eliminateFullRows().gainedScore, 12);
   module.resetRound();
   assert.strictEqual(module.combo, 0);
 });
 
-test('教学三次真实移动依次产生 10/20/30 分，服务端按跨操作连消重放', () => {
+test('V18教学三次真实移动依次产生 12/24/48 分，服务端按跨操作连消重放', () => {
   const module = createModule(installCcStub());
   module.setRoundSeed(42, true);
   module.resetRound();
@@ -457,7 +454,7 @@ test('教学三次真实移动依次产生 10/20/30 分，服务端按跨操作�
     assert.strictEqual(module.movePiece(move.id, move.offset), true);
     const result = module.resolveBoard();
     module.finishPlayerAction();
-    assert.strictEqual(result.gainedScore, 10 * (step + 1));
+    assert.strictEqual(result.gainedScore, [12, 24, 48][step]);
     assert.strictEqual(module.combo, step + 1);
     // 普通点击/无效移动不会被记为一次失败操作。
     assert.strictEqual(module.movePiece(999, 1), false);
@@ -472,6 +469,7 @@ test('教学三次真实移动依次产生 10/20/30 分，服务端按跨操作�
 test('同一次操作的自动补排不打断也不重复增加 combo', () => {
   const module = createModule(installCcStub());
   module.resetRound();
+  module.rulesVersion = 17; module.roundActions[0].version = 17;
   for (let action = 1; action <= 2; action++) {
     module.beginPlayerAction();
     module.pieces = [boardPiece(action, 9, 0, 8)];
@@ -486,9 +484,10 @@ test('同一次操作的自动补排不打断也不重复增加 combo', () => {
   }
 });
 
-test('Good 三连在整次操作结束后奖励，与双排叠加且重复 finish 不再领取', () => {
+test('V12 Good 三连在整次操作结束后奖励，与双排叠加且重复 finish 不再领取', () => {
   const module = createModule(installCcStub());
   module.resetRound();
+  module.rulesVersion = 12; module.roundActions[0].version = 12;
   for (let action = 1; action <= 6; action++) {
     module.beginPlayerAction();
     module.pieces = [boardPiece(100 + action, 9, 0, 8)];
@@ -501,10 +500,11 @@ test('Good 三连在整次操作结束后奖励，与双排叠加且重复 finis
   }
 });
 
-test('真实教学第三次成功给炸弹，主动引爆续连且与服务端事件重放一致', () => {
+test('V12 真实教学第三次成功给炸弹，主动引爆续连且与服务端事件重放一致', () => {
   const module = createModule(installCcStub());
   module.setRoundSeed(4, true);
   module.resetRound();
+  module.rulesVersion = 12; module.roundActions[0].version = 12;
   for (let step = 0; step < 3; step++) {
     const move = module.getTutorialMove(step);
     module.movePiece(move.id, move.offset);
@@ -533,9 +533,10 @@ test('偶数宽横块的爆破范围以整块中央对称覆盖两侧邻块', ()
   assert.deepStrictEqual(module.pieces.map(p => p.id), [103]);
 });
 
-test('同次操作两轮掉落消除累计两排，稳定后只发一枚炸弹；全清仍保留奖励', () => {
+test('V12 同次操作两轮掉落消除累计两排，稳定后只发一枚炸弹；全清仍保留奖励', () => {
   const module = createModule(installCcStub());
   module.resetRound();
+  module.rulesVersion = 12; module.roundActions[0].version = 12;
   // 中间满行先消；上方右半块随后落到底行，与左半块拼满，产生第二次消除。
   module.pieces = [boardPiece(100, 9, 0, 4), boardPiece(101, 8, 0, 8), boardPiece(102, 7, 4, 4)];
   const result = module.resolveBoard();
@@ -552,9 +553,10 @@ test('同次操作两轮掉落消除累计两排，稳定后只发一枚炸弹�
   assert.strictEqual(module.pieces[0].id, bombId);
 });
 
-test('同时清两排为基础分 20，炸弹附着在幸存普通横块，随移动保留', () => {
+test('V12 同时清两排为基础分 20，炸弹附着在幸存普通横块，随移动保留', () => {
   const module = createModule(installCcStub());
   module.resetRound();
+  module.rulesVersion = 12; module.roundActions[0].version = 12;
   module.pieces = [boardPiece(100, 9, 0, 8), boardPiece(101, 8, 0, 8), boardPiece(102, 7, 2, 2)];
   const result = module.resolveBoard();
   assert.strictEqual(result.clearedRows, 2);
@@ -611,4 +613,61 @@ test('多种种子的真实移动、连消、奖励炸弹与爆破，客户端�
   }
   assert.ok(detonated > 0, '必须覆盖真实开局获得奖励后引爆的完整路径');
   assert.strictEqual(replayRound(42, false, [{ type: 'bomb', id: 1 }]).valid, false);
+});
+
+test('V17真实对局清屏减压、满12行升难、气球再减压；前后端续玩重放一致', () => {
+  const { finishTurn } = require('../fixtures/rescue-security-helper.cjs');
+  const { replayBoardEngine } = require('../../server/src/replayBoardEngine');
+  const store = installCcStub();
+  const seed = 42, board = createModule(store);
+  board.resetBoard(seed, false, 17);
+  const rescues = [];
+  let reliefStartRows;
+  for (let step = 0; step < 110 && !board.isGameOver(); step++) {
+    const elapsedMs = 60000 + rescues.length * 40000;
+    if (board.difficultyActionCount >= 48 && !board.reliefRowsRemaining && board.canOfferRoundRescue(elapsedMs)) {
+      const kind = board.offerRoundRescue(elapsedMs);
+      if (rescues.length === 1) assert.ok(board.roundClearedRows - reliefStartRows >= 12);
+      rescues.push(kind);
+      assert.ok(kind === 'clear' ? board.applyClearRescue(elapsedMs) : board.applyBalloonRescue(elapsedMs));
+      finishTurn(board, false);
+      assert.equal(board.reliefRowsRemaining, 12);
+      reliefStartRows = board.roundClearedRows;
+      if (rescues.length === 2) break;
+    }
+    const hint = board.findEliminationHint();
+    const bomb = board.pieces.find(piece => piece.bomb);
+    if (hint) assert.ok(board.movePiece(hint.id, hint.offset));
+    else if (bomb) assert.ok(board.detonateBomb(bomb.id));
+    else {
+      const move = board.pieces.map(piece => {
+        const range = board.getMoveRange(piece.id);
+        return { id: piece.id, offset: range.min || range.max };
+      }).find(move => move.offset);
+      assert.ok(move && board.movePiece(move.id, move.offset));
+    }
+    finishTurn(board);
+  }
+  assert.deepStrictEqual(rescues, ['clear', 'balloon']);
+  const replay = replayBoardEngine(seed, false, board.roundActions, 17, false, true, true, true);
+  assert.ok(replay.valid && replay.ready);
+  const restored = createModule(store);
+  restored.restoreRound({ roundId: 'v17-wave', rulesVersion: 17, seed, isTutorial: false,
+    heartRescueEligible: false, actions: board.roundActions, elapsedMs: 100000 });
+  for (const field of ['pieces', 'nextPieces', 'secondNextPieces', 'score', 'roundClearedRows', 'reliefRowsRemaining', 'randomState']) {
+    assert.deepStrictEqual(replay.board[field], board[field], `server: ${field}`);
+    assert.deepStrictEqual(restored[field], board[field], `resume: ${field}`);
+  }
+});
+
+
+test('复活卡库存跟随云端资产版本持久化，重开不补回，用旧回执不能回滚扣卡', () => {
+  const store = installCcStub(), module = createModule(store);
+  const base = { playerId: 'revive-card-player', level: 1, experience: 0, highestSingleGameScore: 0, moodBeanBalance: 0 };
+  module.applyCloudProfile({ ...base, assetRevision: 2, inventory: { hammer: 0, magicWand: 0, reviveCard: 2 } });
+  module.resetRound(); assert.equal(module.reviveCardCount, 2);
+  module.applyCloudProfile({ ...base, assetRevision: 3, inventory: { hammer: 0, magicWand: 0, reviveCard: 1 } });
+  assert.equal(module.applyCloudProfile({ ...base, assetRevision: 2, inventory: { hammer: 0, magicWand: 0, reviveCard: 2 } }), false);
+  module.resetRound(); assert.equal(module.reviveCardCount, 1); assert.equal(store.get('zyx_revive_card_inventory'), '1');
+  module.resetLocalAccount(); assert.equal(module.reviveCardCount, 0);
 });

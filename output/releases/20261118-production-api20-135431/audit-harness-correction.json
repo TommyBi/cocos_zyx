@@ -1,0 +1,4 @@
+{
+  "runtimeOrSourceChanged": false,
+  "correction": "Include each of the 11 zero-score settlements in expected asset_revision delta, as implemented in unchanged index.js settlement transaction; 11 starts + 11 settlements + 1 daily share = 23. Reuse original immutable post-verification snapshot."
+}

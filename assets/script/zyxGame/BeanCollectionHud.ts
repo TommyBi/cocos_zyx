@@ -53,15 +53,13 @@ export default class BeanCollectionHud {
             new cc.Color(255, 252, 238), 120, 30);
         const textWidth = width - 198;
         const textX = 75;
-        const captionPill = uimanager.createRect(this.root, 'collectionCaption', 150, 32,
-            new cc.Color(106, 153, 59), 255, 16, textX, 46);
-        const caption = uimanager.createLabel(captionPill, '收集进度', 0, 0, 24,
-            new cc.Color(255, 255, 232), 136, 28);
         this.percent = uimanager.createLabel(this.root, '0%', textX, 0, 64,
             new cc.Color(38, 89, 29), textWidth, 70);
-        this.goal = uimanager.createLabel(this.root, '集满100%再得1颗', textX, -47, 22,
-            new cc.Color(117, 82, 51), textWidth, 28);
-        for (const label of [this.count, caption, this.percent, this.goal]) applyHudFont(label);
+        this.goal = uimanager.createLabel(this.root, '集满100%再得1颗', textX, -54, 16,
+            new cc.Color(117, 82, 51), textWidth, 20);
+        this.goal.fontSize = 18;
+        this.goal.node.height = 24;
+        for (const label of [this.count, this.percent, this.goal]) applyHudFont(label);
         this.render(false);
     }
 

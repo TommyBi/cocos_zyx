@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "kind": "source",
+  "createdAt": "2026-11-14T10:26:34.448961+00:00",
+  "includes": [
+    "package-lock.json",
+    "package.json",
+    "src"
+  ],
+  "files": {
+    "package-lock.json": {
+      "sha256": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868",
+      "bytes": 31452
+    },
+    "package.json": {
+      "sha256": "1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9",
+      "bytes": 336
+    },
+    "src/boardEngine.js": {
+      "sha256": "d1f08342fb1ab73ea038321b04a359262b03f027b12b6fce84ca3609c7188a1f",
+      "bytes": 43482
+    },
+    "src/databaseAudit.js": {
+      "sha256": "d47ab57cacf43864740968d2fff41d04089db4d3daea10573d353e6d01c59adb",
+      "bytes": 2108
+    },
+    "src/defaultNickname.js": {
+      "sha256": "09d2ed5a2c9a2898b591697e34d4ca671cc57d29c43dc8fa9949c6ce534ae4e0",
+      "bytes": 2362
+    },
+    "src/economyConfig.js": {
+      "sha256": "7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7",
+      "bytes": 1191
+    },
+    "src/gameEngine.js": {
+      "sha256": "f0a43fa953787be43b954c4ee2570e1b460af1358807c19bb88841f52cd91a8b",
+      "bytes": 16601
+    },
+    "src/index.js": {
+      "sha256": "761dde247fd72bbaacb96324dec475ed6d75075a4a65e8627d7e8c7ed0aa6f5d",
+      "bytes": 40384
+    },
+    "src/replayBoardEngine.js": {
+      "sha256": "7c81c6f54e543c4c99b7fbeb2f3f60f74a7331f4fb031768da07509aa0ef4ba4",
+      "bytes": 6581
+    },
+    "src/resetProgress.js": {
+      "sha256": "50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b",
+      "bytes": 2923
+    },
+    "src/schema.js": {
+      "sha256": "b268aa691bae74069d90ac7d7975c2327e1aa6bfecc0acad01bf5d8bd7268a1f",
+      "bytes": 6841
+    },
+    "src/wechatAuth.js": {
+      "sha256": "1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed",
+      "bytes": 1964
+    }
+  },
+  "treeSha256": "0e604bd056509a7d0df6c4406a0d849303de30d910c0c7b71c513034ee5584af",
+  "excludedPaths": [
+    ".deploy",
+    "build",
+    "coverage",
+    "data",
+    "dist",
+    "logs",
+    "server/build",
+    "server/data",
+    "server/dist",
+    "server/uploads",
+    "tmp",
+    "uploads",
+    "web/build",
+    "web/dist",
+    "web/uploads"
+  ],
+  "skippedCount": 0
+}

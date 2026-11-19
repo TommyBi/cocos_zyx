@@ -1,0 +1,32 @@
+{
+  "clientVersion": "2026.11.17.01",
+  "rulesVersion": 12,
+  "apiVersion": 16,
+  "schemaVersion": 11,
+  "sourceFingerprint": "5dbd5bfdd1038d2c4d8c2c7edbd9be331fa2c9f1f04e05a6f6a83f0a17a2ddd3",
+  "sourceFiles": 289,
+  "wechatFiles": 99,
+  "wechatMainBytes": 2876163,
+  "clientTests": 213,
+  "serverTests": 69,
+  "browserResults": "browser-results.json",
+  "migrationAudit": "migration-audit.json",
+  "artifacts": {
+    "wechat-v2026.11.17.01.zip": {
+      "bytes": 7074911,
+      "sha256": "e7f13058a10bd82b55aa58f5fdea08dc3acb2e10a6986383ff4b123b1629050c"
+    },
+    "server-v2026.11.17.01.tar.gz": {
+      "bytes": 87382,
+      "sha256": "9602af6f375ad5caa1c799785e50c4782181f80170cb231ff04370ac0cf65ea7"
+    },
+    "web-v2026.11.17.01.tar.gz": {
+      "bytes": 9907938,
+      "sha256": "d562e5b4ccf3cf65ce031bb85d9481413bfa8f2935430d5eb589ab3b262364bf"
+    }
+  },
+  "status": "local-candidate-only",
+  "deployed": false,
+  "uploadedToWeChat": false,
+  "productionRefundApplied": false
+}

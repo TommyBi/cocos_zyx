@@ -1,0 +1,79 @@
+[
+  {
+    "file": "music/config.cf085.json",
+    "bytes": 573,
+    "sha256": "ec15a3b8c23e0fc49d4866c9784564a821975efdb763627a256403c73ad254fe",
+    "uploaded": false,
+    "verified": true
+  },
+  {
+    "file": "music/import/01/01423f92-0353-48dc-9d72-9d78fd227930.6e467.json",
+    "bytes": 128,
+    "sha256": "6c61c600b5446259533d7a4e036430832a0ab37307318eb944019a65a4a95888",
+    "uploaded": true,
+    "verified": true
+  },
+  {
+    "file": "music/import/1c/1cc6d4e9-bd63-42a1-963c-6db80e144a7f.f2c28.json",
+    "bytes": 126,
+    "sha256": "e4aa462a54327749a8235ad3fedb423f38e3c3a6b001b5b2ffbaba643a1a0edb",
+    "uploaded": false,
+    "verified": true
+  },
+  {
+    "file": "music/import/75/759aa7c0-f31e-4186-ae5b-d4ad825bcfe5.b91e9.json",
+    "bytes": 126,
+    "sha256": "6e5b07e6c1495f5587a07171d17b8b241c8e66f149be9608aace42099393f9ea",
+    "uploaded": false,
+    "verified": true
+  },
+  {
+    "file": "music/import/9a/9a11ce8c-54ac-49d5-8187-38b165d7f81e.fb0c0.json",
+    "bytes": 124,
+    "sha256": "98184b15c203ba1b07f17670f6ec24f4ce6f15d26d6d9f6cd36893c705ba9db1",
+    "uploaded": true,
+    "verified": true
+  },
+  {
+    "file": "music/import/da/dae04b2c-a48e-45da-9ad4-2e101714a90b.f5e34.json",
+    "bytes": 126,
+    "sha256": "573e3d5255eee1ee4c043d195a2cd31c0555d2901fa0d9ebd993c70ff67421bf",
+    "uploaded": true,
+    "verified": true
+  },
+  {
+    "file": "music/native/01/01423f92-0353-48dc-9d72-9d78fd227930.0611a.mp3",
+    "bytes": 72724,
+    "sha256": "f8336a671aaf0145fa4e528e52d42731fe946030fdd3daaf8e2d9c1a05ef0346",
+    "uploaded": true,
+    "verified": true
+  },
+  {
+    "file": "music/native/1c/1cc6d4e9-bd63-42a1-963c-6db80e144a7f.0241c.mp3",
+    "bytes": 1152566,
+    "sha256": "f9442b0633302b0e54cfe2057addb7bfcf4aaf0f34c935942547189bbdcb7d0f",
+    "uploaded": false,
+    "verified": true
+  },
+  {
+    "file": "music/native/75/759aa7c0-f31e-4186-ae5b-d4ad825bcfe5.fadb3.mp3",
+    "bytes": 1260713,
+    "sha256": "d093929b35fe8ee28cd45d562447245fcf044883b318865d0d0025cd1a9e85ff",
+    "uploaded": false,
+    "verified": true
+  },
+  {
+    "file": "music/native/9a/9a11ce8c-54ac-49d5-8187-38b165d7f81e.43a97.mp3",
+    "bytes": 20733,
+    "sha256": "f5b42f552676ff1413364ffc06943531571328b8be60be56f240580d4ad68db1",
+    "uploaded": true,
+    "verified": true
+  },
+  {
+    "file": "music/native/da/dae04b2c-a48e-45da-9ad4-2e101714a90b.98c1c.mp3",
+    "bytes": 23240,
+    "sha256": "411c969c0f1b7ed6da5342f2d620620f6bf26d329e70a48e4c3161f725a8bff3",
+    "uploaded": true,
+    "verified": true
+  }
+]

@@ -1,0 +1,41 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "buttonHeight": 96,
+    "buttonGap": 32,
+    "pitifulFaceAndVideo": true,
+    "compactMessage": true,
+    "reviveRivalScenarios": 4,
+    "equalReviveButtonSizes": true,
+    "gapDoesNotClick": true,
+    "userAudioExactBytes": true,
+    "pageErrors": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "buttonHeight": 96,
+    "buttonGap": 32,
+    "pitifulFaceAndVideo": true,
+    "compactMessage": true,
+    "reviveRivalScenarios": 4,
+    "equalReviveButtonSizes": true,
+    "gapDoesNotClick": true,
+    "userAudioExactBytes": true,
+    "pageErrors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "buttonHeight": 96,
+    "buttonGap": 32,
+    "pitifulFaceAndVideo": true,
+    "compactMessage": true,
+    "reviveRivalScenarios": 4,
+    "equalReviveButtonSizes": true,
+    "gapDoesNotClick": true,
+    "userAudioExactBytes": true,
+    "pageErrors": []
+  }
+]

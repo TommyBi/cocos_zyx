@@ -1,0 +1,8 @@
+services:
+  cocos_zyx_api:
+    image: cocos-zyx-production:20261114-production-shop3-201041
+    build:
+      context: /opt/tcjstory/apps/cocos-zyx/releases/20261114-production-shop3-201041/server
+    environment:
+      NODE_ENV: production
+      ENABLE_GM_ROUTES: "0"

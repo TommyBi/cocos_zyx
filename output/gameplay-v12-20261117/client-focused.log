@@ -1,0 +1,120 @@
+✔ 满行炸弹及被波及的旧炸弹连锁引爆，交叠范围收集与计分不重复 (1.094333ms)
+✔ 主动炸弹续 combo，不因爆破自动升档；普通无消除移动仍断连 (0.201583ms)
+✔ 双排与三连奖励延迟到操作结束，场上最多三枚，重复结算不能复制 (0.238208ms)
+✔ 补排预算有界，自动补排不推进操作计数；后期阶段封顶 (21.269208ms)
+✔ 升难速度翻倍：18步结束强辅助、30步高手、42步封顶，旧V2曲线不变 (2.078333ms)
+✔ 调整前冻结的V2长局仍能原样重放结算，不能更改版本冒充新曲线 (151.482791ms)
+✔ V4在9/15/21次有效操作切换阶段，炸弹也升难，后期辅助与提示退坡 (3.832583ms)
+✔ V3冻结长局保持原结果，V2/V3/V4不能互换动作版本 (123.183042ms)
+✔ 教学三排批量补入的真实事件边界双端一致，且不能用旧规则重放新局 (4.364583ms)
+✔ 提示是只读的，不影响随机序列和已展示的下一排 (11.195041ms)
+✔ 分支选择回归：新手可选不同容易解，早期持续消除并有双排/连锁 (6903.034042ms)
+✔ 当前规则不接受跳过重力/消除结算就结束或进行下一次移动 (0.223125ms)
+✔ V5保护25步，26/40/55切阶段，双排频率与大块明显增加并封顶 (2.164041ms)
+✔ V5整次双排原子升起，预告不改牌；顶行或预算不足不进行半次上升 (2.759875ms)
+✔ V5三/四/五连和五连后每次消除都奖励，炸弹空爆不刷，旧V4只奖励到三连 (3.676ms)
+✔ 冻结的V4长局保留原始结果；V5双排篡改无法重放 (106.090708ms)
+✔ V5不能省略上一回合上升，或把双排篡改为单排后继续刷消除 (242.899458ms)
+✔ 排行榜复用已保存授权，重启后仍生效，换账号不误用旧标记 (0.449292ms)
+✔ Web 请求超时会取消，允许商城用原ID继续确认而非永久卡在确认中 (5.843541ms)
+✔ 浏览器 Web 预览默认连 Staging (0.1155ms)
+✔ 浏览器忽略残留 localStorage override，仍走 Staging (0.080417ms)
+✔ 只有 Debug 本机页面显式 localApi=1 才可联调本机，远程/正式环境忽略 (0.187958ms)
+✔ 后端未支持进度规则时在扣体力前停止开局 (0.249125ms)
+✔ 服务端缺少双倍升难能力时不扣体力开局 (0.091708ms)
+✔ 服务端仍是V3时在扣体力前拦截V4新开局 (0.075208ms)
+✔ 服务端仅支持V6单块投弹时，在扣体力前拦截V7新开局 (0.108416ms)
+✖ 微信正式版（release）使用 Production API (0.174417ms)
+✖ 微信体验版（trial）使用 Staging API (0.103625ms)
+✖ 微信开发版（develop）使用 Staging API (0.088625ms)
+✔ 微信 getAccountInfoSync 不可用时安全兜底到 Production (0.034708ms)
+✔ 资料更新只走独立接口并携带微信昵称头像 (0.370917ms)
+✔ 微信建档携带一次性 loginCode，清缓存后 deviceId 改变仍提交微信身份 (0.166ms)
+✔ wx.login 失败时不发建档请求，不静默创建新的设备账号 (0.077875ms)
+✔ 已授权玩家直接读取微信资料，不重复创建原生授权按钮 (0.116417ms)
+✔ 未授权玩家使用全屏透明原生按钮，授权成功销毁按钮并收起底部说明层 (0.175292ms)
+✔ 原生授权拒绝返回真实错误并收起说明层，旧容器才使用 getUserProfile 兜底 (0.15025ms)
+✔ 原生授权按钮创建异常时也清理底部说明层 (0.056542ms)
+✔ Web 与无效微信昵称不会伪装授权成功 (0.06725ms)
+✔ 账号切换后旧请求的成功回执和401均不能覆盖新账号或替新账号重试旧操作 (0.099166ms)
+✔ 好友邀请直接唤起分享，不依赖奖励通道或成功回调 (0.955833ms)
+✔ 默认关闭激励视频，每次奖励分享随机选择匹配的 CDN 图片和原图文案 (0.5845ms)
+✔ 原生转发菜单每次调用重新随机，注册一次且不触发奖励 (0.167417ms)
+✔ 三张分享图与原文、清单和 CDN URL 对应，图片始终留在 assets 外 (5.936708ms)
+✔ 图片下载时间不计入奖励停留时间，缓存后直接复用临时文件 (3.205125ms)
+✔ 菜单预取三张 CDN 图片，共享下载并异步补齐本地路径 (1.04275ms)
+✔ 下载失败不发奖励、不拉起无图分享，下次允许重新下载 (1.150208ms)
+✔ 开启后使用集中配置的广告位，完整观看只发放一次奖励 (0.348792ms)
+✔ 中途关闭或广告错误均不发奖励，后续回调不会重复结算 (0.11875ms)
+✔ 首次展示失败会先加载再重试，重试成功后等待完整观看回调 (0.408875ms)
+✔ 五个奖励点位全部接入统一双通道，不再直接调用分享或保留旧开关 (2.202833ms)
+✔ 两种救场共用随机入口，气球投弹等待200ms，普通消行沿用现有碎裂 (0.4395ms)
+✔ V12云端余额乱序不回滚，本局道具不受账号库存刷新影响，也不会带入下一局 (0.753458ms)
+✔ 数据代际不匹配时一次性清空全部旧键，不做任何折算 (0.137958ms)
+✔ 写入当前代际标记后，正常重启不会再次清空新档 (0.553375ms)
+✔ 旧瓶键不会被读取：只认心情豆新键 (0.061333ms)
+✔ 缺键时使用默认值，非法字符串回退到安全默认 (0.060917ms)
+✔ 消除 10 个表情块未满一颗，经验独立累计且不预支云端资产 (0.216958ms)
+✔ 重复 finishRound() 返回零增量，不重复入账 (0.083375ms)
+✔ 整颗奖励与表情经验分离，多颗与余量均正确，每局从零开始 (12.882708ms)
+✔ 待提交结算队列：入队去重，成功后只删除对应 roundId (0.274166ms)
+✔ 待提交结算队列上限 100：满员后拒绝入队且不静默丢弃 (1.850542ms)
+✔ dead-letter：坏记录移出活动队列并保留原因与时间，不堵塞后续记录 (0.175875ms)
+✔ 服务端开局配置在 resetRound 生成棋盘前生效，并且只消费一次 (14.114375ms)
+✔ 暂停重开语义：只 resetRound 不 finishRound 时余额、经验与待提交队列均不变 (0.3505ms)
+✔ refreshPersistentProgress 恢复历史最高分，但不覆盖局内更高的内存值 (0.132625ms)
+✔ 未确认结算不增加首页余额，服务端逐局确认后才展示入账 (0.082ms)
+✔ 未确认结算不推高等级或经验 (0.052541ms)
+✔ dead-letter 和待提交记录均不改变已确认展示值 (0.054458ms)
+✔ 暂停重开不保存最高分：消除过程中只更新内存，只有正式结算才写入 zyx_best_score (2.538542ms)
+✔ 连续成功操作递增到 5 倍，无消除的有效操作后归零 (0.41625ms)
+✔ 教学三次真实移动依次产生 10/20/30 分，服务端按跨操作连消重放 (0.717792ms)
+✔ 同一次操作的自动补排不打断也不重复增加 combo (1.070958ms)
+✔ Good 三连在整次操作结束后奖励，与双排叠加且重复 finish 不再领取 (0.52675ms)
+✔ 真实教学第三次成功给炸弹，主动引爆续连且与服务端事件重放一致 (0.361125ms)
+✔ 偶数宽横块的爆破范围以整块中央对称覆盖两侧邻块 (0.116458ms)
+✔ 同次操作两轮掉落消除累计两排，稳定后只发一枚炸弹；全清仍保留奖励 (0.247ms)
+✔ 同时清两排为基础分 20，炸弹附着在幸存普通横块，随移动保留 (0.096875ms)
+✔ 炸弹按横块中心的 3×3 范围移除相交整块，收豆一次且不能重复引爆 (0.138125ms)
+✔ 多种种子的真实移动、连消、奖励炸弹与爆破，客户端和服务端重放一致 (16116.728916ms)
+✔ 复活卡库存跟随云端资产版本持久化，重开不补回，用旧回执不能回滚扣卡 (0.141917ms)
+ℹ tests 80
+ℹ suites 0
+ℹ pass 77
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18072.891583
+
+✖ failing tests:
+
+test at scripts/tests/cloud-service.test.js:124:1
+✖ 微信正式版（release）使用 Production API (0.174417ms)
+  Error: 游戏服务更新中，请稍后再试
+      at CloudService.startRound (/private/var/folders/ys/sxwj4gdx103d56tfh__fnjr00000gp/T/zyx-cloud-TP9X0u/manager/CloudService.js:109:27)
+      at async TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/scripts/tests/cloud-service.test.js:137:19)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    businessCode: 'COLLECTION_RULE_UNSUPPORTED'
+  }
+
+test at scripts/tests/cloud-service.test.js:140:1
+✖ 微信体验版（trial）使用 Staging API (0.103625ms)
+  Error: 游戏服务更新中，请稍后再试
+      at CloudService.startRound (/private/var/folders/ys/sxwj4gdx103d56tfh__fnjr00000gp/T/zyx-cloud-TP9X0u/manager/CloudService.js:109:27)
+      at async TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/scripts/tests/cloud-service.test.js:152:19)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    businessCode: 'COLLECTION_RULE_UNSUPPORTED'
+  }
+
+test at scripts/tests/cloud-service.test.js:155:1
+✖ 微信开发版（develop）使用 Staging API (0.088625ms)
+  Error: 游戏服务更新中，请稍后再试
+      at CloudService.startRound (/private/var/folders/ys/sxwj4gdx103d56tfh__fnjr00000gp/T/zyx-cloud-TP9X0u/manager/CloudService.js:109:27)
+      at async TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/scripts/tests/cloud-service.test.js:166:19)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    businessCode: 'COLLECTION_RULE_UNSUPPORTED'
+  }

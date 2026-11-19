@@ -1,0 +1,10 @@
+{
+  "node": "v24.19.0",
+  "npm": "11.17.0",
+  "git": "13bf411ad39d7cf5c936089e830d5b83bbf7b17b",
+  "creator": "2.4.13",
+  "typescript": "4.9.5",
+  "buildCommand": "NPM_CONFIG_OFFLINE=true npm run build:wechat",
+  "ciPackage": "2.1.31",
+  "lockSha256": "39a9a2b3ea66d4abff1907f6dafea6aa50211a5f7ccf9d80709d20af0c3b6d73"
+}

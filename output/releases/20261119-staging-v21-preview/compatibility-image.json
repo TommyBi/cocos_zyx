@@ -1,0 +1,42 @@
+[slow-api] POST /v1/cocos-zyx/games/checkpoint 200 1374 { validationMs: 1327 }
+[slow-api] POST /v1/cocos-zyx/games/settlements 200 733 {}
+[slow-api] POST /v1/cocos-zyx/games/checkpoint 200 320 { validationMs: 296 }
+[slow-api] POST /v1/cocos-zyx/games/settlements 200 355 {}
+{
+  "passed": true,
+  "target": "candidate image",
+  "apiVersion": 26,
+  "results": [
+    {
+      "version": 15,
+      "opened": true,
+      "saved": true,
+      "resumed": true,
+      "actions": 30,
+      "scoreMatched": true,
+      "settled": true,
+      "duplicateSettlement": true
+    },
+    {
+      "version": 20,
+      "opened": true,
+      "saved": true,
+      "resumed": true,
+      "actions": 10,
+      "scoreMatched": true,
+      "settled": true,
+      "duplicateSettlement": true
+    },
+    {
+      "version": 21,
+      "opened": true,
+      "saved": true,
+      "resumed": true,
+      "actions": 18,
+      "scoreMatched": true,
+      "settled": true,
+      "duplicateSettlement": true,
+      "olderClientsCannotTakeOver": true
+    }
+  ]
+}

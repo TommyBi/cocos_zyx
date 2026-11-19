@@ -1,0 +1,37 @@
+{
+  "clientVersion": "2026.11.18.03",
+  "rulesVersion": 15,
+  "apiVersion": 20,
+  "schemaVersion": 12,
+  "tests": {
+    "client": 235,
+    "serverBeforeNewCompatibilityTest": 76,
+    "serverRoundProgressIncludingNewCompatibilityTest": 7,
+    "serverTotalNow": 77
+  },
+  "audioOriginalsMatch": {
+    "sound_huanhu": {
+      "sha256": "411c969c0f1b7ed6da5342f2d620620f6bf26d329e70a48e4c3161f725a8bff3",
+      "bytes": 23240,
+      "duration": 2.873469
+    },
+    "sound_shandian": {
+      "sha256": "f5b42f552676ff1413364ffc06943531571328b8be60be56f240580d4ad68db1",
+      "bytes": 20733,
+      "duration": 2.56
+    }
+  },
+  "checks": {
+    "typescript": true,
+    "sharedEngine": true,
+    "assets": true,
+    "webBuild": true,
+    "wechatBuild": true,
+    "wechatGm": true
+  },
+  "browserResults": "browser-results.json",
+  "productionChanged": false,
+  "wechatUploaded": false,
+  "cdnUploaded": false,
+  "voiceRecipe": "voice-recipe-v2.json"
+}

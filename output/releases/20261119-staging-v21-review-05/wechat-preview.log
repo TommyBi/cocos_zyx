@@ -1,0 +1,30 @@
+[summer-compiler] forkProcess [2026-11-19 16:10:07.908]
+serialize mini-weixin
+[summer-compiler] forkProcess serialize [2026-11-19 16:10:08.982]
+[summer-compiler] forkProcess start [2026-11-19 16:10:08.982]
+[summer-compiler] forkProcess done [2026-11-19 16:10:09.257]
+child process stderr: [BABEL] Note: The code generator has deoptimised the styling of /Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v21-review-05/wechatgame-v2026.11.19.05/cocos/cocos2d-js-min.js as it exceeds the max of 500KB.
+
+child process stdout: getCodeFiles: count: 15, cost: 7013ms.
+
+[info] useCOS parameter:  undefined
+[info] upload zip buffer size:  6864137
+[info] upload by COS:  true
+[info] [upload by cos multi version] rawSize: 6864137
+[info] [upload by cos multi version] get upload info succcessfuly
+[info] nonce, nonce size:  {"type":"Buffer","data":[138,42,211,28,122,192,129,50,49,60,59,250]} 12
+[info] tag, tag size:  {"type":"Buffer","data":[216,135,25,131,115,113,235,201,205,144,219,1,229,19,58,81]} 16
+[info] encrypted file size in bytes:  6864137
+[log] [upload by cos multi version] percent: 0% loaded: 0bytes total: 6864166bytes
+[log] [upload by cos multi version] percent: 15% loaded: 1048576bytes total: 6864166bytes
+[log] [upload by cos multi version] percent: 35% loaded: 2424832bytes total: 6864166bytes
+[log] [upload by cos multi version] percent: 75% loaded: 5177344bytes total: 6864166bytes
+[log] [upload by cos multi version] percent: 100% loaded: 6864166bytes total: 6864166bytes
+[log] [upload by cos multi version] percent: 100% loaded: 6864166bytes total: 6864166bytes
+[info] [upload by cos multi version] request url: https://servicewechat.com/wxa/ci/testSourceURL?codeprotect=0&type=miniGame&appid=wxdc39c78bfd045896&version=0.0.1&desc=V21%20%E8%87%AA%E5%8A%A8%E7%BB%AD%E5%B1%80%E3%80%81%E9%87%8D%E6%9E%84%E5%92%8C%E5%8C%85%E4%BD%93%E4%BC%98%E5%8C%96%EF%BC%8CStaging%20%E6%8F%90%E5%AE%A1%E9%AA%8C%E6%94%B6&robot=1&debugLaunchInfo=%7B%22scene%22%3A1011%7D&task_id=4789619120000614402&new_hash=f9fdee6e9f7370bf345a3bd55130e7e6&upload_cos_cost_time=6547&str_stored_size=6864166&async_ver=2
+[info] [upload by cos multi version] running async task...
+[info] [upload by cos multi version] running async task...
+[info] [upload by cos multi version] running async task...
+[info] [upload by cos multi version] running async task...
+[info] Qrcode image saved, file path: '/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v21-review-05/wechat-preview-qr.jpg'
+PREVIEW_SUCCEEDED {"subPackageInfo":[{"name":"/subpackages/effects/","size":1671108},{"name":"/subpackages/home/","size":3920494},{"name":"__APP__","size":2844783},{"name":"__FULL__","size":8436385}]}

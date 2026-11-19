@@ -1,0 +1,106 @@
+{
+  "cdn-check.json": {
+    "bytes": 1693,
+    "sha256": "34235767c0ab19994056fbfa840b6b374aa846162c569efd47dc96f548915832"
+  },
+  "data-after-switch.json": {
+    "bytes": 1139,
+    "sha256": "c713e58920376afd50e5f9aa1e8e4b622276aa637d1dc5b03c8bad16a7cdaac1"
+  },
+  "deployment-result.json": {
+    "bytes": 1747,
+    "sha256": "b744d64c2cbbbc4852c131749f9ff5e925deb1f3e5740f3f71b95626908a630b"
+  },
+  "documentation-closeout.json": {
+    "bytes": 403,
+    "sha256": "1b930e2fb9cc909a39ef098631506ce675d73d29093c8c4db3b02376dc343d6b"
+  },
+  "existing-data-preserved.json": {
+    "bytes": 952,
+    "sha256": "a309ec593a58daf7f875c42fe06abc126d4c7568657267de217a726804624c09"
+  },
+  "live-leaderboard-qa.json": {
+    "bytes": 332,
+    "sha256": "4103c7cd89fd4540b16cf65814db948aa4405cddc30037b11dfdcedcf77ba3f3"
+  },
+  "live-v12-qa.json": {
+    "bytes": 371,
+    "sha256": "bf8e5bf2d1b047cf3ed63fd0bd9d0c02a8bb63f4027ea4df33882e38e763c28a"
+  },
+  "migration-rehearsal.json": {
+    "bytes": 452,
+    "sha256": "ed2858c2acc0f3b27d08234102ebe9cd4817bb16b7b4135f660830aabb0f51dc"
+  },
+  "post-verification-audit.json": {
+    "bytes": 1072,
+    "sha256": "3c6f59543e8aaa18e4196a5c28d74ca7b8bbc86979a1fb452fdd73b23bf1e1fe"
+  },
+  "release-info.json": {
+    "bytes": 3307,
+    "sha256": "95756218842fa7160b969522cdb2d76cbc460bc9effd897b92551f217f032c5b"
+  },
+  "runtime-manifest.json": {
+    "bytes": 2366,
+    "sha256": "a0674bf399a7f5d7f2600074efb3dab117e8deea0aef1a2ff4ac593a04eb83ff"
+  },
+  "runtime-server-tests.log": {
+    "bytes": 17929,
+    "sha256": "c432353e7731430ec8ba7741983112f5b9f8640484574cbd0d3d425bdf69f42d"
+  },
+  "server-manifest.json": {
+    "bytes": 2667,
+    "sha256": "a8793335b09ad4e85fc954ffe36cb7fdb1776269cd6e8402458b260325a2f4c0"
+  },
+  "server-v2026.11.17.01-20261117-gameplay-v12-132009.tar.gz": {
+    "bytes": 81977,
+    "sha256": "70ac160dc7eb70a8c8b80c28edab043b22d3f41cfa56625ece1df9c81ed2a67f"
+  },
+  "source-final.json": {
+    "bytes": 47827,
+    "sha256": "683c37c3f49de5ea0d1f3ad10b94410df60b7448de8a9274f358ffa7c545714e"
+  },
+  "source-reconciliation.json": {
+    "bytes": 1694,
+    "sha256": "0ebdb4124fc53a53ad74d7df751595bd27a531153d774e7227319992521425cf"
+  },
+  "source-v2026.11.17.01-20261117-gameplay-v12-132009.tar.gz": {
+    "bytes": 9789365,
+    "sha256": "be6d9b5a99e5daf75fad3a23e3cac23ff70f96d2b2707bc2767c24e0bc5a91ab"
+  },
+  "source.json": {
+    "bytes": 47827,
+    "sha256": "cfdb9ea15454707975ca9b5d1173a01690d3de09877c93732a84991165ce1923"
+  },
+  "tests.log": {
+    "bytes": 29181,
+    "sha256": "a8b5f837502e6dcf2bcfcbb67c60b089017d85b7ffb74d40100d55c7c125baf5"
+  },
+  "wechat-artifact.json": {
+    "bytes": 18256,
+    "sha256": "ff2d6cf177d79779e9a4628a4317ec681f29015718f0b2b9bc18f942ad3e9404"
+  },
+  "wechat-build.log": {
+    "bytes": 10830,
+    "sha256": "38adc31e7f187bebe623df19b4b3b1d6b5d85c9c7a1383594e0543cbf0146517"
+  },
+  "wechat-preview-qr.jpg": {
+    "bytes": 46650,
+    "sha256": "e06f256488a253bac29606964648ab603ed3e59731f529641bd4a94f4973bdde"
+  },
+  "wechat-preview-result.json": {
+    "bytes": 546,
+    "sha256": "6c88e8942c31a4a103192316ae850115b755e7c046a35d5a79c9477b177f0532"
+  },
+  "wechat-upload-result.json": {
+    "bytes": 420,
+    "sha256": "9c2c68507cf6cbdd3257192986fdc0b62430802812c30c4c105f58ad30d437bb"
+  },
+  "wechatgame-v2026.11.17.01.zip": {
+    "bytes": 7077089,
+    "sha256": "fa638eb455478c6fae6a8b98fd66753788e8caa21453231a63318ea7d9a8930a"
+  },
+  "发布说明.md": {
+    "bytes": 4661,
+    "sha256": "6230e547bd671354866a83d32399d842bd1a1635f6fcb1d25a901a198ecef017"
+  }
+}

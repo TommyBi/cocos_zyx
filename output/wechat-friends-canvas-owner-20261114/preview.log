@@ -1,0 +1,14 @@
+[summer-compiler] forkProcess [2026-11-14 17:11:54.869]
+serialize mini-weixin
+[summer-compiler] forkProcess serialize [2026-11-14 17:11:56.009]
+[summer-compiler] forkProcess start [2026-11-14 17:11:56.010]
+[summer-compiler] forkProcess done [2026-11-14 17:11:56.234]
+child process stderr: [BABEL] Note: The code generator has deoptimised the styling of /Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/cocos/cocos2d-js-min.js as it exceeds the max of 500KB.
+
+child process stdout: getCodeFiles: count: 15, cost: 6540ms.
+
+[info] useCOS parameter:  false
+[info] upload zip buffer size:  6307331
+[info] request url: https://servicewechat.com/wxa/ci/testSourceURL?codeprotect=0&type=miniGame&appid=wxdc39c78bfd045896&version=0.0.1&desc=Fix%20sharedCanvas%20ownership%3B%20verified%20in%20WeChat%20IDE&robot=1&debugLaunchInfo=%7B%22scene%22%3A1011%7D
+[info] Qrcode image saved, file path: '/Users/liuyang/Documents/private/cocos_zyx/output/wechat-friends-canvas-owner-20261114/wechat-preview-qr.png'
+PREVIEW SUCCESS

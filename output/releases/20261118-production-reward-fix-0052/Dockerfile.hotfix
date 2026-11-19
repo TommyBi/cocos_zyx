@@ -1,0 +1,2 @@
+FROM cocos-zyx-production:20261118-production-api18-000901
+COPY server/src /app/src

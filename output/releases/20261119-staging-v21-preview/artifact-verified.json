@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "kind": "artifact",
+  "treeSha256": "e2a170158bdd73a66c2e7a578740d0c8e9bb6fa9aeea25eaa0c01153f5a131ef",
+  "files": 139,
+  "skippedCount": 0,
+  "changed": [],
+  "missing": [],
+  "added": []
+}

@@ -1,0 +1,125 @@
+
+> cocos-zyx-cloud@1.0.0 test
+> node --test test/*.test.js
+
+✔ 新账号获得稳定默认昵称和 10 点体力，客户端伪造资料与余额被忽略 (185.574708ms)
+✔ 微信清缓存更换 deviceId 后按 openid 恢复同一 playerId、token 和资料 (43.722458ms)
+✔ 旧设备账号首次微信登录原地绑定 openid，不清空原玩家数据 (32.827709ms)
+✔ 同一 deviceId 切换不同微信 openid 时不会串用旧账号 (39.849375ms)
+✔ 无效微信 loginCode 明确失败且不创建设备兜底账号 (6.298459ms)
+✔ 只有显式资料接口能更新微信昵称头像，非法资料不会改变原值 (32.153583ms)
+✔ 开局只扣一次体力；无服务端入局凭证的结算不能发币 (26.509333ms)
+✔ 体力用尽后 5 分钟恢复 1 点，余额与冷却使用服务端时钟 (125.180625ms)
+✔ 分享补体力每天一次且允许超过上限，重复请求不重复加点 (151.312833ms)
+✔ 每局收集的开心豆与经验正常入账，重复结算幂等，排行榜更新 (69.476834ms)
+✔ 旧秘境路由与新库拼画表不再存在 (15.632833ms)
+✔ 进度规则锁定到服务端开局；真实表情推进进度但未满一颗不发豆，逐局清零 (60.522541ms)
+✔ 长局真实重放超过两万表情块，发多颗整豆且保留原资产，重试不重复奖励 (529.1625ms)
+✔ V2 新局绑定共享棋盘版本，真实连消炸弹完整结算，重复开局不能切换规则 (38.504875ms)
+✔ 1% 收集规则每100表情发一豆，旧局保留原折算且结算参数不能提倍率 (453.185667ms)
+✔ 微信绑定账号不能仅凭deviceId省略登录凭证取回token (16.268375ms)
+✔ 排行榜同分并列名次与self名次一致，不发生列表第二而自己显示第一 (28.517542ms)
+✔ 非法JSON主体返回400，不能抛500或更改资产 (5.737416ms)
+✔ 领取响应丢失后跨北京时间日期重试同ID，不500、不重复发体力且不占新一天次数 (21.624459ms)
+✔ V6/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (509.595166ms)
+✔ V7/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (507.385083ms)
+✔ V8/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (507.612791ms)
+✔ V8/clear救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (695.00325ms)
+✔ V9/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (533.710875ms)
+✔ V9/clear救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (676.952833ms)
+✔ 心意气球仅第5/10局授权，重试资格固定，非授权局无法兑换，合法爱心局结算幂等 (374.104834ms)
+✔ 开心榜只按余额排名：消费后下降、累计获得量不参与、同余额并列且最高分榜保持独立 (219.029042ms)
+✔ 未显式启用 ENABLE_GM_ROUTES 时调试路由为 404 (190.865167ms)
+✔ 生产环境 /debug/profile 与 /debug/reset 均为 404 (190.042334ms)
+✔ 默认名加入小字，已有小熊小鹿不重复，头像或非默认组合不变 (1.448292ms)
+✔ 全量迁移只修改白名单默认名和资产版本，不动排序、资产、身份或历史记录 (24.166959ms)
+✔ 旧档案余额不变，体力初始化 10，旧画作表被清理 (217.552375ms)
+✔ 历史默认昵称升级为小动物，保留自定义昵称且迁移可重复执行 (1.580292ms)
+✔ 历史库中的新账号显式获得 10 点体力，不依赖旧列默认值 (12.07525ms)
+✔ 复活卡字段原地补零，重复迁移保留已有卡片和旧玩家资产 (2.11975ms)
+✔ V12旧锤棒每个退3豆，清库存与凭据原子，重启不重复返还且身份/卡片/榜单保留 (1.548208ms)
+✖ 开局写盘失败后重试同一 roundId，只扣一次体力 (172.801583ms)
+✖ 结算写盘失败后重试同一 roundId，只发一次开心豆 (51.433375ms)
+✖ 分享领取写盘失败后重试同一 claimId，只补一次体力 (2.164209ms)
+✖ 系统短写时完整写出数据库后才返回2xx，不会把只写一部分的文件当作持久化成功 (2.986416ms)
+✔ 发布重置清空资产和对局，排行榜最高分与名次依据保持不变 (28.022916ms)
+✔ 重置发生异常时整笔回滚，错误代际不动数据，资产版本递增且同代际不重复重置 (3.23ms)
+✔ 24豆不足、25豆恰好购买1张，伪造价格数量无效，重复及并发不透支 (291.132708ms)
+✔ 第一次失败不能用卡，未失败不能用卡，无卡第二次失败也不产生消费 (2687.595584ms)
+✔ 第二次失败用卡原子扣库存并保存完整棋盘；并发、丢响应重试、冷恢复与结算均只认一次 (3524.69525ms)
+✔ 无服务端用卡凭据的复活、第二次广告复活、超范围与伪造前缀，保存及最终结算均拒绝 (716.375458ms)
+debounced persist failed Error: injected card disk failure
+    at fs.openSync (/Users/liuyang/Documents/private/cocos_zyx/server/test/revive-card.test.js:115:90)
+    at persistNow (/Users/liuyang/Documents/private/cocos_zyx/server/src/index.js:82:19)
+    at Timeout._onTimeout (/Users/liuyang/Documents/private/cocos_zyx/server/src/index.js:109:7)
+    at listOnTimeout (node:internal/timers:635:17)
+    at process.processTimers (node:internal/timers:571:7)
+✔ 落盘失败后原请求重试只扣一张，重新登录可见完整复活存档 (1327.077833ms)
+✔ V10在途存档仍可恢复和结算，不能借新版接口增加一次复活；卡片库存不受影响 (1344.580625ms)
+✔ 有卡选择结算不消费，也不能跨账号或使用错误会话消费 (1217.082792ms)
+✔ V12保留广告后卡片各一次的上限，完整复活存档可重放并继续到第三次失败 (2128.46075ms)
+✔ 保存只接受本人合法重放，忽略伪造分数，不发资产；落盘后可查步数 (268.518417ms)
+✔ 确认前缀不可改写，迟到短保存不回退；缺道具凭据/未完成回合/伪造救场/超长日志拒绝 (102.577959ms)
+✔ 恢复核验本机尾部、请求幂等，更新会话后旧保存/道具/结算全部失效，不再扣体力 (77.705791ms)
+✔ 同时恢复只有一个代次胜出，开始不能绕过未结算局；重开成功才原子放弃旧局 (53.529ms)
+✔ 7天到期后不再提示但保留原始记录，客户端时间不能延长窗口 (20.493583ms)
+✔ 保存与恢复在写盘失败时不回成功，原请求重试可确认同一存档与会话 (54.120792ms)
+✔ 商城仅保留3豆体力与25豆复活卡，原子扣款、并发幂等及持久化正确 (260.825625ms)
+✔ 余额不足、并发透支、未知商品和同ID换商品均不会错误扣款 (41.307125ms)
+✔ 落盘失败后用原ID重试，只扣3豆并只入库一件 (38.231375ms)
+✔ 当前规则禁止伪造道具动作；合法使用只扣一次，刷新/结算不返还已用道具 (95.083167ms)
+✔ 新开局不再支持旧免重放奖励协议；补给有幂等和每局上限 (102.596125ms)
+✔ V5/V6/V7/V8/V9客户端可并行幂等开局、重放结算，旧协议仍不能新开局 (498.707334ms)
+✔ GM重置清空资产/道具/对局记录，恢复10体力，新开局重新进入教学 (46.6355ms)
+✔ 3豆换1体力、与自然恢复累加、保留恢复时钟，幂等重试不能重复加体力 (43.630291ms)
+✔ 体力兑换不重置未满时的自然恢复倒计时；余额不足与并发不透支 (45.57775ms)
+✔ 所有商城商品2豆不足、3豆恰好成功，客户端伪造价格数量不能改变扣款或发货 (41.084458ms)
+✔ 当前规则拒绝重复复活、超过8排复活和短时间重复清屏，不能伪造救场绕过上升 (27.433791ms)
+✔ 过期未结算对局不能继续扣道具或领取补给 (31.689167ms)
+✔ V12道具绑定单局：锤三次、棒一次、未使用不重复领、同ID重试和重启恢复不刷新 (109.282333ms)
+ℹ tests 69
+ℹ suites 0
+ℹ pass 65
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13403.08275
+
+✖ failing tests:
+
+test at test/persist-fault.test.js:78:1
+✖ 开局写盘失败后重试同一 roundId，只扣一次体力 (172.801583ms)
+  SyntaxError: Unexpected token '<', "<?xml vers"... is not valid JSON
+      at JSON.parse (<anonymous>)
+      at parseJSONFromBytes (node:internal/deps/undici/undici:4394:19)
+      at successSteps (node:internal/deps/undici/undici:7048:27)
+      at readAllBytes (node:internal/deps/undici/undici:5965:13)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at test/persist-fault.test.js:98:1
+✖ 结算写盘失败后重试同一 roundId，只发一次开心豆 (51.433375ms)
+  SyntaxError: Unexpected token '<', "<?xml vers"... is not valid JSON
+      at JSON.parse (<anonymous>)
+      at parseJSONFromBytes (node:internal/deps/undici/undici:4394:19)
+      at successSteps (node:internal/deps/undici/undici:7048:27)
+      at readAllBytes (node:internal/deps/undici/undici:5965:13)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at test/persist-fault.test.js:128:1
+✖ 分享领取写盘失败后重试同一 claimId，只补一次体力 (2.164209ms)
+  SyntaxError: Unexpected token '<', "<?xml vers"... is not valid JSON
+      at JSON.parse (<anonymous>)
+      at parseJSONFromBytes (node:internal/deps/undici/undici:4394:19)
+      at successSteps (node:internal/deps/undici/undici:7048:27)
+      at readAllBytes (node:internal/deps/undici/undici:5965:13)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at test/persist-fault.test.js:151:1
+✖ 系统短写时完整写出数据库后才返回2xx，不会把只写一部分的文件当作持久化成功 (2.986416ms)
+  SyntaxError: Unexpected token '<', "<?xml vers"... is not valid JSON
+      at JSON.parse (<anonymous>)
+      at parseJSONFromBytes (node:internal/deps/undici/undici:4394:19)
+      at successSteps (node:internal/deps/undici/undici:7048:27)
+      at readAllBytes (node:internal/deps/undici/undici:5965:13)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)

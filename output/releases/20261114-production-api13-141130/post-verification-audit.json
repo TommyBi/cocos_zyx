@@ -1,0 +1,42 @@
+{
+  "integrity": "ok",
+  "tables": {
+    "game_rounds": {
+      "before": 368,
+      "after": 378,
+      "existingRowsPreserved": true
+    },
+    "players": {
+      "before": 93,
+      "after": 94,
+      "existingRowsPreserved": true
+    },
+    "release_resets": {
+      "before": 1,
+      "after": 1,
+      "existingRowsPreserved": true
+    },
+    "round_settlements": {
+      "before": 250,
+      "after": 257,
+      "existingRowsPreserved": true
+    },
+    "sqlite_sequence": {
+      "before": 1,
+      "after": 1,
+      "existingRowsPreserved": false
+    },
+    "stamina_share_claims": {
+      "before": 4,
+      "after": 5,
+      "existingRowsPreserved": true
+    },
+    "tool_transactions": {
+      "before": 73,
+      "after": 73,
+      "existingRowsPreserved": true
+    }
+  },
+  "stagingGatewayOtherServicesAndSharedSourceUnchanged": true,
+  "newWrites": "One isolated zero-score/zero-bean protocol account, 10 rounds, 7 settlements, 1 share claim; sqlite_sequence increases normally."
+}

@@ -1,0 +1,13 @@
+{
+  "releaseId": "20261118-production-api20-135431",
+  "evidence": "/private/tmp/zyx-release-20261118-production-api20-135431",
+  "output": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261118-production-api20-135431",
+  "remote": "/opt/tcjstory/apps/cocos-zyx/releases/20261118-production-api20-135431",
+  "stagingReleaseId": "20261118-staging-v15-review-025145",
+  "clientVersion": "2026.11.18.05",
+  "authorizedBy": "User reports frontend approved and published; explicitly authorizes all backend updates to Production",
+  "status": "production-deployed-and-verified",
+  "productionDeployed": true,
+  "frontendPublicationReportedByUser": true,
+  "requiredWorkRemaining": []
+}

@@ -1,0 +1,57 @@
+{
+  "engine": "edge-tts",
+  "voice": "en-US-AnaNeural",
+  "lines": [
+    {
+      "key": "wow",
+      "text": "Wow!",
+      "pitch": "+6Hz",
+      "rate": "+3%"
+    },
+    {
+      "key": "good",
+      "text": "Good!",
+      "pitch": "+20Hz",
+      "rate": "+5%"
+    },
+    {
+      "key": "great",
+      "text": "Great!",
+      "pitch": "+38Hz",
+      "rate": "+8%"
+    },
+    {
+      "key": "perfect",
+      "text": "Perfect!",
+      "pitch": "+58Hz",
+      "rate": "+12%"
+    }
+  ],
+  "processing": {
+    "trim": "remove leading and trailing silence below -45dB; 80ms tail",
+    "filter": "highpass 100Hz; lowpass 6500Hz; loudnorm targets -21/-20/-19/-18 LUFS, true peak -3dB",
+    "format": "mono 44100Hz MP3 128kbps"
+  },
+  "runtimeAssets": [
+    {
+      "path": "assets/bundles/effects/sound/combo_good_v1.mp3",
+      "bytes": 6312,
+      "sha256": "5a020d3b1218e898478349afef51b7a00e31655482f1f8fdd9d57c0c838b8d77"
+    },
+    {
+      "path": "assets/bundles/effects/sound/combo_great_v1.mp3",
+      "bytes": 6730,
+      "sha256": "764253acc700100b6ecdcd77b162da4ae1b52d39f42b7150f46affc877d0d8b0"
+    },
+    {
+      "path": "assets/bundles/effects/sound/combo_perfect_v1.mp3",
+      "bytes": 10910,
+      "sha256": "da8b4d9c21f339e2f424ae6c10d764fa695aa5217704539822a59bbbcda5729b"
+    },
+    {
+      "path": "assets/bundles/effects/sound/combo_wow_v1.mp3",
+      "bytes": 7148,
+      "sha256": "507220c83f9e4565ca77d3a686789ab5e298c8410515c6f206cded8535d984f7"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "previewGenerated": true,
+  "version": "2026.11.14.08",
+  "subPackageInfo": [
+    {
+      "name": "/subpackages/effects/",
+      "size": 1034473
+    },
+    {
+      "name": "/subpackages/home/",
+      "size": 3961330
+    },
+    {
+      "name": "__APP__",
+      "size": 2846693
+    },
+    {
+      "name": "__FULL__",
+      "size": 7842496
+    }
+  ]
+}

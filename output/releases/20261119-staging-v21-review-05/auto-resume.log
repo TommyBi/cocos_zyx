@@ -1,0 +1,4 @@
+valid 390x844 [ 'OK' ] [ 'gameRestoring', 'game' ] 2 moves 9 stamina
+invalid 320x568 [ 'PROGRESS_INVALID', 'OK' ] [ 'gameRestoring', 'game' ] 1 moves 9 stamina
+conflict 768x1024 [ 'PROGRESS_CONFLICT', 'OK' ] [ 'gameRestoring', 'game' ] 1 moves 9 stamina
+cloud 390x844 [ 'OK' ] [ 'launchLoading', 'gameRestoring', 'game' ] 1 moves 9 stamina

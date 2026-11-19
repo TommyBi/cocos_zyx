@@ -1,0 +1,1 @@
+Source asset architecture OK: game in main package, home subpackage, music on CDN; max texture 2048.

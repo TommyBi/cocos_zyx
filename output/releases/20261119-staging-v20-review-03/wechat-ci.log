@@ -1,0 +1,27 @@
+[summer-compiler] forkProcess [2026-11-19 15:06:39.004]
+serialize mini-weixin
+[summer-compiler] forkProcess serialize [2026-11-19 15:06:40.029]
+[summer-compiler] forkProcess start [2026-11-19 15:06:40.029]
+[summer-compiler] forkProcess done [2026-11-19 15:06:41.287]
+child process stderr: [BABEL] Note: The code generator has deoptimised the styling of /Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v20-review-03/wechatgame-v2026.11.19.03/cocos/cocos2d-js-min.js as it exceeds the max of 500KB.
+
+child process stdout: getCodeFiles: count: 15, cost: 8461ms.
+
+[info] useCOS parameter:  false
+[info] upload zip buffer size:  8561486
+[info] request url: https://servicewechat.com/wxa/ci/upload?codeprotect=0&type=miniGame&appid=wxdc39c78bfd045896&version=2026.11.19.03&desc=%E9%97%AA%E7%94%B5%E7%82%B9%E5%87%BB%E4%B8%8E%E6%97%8B%E8%BD%AC%E3%80%81%E5%88%86%E4%BA%AB%E8%A7%A3%E5%8E%8B%E9%94%A4%E3%80%81%E8%A7%86%E9%A2%91%E9%AD%94%E6%B3%95%E6%A3%92%E5%90%845%E6%AC%A1%EF%BC%8C%E6%97%A7%E5%B1%80%E6%81%A2%E5%A4%8D%E6%8F%90%E7%A4%BA%EF%BC%8CStaging%E6%8F%90%E5%AE%A1&robot=1&debugLaunchInfo=%7B%22scene%22%3A1011%7D
+DEVELOPMENT_UPLOAD_SUCCEEDED {"subPackageInfo":[{"name":"/subpackages/effects/","size":3388458},{"name":"/subpackages/home/","size":3920494},{"name":"__APP__","size":2848440},{"name":"__FULL__","size":10157392}],"pluginInfo":[]}
+[summer-compiler] forkProcess [2026-11-19 15:07:02.116]
+serialize mini-weixin
+[summer-compiler] forkProcess serialize [2026-11-19 15:07:02.116]
+[summer-compiler] forkProcess start [2026-11-19 15:07:02.116]
+[summer-compiler] forkProcess done [2026-11-19 15:07:02.498]
+child process stderr: [BABEL] Note: The code generator has deoptimised the styling of /Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v20-review-03/wechatgame-v2026.11.19.03/cocos/cocos2d-js-min.js as it exceeds the max of 500KB.
+
+child process stdout: getCodeFiles: count: 15, cost: 7677ms.
+
+[info] useCOS parameter:  false
+[info] upload zip buffer size:  8561497
+[info] request url: https://servicewechat.com/wxa/ci/testSourceURL?codeprotect=0&type=miniGame&appid=wxdc39c78bfd045896&version=0.0.1&desc=%E9%97%AA%E7%94%B5%E7%82%B9%E5%87%BB%E4%B8%8E%E6%97%8B%E8%BD%AC%E3%80%81%E5%88%86%E4%BA%AB%E8%A7%A3%E5%8E%8B%E9%94%A4%E3%80%81%E8%A7%86%E9%A2%91%E9%AD%94%E6%B3%95%E6%A3%92%E5%90%845%E6%AC%A1%EF%BC%8C%E6%97%A7%E5%B1%80%E6%81%A2%E5%A4%8D%E6%8F%90%E7%A4%BA%EF%BC%8CStaging%E6%8F%90%E5%AE%A1&robot=1&debugLaunchInfo=%7B%22scene%22%3A1011%7D
+[info] Qrcode image saved, file path: '/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v20-review-03/wechat-preview-qr.jpg'
+PREVIEW_SUCCEEDED {"subPackageInfo":[{"name":"/subpackages/effects/","size":3388458},{"name":"/subpackages/home/","size":3920494},{"name":"__APP__","size":2848440},{"name":"__FULL__","size":10157392}],"pluginInfo":[]}

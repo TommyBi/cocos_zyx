@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "kind": "source",
+  "createdAt": "2026-11-17T16:09:54.062668+00:00",
+  "includes": [
+    "Dockerfile",
+    "README.md",
+    "docker-compose.staging.yml",
+    "docker-compose.yml",
+    "package-lock.json",
+    "package.json",
+    "src",
+    "test"
+  ],
+  "files": {
+    "Dockerfile": {
+      "sha256": "d0e9ce730a303aaf5fa28f2c6d766374f2db36baa50b2ed725ccbca2aa2e8762",
+      "bytes": 209
+    },
+    "README.md": {
+      "sha256": "89b6fd2dbec0741364d3540a3648d10a4477e5502f8f6e6d4b2f62a6f23d6bb3",
+      "bytes": 6959
+    },
+    "docker-compose.staging.yml": {
+      "sha256": "5f9ac9b45a789643b69782b1e02b236c9515066040d54811e034907b2db0aaa2",
+      "bytes": 520
+    },
+    "docker-compose.yml": {
+      "sha256": "cc6874ebf5e6fb500ed4a6f13291fdbc95dab08aa922e1e63a07d4f3d017e396",
+      "bytes": 404
+    },
+    "package-lock.json": {
+      "sha256": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868",
+      "bytes": 31452
+    },
+    "package.json": {
+      "sha256": "1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9",
+      "bytes": 336
+    },
+    "src/boardEngine.js": {
+      "sha256": "622d89bcdf27c6d3c8d18922df0f33aa075863053ef97e715350154e7eb1285b",
+      "bytes": 53311
+    },
+    "src/databaseAudit.js": {
+      "sha256": "0d7f91cc058f19d9fb85e4ddf5750e59deeff34f47ee005264d5fa59992bb009",
+      "bytes": 2551
+    },
+    "src/defaultNickname.js": {
+      "sha256": "09d2ed5a2c9a2898b591697e34d4ca671cc57d29c43dc8fa9949c6ce534ae4e0",
+      "bytes": 2362
+    },
+    "src/economyConfig.js": {
+      "sha256": "7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7",
+      "bytes": 1191
+    },
+    "src/exportRisk.js": {
+      "sha256": "ab3c49c78299b3cf7aecda95fa2d9277969e80893be58e4c630e1b2a446693e4",
+      "bytes": 1551
+    },
+    "src/gameEngine.js": {
+      "sha256": "d25fce5f55844195af83e2a96f63d360ac342dcd4ace795c26ecc21ba0cbe6bd",
+      "bytes": 16613
+    },
+    "src/index.js": {
+      "sha256": "05ea802a48d8f7f3c1ed10a783b2b7c56bf2f5a3f80bc0b7bb51e901d3128fde",
+      "bytes": 50154
+    },
+    "src/replayBoardEngine.js": {
+      "sha256": "05cbde165957e8e2856d568640a73ba252eadf33b885a8f3cf15f35be8dcc28f",
+      "bytes": 7678
+    },
+    "src/replayService.js": {
+      "sha256": "c26834a21f4aba81ede6c2c4110a926c858909edd4f5b36a6b211d77ee84f1df",
+      "bytes": 2083
+    },
+    "src/replayWorker.js": {
+      "sha256": "16c8984728cbd1dcc27c4671e68438a612b65828b8acaaad8d58b152a5390548",
+      "bytes": 817
+    },
+    "src/resetProgress.js": {
+      "sha256": "50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b",
+      "bytes": 2923
+    },
+    "src/rewardSecurity.js": {
+      "sha256": "68e2f0581a698570f03364b1824a50b021fab4ba4c59f76c25ca112bc2e46939",
+      "bytes": 7956
+    },
+    "src/riskControl.js": {
+      "sha256": "751042e7f73ede81dbfed67e266366dadc9c92bfd36bf2ba124149953ec6cc7f",
+      "bytes": 8921
+    },
+    "src/roundProgress.js": {
+      "sha256": "08bc572dbdd9c8f8b21f2f79afadf46f695bc7fc6b0cfa86ffe5f41b0175dde8",
+      "bytes": 17622
+    },
+    "src/schema.js": {
+      "sha256": "fa7915b2ca0166ad190238fc3cf9cfda9fa0443abee24cce196e6e263f50f100",
+      "bytes": 10032
+    },
+    "src/wechatAuth.js": {
+      "sha256": "1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed",
+      "bytes": 1964
+    },
+    "test/api.test.js": {
+      "sha256": "7272ccb34ace5fad9f471c6a0ea9b0af3d55ba96dd0310b6c9c9ad4016929a65",
+      "bytes": 32287
+    },
+    "test/bean-leaderboard.test.js": {
+      "sha256": "eed0a12b29aa343304eb3c78d9fe11e7380040b56f7239b1a36a8e125018b9e2",
+      "bytes": 3138
+    },
+    "test/debug-routes-off.test.js": {
+      "sha256": "7d53c6642100f77d17defb1af9b3d64a9e8fa6f5ae963e51fbac2b28852e55c2",
+      "bytes": 1702
+    },
+    "test/debug-routes-prod.test.js": {
+      "sha256": "d78b8694571b3eb7d102308acec9cf66214bafbf2d3206051a05ab97a8ba05b2",
+      "bytes": 3621
+    },
+    "test/default-nickname.test.js": {
+      "sha256": "740e8e9831d34a8a3ca31215ee5cd1a37c0c821452d72b16daf134248c3bcded",
+      "bytes": 2826
+    },
+    "test/migration.test.js": {
+      "sha256": "4e0aedc4fb50d6611f997537b760eb0d9d8278c155e5f731eb6c144d7cfbe01d",
+      "bytes": 9598
+    },
+    "test/persist-fault.test.js": {
+      "sha256": "27e923bebd019591d44deb35cd3d08f719504e32c27a8c18e5c36f4eab995375",
+      "bytes": 7162
+    },
+    "test/reset-progress.test.js": {
+      "sha256": "125951e05b85c84d2832585ef31ae44b7a31565b1c171f9cf7f0b47c9f93e24f",
+      "bytes": 3921
+    },
+    "test/revive-card.test.js": {
+      "sha256": "503aed719e2ff1cde7f89e0cd07f74bf8e6d46192919fe884ac476f6293fa35c",
+      "bytes": 13153
+    },
+    "test/round-progress.test.js": {
+      "sha256": "41c8b38ad5fba038e621cee7656b0c5240a6aabbbad1454cd1b96ef0474bf6d4",
+      "bytes": 11937
+    },
+    "test/security-audit.test.js": {
+      "sha256": "607067b4f87a4a0c3c353341c445230bad2e8d64ed4f3b92f2aabcb4fbbacb7e",
+      "bytes": 6455
+    },
+    "test/shop.test.js": {
+      "sha256": "ad40849a06726564c645729a63acb0ba47e8c43e2cbe7a69ec30e8721b7a05b8",
+      "bytes": 20044
+    }
+  },
+  "treeSha256": "f86561c580fa15a8d2bdb5553c745cf9403f17a6e9b52207fc032dcac965d63d",
+  "excludedPaths": [
+    ".deploy",
+    "build",
+    "coverage",
+    "data",
+    "dist",
+    "logs",
+    "server/build",
+    "server/data",
+    "server/dist",
+    "server/uploads",
+    "tmp",
+    "uploads",
+    "web/build",
+    "web/dist",
+    "web/uploads"
+  ],
+  "skippedCount": 0
+}

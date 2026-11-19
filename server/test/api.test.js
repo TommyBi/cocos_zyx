@@ -76,11 +76,12 @@ async function bootstrap(deviceId) {
   return response.payload.data;
 }
 
-async function wechatPlayer(deviceId, openid) {
+async function wechatPlayer(deviceId, openid, token = '') {
   const loginCode = `test_login_code_${++loginCodeSeq}`;
   weChatLoginCodes.set(loginCode, openid);
   const response = await api('/players/bootstrap', {
     method: 'POST',
+    token,
     body: { deviceId, loginCode },
   });
   assert.equal(response.status, 200);
@@ -158,7 +159,14 @@ test('微信清缓存更换 deviceId 后按 openid 恢复同一 playerId、token
 
 test('旧设备账号首次微信登录原地绑定 openid，不清空原玩家数据', async () => {
   const legacy = await bootstrap('legacy_device_before_wechat_binding');
-  const bound = await wechatPlayer('legacy_device_before_wechat_binding', 'openid_legacy_binding');
+  const loginCode = `test_login_code_${++loginCodeSeq}`;
+  weChatLoginCodes.set(loginCode, 'openid_legacy_binding');
+  const rejected = await api('/players/bootstrap', {
+    method: 'POST', body: { deviceId: 'legacy_device_before_wechat_binding', loginCode },
+  });
+  assert.equal(rejected.status, 401);
+  assert.equal(rejected.payload.errorCode, 'DEVICE_CLAIM_REQUIRED');
+  const bound = await wechatPlayer('legacy_device_before_wechat_binding', 'openid_legacy_binding', legacy.token);
   assert.equal(bound.profile.playerId, legacy.profile.playerId);
   assert.equal(bound.token, legacy.token);
   const restored = await wechatPlayer('legacy_device_after_cache_clear', 'openid_legacy_binding');
@@ -534,7 +542,7 @@ test('领取响应丢失后跨北京时间日期重试同ID，不500、不重复
 });
 
 
-for (const [version, kind] of [[6, 'balloon'], [7, 'balloon'], [8, 'balloon'], [8, 'clear']]) test(`V${version}/${kind}救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝`, async () => {
+for (const [version, kind] of [[6, 'balloon'], [7, 'balloon'], [8, 'balloon'], [8, 'clear'], [9, 'balloon'], [9, 'clear']]) test(`V${version}/${kind}救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝`, async () => {
   const { token } = await newPlayer();
   for (let i = 0; i < 2; i++) {
     const roundId = `rescue_v${version}_${kind}_prepare_${i}`;
@@ -559,7 +567,7 @@ for (const [version, kind] of [[6, 'balloon'], [7, 'balloon'], [8, 'balloon'], [
   assert.equal(missing.payload.errorCode, 'REPLAY_INVALID');
   const repeated = trace.actions.flatMap(a => a.type === (kind === 'clear' ? 'rescueClear' : 'balloon') ? [a, a] : [a]);
   assert.equal((await settle(token, {...body, actions: repeated})).payload.errorCode, 'REPLAY_INVALID');
-  if (version === 8) {
+  if (version >= 8) {
     const future = trace.actions.map(a => a.type === 'rescueOffer' ? {...a, elapsedMs: clock - startedAt + 1} : a);
     assert.equal((await settle(token, {...body, actions: future})).payload.errorCode, 'REPLAY_INVALID');
     if (kind === 'clear') {
@@ -571,5 +579,39 @@ for (const [version, kind] of [[6, 'balloon'], [7, 'balloon'], [8, 'balloon'], [
   assert.equal(result.status, 200);
   assert.equal(result.payload.data.settlement.awardedMoodBeans, Math.floor(trace.raw / 100));
   assert.equal(result.payload.data.settlement.gainedExperience, trace.raw);
+  assert.equal((await settle(token, body)).payload.data.duplicate, true);
+});
+
+test('心意气球仅第5/10局授权，重试资格固定，非授权局无法兑换，合法爱心局结算幂等', async () => {
+  const { token } = await newPlayer();
+  for (let i = 1; i <= 4; i++) {
+    const id = `heart_prepare_${i}`;
+    await startRound(token, id); clock += 60000;
+    assert.equal((await settle(token, settlementBody(id, 0, 0))).status, 200);
+  }
+  const trace = require('../../scripts/fixtures/board-v10-heart-replay.json');
+  const crypto = require('node:crypto'), original = crypto.randomBytes;
+  const seed = Buffer.alloc(4); seed.writeUInt32BE(trace.seed);
+  const startedAt = clock;
+  try {
+    crypto.randomBytes = (size, ...args) => size === 4 ? Buffer.from(seed) : original(size, ...args);
+    for (let n = 5; n <= 10; n++) {
+      const start = await api('/games/start', { method: 'POST', token, body: {
+        roundId: `heart_round_${n}`, rulesVersion: 10, collectionRule: 'progress_v2', heartRescueEligible: true,
+      } });
+      assert.equal(start.status, 200);
+      assert.equal(start.payload.data.heartRescueEligible, n === 5 || n === 10);
+    }
+  } finally { crypto.randomBytes = original; }
+  const retry = await api('/games/start', { method: 'POST', token, body: {
+    roundId: 'heart_round_5', rulesVersion: 10, collectionRule: 'progress_v2',
+  } });
+  assert.equal(retry.payload.data.duplicate, true); assert.equal(retry.payload.data.heartRescueEligible, true);
+  clock += 120000;
+  const body = { ...settlementBody('heart_round_5', trace.raw, trace.score), startedAt, actions: trace.actions };
+  assert.equal((await settle(token, { ...body, roundId: 'heart_round_6' })).payload.errorCode, 'REPLAY_INVALID');
+  assert.equal((await settle(token, { ...body, actions: trace.actions.flatMap(a => a.type === 'heart' ? [a, a] : [a]) })).payload.errorCode, 'REPLAY_INVALID');
+  assert.equal((await settle(token, { ...body, actions: trace.actions.map(a => a.type === 'heartOffer' ? { ...a, elapsedMs: 120001 } : a) })).payload.errorCode, 'REPLAY_INVALID');
+  assert.equal((await settle(token, body)).status, 200);
   assert.equal((await settle(token, body)).payload.data.duplicate, true);
 });

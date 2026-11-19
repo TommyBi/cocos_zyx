@@ -1,0 +1,20 @@
+{
+  "power": {
+    "entries": 27,
+    "matchesDatabase": true,
+    "tieRanksAndSelfVerified": true
+  },
+  "beans": {
+    "entries": 29,
+    "matchesDatabase": true,
+    "tieRanksAndSelfVerified": true
+  },
+  "production": {
+    "healthy": true,
+    "apiVersion": 13
+  },
+  "dawn": {
+    "healthy": true,
+    "apiVersion": null
+  }
+}

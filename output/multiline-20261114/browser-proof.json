@@ -1,0 +1,455 @@
+{
+  "results": [
+    {
+      "name": "clear-bubble",
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "text": "分享给好友\n清空全部色块",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 32,
+      "actualFontSize": 32,
+      "lineHeight": 62.400000000000006,
+      "width": 298,
+      "height": 102,
+      "lines": [
+        {
+          "top": 36.133333333333326,
+          "bottom": 6.799999999999994,
+          "lastX": 48,
+          "count": 5
+        },
+        {
+          "top": -5.466666666666669,
+          "bottom": -34.8,
+          "lastX": 64,
+          "count": 6
+        }
+      ],
+      "gaps": [
+        12.266666666666662
+      ],
+      "quads": 11
+    },
+    {
+      "name": "share-modal",
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "text": "网页预览使用模拟分享。\n微信里会直接拉起分享面板。",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 29,
+      "actualFontSize": 29,
+      "lineHeight": 62.400000000000006,
+      "width": 470,
+      "height": 100,
+      "lines": [
+        {
+          "top": 32.74583333333332,
+          "bottom": 6.162499999999991,
+          "lastX": 130.5,
+          "count": 11
+        },
+        {
+          "top": -4.954166666666673,
+          "bottom": -31.53750000000001,
+          "lastX": 159.5,
+          "count": 13
+        }
+      ],
+      "gaps": [
+        11.116666666666664
+      ],
+      "quads": 24
+    },
+    {
+      "name": "three-lines",
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "text": "拖动色块\n填满一行\n收集开心豆",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 29,
+      "actualFontSize": 25,
+      "lineHeight": 62.400000000000006,
+      "width": 470,
+      "height": 100,
+      "lines": [
+        {
+          "top": 44.47916666666667,
+          "bottom": 21.562500000000004,
+          "lastX": 25,
+          "count": 4
+        },
+        {
+          "top": 11.979166666666657,
+          "bottom": -11.458333333333343,
+          "lastX": 25,
+          "count": 4
+        },
+        {
+          "top": -20.520833333333343,
+          "bottom": -43.43750000000002,
+          "lastX": 37.5,
+          "count": 5
+        }
+      ],
+      "gaps": [
+        9.583333333333346,
+        9.0625
+      ],
+      "quads": 13
+    },
+    {
+      "name": "auto-wrap",
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "text": "左右拖动心情块让它落进合适的位置填满一行就能消除收集开心豆",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 29,
+      "actualFontSize": 24,
+      "lineHeight": 62.400000000000006,
+      "width": 240,
+      "height": 100,
+      "lines": [
+        {
+          "top": 42.7,
+          "bottom": 20.700000000000003,
+          "lastX": 96,
+          "count": 10
+        },
+        {
+          "top": 11.5,
+          "bottom": -11,
+          "lastX": 96,
+          "count": 10
+        },
+        {
+          "top": -19.700000000000003,
+          "bottom": -41.7,
+          "lastX": 84,
+          "count": 9
+        }
+      ],
+      "gaps": [
+        9.200000000000003,
+        8.700000000000003
+      ],
+      "quads": 29
+    },
+    {
+      "name": "clear-bubble",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "text": "分享给好友\n清空全部色块",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 32,
+      "actualFontSize": 32,
+      "lineHeight": 62.400000000000006,
+      "width": 298,
+      "height": 102,
+      "lines": [
+        {
+          "top": 36.133333333333326,
+          "bottom": 6.799999999999994,
+          "lastX": 48,
+          "count": 5
+        },
+        {
+          "top": -5.466666666666669,
+          "bottom": -34.8,
+          "lastX": 64,
+          "count": 6
+        }
+      ],
+      "gaps": [
+        12.266666666666662
+      ],
+      "quads": 11
+    },
+    {
+      "name": "share-modal",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "text": "网页预览使用模拟分享。\n微信里会直接拉起分享面板。",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 29,
+      "actualFontSize": 29,
+      "lineHeight": 62.400000000000006,
+      "width": 470,
+      "height": 100,
+      "lines": [
+        {
+          "top": 32.74583333333332,
+          "bottom": 6.162499999999991,
+          "lastX": 130.5,
+          "count": 11
+        },
+        {
+          "top": -4.954166666666673,
+          "bottom": -31.53750000000001,
+          "lastX": 159.5,
+          "count": 13
+        }
+      ],
+      "gaps": [
+        11.116666666666664
+      ],
+      "quads": 24
+    },
+    {
+      "name": "three-lines",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "text": "拖动色块\n填满一行\n收集开心豆",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 29,
+      "actualFontSize": 25,
+      "lineHeight": 62.400000000000006,
+      "width": 470,
+      "height": 100,
+      "lines": [
+        {
+          "top": 44.47916666666667,
+          "bottom": 21.562500000000004,
+          "lastX": 25,
+          "count": 4
+        },
+        {
+          "top": 11.979166666666657,
+          "bottom": -11.458333333333343,
+          "lastX": 25,
+          "count": 4
+        },
+        {
+          "top": -20.520833333333343,
+          "bottom": -43.43750000000002,
+          "lastX": 37.5,
+          "count": 5
+        }
+      ],
+      "gaps": [
+        9.583333333333346,
+        9.0625
+      ],
+      "quads": 13
+    },
+    {
+      "name": "auto-wrap",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "text": "左右拖动心情块让它落进合适的位置填满一行就能消除收集开心豆",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 29,
+      "actualFontSize": 24,
+      "lineHeight": 62.400000000000006,
+      "width": 240,
+      "height": 100,
+      "lines": [
+        {
+          "top": 42.7,
+          "bottom": 20.700000000000003,
+          "lastX": 96,
+          "count": 10
+        },
+        {
+          "top": 11.5,
+          "bottom": -11,
+          "lastX": 96,
+          "count": 10
+        },
+        {
+          "top": -19.700000000000003,
+          "bottom": -41.7,
+          "lastX": 84,
+          "count": 9
+        }
+      ],
+      "gaps": [
+        9.200000000000003,
+        8.700000000000003
+      ],
+      "quads": 29
+    },
+    {
+      "name": "clear-bubble",
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "text": "分享给好友\n清空全部色块",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 32,
+      "actualFontSize": 32,
+      "lineHeight": 62.400000000000006,
+      "width": 298,
+      "height": 102,
+      "lines": [
+        {
+          "top": 36.133333333333326,
+          "bottom": 6.799999999999994,
+          "lastX": 48,
+          "count": 5
+        },
+        {
+          "top": -5.466666666666669,
+          "bottom": -34.8,
+          "lastX": 64,
+          "count": 6
+        }
+      ],
+      "gaps": [
+        12.266666666666662
+      ],
+      "quads": 11
+    },
+    {
+      "name": "share-modal",
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "text": "网页预览使用模拟分享。\n微信里会直接拉起分享面板。",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 29,
+      "actualFontSize": 29,
+      "lineHeight": 62.400000000000006,
+      "width": 470,
+      "height": 100,
+      "lines": [
+        {
+          "top": 32.74583333333332,
+          "bottom": 6.162499999999991,
+          "lastX": 130.5,
+          "count": 11
+        },
+        {
+          "top": -4.954166666666673,
+          "bottom": -31.53750000000001,
+          "lastX": 159.5,
+          "count": 13
+        }
+      ],
+      "gaps": [
+        11.116666666666664
+      ],
+      "quads": 24
+    },
+    {
+      "name": "three-lines",
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "text": "拖动色块\n填满一行\n收集开心豆",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 29,
+      "actualFontSize": 25,
+      "lineHeight": 62.400000000000006,
+      "width": 470,
+      "height": 100,
+      "lines": [
+        {
+          "top": 44.47916666666667,
+          "bottom": 21.562500000000004,
+          "lastX": 25,
+          "count": 4
+        },
+        {
+          "top": 11.979166666666657,
+          "bottom": -11.458333333333343,
+          "lastX": 25,
+          "count": 4
+        },
+        {
+          "top": -20.520833333333343,
+          "bottom": -43.43750000000002,
+          "lastX": 37.5,
+          "count": 5
+        }
+      ],
+      "gaps": [
+        9.583333333333346,
+        9.0625
+      ],
+      "quads": 13
+    },
+    {
+      "name": "auto-wrap",
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "text": "左右拖动心情块让它落进合适的位置填满一行就能消除收集开心豆",
+      "font": "zyx_happy_round_ui_bitmap_v1",
+      "nativeSize": 48,
+      "configSize": 48,
+      "fontSize": 29,
+      "actualFontSize": 24,
+      "lineHeight": 62.400000000000006,
+      "width": 240,
+      "height": 100,
+      "lines": [
+        {
+          "top": 42.7,
+          "bottom": 20.700000000000003,
+          "lastX": 96,
+          "count": 10
+        },
+        {
+          "top": 11.5,
+          "bottom": -11,
+          "lastX": 96,
+          "count": 10
+        },
+        {
+          "top": -19.700000000000003,
+          "bottom": -41.7,
+          "lastX": 84,
+          "count": 9
+        }
+      ],
+      "gaps": [
+        9.200000000000003,
+        8.700000000000003
+      ],
+      "quads": 29
+    }
+  ],
+  "errors": []
+}

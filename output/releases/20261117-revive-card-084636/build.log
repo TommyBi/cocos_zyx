@@ -1,0 +1,401 @@
+{
+  "ok": true,
+  "kind": "source",
+  "treeSha256": "02111ac6d367ea01c8ff9ac44e9938f5ec69e3557ca6a9b7db7cd6d8f17be04f",
+  "files": 15,
+  "skippedCount": 0,
+  "changed": [],
+  "missing": [],
+  "added": []
+}
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 248B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+#2 DONE 0.2s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 77B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 175.49kB 0.0s done
+#4 DONE 0.0s
+
+#5 [1/5] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#5 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 0.1s done
+#5 DONE 0.1s
+
+#6 [2/5] WORKDIR /app
+#6 CACHED
+
+#7 [3/5] COPY package*.json ./
+#7 CACHED
+
+#8 [4/5] RUN npm config set registry https://registry.npmmirror.com && npm ci --omit=dev
+#8 10.47 
+#8 10.47 added 73 packages in 5s
+#8 10.48 
+#8 10.48 18 packages are looking for funding
+#8 10.48   run `npm fund` for details
+#8 DONE 10.8s
+
+#9 [5/5] COPY src ./src
+#9 DONE 0.3s
+
+#10 exporting to image
+#10 exporting layers
+#10 exporting layers 2.2s done
+#10 exporting manifest sha256:7a3f58bc6eb213a8eeee44f3b0bf324a95aaf98c51a7bc8bfe12d4c181a0dccd
+#10 exporting manifest sha256:7a3f58bc6eb213a8eeee44f3b0bf324a95aaf98c51a7bc8bfe12d4c181a0dccd 0.0s done
+#10 exporting config sha256:f7ac00f3345bb07352c65d81c4503f31853a57f917c8a8d1f9fb8685204b9cea 0.0s done
+#10 exporting attestation manifest sha256:08855f3cf24352c5debee1e2ff93874b8383f5c72b5417960d2bfac89d7c1481 0.0s done
+#10 exporting manifest list sha256:dac639fc1bd8ce56c008ef478f6a56caf50cad692fd22e7aba9ecd9ae864577b 0.0s done
+#10 naming to docker.io/library/cocos-zyx-staging:20261117-revive-card-084636
+#10 naming to docker.io/library/cocos-zyx-staging:20261117-revive-card-084636 done
+#10 unpacking to docker.io/library/cocos-zyx-staging:20261117-revive-card-084636
+#10 unpacking to docker.io/library/cocos-zyx-staging:20261117-revive-card-084636 0.6s done
+#10 DONE 3.0s
+TAP version 13
+# Subtest: 新账号获得稳定默认昵称和 10 点体力，客户端伪造资料与余额被忽略
+ok 1 - 新账号获得稳定默认昵称和 10 点体力，客户端伪造资料与余额被忽略
+  ---
+  duration_ms: 735.145814
+  ...
+# Subtest: 微信清缓存更换 deviceId 后按 openid 恢复同一 playerId、token 和资料
+ok 2 - 微信清缓存更换 deviceId 后按 openid 恢复同一 playerId、token 和资料
+  ---
+  duration_ms: 259.32332
+  ...
+# Subtest: 旧设备账号首次微信登录原地绑定 openid，不清空原玩家数据
+ok 3 - 旧设备账号首次微信登录原地绑定 openid，不清空原玩家数据
+  ---
+  duration_ms: 417.718959
+  ...
+# Subtest: 同一 deviceId 切换不同微信 openid 时不会串用旧账号
+ok 4 - 同一 deviceId 切换不同微信 openid 时不会串用旧账号
+  ---
+  duration_ms: 344.17744
+  ...
+# Subtest: 无效微信 loginCode 明确失败且不创建设备兜底账号
+ok 5 - 无效微信 loginCode 明确失败且不创建设备兜底账号
+  ---
+  duration_ms: 41.177798
+  ...
+# Subtest: 只有显式资料接口能更新微信昵称头像，非法资料不会改变原值
+ok 6 - 只有显式资料接口能更新微信昵称头像，非法资料不会改变原值
+  ---
+  duration_ms: 179.528357
+  ...
+# Subtest: 开局只扣一次体力；无服务端入局凭证的结算不能发币
+ok 7 - 开局只扣一次体力；无服务端入局凭证的结算不能发币
+  ---
+  duration_ms: 230.690592
+  ...
+# Subtest: 体力用尽后 5 分钟恢复 1 点，余额与冷却使用服务端时钟
+ok 8 - 体力用尽后 5 分钟恢复 1 点，余额与冷却使用服务端时钟
+  ---
+  duration_ms: 652.017656
+  ...
+# Subtest: 分享补体力每天一次且允许超过上限，重复请求不重复加点
+ok 9 - 分享补体力每天一次且允许超过上限，重复请求不重复加点
+  ---
+  duration_ms: 858.267484
+  ...
+# Subtest: 每局收集的开心豆与经验正常入账，重复结算幂等，排行榜更新
+ok 10 - 每局收集的开心豆与经验正常入账，重复结算幂等，排行榜更新
+  ---
+  duration_ms: 320.189418
+  ...
+# Subtest: 旧秘境路由与新库拼画表不再存在
+ok 11 - 旧秘境路由与新库拼画表不再存在
+  ---
+  duration_ms: 50.628092
+  ...
+# Subtest: 进度规则锁定到服务端开局；真实表情推进进度但未满一颗不发豆，逐局清零
+ok 12 - 进度规则锁定到服务端开局；真实表情推进进度但未满一颗不发豆，逐局清零
+  ---
+  duration_ms: 391.962225
+  ...
+# Subtest: 长局真实重放超过两万表情块，发多颗整豆且保留原资产，重试不重复奖励
+ok 13 - 长局真实重放超过两万表情块，发多颗整豆且保留原资产，重试不重复奖励
+  ---
+  duration_ms: 4139.522409
+  ...
+# Subtest: V2 新局绑定共享棋盘版本，真实连消炸弹完整结算，重复开局不能切换规则
+ok 14 - V2 新局绑定共享棋盘版本，真实连消炸弹完整结算，重复开局不能切换规则
+  ---
+  duration_ms: 662.670479
+  ...
+# Subtest: 1% 收集规则每100表情发一豆，旧局保留原折算且结算参数不能提倍率
+ok 15 - 1% 收集规则每100表情发一豆，旧局保留原折算且结算参数不能提倍率
+  ---
+  duration_ms: 2440.819975
+  ...
+# Subtest: 微信绑定账号不能仅凭deviceId省略登录凭证取回token
+ok 16 - 微信绑定账号不能仅凭deviceId省略登录凭证取回token
+  ---
+  duration_ms: 37.307225
+  ...
+# Subtest: 排行榜同分并列名次与self名次一致，不发生列表第二而自己显示第一
+ok 17 - 排行榜同分并列名次与self名次一致，不发生列表第二而自己显示第一
+  ---
+  duration_ms: 68.807699
+  ...
+# Subtest: 非法JSON主体返回400，不能抛500或更改资产
+ok 18 - 非法JSON主体返回400，不能抛500或更改资产
+  ---
+  duration_ms: 17.763502
+  ...
+# Subtest: 领取响应丢失后跨北京时间日期重试同ID，不500、不重复发体力且不占新一天次数
+ok 19 - 领取响应丢失后跨北京时间日期重试同ID，不500、不重复发体力且不占新一天次数
+  ---
+  duration_ms: 65.582484
+  ...
+# Subtest: V6/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+ok 20 - V6/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+  ---
+  duration_ms: 2042.578963
+  ...
+# Subtest: V7/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+ok 21 - V7/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+  ---
+  duration_ms: 1681.037534
+  ...
+# Subtest: V8/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+ok 22 - V8/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+  ---
+  duration_ms: 1731.696955
+  ...
+# Subtest: V8/clear救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+ok 23 - V8/clear救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+  ---
+  duration_ms: 2261.191183
+  ...
+# Subtest: V9/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+ok 24 - V9/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+  ---
+  duration_ms: 1668.887775
+  ...
+# Subtest: V9/clear救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+ok 25 - V9/clear救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝
+  ---
+  duration_ms: 2238.197174
+  ...
+# Subtest: 心意气球仅第5/10局授权，重试资格固定，非授权局无法兑换，合法爱心局结算幂等
+ok 26 - 心意气球仅第5/10局授权，重试资格固定，非授权局无法兑换，合法爱心局结算幂等
+  ---
+  duration_ms: 978.02962
+  ...
+# Subtest: 开心榜只按余额排名：消费后下降、累计获得量不参与、同余额并列且最高分榜保持独立
+ok 27 - 开心榜只按余额排名：消费后下降、累计获得量不参与、同余额并列且最高分榜保持独立
+  ---
+  duration_ms: 852.098904
+  ...
+# Subtest: 未显式启用 ENABLE_GM_ROUTES 时调试路由为 404
+ok 28 - 未显式启用 ENABLE_GM_ROUTES 时调试路由为 404
+  ---
+  duration_ms: 706.766104
+  ...
+# Subtest: 生产环境 /debug/profile 与 /debug/reset 均为 404
+ok 29 - 生产环境 /debug/profile 与 /debug/reset 均为 404
+  ---
+  duration_ms: 871.512381
+  ...
+# Subtest: 默认名加入小字，已有小熊小鹿不重复，头像或非默认组合不变
+ok 30 - 默认名加入小字，已有小熊小鹿不重复，头像或非默认组合不变
+  ---
+  duration_ms: 6.266924
+  ...
+# Subtest: 全量迁移只修改白名单默认名和资产版本，不动排序、资产、身份或历史记录
+ok 31 - 全量迁移只修改白名单默认名和资产版本，不动排序、资产、身份或历史记录
+  ---
+  duration_ms: 318.939732
+  ...
+# Subtest: 旧档案余额不变，体力初始化 10，旧画作表被清理
+ok 32 - 旧档案余额不变，体力初始化 10，旧画作表被清理
+  ---
+  duration_ms: 854.526354
+  ...
+# Subtest: 历史默认昵称升级为小动物，保留自定义昵称且迁移可重复执行
+ok 33 - 历史默认昵称升级为小动物，保留自定义昵称且迁移可重复执行
+  ---
+  duration_ms: 36.601932
+  ...
+# Subtest: 历史库中的新账号显式获得 10 点体力，不依赖旧列默认值
+ok 34 - 历史库中的新账号显式获得 10 点体力，不依赖旧列默认值
+  ---
+  duration_ms: 61.22653
+  ...
+# Subtest: 复活卡字段原地补零，重复迁移保留已有卡片和旧玩家资产
+ok 35 - 复活卡字段原地补零，重复迁移保留已有卡片和旧玩家资产
+  ---
+  duration_ms: 16.293216
+  ...
+# Subtest: 开局写盘失败后重试同一 roundId，只扣一次体力
+ok 36 - 开局写盘失败后重试同一 roundId，只扣一次体力
+  ---
+  duration_ms: 791.267241
+  ...
+# Subtest: 结算写盘失败后重试同一 roundId，只发一次开心豆
+ok 37 - 结算写盘失败后重试同一 roundId，只发一次开心豆
+  ---
+  duration_ms: 142.425585
+  ...
+# Subtest: 分享领取写盘失败后重试同一 claimId，只补一次体力
+ok 38 - 分享领取写盘失败后重试同一 claimId，只补一次体力
+  ---
+  duration_ms: 362.964623
+  ...
+# Subtest: 系统短写时完整写出数据库后才返回2xx，不会把只写一部分的文件当作持久化成功
+ok 39 - 系统短写时完整写出数据库后才返回2xx，不会把只写一部分的文件当作持久化成功
+  ---
+  duration_ms: 35.053083
+  ...
+# Subtest: 发布重置清空资产和对局，排行榜最高分与名次依据保持不变
+ok 40 - 发布重置清空资产和对局，排行榜最高分与名次依据保持不变
+  ---
+  duration_ms: 292.871092
+  ...
+# Subtest: 重置发生异常时整笔回滚，错误代际不动数据，资产版本递增且同代际不重复重置
+ok 41 - 重置发生异常时整笔回滚，错误代际不动数据，资产版本递增且同代际不重复重置
+  ---
+  duration_ms: 68.579266
+  ...
+# Subtest: 24豆不足、25豆恰好购买1张，伪造价格数量无效，重复及并发不透支
+ok 42 - 24豆不足、25豆恰好购买1张，伪造价格数量无效，重复及并发不透支
+  ---
+  duration_ms: 1040.952045
+  ...
+# Subtest: 第一次失败不能用卡，未失败不能用卡，无卡第二次失败也不产生消费
+ok 43 - 第一次失败不能用卡，未失败不能用卡，无卡第二次失败也不产生消费
+  ---
+  duration_ms: 8745.460962
+  ...
+# Subtest: 第二次失败用卡原子扣库存并保存完整棋盘；并发、丢响应重试、冷恢复与结算均只认一次
+ok 44 - 第二次失败用卡原子扣库存并保存完整棋盘；并发、丢响应重试、冷恢复与结算均只认一次
+  ---
+  duration_ms: 8486.473183
+  ...
+# Subtest: 无服务端用卡凭据的复活、第二次广告复活、超范围与伪造前缀，保存及最终结算均拒绝
+ok 45 - 无服务端用卡凭据的复活、第二次广告复活、超范围与伪造前缀，保存及最终结算均拒绝
+  ---
+  duration_ms: 2074.570304
+  ...
+# Subtest: 落盘失败后原请求重试只扣一张，重新登录可见完整复活存档
+ok 46 - 落盘失败后原请求重试只扣一张，重新登录可见完整复活存档
+  ---
+  duration_ms: 4960.192305
+  ...
+# Subtest: V10在途存档仍可恢复和结算，不能借新版接口增加一次复活；卡片库存不受影响
+ok 47 - V10在途存档仍可恢复和结算，不能借新版接口增加一次复活；卡片库存不受影响
+  ---
+  duration_ms: 5394.310232
+  ...
+# Subtest: 有卡选择结算不消费，也不能跨账号或使用错误会话消费
+ok 48 - 有卡选择结算不消费，也不能跨账号或使用错误会话消费
+  ---
+  duration_ms: 2908.659127
+  ...
+# Subtest: 保存只接受本人合法重放，忽略伪造分数，不发资产；落盘后可查步数
+ok 49 - 保存只接受本人合法重放，忽略伪造分数，不发资产；落盘后可查步数
+  ---
+  duration_ms: 1105.754044
+  ...
+# Subtest: 确认前缀不可改写，迟到短保存不回退；缺道具凭据/未完成回合/伪造救场/超长日志拒绝
+ok 50 - 确认前缀不可改写，迟到短保存不回退；缺道具凭据/未完成回合/伪造救场/超长日志拒绝
+  ---
+  duration_ms: 511.204913
+  ...
+# Subtest: 恢复核验本机尾部、请求幂等，更新会话后旧保存/道具/结算全部失效，不再扣体力
+ok 51 - 恢复核验本机尾部、请求幂等，更新会话后旧保存/道具/结算全部失效，不再扣体力
+  ---
+  duration_ms: 269.346887
+  ...
+# Subtest: 同时恢复只有一个代次胜出，开始不能绕过未结算局；重开成功才原子放弃旧局
+ok 52 - 同时恢复只有一个代次胜出，开始不能绕过未结算局；重开成功才原子放弃旧局
+  ---
+  duration_ms: 142.466985
+  ...
+# Subtest: 7天到期后不再提示但保留原始记录，客户端时间不能延长窗口
+ok 53 - 7天到期后不再提示但保留原始记录，客户端时间不能延长窗口
+  ---
+  duration_ms: 71.790617
+  ...
+# Subtest: 保存与恢复在写盘失败时不回成功，原请求重试可确认同一存档与会话
+ok 54 - 保存与恢复在写盘失败时不回成功，原请求重试可确认同一存档与会话
+  ---
+  duration_ms: 111.50535
+  ...
+# Subtest: 固定3豆换1件、扣款发货原子、同请求重复提交仅兑换一件、两种道具均持久保存
+ok 55 - 固定3豆换1件、扣款发货原子、同请求重复提交仅兑换一件、两种道具均持久保存
+  ---
+  duration_ms: 883.919639
+  ...
+# Subtest: 余额不足、并发透支、未知商品和同ID换商品均不会错误扣款
+ok 56 - 余额不足、并发透支、未知商品和同ID换商品均不会错误扣款
+  ---
+  duration_ms: 175.240457
+  ...
+# Subtest: 落盘失败后用原ID重试，只扣3豆并只入库一件
+ok 57 - 落盘失败后用原ID重试，只扣3豆并只入库一件
+  ---
+  duration_ms: 86.309102
+  ...
+# Subtest: 当前规则禁止伪造道具动作；合法使用只扣一次，刷新/结算不返还已用道具
+ok 58 - 当前规则禁止伪造道具动作；合法使用只扣一次，刷新/结算不返还已用道具
+  ---
+  duration_ms: 386.844386
+  ...
+# Subtest: 新开局不再支持旧免重放奖励协议；补给有幂等和每局上限
+ok 59 - 新开局不再支持旧免重放奖励协议；补给有幂等和每局上限
+  ---
+  duration_ms: 190.465146
+  ...
+# Subtest: V5/V6/V7/V8/V9客户端可并行幂等开局、重放结算，旧协议仍不能新开局
+ok 60 - V5/V6/V7/V8/V9客户端可并行幂等开局、重放结算，旧协议仍不能新开局
+  ---
+  duration_ms: 1343.054623
+  ...
+# Subtest: GM重置清空资产/道具/对局记录，恢复10体力，新开局重新进入教学
+ok 61 - GM重置清空资产/道具/对局记录，恢复10体力，新开局重新进入教学
+  ---
+  duration_ms: 114.32737
+  ...
+# Subtest: 3豆换1体力、与自然恢复累加、保留恢复时钟，幂等重试不能重复加体力
+ok 62 - 3豆换1体力、与自然恢复累加、保留恢复时钟，幂等重试不能重复加体力
+  ---
+  duration_ms: 103.739647
+  ...
+# Subtest: 体力兑换不重置未满时的自然恢复倒计时；余额不足与并发不透支
+ok 63 - 体力兑换不重置未满时的自然恢复倒计时；余额不足与并发不透支
+  ---
+  duration_ms: 88.830851
+  ...
+# Subtest: 所有商城商品2豆不足、3豆恰好成功，客户端伪造价格数量不能改变扣款或发货
+ok 64 - 所有商城商品2豆不足、3豆恰好成功，客户端伪造价格数量不能改变扣款或发货
+  ---
+  duration_ms: 291.620127
+  ...
+# Subtest: 当前规则拒绝重复复活、超过8排复活和短时间重复清屏，不能伪造救场绕过上升
+ok 65 - 当前规则拒绝重复复活、超过8排复活和短时间重复清屏，不能伪造救场绕过上升
+  ---
+  duration_ms: 75.048921
+  ...
+# Subtest: 过期未结算对局不能继续扣道具或领取补给
+ok 66 - 过期未结算对局不能继续扣道具或领取补给
+  ---
+  duration_ms: 80.416295
+  ...
+1..66
+# tests 66
+# suites 0
+# pass 66
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 74129.230441

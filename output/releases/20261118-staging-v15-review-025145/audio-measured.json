@@ -1,0 +1,30 @@
+[
+  {
+    "word": "wow",
+    "measuredGainDb": 1.0542302686988594,
+    "newPeakDbFS": -11.393148425191574,
+    "durationUnchanged": true,
+    "clipping": false
+  },
+  {
+    "word": "good",
+    "measuredGainDb": 1.0543744771123182,
+    "newPeakDbFS": -9.070615489141357,
+    "durationUnchanged": true,
+    "clipping": false
+  },
+  {
+    "word": "great",
+    "measuredGainDb": 1.0509114002674185,
+    "newPeakDbFS": -6.588122610542237,
+    "durationUnchanged": true,
+    "clipping": false
+  },
+  {
+    "word": "perfect",
+    "measuredGainDb": 1.0584488269950028,
+    "newPeakDbFS": -2.897324628199955,
+    "durationUnchanged": true,
+    "clipping": false
+  }
+]

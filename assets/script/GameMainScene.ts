@@ -1,8 +1,10 @@
 import { BUTTON_COLORS, BUTTON_TEXT_COLOR, formatDisplayNickname, uimanager } from './manager/UIManager';
 import { getWxApi, requestWeChatUserProfile, hasWeChatProfileAuthorization, rememberWeChatProfileAuthorization } from './manager/PlatformAdapter';
-import { cloudService, CloudProfile, RoundSettlementResult, StaminaState } from './manager/CloudService';
+import { cloudService, CloudProfile, RoundSettlementResult, StaminaState, ActiveRound, ResumeRoundResult, getApiBase } from './manager/CloudService';
+import { roundProgress } from './manager/RoundProgress';
 import { settingsPanel } from './manager/SettingsPanel';
 import { zyxGameModule } from './dataModule/ZyxGameModule';
+import { BOARD_RULES_VERSION } from './dataModule/BoardEngine';
 import ZyxGame, { SettlementExitRequest } from './zyxGame/ZyxGame';
 import {
     createMoodBean,
@@ -19,6 +21,8 @@ import {
     MOOD_COLORS,
 } from './zyxGame/MoodArt';
 import { showLeaderboardPanel } from './zyxGame/LeaderboardPanel';
+import HomeFriendRanking from './zyxGame/HomeFriendRanking';
+import { postFriendMessage, syncConfirmedFriendScore } from './manager/WeChatFriends';
 import { showShopPanel, drawShopBag, refreshShopPanel } from './zyxGame/ShopPanel';
 import {
     ASSET_PATHS,
@@ -26,11 +30,14 @@ import {
     isFeatureReady,
     loadRemoteTexture,
     prepareFeature,
+    prepareMoodBeanArt,
     prepareTypography,
 } from './manager/AssetLoader';
 import {
     getRewardOfferActionText,
     getRewardOfferFailToast,
+    getRewardOfferIcon,
+    playVerifiedRewardVideo,
     registerSystemShare,
     requestRewardOffer,
 } from './manager/ShareReward';
@@ -51,6 +58,7 @@ import {
 const { ccclass } = cc._decorator;
 const PENDING_START_ROUND_ID_KEY = 'zyx_pending_start_round_id';
 const PENDING_STAMINA_SHARE_ID_KEY = 'zyx_pending_stamina_share_id';
+const CLIENT_VERSION = '2026.11.19.05';
 
 // GM 模块只在「Web 平台 + Debug 构建」存在：微信构建前 scripts/strip-gm-code.js 会把 assets/script/gm/
 // 整体剥离，因此这里必须用动态 require（守卫内），不能用静态 import，否则微信包仍会携带 GM 代码。
@@ -73,18 +81,21 @@ export default class GameMainScene extends cc.Component {
     private profileExperienceFillWidth: number = 210;
     private profileExperienceFillLeft: number = -133;
     private homeMoodBeanIcon: cc.Node = null;
-    private homeMoodBeanBalanceLabel: cc.Label = null;
     /** 示意棋盘/手势层；结算开心豆回流期间隐藏，结束后再淡入恢复循环。 */
     private homeDemoLayer: cc.Node = null;
     private homeDemoClock: cc.Node = null;
     private homeDemoPlaying: boolean = false;
     private startHomeDemoLoop: () => void = null;
+    private homeFriendRanking: HomeFriendRanking = null;
     private startButton: cc.Node = null;
     private startStaminaRecoveryLabel: cc.Label = null;
+    private startStaminaTimer: cc.Label = null;
+    private startStaminaSuffix: cc.Label = null;
     private moodBeanCountLabel: cc.Label = null;
     private moodBeanCountCard: cc.Node = null;
     private cloudProfileReady: boolean = false;
     private cloudProfileBootstrapPromise: Promise<void> = null;
+    private foregroundRefresh: Promise<void> = null;
     private gameAssetsLoading: boolean = false;
     private stamina: StaminaState = null;
     private serverClockOffsetMs: number = 0;
@@ -93,10 +104,13 @@ export default class GameMainScene extends cc.Component {
     private staminaIcon: cc.Node = null;
     private shareClaimInFlight: boolean = false;
     private activeRoundId: string = '';
+    private launchActiveRound: ActiveRound | undefined = undefined;
+    private gameHiddenAt = 0;
     private settlementReceipts: { [roundId: string]: RoundSettlementResult } = {};
     private pendingSettlementPresentation: { roundId: string; request: SettlementExitRequest } = null;
     private wxShowHandler: (() => void) = null;
     private wxNetworkHandler: ((res: any) => void) = null;
+    private networkOnlineHandler: (() => void) = null;
     private viewportResizeHandler: () => void = null;
     private viewportRefreshPending: boolean = false;
 
@@ -124,16 +138,12 @@ export default class GameMainScene extends cc.Component {
         const wxApi = getWxApi();
         if (wxApi) {
             if (typeof wxApi.onShow === 'function') {
-                this.wxShowHandler = () => {
-                    this.refreshCloudProfile().then(() => this.flushPendingRoundSettlements());
-                };
+                this.wxShowHandler = () => this.refreshAfterReconnect();
                 wxApi.onShow(this.wxShowHandler);
             }
             if (typeof wxApi.onNetworkStatusChange === 'function') {
                 this.wxNetworkHandler = (res: any) => {
-                    if (res && res.isConnected) {
-                        this.refreshCloudProfile().then(() => this.flushPendingRoundSettlements());
-                    }
+                    if (res && res.isConnected) this.refreshAfterReconnect();
                 };
                 wxApi.onNetworkStatusChange(this.wxNetworkHandler);
             }
@@ -145,7 +155,17 @@ export default class GameMainScene extends cc.Component {
         if (!this.viewportResizeHandler) this.viewportResizeHandler = () => this.scheduleViewportRefresh();
         if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
             window.addEventListener('resize', this.viewportResizeHandler);
+            this.networkOnlineHandler = () => this.refreshAfterReconnect();
+            window.addEventListener('online', this.networkOnlineHandler);
         }
+        cc.game.on(cc.game.EVENT_HIDE, this.saveBeforeHide, this);
+        cc.game.on(cc.game.EVENT_SHOW, this.restoreAfterShow, this);
+        roundProgress.onStorageFailure = () => uimanager.showToast('本机存储空间不足，请保持联网保存进度');
+        roundProgress.onConflict = () => {
+            this.enterHome(() => uimanager.showModal('进度已更新', '这局已在别处更新或结束。\n回到首页确认最新进度后，再接着玩吧。',
+                [{ text: '知道了', color: BUTTON_COLORS.green, onClick: () => undefined }]));
+            this.activeRoundId = '';
+        };
         this.schedule(this.updateStaminaStatus, 1);
     }
 
@@ -155,13 +175,12 @@ export default class GameMainScene extends cc.Component {
             cc.dynamicAtlasManager.enabled = false;
             cc.dynamicAtlasManager.reset();
         }
+        this.launch();
         prepareTypography().then(() => {
             if (!cc.isValid(this.node)) return;
             uimanager.refreshTypography(this.node);
-            this.launch();
         }).catch((error) => {
             cc.warn('[字体] 使用可读字体继续启动', error);
-            if (cc.isValid(this.node)) this.launch();
         });
     }
 
@@ -173,20 +192,39 @@ export default class GameMainScene extends cc.Component {
             : '';
         const seedMatch = search.match(/[?&]seed=(\d+)/);
         zyxGameModule.setRoundSeedOverride(seedMatch ? Number(seedMatch[1]) : 0);
-        if (search.indexOf('autostart=1') >= 0) {
-            this.startGame().then((started) => {
-                if (!started) this.enterHome(() => {
-                    if (this.stamina && this.getStaminaPreview().current < 1) this.showStaminaEmptyModal();
-                });
-            });
-            return;
-        }
         this.showLaunchLoading();
+        const cached = this.readCachedCloudProfile();
+        if (cached) {
+            roundProgress.bind(cached.playerId);
+            const local = roundProgress.getOfflineRound();
+            if (local && !zyxGameModule.getPendingRoundSettlements().some(record => record.roundId === local.roundId)) {
+                this.showRestoringGame();
+                void prepareFeature('game').catch(() => undefined);
+            }
+        }
         this.bootstrapCloudProfile().then(async () => {
+            if (!cc.isValid(this.node)) return;
+            if (!this.cloudProfileReady && this.currentCloudProfile) {
+                const local = roundProgress.getOfflineRound();
+                if (local && !zyxGameModule.getPendingRoundSettlements().some(record => record.roundId === local.roundId)) {
+                    try {
+                        await prepareFeature('game');
+                        this.enterRestoredGame(local);
+                        return;
+                    } catch (_) { /* 保留本机记录，联网后仍可核验恢复。 */ }
+                }
+            }
+            let active = this.launchActiveRound;
+            this.launchActiveRound = undefined;
+            if (this.cloudProfileReady && active === undefined) active = await cloudService.getActiveRound().catch(() => null);
+            if (active && (!active.mode || active.mode === 'main') && !zyxGameModule.getPendingRoundSettlements().some(record => record.roundId === active.roundId)) {
+                await this.resumeSavedRound(active);
+                return;
+            }
             const previewHome = typeof CC_DEBUG !== 'undefined' && CC_DEBUG && /(?:^|[?&])home=1(?:&|$)/.test(search);
-            if (!previewHome && zyxGameModule.shouldEnterGameOnLaunch()) {
-                const started = await this.startGame(true);
-                if (!started) this.enterHome(() => {
+            if (search.indexOf('autostart=1') >= 0 || (!previewHome && zyxGameModule.shouldEnterGameOnLaunch())) {
+                const started = await this.startGame(true, null, active);
+                if (!started && (!this.screen || this.screen.name !== 'home')) this.enterHome(() => {
                     if (this.stamina && this.getStaminaPreview().current < 1) this.showStaminaEmptyModal();
                 });
                 return;
@@ -195,39 +233,118 @@ export default class GameMainScene extends cc.Component {
         });
     }
 
+    private saveBeforeHide(): void {
+        if (this.screen && this.screen.name === 'gameRestoring') return;
+        const game = this.screen && this.screen.getComponent(ZyxGame);
+        if (game) {
+            game.captureProgress(true);
+            if (!this.gameHiddenAt) this.gameHiddenAt = Date.now();
+        }
+    }
+
+    private restoreAfterShow(): void {
+        const game = this.screen && this.screen.getComponent(ZyxGame);
+        if (game && this.gameHiddenAt) {
+            game.resumeAfterBackground(Math.max(0, Date.now() - this.gameHiddenAt));
+            game.captureProgress(true);
+        }
+        this.gameHiddenAt = 0;
+    }
+
+    private refreshAfterReconnect(): void {
+        if (this.foregroundRefresh || this.gameAssetsLoading || !this.screen
+            || this.screen.name === 'launchLoading' || this.screen.name === 'gameRestoring') return;
+        const game = this.screen.getComponent(ZyxGame);
+        if (game && game.isRewardPending()) return;
+        // 首页交由续玩核验本机尾部；同时发起存档同步可能抢用正在换新的会话。
+        if (game) void roundProgress.sync(true);
+        this.foregroundRefresh = this.refreshCloudProfile().then(async () => {
+            if (!cc.isValid(this.node)) return;
+            await this.flushPendingRoundSettlements();
+            if (cc.isValid(this.node)) await this.restoreUnsettledRound();
+        }).catch(error => cc.warn('[云同步] 恢复失败', error)).finally(() => { this.foregroundRefresh = null; });
+    }
+
+    /** 网络/前台恢复时直接续玩；正在进行的棋盘不重复抢占会话。 */
+    private async restoreUnsettledRound(): Promise<void> {
+        if (!this.cloudProfileReady || this.gameAssetsLoading || !this.screen || this.screen.name !== 'home') return;
+        try {
+            const active = await cloudService.getActiveRound();
+            if (!this.screen || this.screen.name !== 'home' || this.gameAssetsLoading) return;
+            if (active && (!active.mode || active.mode === 'main')
+                && !zyxGameModule.getPendingRoundSettlements().some(record => record.roundId === active.roundId)) {
+                await this.resumeSavedRound(active);
+            }
+        } catch (_) { /* 保留存档，下一次联网恢复时重试。 */ }
+    }
+
+    private async resumeSavedRound(active: ActiveRound): Promise<void> {
+        if (this.gameAssetsLoading) return;
+        this.gameAssetsLoading = true;
+        try {
+            this.showRestoringGame();
+            const restored = roundProgress.resume(active).catch(async error => {
+                if (!error || error.businessCode !== 'ROUND_SESSION_CONFLICT' || !cc.isValid(this.node)) throw error;
+                const latest = await cloudService.getActiveRound();
+                if (!latest || latest.roundId !== active.roundId || latest.generation === active.generation
+                    || zyxGameModule.getPendingRoundSettlements().some(record => record.roundId === latest.roundId)) throw error;
+                return roundProgress.resume(latest);
+            });
+            const [saved] = await Promise.all([restored, prepareFeature('game')]);
+            if (!cc.isValid(this.node)) return;
+            this.enterRestoredGame(saved);
+        } catch (error) {
+            if (typeof CC_DEBUG !== 'undefined' && CC_DEBUG) cc.warn('[续玩] 恢复失败', error);
+            if (!cc.isValid(this.node)) return;
+            const report = (): void => {
+                uimanager.showToast(error && error.businessCode === 'ROUND_SESSION_CONFLICT'
+                    ? '进度刚刚更新，请再次点击开始查看' : '暂时没能恢复，存档已保留，请联网后重试');
+            };
+            if (this.screen && this.screen.name === 'gameRestoring') this.enterHome(report);
+            else report();
+        } finally { this.gameAssetsLoading = false; }
+    }
+
+    private enterRestoredGame(saved: ResumeRoundResult): void {
+        this.activeRoundId = saved.roundId;
+        zyxGameModule.cloudRoundId = saved.roundId;
+        cc.sys.localStorage.removeItem(PENDING_START_ROUND_ID_KEY);
+        this.replaceScreen('game');
+        this.screen.addComponent(ZyxGame).initialize(
+            request => this.handleSettlementExit(request),
+            (settlement, startedAt) => this.submitSettlementToCloud(settlement, startedAt),
+            () => this.startGame(false, 'current'), this.currentCloudProfile, saved, () => this.enterHome(),
+        );
+        if (saved.rulesVersion < BOARD_RULES_VERSION) {
+            uimanager.showToast('已恢复旧规则对局\n暂停后可重新开始体验新版', 3.5);
+        }
+    }
+
+    private showRestoringGame(): void {
+        if (this.screen && this.screen.name === 'gameRestoring') return;
+        this.replaceScreen('gameRestoring');
+        this.screen.addComponent(ZyxGame).showRestoring();
+    }
+
     /** 首包内的轻量启动反馈；不加载首页贴图或音乐，避免新用户为看不到的首页资源付费。 */
     private showLaunchLoading(): void {
         this.replaceScreen('launchLoading');
-        const mascot = uimanager.createRect(
-            this.screen,
-            'launchMascot',
-            82,
-            66,
-            MOOD_COLORS.honey,
-            255,
-            18,
-            0,
-            32,
-        );
-        const face = new cc.Node('launchMascotFace');
-        face.zIndex = 2;
-        mascot.addChild(face);
-        const graphics = face.addComponent(cc.Graphics);
-        graphics.strokeColor = MOOD_COLORS.cocoa;
-        graphics.lineWidth = 3;
-        graphics.arc(-16, 8, 4, Math.PI, Math.PI * 2);
-        graphics.stroke();
-        graphics.arc(16, 8, 4, Math.PI, Math.PI * 2);
-        graphics.stroke();
-        graphics.arc(0, -4, 13, Math.PI, Math.PI * 2);
-        graphics.stroke();
+        const launchScreen = this.screen;
         uimanager.createLabel(this.screen, '正在准备快乐消除…', 0, -50, 22, MOOD_COLORS.cocoa, 360, 36);
-        cc.tween(mascot)
-            .repeatForever(cc.tween().to(0.42, { y: 46 }, { easing: 'sineOut' }).to(0.42, { y: 32 }, { easing: 'sineIn' }))
-            .start();
+        prepareMoodBeanArt().then(() => {
+            if (!cc.isValid(launchScreen) || this.screen !== launchScreen) return;
+            const mascot = createMoodBeanMascot(launchScreen, 0, 32, 96);
+            cc.tween(mascot)
+                .repeatForever(cc.tween().to(0.42, { y: 46 }, { easing: 'sineOut' }).to(0.42, { y: 32 }, { easing: 'sineIn' }))
+                .start();
+        }).catch(error => cc.warn('[资源] 启动角色暂未就绪', error));
     }
 
     public onDestroy(): void {
+        cc.game.off(cc.game.EVENT_HIDE, this.saveBeforeHide, this);
+        cc.game.off(cc.game.EVENT_SHOW, this.restoreAfterShow, this);
+        roundProgress.onConflict = null;
+        roundProgress.onStorageFailure = null;
         audioManager.dispose();
         this.unschedule(this.updateStaminaStatus);
         const wxApi = getWxApi();
@@ -242,6 +359,7 @@ export default class GameMainScene extends cc.Component {
         }
         if (this.viewportResizeHandler && typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
             window.removeEventListener('resize', this.viewportResizeHandler);
+            if (this.networkOnlineHandler) window.removeEventListener('online', this.networkOnlineHandler);
         }
         this.wxShowHandler = null;
         this.wxNetworkHandler = null;
@@ -342,7 +460,8 @@ export default class GameMainScene extends cc.Component {
         } else if (name === 'game') {
             createGameRoomBackground(this.backdrop, cc.winSize.width, cc.winSize.height);
         } else {
-            uimanager.createRect(this.backdrop, 'launchBackground', cc.winSize.width, cc.winSize.height, new cc.Color(255, 247, 225));
+            const color = name === 'gameRestoring' ? new cc.Color(255, 239, 204) : new cc.Color(255, 247, 225);
+            uimanager.createRect(this.backdrop, 'launchBackground', cc.winSize.width, cc.winSize.height, color);
         }
     }
 
@@ -369,12 +488,11 @@ export default class GameMainScene extends cc.Component {
         const safeArea = uimanager.getSafeAreaMetrics();
         const heightDelta = height - 1334;
         // 首页以“标题—整理演示—开始操作”自上而下收束，避免标题过高、底部按钮过轻。
-        const titleY = 356 + Math.max(0, Math.min(64, heightDelta * 0.24));
-        // 演示区与说明整体上提 15px；棋盘动画在演示区内再上提 10px，拉开文字呼吸感。
-        const moodSceneY = -27 + Math.max(-16, Math.min(34, heightDelta * 0.1));
-        const tipY = -304 - Math.max(-10, Math.min(24, heightDelta * 0.07));
-        const startY = -440 - Math.max(-14, Math.min(32, heightDelta * 0.09));
-        const profileY = height / 2 - Math.max(32, safeArea.top) - 78;
+        const titleY = 380 + Math.max(0, Math.min(80, heightDelta * 0.25));
+        const friendY = -104 + Math.max(0, Math.min(28, heightDelta * 0.08));
+        const tipY = -height / 2 + safeArea.bottom + 68;
+        const startY = -475 - Math.max(-14, Math.min(32, heightDelta * 0.09));
+        const profileY = height / 2 - Math.max(32, safeArea.top) - 64;
 
         const profile = this.createHomeProfile(profileY);
         this.createMoodBeanCount(profile);
@@ -383,10 +501,25 @@ export default class GameMainScene extends cc.Component {
         this.flushPendingRoundSettlements();
 
         this.createHomeTitleLogo(titleY);
-        this.createHomeMoodScene(moodSceneY);
+        const title = this.screen.getChildByName('homeTitleLogo');
+        // 演示组合的视觉中心比原点高42px，按标题下沿与好友卡上沿的中点放置。
+        const demoCenterY = (title.y - title.height / 2 + friendY + 230) / 2;
+        this.createHomeMoodScene(demoCenterY - 42);
+        const friendModule = new cc.Node('homeFriendRanking');
+        friendModule.setPosition(0, friendY);
+        friendModule.zIndex = 90;
+        this.screen.addChild(friendModule);
+        this.homeFriendRanking = friendModule.addComponent(HomeFriendRanking);
         this.createHomeFeatureEntries();
         this.createHomeSettingsEntry();
         this.createHomeRotatingTip(tipY);
+        const version = uimanager.createLabel(this.screen, `v${CLIENT_VERSION}`,
+            width / 2 - safeArea.right - 22, -height / 2 + safeArea.bottom + 22,
+            16, MOOD_COLORS.cocoaSoft, 240, 28);
+        version.node.name = 'clientVersion';
+        version.node.setAnchorPoint(1, 0.5);
+        version.horizontalAlign = cc.Label.HorizontalAlign.RIGHT;
+        version.enableWrapText = false;
 
         this.startButton = uimanager.createButton(
             this.screen,
@@ -400,9 +533,23 @@ export default class GameMainScene extends cc.Component {
             24,
         );
         this.decorateStartButton();
-        this.startStaminaRecoveryLabel = uimanager.createLabel(this.startButton, '', 0,
-            this.startButton.height / 2 + 20, 18, MOOD_COLORS.cocoaSoft, 490, 28);
-        this.startStaminaRecoveryLabel.node.name = 'startStaminaCountdown';
+        const countdown = new cc.Node('startStaminaCountdown');
+        this.startButton.addChild(countdown);
+        countdown.setPosition(0, this.startButton.height / 2 + 25);
+        const countdownLayout = countdown.addComponent(cc.Layout);
+        countdownLayout.type = cc.Layout.Type.HORIZONTAL;
+        countdownLayout.resizeMode = cc.Layout.ResizeMode.CONTAINER;
+        countdownLayout.spacingX = 2;
+        this.startStaminaRecoveryLabel = uimanager.createLabel(countdown, '', 0, 0, 21, MOOD_COLORS.cocoaSoft, 1, 34);
+        this.startStaminaTimer = uimanager.createLabel(countdown, '', 0, 0, 21, new cc.Color(48, 132, 70), 1, 34);
+        this.startStaminaSuffix = uimanager.createLabel(countdown, '', 0, 0, 21, MOOD_COLORS.cocoaSoft, 1, 34);
+        this.startStaminaTimer.node.color = new cc.Color(48, 132, 70);
+        this.startStaminaRecoveryLabel.node.color = this.startStaminaSuffix.node.color = MOOD_COLORS.cocoaSoft;
+        for (const label of [this.startStaminaRecoveryLabel, this.startStaminaTimer, this.startStaminaSuffix]) {
+            label.overflow = cc.Label.Overflow.NONE;
+            label.enableWrapText = false;
+            uimanager.applyTypography(label);
+        }
         this.createStartButtonGuide();
         this.updateStaminaStatus();
         this.preloadGameResourcesSilently();
@@ -451,7 +598,17 @@ export default class GameMainScene extends cc.Component {
             }
         }
         if (this.startStaminaRecoveryLabel && cc.isValid(this.startStaminaRecoveryLabel.node, true)) {
-            this.startStaminaRecoveryLabel.string = this.getChallengeStaminaText();
+            const text = this.getChallengeStaminaText();
+            const parts = text.match(/^(.*?)(\d{2}:\d{2})(.*)$/);
+            this.startStaminaRecoveryLabel.string = parts ? parts[1] : text;
+            this.startStaminaTimer.string = parts ? parts[2] : '';
+            this.startStaminaSuffix.string = parts ? parts[3] : '';
+            for (const label of [this.startStaminaRecoveryLabel, this.startStaminaTimer, this.startStaminaSuffix]) {
+                (label as any)._forceUpdateRenderData();
+            }
+            const group = this.startStaminaRecoveryLabel.node.parent;
+            group.getComponent(cc.Layout).updateLayout();
+            group.scale = Math.min(1, 540 / Math.max(1, group.width));
         }
         refreshShopPanel();
     }
@@ -514,15 +671,33 @@ export default class GameMainScene extends cc.Component {
         );
     }
 
-    private requestStaminaReward(): void {
+    private async requestStaminaReward(): Promise<void> {
         if (this.shareClaimInFlight) return;
-        requestRewardOffer((rewarded) => {
-            if (!rewarded) {
-                uimanager.showToast(getRewardOfferFailToast('stamina'));
+        this.shareClaimInFlight = true;
+        try {
+            if (getRewardOfferIcon() === 'video') {
+                const rewarded = await playVerifiedRewardVideo('5 点体力', 'legacy',
+                    () => cloudService.prepareRewardIntent('stamina', undefined, false), async intent => {
+                        await cloudService.completeRewardIntent(intent);
+                        cloudService.rememberRewardIntent('stamina', intent.intentId);
+                    });
+                this.shareClaimInFlight = false;
+                if (rewarded) await this.claimSharedStamina();
+                else uimanager.showToast(getRewardOfferFailToast('stamina'));
                 return;
             }
-            this.claimSharedStamina();
-        }, '5 点体力');
+            const intent = await cloudService.prepareRewardIntent('stamina');
+            if (intent.completed) { this.shareClaimInFlight = false; await this.claimSharedStamina(); return; }
+            requestRewardOffer((rewarded) => {
+                if (!rewarded) {
+                    this.shareClaimInFlight = false;
+                    uimanager.showToast(getRewardOfferFailToast('stamina')); return;
+                }
+                void cloudService.completeRewardIntent(intent).then(() => {
+                    this.shareClaimInFlight = false; void this.claimSharedStamina();
+                }).catch(error => { this.shareClaimInFlight = false; uimanager.showToast(error.message || '奖励尚未确认，请重试'); });
+            }, '5 点体力');
+        } catch (error) { this.shareClaimInFlight = false; uimanager.showToast(error.message || '奖励暂不可用，请稍后重试'); }
     }
 
     private async claimSharedStamina(): Promise<void> {
@@ -633,7 +808,7 @@ export default class GameMainScene extends cc.Component {
     ): cc.Node {
         const cardWidth = 148;
         const cardHeight = 58;
-        const resourceY = 29;
+        const resourceY = 24;
         uimanager.createRect(profile, `${name}Shadow`, cardWidth, cardHeight, new cc.Color(91, 73, 57), 22, 23, x, resourceY - 3);
         const card = uimanager.createRect(profile, name, cardWidth, cardHeight, fill, 255, 23, x, resourceY);
         const borderNode = new cc.Node(`${name}Border`);
@@ -657,19 +832,19 @@ export default class GameMainScene extends cc.Component {
     /** 档案卡右侧并列展示体力与服务端确认的开心豆余额。 */
     private createMoodBeanCount(profile: cc.Node): void {
         const staminaCard = this.createHomeResourceCapsule(
-            profile, 'staminaCount', 75,
+            profile, 'staminaCount', 244,
             new cc.Color(255, 237, 197), new cc.Color(201, 155, 82, 175), new cc.Color(255, 249, 226),
         );
         this.staminaIcon = createStaminaBolt(staminaCard, -50, 0, 38);
         this.staminaLabel = uimanager.createLabel(staminaCard, '—/10', 20, 0, 23, MOOD_COLORS.cocoa, 104, 29);
-        this.makeLabelBold(this.staminaLabel);
-        this.staminaRecoveryLabel = uimanager.createLabel(staminaCard, '', 20, -46, 14, MOOD_COLORS.cocoaSoft, 126, 20);
-        this.makeLabelBold(this.staminaRecoveryLabel);
+        uimanager.applyTypography(this.staminaLabel);
+        this.staminaRecoveryLabel = uimanager.createLabel(staminaCard, '', 0, -52, 18, new cc.Color(48, 132, 70), 148, 28);
+        uimanager.applyTypography(this.staminaRecoveryLabel);
         staminaCard.addComponent(cc.Button);
         staminaCard.on(cc.Node.EventType.TOUCH_END, () => this.showStaminaInfo(), this);
 
         const card = this.createHomeResourceCapsule(
-            profile, 'moodBeanCount', 244,
+            profile, 'moodBeanCount', 75,
             new cc.Color(255, 243, 215), new cc.Color(205, 173, 103, 175), new cc.Color(255, 250, 230),
         );
         card.zIndex = 25;
@@ -686,7 +861,7 @@ export default class GameMainScene extends cc.Component {
             104,
             29,
         );
-        this.makeLabelBold(this.moodBeanCountLabel);
+        uimanager.applyTypography(this.moodBeanCountLabel);
         this.layoutMoodBeanCountBadge();
     }
 
@@ -699,11 +874,10 @@ export default class GameMainScene extends cc.Component {
         ));
         this.moodBeanCountLabel.string = String(count);
         const digits = String(count).length;
-        this.moodBeanCountLabel.fontSize = digits >= 6 ? 16 : (digits >= 4 ? 20 : 23);
+        this.moodBeanCountLabel.fontSize = digits >= 6 ? 21 : (digits >= 4 ? 25 : 29);
     }
 
     private updateMoodBeanCount(): void {
-        if (this.homeMoodBeanBalanceLabel) this.homeMoodBeanBalanceLabel.string = `${zyxGameModule.getDisplayMoodBeanBalance()}`;
         this.layoutMoodBeanCountBadge();
         if (this.moodBeanCountCard) this.pulseRewardTarget(this.moodBeanCountCard);
     }
@@ -718,20 +892,32 @@ export default class GameMainScene extends cc.Component {
         this.cloudProfileBootstrapPromise = (async () => {
             try {
                 // R1：bootstrap 只提交身份资料；经济数据由服务端权威档案下发，不再上报本地数值。
-                const profile = await cloudService.bootstrap(
+                const session = await cloudService.bootstrapSession(
                     this.profileNameLabel ? this.profileNameLabel.string : '解忧玩家',
-                    '',
+                    '', this.screen && ['launchLoading', 'gameRestoring'].includes(this.screen.name),
                 );
+                this.launchActiveRound = session.activeRound;
                 this.cloudProfileReady = true;
-                this.applyCloudProfile(profile);
+                this.applyCloudProfile(session.profile);
                 this.flushPendingRoundSettlements(false);
             } catch (error) {
                 // 网络短暂不可用时继续使用本地缓存，不打断玩家进入游戏。
+                if (!error || ![401, 403].includes(error.status)) {
+                    const cached = this.readCachedCloudProfile();
+                    if (cached) this.applyCloudProfile(cached);
+                }
             } finally {
                 this.cloudProfileBootstrapPromise = null;
             }
         })();
         return this.cloudProfileBootstrapPromise;
+    }
+
+    private readCachedCloudProfile(): CloudProfile {
+        try {
+            const cached = JSON.parse(cc.sys.localStorage.getItem('zyx_confirmed_profile_' + getApiBase()) || 'null');
+            return cached && cached.token && cached.token === cc.sys.localStorage.getItem('zyx_cloud_token') ? cached.profile : null;
+        } catch (_) { return null; }
     }
 
     private async refreshCloudProfile(): Promise<void> {
@@ -748,7 +934,15 @@ export default class GameMainScene extends cc.Component {
         if (!profile) return;
         if (!zyxGameModule.applyCloudProfile(profile)) return;
         this.currentCloudProfile = profile;
-        if (this.profileNameLabel) this.profileNameLabel.string = formatDisplayNickname(profile.nickname);
+        try {
+            cc.sys.localStorage.setItem('zyx_confirmed_profile_' + getApiBase(), JSON.stringify({ profile, token: cc.sys.localStorage.getItem('zyx_cloud_token') }));
+        } catch (_) { /* 资产仍以云端确认值为准；缓存不影响在线流程。 */ }
+        roundProgress.bind(profile.playerId);
+        syncConfirmedFriendScore(profile.playerId, profile.highestSingleGameScore);
+        if (this.profileNameLabel) {
+            this.profileNameLabel.string = formatDisplayNickname(profile.nickname);
+            uimanager.applyTypography(this.profileNameLabel);
+        }
         if (this.profileAvatarContent && cc.isValid(this.profileAvatarContent)
             && this.profileAvatarUrl !== (profile.avatarUrl || '')) {
             this.renderProfileAvatar(this.profileAvatarContent, profile.avatarUrl || '');
@@ -762,9 +956,6 @@ export default class GameMainScene extends cc.Component {
         // 开心豆余额和经验只展示服务端确认值，避免预支待同步奖励。
         const display = zyxGameModule.getDisplayLevelAndExperience();
         this.updateHomeExperienceDisplay(display.level, display.experience, display.target);
-        if (this.homeMoodBeanBalanceLabel) {
-            this.homeMoodBeanBalanceLabel.string = `${zyxGameModule.getDisplayMoodBeanBalance()}`;
-        }
     }
 
     /**
@@ -778,6 +969,7 @@ export default class GameMainScene extends cc.Component {
         }
         const record = {
             roundId: this.activeRoundId,
+            sessionToken: roundProgress.token,
             startedAt,
             endedAt: Date.now(),
             score: settlement.roundScore,
@@ -785,6 +977,7 @@ export default class GameMainScene extends cc.Component {
             actions: zyxGameModule.roundActions.slice(),
         };
         zyxGameModule.enqueuePendingRoundSettlement(record);
+        roundProgress.clear(record.roundId);
         this.flushPendingRoundSettlements();
     }
 
@@ -807,6 +1000,7 @@ export default class GameMainScene extends cc.Component {
                 record.score,
                 record.collectedMoodBeanCount,
                 record.actions,
+                record.sessionToken,
             ),
             {
                 onSettled: (record, result) => {
@@ -885,16 +1079,16 @@ export default class GameMainScene extends cc.Component {
     private createHomeSettingsEntry(): void {
         const safeArea = uimanager.getSafeAreaMetrics();
         const buttonWidth = 104;
-        const buttonHeight = 88;
+        const buttonHeight = 104;
         const contentRight = Math.min(this.screen.width / 2 - safeArea.right, DESIGN_WIDTH / 2);
         const x = contentRight - 15 - buttonWidth / 2;
-        const y = -this.screen.height / 2 + safeArea.bottom + 95;
+        const y = -this.screen.height / 2 + safeArea.bottom + 190;
         const entry = uimanager.createRect(this.screen, 'settingsEntry', buttonWidth, buttonHeight, MOOD_COLORS.mistBlue, 255, 24, x, y);
         entry.zIndex = 150;
         uimanager.drawButtonSurface(entry, buttonWidth, buttonHeight, MOOD_COLORS.mistBlue, 24);
         const gear = this.drawSettingsGear(entry);
-        const title = uimanager.createLabel(entry, '设置', 0, -27, 24, BUTTON_TEXT_COLOR, 76, 26);
-        this.makeLabelBold(title);
+        const title = uimanager.createLabel(entry, '设置', 0, -24, 28, BUTTON_TEXT_COLOR, 90, 38);
+        uimanager.applyTypography(title);
         entry.addComponent(cc.Button);
         entry.on(cc.Node.EventType.TOUCH_START, () => {
             cc.Tween.stopAllByTarget(entry);
@@ -966,9 +1160,6 @@ export default class GameMainScene extends cc.Component {
         const display = zyxGameModule.getDisplayLevelAndExperience();
         this.updateHomeExperienceDisplay(display.level, display.experience, display.target);
         this.updateMoodBeanCount();
-        if (this.homeMoodBeanBalanceLabel) {
-            this.homeMoodBeanBalanceLabel.string = `${zyxGameModule.getDisplayMoodBeanBalance()}`;
-        }
         const game = this.screen ? this.screen.getComponent(ZyxGame) : null;
         if (game) game.refreshInventoryHud();
     }
@@ -1004,7 +1195,7 @@ export default class GameMainScene extends cc.Component {
         if (resourcePath) this.loadHomeFeatureIcon(iconBase, resourcePath, 70, 0, 2);
         else drawShopBag(iconBase);
         const titleLabel = uimanager.createLabel(entry, title, 0, -44, 24, MOOD_COLORS.cocoa, 108, 32);
-        this.makeLabelBold(titleLabel);
+        uimanager.applyTypography(titleLabel);
         entry.addComponent(cc.Button);
         entry.on(cc.Node.EventType.TOUCH_START, () => {
             cc.tween(entry).stop();
@@ -1034,30 +1225,6 @@ export default class GameMainScene extends cc.Component {
         icon.height = iconSize;
     }
 
-    private drawRankFeatureGlyph(parent: cc.Node, x: number, y: number): void {
-        const glyph = new cc.Node('rankTrophyGlyph');
-        glyph.setPosition(x, y);
-        parent.addChild(glyph);
-        const g = glyph.addComponent(cc.Graphics);
-        g.fillColor = new cc.Color(255, 230, 153);
-        g.strokeColor = new cc.Color(150, 105, 56);
-        g.lineWidth = 2.4;
-        g.roundRect(-16, -12, 32, 27, 10);
-        g.fill();
-        g.stroke();
-        g.strokeColor = new cc.Color(150, 105, 56);
-        g.lineWidth = 3;
-        g.arc(-17, 4, 11, Math.PI / 2, Math.PI * 1.5, true);
-        g.stroke();
-        g.arc(17, 4, 11, Math.PI * 1.5, Math.PI / 2, true);
-        g.stroke();
-        g.fillColor = new cc.Color(244, 181, 60);
-        g.roundRect(-5, -25, 10, 14, 3);
-        g.fill();
-        g.roundRect(-17, -31, 34, 9, 4);
-        g.fill();
-    }
-
     private createHomeMoodScene(centerY: number): void {
         const stage = new cc.Node('homeMoodScene');
         // 演示棋盘与开心豆构成同一条“消除后变成开心豆”的因果链。
@@ -1070,6 +1237,8 @@ export default class GameMainScene extends cc.Component {
         const demoLayer = new cc.Node('homeDemoLayer');
         demoLayer.setAnchorPoint(0.5, 0.5);
         demoLayer.zIndex = 10;
+        demoLayer.setPosition(-62, -110);
+        demoLayer.scale = 0.8;
         stage.addChild(demoLayer);
         this.homeDemoLayer = demoLayer;
 
@@ -1118,27 +1287,15 @@ export default class GameMainScene extends cc.Component {
             .start();
 
         // 开心豆收纳位：放大同一位豆伙伴；结算开心豆飞回这里。
-        const beanIcon = createMoodBeanMascot(stage, 0, -33, 168);
+        const beanIcon = createMoodBeanMascot(stage, 145, demoLayer.y + boardCenterY * demoLayer.scale, 106);
         beanIcon.zIndex = 60;
         beanIcon.opacity = 0;
         beanIcon.scale = 0.72;
         cc.tween(beanIcon).to(0.34, { scale: 1, opacity: 255 }, { easing: 'backOut' }).start();
         this.homeMoodBeanIcon = beanIcon;
 
-        const demoTip = uimanager.createLabel(demoLayer, '左右挪动 · 收集开心豆', boardCenterX, 105, 17, MOOD_COLORS.cocoaSoft, 280, 28);
-        this.makeLabelBold(demoTip);
-        this.homeMoodBeanBalanceLabel = uimanager.createLabel(
-            stage,
-            `${zyxGameModule.getDisplayMoodBeanBalance()}`,
-            0,
-            -160,
-            24,
-            MOOD_COLORS.cocoa,
-            160,
-            32,
-        );
-        this.homeMoodBeanBalanceLabel.node.zIndex = 220;
-        this.makeLabelBold(this.homeMoodBeanBalanceLabel);
+        const demoTip = uimanager.createLabel(demoLayer, '左右挪动 · 收集开心豆', boardCenterX, 105, 20, MOOD_COLORS.cocoaSoft, 280, 28);
+        uimanager.applyTypography(demoTip);
 
         const demoPieces = [leftPiece, rightPiece, movingPiece];
         const demoClock = new cc.Node('homeDemoClock');
@@ -1246,11 +1403,6 @@ export default class GameMainScene extends cc.Component {
                 if (this.startHomeDemoLoop) this.startHomeDemoLoop();
             })
             .start();
-    }
-
-    private getNodePositionInParent(node: cc.Node, parent: cc.Node): cc.Vec2 {
-        if (!node || !parent || !cc.isValid(node) || !cc.isValid(parent)) return cc.v2(0, 0);
-        return parent.convertToNodeSpaceAR(node.convertToWorldSpaceAR(cc.v2(0, 0)));
     }
 
     private createHomeDemoPiece(
@@ -1378,7 +1530,8 @@ export default class GameMainScene extends cc.Component {
         order: number,
     ): void {
         const start = new cc.Vec2(piece.x + piece.width / 2 - 22, piece.y);
-        const target = new cc.Vec2(beanIcon.x + (order === 0 ? -12 : 12), beanIcon.y + 22);
+        // 棋盘层有位移和0.8倍缩放，终点必须转换到碎片所在层，不能直接使用豆子的父层坐标。
+        const target = stage.convertToNodeSpaceAR(beanIcon.convertToWorldSpaceAR(cc.v2(0, 4)));
         const control = new cc.Vec2((start.x + target.x) / 2, Math.max(start.y, target.y) + 88 + order * 10);
         const token = createMoodBean(stage, moodIndex, start.x, start.y, 36, 0);
         token.name = `homeDemoTransientMood_${order}`;
@@ -1397,9 +1550,8 @@ export default class GameMainScene extends cc.Component {
                     token.y = inverse * inverse * start.y + 2 * inverse * state.t * control.y + state.t * state.t * target.y;
                     token.scale = 1.1 - state.t * 0.6;
                     token.angle = -state.t * 180;
-                    if (state.t > 0.7) {
-                        token.zIndex = 35;
-                        token.opacity = Math.floor(255 * (1 - (state.t - 0.7) / 0.3));
+                    if (state.t > 0.9) {
+                        token.opacity = Math.floor(255 * (1 - (state.t - 0.9) / 0.1));
                     }
                 },
             })
@@ -1407,9 +1559,12 @@ export default class GameMainScene extends cc.Component {
                 if (cc.isValid(token)) token.destroy();
                 if (!cc.isValid(beanIcon)) return;
                 cc.Tween.stopAllByTarget(beanIcon);
+                beanIcon.angle = 0;
                 cc.tween(beanIcon)
-                    .to(0.08, { scale: 1.06 }, { easing: 'backOut' })
-                    .to(0.14, { scale: 1 }, { easing: 'sineOut' })
+                    .to(0.1, { angle: -9, scale: 1.05 }, { easing: 'sineOut' })
+                    .to(0.16, { angle: 8, scale: 1.02 }, { easing: 'sineInOut' })
+                    .to(0.14, { angle: -4, scale: 1 }, { easing: 'sineInOut' })
+                    .to(0.12, { angle: 0 }, { easing: 'sineOut' })
                     .start();
                 this.spawnHomeDemoBeanSparkles(stage, beanIcon, moodIndex, order);
             })
@@ -1424,20 +1579,21 @@ export default class GameMainScene extends cc.Component {
         order: number,
     ): void {
         const color = getMoodColor(moodIndex);
+        const target = stage.convertToNodeSpaceAR(beanIcon.convertToWorldSpaceAR(cc.v2(0, 18)));
         for (let index = 0; index < 3; index++) {
             const spark = uimanager.createCircle(
                 stage,
                 `homeDemoTransientSplash_${order}_${index}`,
                 4 + index,
                 new cc.Color(color.r, color.g, color.b, 210),
-                beanIcon.x + (index - 1) * 8,
-                beanIcon.y + 24,
+                target.x + (index - 1) * 8,
+                target.y,
             );
             spark.zIndex = 35;
             cc.tween(spark)
                 .to(0.26, {
                     x: spark.x + (index - 1) * 10,
-                    y: beanIcon.y + 6 - index * 3,
+                    y: target.y + 18 + index * 3,
                     opacity: 0,
                     scale: 0.35,
                 }, { easing: 'quadOut' })
@@ -1450,8 +1606,8 @@ export default class GameMainScene extends cc.Component {
 
     private createHomeProfile(panelY: number): cc.Node {
         const panelX = 0;
-        uimanager.createRect(this.screen, 'profileShadow', 674, 156, new cc.Color(78, 53, 46), 32, 28, panelX, panelY - 5);
-        const panel = uimanager.createRect(this.screen, 'profileCard', 666, 150, new cc.Color(255, 249, 232), 246, 26, panelX, panelY);
+        uimanager.createRect(this.screen, 'profileShadow', 674, 128, new cc.Color(78, 53, 46), 32, 28, panelX, panelY - 5);
+        const panel = uimanager.createRect(this.screen, 'profileCard', 666, 122, new cc.Color(255, 249, 232), 246, 26, panelX, panelY);
 
         const avatarX = -274;
         const avatarFrame = createAvatarFrame(panel, 'avatarRoundedFrame', avatarX, 0, 92);
@@ -1489,10 +1645,12 @@ export default class GameMainScene extends cc.Component {
         }, this);
         avatarTouch.on(cc.Node.EventType.TOUCH_CANCEL, restoreAvatar, this);
 
-        this.profileNameLabel = uimanager.createLabel(panel, '解忧玩家', -210, 35, 22, MOOD_COLORS.cocoa, 182, 30);
+        this.profileNameLabel = uimanager.createLabel(panel, '解忧玩家', -210, 22, 28, MOOD_COLORS.cocoa, 200, 36);
+        this.profileNameLabel.node.name = 'profileNickname';
         this.profileNameLabel.horizontalAlign = cc.Label.HorizontalAlign.LEFT;
         this.profileNameLabel.node.setAnchorPoint(0, 0.5);
-        this.profileNameLabel.node.setPosition(-210, 35);
+        this.profileNameLabel.node.setPosition(-210, 22);
+        this.profileNameLabel.enableWrapText = false;
 
         // R2：首页等级与经验按展示口径渲染（服务端确认基准 + 剩余 pending 推算值）。
         const displayProgress = zyxGameModule.getDisplayLevelAndExperience();
@@ -1500,7 +1658,7 @@ export default class GameMainScene extends cc.Component {
         const ratio = Math.max(0, Math.min(1, displayProgress.experience / target));
         const trackWidth = this.profileExperienceTrackWidth;
         const trackX = -19;
-        const trackY = -49;
+        const trackY = -28;
         uimanager.createRect(panel, 'experienceTrack', trackWidth, 30, new cc.Color(87, 79, 72), 220, 10, trackX, trackY);
         const fillWidth = Math.max(8, this.profileExperienceFillWidth * ratio);
         this.profileExperienceFill = uimanager.createRect(
@@ -1524,13 +1682,14 @@ export default class GameMainScene extends cc.Component {
             190,
             25,
         );
-        this.makeLabelBold(this.profileExperienceLabel);
+        uimanager.applyTypography(this.profileExperienceLabel);
         const levelBadge = uimanager.createRect(panel, 'levelBadge', 72, 34, MOOD_COLORS.cocoa, 255, 11, -181, trackY);
         levelBadge.zIndex = 12;
         this.profileLevelLabel = uimanager.createLabel(levelBadge, `Lv.${displayProgress.level}`, 0, 0, 17, cc.Color.WHITE, 66, 28);
 
         if (this.currentCloudProfile) {
             this.profileNameLabel.string = formatDisplayNickname(this.currentCloudProfile.nickname);
+            uimanager.applyTypography(this.profileNameLabel);
             this.renderProfileAvatar(this.profileAvatarContent, this.currentCloudProfile.avatarUrl || '');
         }
         return panel;
@@ -1652,7 +1811,7 @@ export default class GameMainScene extends cc.Component {
         ];
         let index = 0;
         const label = uimanager.createLabel(pill, tips[index], 0, 0, 23, new cc.Color(45, 42, 39), 568, 40);
-        this.makeLabelBold(label);
+        uimanager.applyTypography(label);
         cc.tween(label.node)
             .repeatForever(
                 cc.tween()
@@ -1699,13 +1858,15 @@ export default class GameMainScene extends cc.Component {
         const labelNode = this.startButton.getChildByName('label');
         const label = labelNode ? labelNode.getComponent(cc.Label) : null;
         if (!label || !labelNode) return;
-        labelNode.x = 0;
-        labelNode.y = 0;
-        labelNode.width = 430;
-        labelNode.height = 104;
-        label.fontSize = 46;
-        label.lineHeight = 60;
-        this.makeLabelBold(label);
+        labelNode.active = false;
+        const art = new cc.Node('startWordmark');
+        this.startButton.addChild(art);
+        art.zIndex = 80; art.setPosition(0, 4);
+        const sprite = art.addComponent(cc.Sprite);
+        sprite.spriteFrame = getSpriteFrame('home', ASSET_PATHS.home.startWordmark);
+        sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+        uimanager.fitSpriteFrameInside(art, sprite.spriteFrame, 270, 112);
+
     }
 
     private createStartButtonGuide(): void {
@@ -1849,7 +2010,6 @@ export default class GameMainScene extends cc.Component {
         this.setHomeDemoActive(false);
         const balanceEnd = zyxGameModule.getDisplayMoodBeanBalance();
         const balanceStart = Math.max(0, balanceEnd - earned);
-        if (this.homeMoodBeanBalanceLabel) this.homeMoodBeanBalanceLabel.string = `${balanceStart}`;
         this.layoutMoodBeanCountBadge(balanceStart);
         const rewardLayer = new cc.Node('settlementRewardReturn');
         rewardLayer.setContentSize(this.screen.width, this.screen.height);
@@ -1871,7 +2031,6 @@ export default class GameMainScene extends cc.Component {
             this.animateRewardToken(token, target, 0.04 + index * 0.03 + random() * 0.08, random, () => {
                 arrivals++;
                 const shown = balanceStart + Math.round((balanceEnd - balanceStart) * arrivals / count);
-                if (this.homeMoodBeanBalanceLabel) this.homeMoodBeanBalanceLabel.string = `${shown}`;
                 this.layoutMoodBeanCountBadge(shown);
                 this.pulseRewardTarget(this.homeMoodBeanIcon);
                 if (arrivals === count) {
@@ -1950,14 +2109,32 @@ export default class GameMainScene extends cc.Component {
         cc.tween(node).to(0.08, { scale: 1.08 }).to(0.14, { scale: 1 }, { easing: 'backOut' }).start();
     }
 
-    private makeLabelBold(label: cc.Label): void {
-        if (label) uimanager.applyTypography(label, true);
-    }
-
-    private async startGame(profileBootstrapHandled: boolean = false): Promise<boolean> {
+    private async startGame(profileBootstrapHandled: boolean = false, replacement: ActiveRound | 'current' = null, knownActive?: ActiveRound): Promise<boolean> {
         if (this.gameAssetsLoading) return false;
         this.gameAssetsLoading = true;
         try {
+            if (!profileBootstrapHandled || !this.cloudProfileReady) await this.bootstrapCloudProfile();
+            if (!this.cloudProfileReady) { uimanager.showToast('需要联网确认进度后才能开始'); return false; }
+            let active = knownActive === undefined ? await cloudService.getActiveRound() : knownActive;
+            if (active && zyxGameModule.getPendingRoundSettlements().some(record => record.roundId === active.roundId)) {
+                await this.flushPendingRoundSettlements();
+                active = await cloudService.getActiveRound();
+                if (active && zyxGameModule.getPendingRoundSettlements().some(record => record.roundId === active.roundId)) {
+                    uimanager.showToast('上一局结果正在同步，请联网后重试'); return false;
+                }
+            }
+            if (active && replacement === 'current' && (active.roundId !== this.activeRoundId || !roundProgress.token)) {
+                uimanager.showToast('这局状态已更新，请返回首页确认最新进度'); return false;
+            }
+            if (active && replacement && replacement !== 'current'
+                && (active.roundId !== replacement.roundId || active.generation !== replacement.generation)) {
+                uimanager.showToast('进度刚刚更新，请再次点击开始确认'); return false;
+            }
+            if (active && !replacement) {
+                this.gameAssetsLoading = false;
+                await this.resumeSavedRound(active);
+                return !!this.screen && this.screen.name === 'game';
+            }
             if (this.stamina && this.getStaminaPreview().current < 1
                 && !cc.sys.localStorage.getItem(PENDING_START_ROUND_ID_KEY)) {
                 this.showStaminaEmptyModal();
@@ -1979,11 +2156,6 @@ export default class GameMainScene extends cc.Component {
                 uimanager.showToast('消除资源加载失败，请检查网络后重试');
                 return false;
             }
-            if (!profileBootstrapHandled || !this.cloudProfileReady) await this.bootstrapCloudProfile();
-            if (!this.cloudProfileReady) {
-                uimanager.showToast('需要联网确认体力后才能开始新局');
-                return false;
-            }
             const storage = cc.sys.localStorage;
             let roundId = storage.getItem(PENDING_START_ROUND_ID_KEY) || '';
             if (!/^round_[a-z0-9_]{8,80}$/.test(roundId)) {
@@ -1992,10 +2164,21 @@ export default class GameMainScene extends cc.Component {
             }
             let started;
             try {
-                started = await cloudService.startRound(roundId);
+                // 明确选择重开但本机没有租约时，先取得当前云端租约，再原子替换。
+                if (active && (roundProgress.roundId !== active.roundId || !roundProgress.token)) {
+                    active = await roundProgress.resume(active, true);
+                }
+                started = await cloudService.startRound(roundId, active ? { replaceRoundId: active.roundId,
+                    replacementGeneration: active.generation,
+                    replaceSessionToken: roundProgress.roundId === active.roundId ? roundProgress.token : undefined } : undefined);
             } catch (error) {
                 if (error && (error as any).stamina) this.applyStaminaState((error as any).stamina);
-                if (error && (error as any).businessCode === 'STAMINA_EMPTY') {
+                if (error && (error as any).businessCode === 'ROUND_RESUME_REQUIRED') {
+                    storage.removeItem(PENDING_START_ROUND_ID_KEY);
+                    this.gameAssetsLoading = false;
+                    const saved = await cloudService.getActiveRound();
+                    if (saved) { await this.resumeSavedRound(saved); return !!this.screen && this.screen.name === 'game'; }
+                } else if (error && (error as any).businessCode === 'STAMINA_EMPTY') {
                     this.showStaminaEmptyModal();
                 } else if (error && ((error as any).businessCode === 'BOARD_RULES_UNSUPPORTED'
                     || (error as any).businessCode === 'ROUND_COLLECTION_RULE_CONFLICT'
@@ -2014,12 +2197,13 @@ export default class GameMainScene extends cc.Component {
                 uimanager.showToast('开局校验失败，请重试');
                 return false;
             }
+            roundProgress.begin(started, this.currentCloudProfile.playerId);
             this.applyStaminaState(started.stamina);
             this.activeRoundId = roundId;
             zyxGameModule.cloudRoundId = roundId;
             if (started.profile) this.applyCloudProfile(started.profile);
             // 开局配置必须在 resetRound 前登记，由 resetRound 在生成棋盘前一次性消费。
-            if (started.seed) zyxGameModule.setRoundSeed(started.seed, started.isTutorial === true);
+            if (started.seed) zyxGameModule.setRoundSeed(started.seed, started.isTutorial === true, started.heartRescueEligible === true);
             await this.playStartStaminaFlight();
             if (this.pendingSettlementPresentation) {
                 delete this.settlementReceipts[this.pendingSettlementPresentation.roundId];
@@ -2030,8 +2214,9 @@ export default class GameMainScene extends cc.Component {
             game.initialize(
                 (request) => this.handleSettlementExit(request),
                 (settlement, startedAt) => this.submitSettlementToCloud(settlement, startedAt),
-                () => this.startGame(),
+                () => this.startGame(false, 'current'),
                 this.currentCloudProfile,
+                null, () => this.enterHome(),
             );
             storage.removeItem(PENDING_START_ROUND_ID_KEY);
             return true;
@@ -2069,6 +2254,8 @@ export default class GameMainScene extends cc.Component {
     }
 
     private replaceScreen(name: string): void {
+        if (this.homeFriendRanking) postFriendMessage('friends:hide');
+        this.homeFriendRanking = null;
         audioManager.enterScene(name === 'home' ? 'home' : name === 'game' ? 'game' : 'silent');
         if (this.screen && this.screen.isValid) {
             this.stopScreenTweens(this.screen);
@@ -2080,7 +2267,6 @@ export default class GameMainScene extends cc.Component {
         this.profileExperienceFill = null;
         this.profileExperienceLabel = null;
         this.homeMoodBeanIcon = null;
-        this.homeMoodBeanBalanceLabel = null;
         this.homeDemoLayer = null;
         this.homeDemoClock = null;
         this.homeDemoPlaying = false;

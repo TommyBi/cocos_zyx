@@ -1,0 +1,25 @@
+{
+  "version": "2026.11.18.05",
+  "uploaded": true,
+  "useCOS": false,
+  "completedAt": "2026-11-17T19:15:48.651Z",
+  "subPackageInfo": [
+    {
+      "name": "/subpackages/effects/",
+      "size": 3388458
+    },
+    {
+      "name": "/subpackages/home/",
+      "size": 3920494
+    },
+    {
+      "name": "__APP__",
+      "size": 2833329
+    },
+    {
+      "name": "__FULL__",
+      "size": 10142281
+    }
+  ],
+  "submittedForReview": false
+}

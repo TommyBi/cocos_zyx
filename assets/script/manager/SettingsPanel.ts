@@ -3,9 +3,10 @@ import { gameSettings } from './GameSettings';
 import { decorateSettingsActionButton } from '../zyxGame/GlyphFactory';
 
 export type SettingsPanelOptions = {
-    /** 局内暂停时，继续和重开并排，退出居中放在下一排。 */
+    /** 局内暂停时，重开和继续并排，退出居中放在下一排。 */
     actions?: ModalAction[];
     onDismiss?: () => void;
+    progressMessage?: string;
 };
 
 const COCOA = new cc.Color(101, 70, 58);
@@ -38,8 +39,10 @@ export default class SettingsPanel {
             this.createSoundRow(panel, top - 130);
             this.createVolumeRow(panel, top - 242);
             this.createVibrationRow(panel, top - 354);
+            if (options.progressMessage) uimanager.createLabel(panel, options.progressMessage,
+                0, top - 420, 18, COCOA_SOFT, 480, 30);
             actions.forEach((action, index) => {
-                const x = twoRows && index < 2 ? (index === 0 ? -122 : 122) : 0;
+                const x = twoRows && (index < 2 || actions.length % 2 === 0) ? (index % 2 === 0 ? -122 : 122) : 0;
                 const y = top - 500 - (twoRows ? Math.floor(index / 2) * 126 : 0);
                 const button = uimanager.createButton(panel, action.text, x, y, 224, 100, action.color, () => {
                     if (action.closeOnClick !== false) uimanager.closeModal();
@@ -145,7 +148,7 @@ export default class SettingsPanel {
         uimanager.createRect(row, 'settingRowSurface', 464, 88, CREAM, 255, 20, 0, 2);
         const label = uimanager.createLabel(row, title, -154, 0, 30, COCOA, 96, 44);
         label.horizontalAlign = cc.Label.HorizontalAlign.LEFT;
-        uimanager.applyTypography(label, true);
+        uimanager.applyTypography(label);
         return row;
     }
 

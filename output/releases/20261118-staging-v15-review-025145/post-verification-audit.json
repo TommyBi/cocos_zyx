@@ -1,0 +1,161 @@
+{
+  "passed": true,
+  "allPreexistingRowsUnchanged": true,
+  "tables": {
+    "game_rounds": {
+      "preexistingRows": 307,
+      "unchanged": true,
+      "newProbeRows": 11
+    },
+    "players": {
+      "preexistingRows": 68,
+      "unchanged": true,
+      "newProbeRows": 2
+    },
+    "release_resets": {
+      "preexistingRows": 0,
+      "unchanged": true,
+      "newProbeRows": 0
+    },
+    "reward_intents": {
+      "preexistingRows": 1,
+      "unchanged": true,
+      "newProbeRows": 1
+    },
+    "risk_admin_events": {
+      "preexistingRows": 0,
+      "unchanged": true,
+      "newProbeRows": 0
+    },
+    "risk_events": {
+      "preexistingRows": 1,
+      "unchanged": true,
+      "newProbeRows": 3
+    },
+    "risk_reviews": {
+      "preexistingRows": 0,
+      "unchanged": true,
+      "newProbeRows": 0
+    },
+    "round_checkpoints": {
+      "preexistingRows": 4,
+      "unchanged": true,
+      "newProbeRows": 1
+    },
+    "round_settlements": {
+      "preexistingRows": 89,
+      "unchanged": true,
+      "newProbeRows": 11
+    },
+    "stamina_share_claims": {
+      "preexistingRows": 14,
+      "unchanged": true,
+      "newProbeRows": 0
+    },
+    "tool_inventory_refunds": {
+      "preexistingRows": 64,
+      "unchanged": true,
+      "newProbeRows": 0
+    },
+    "tool_transactions": {
+      "preexistingRows": 40,
+      "unchanged": true,
+      "newProbeRows": 1
+    }
+  },
+  "newZeroScoreProbePlayers": 2,
+  "productionAndOtherContainerIdsUnchanged": true,
+  "allExistingConfigHashesUnchanged": true,
+  "health": {
+    "production": {
+      "status": 200,
+      "body": {
+        "code": 0,
+        "data": {
+          "ok": true,
+          "service": "cocos-zyx-cloud",
+          "apiVersion": 18,
+          "schemaVersion": 12,
+          "capabilities": [
+            "wechat-login",
+            "stamina",
+            "round-start",
+            "settlement",
+            "power-leaderboard",
+            "bean-balance-leaderboard",
+            "daily-share",
+            "bean-collection-progress",
+            "adaptive-combo-v2",
+            "bean-collection-1pct",
+            "bean-tool-shop",
+            "difficulty-ramp-2x",
+            "difficulty-pressure-v4",
+            "rising-rows-v5",
+            "balloon-rescue-v6",
+            "balloon-blast-v7",
+            "random-rescue-v8",
+            "rescue-scoring-v9",
+            "heart-rescue-v10",
+            "round-checkpoints-v1",
+            "revive-card-v11",
+            "round-tools-lightning-v12",
+            "rising-specials-lightning-v13",
+            "reward-intents-v1",
+            "security-audit-v1"
+          ],
+          "checkedAt": "2026-11-17T19:11:57.625Z"
+        }
+      }
+    },
+    "staging": {
+      "status": 200,
+      "body": {
+        "code": 0,
+        "data": {
+          "ok": true,
+          "service": "cocos-zyx-cloud",
+          "apiVersion": 20,
+          "schemaVersion": 12,
+          "capabilities": [
+            "wechat-login",
+            "stamina",
+            "round-start",
+            "settlement",
+            "power-leaderboard",
+            "bean-balance-leaderboard",
+            "daily-share",
+            "bean-collection-progress",
+            "adaptive-combo-v2",
+            "bean-collection-1pct",
+            "bean-tool-shop",
+            "difficulty-ramp-2x",
+            "difficulty-pressure-v4",
+            "rising-rows-v5",
+            "balloon-rescue-v6",
+            "balloon-blast-v7",
+            "random-rescue-v8",
+            "rescue-scoring-v9",
+            "heart-rescue-v10",
+            "round-checkpoints-v1",
+            "revive-card-v11",
+            "round-tools-lightning-v12",
+            "rising-specials-lightning-v13",
+            "reward-intents-v1",
+            "security-audit-v1",
+            "round-tool-three-video-v14",
+            "lightning-ten-rows-v15"
+          ],
+          "checkedAt": "2026-11-17T19:11:57.644Z"
+        }
+      }
+    },
+    "dawn": {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "service": "dawn-cloud",
+        "checkedAt": "2026-11-17T19:11:57.700Z"
+      }
+    }
+  }
+}

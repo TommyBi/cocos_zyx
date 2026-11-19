@@ -1,0 +1,2 @@
+Pillow>=9.0
+zopfli==0.2.3.post1

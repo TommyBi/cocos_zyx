@@ -1,0 +1,11 @@
+{
+  "version": "2026.11.19.05",
+  "boardRules": 21,
+  "markerBeforeModuleLoader": true,
+  "routing": {
+    "develop": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "trial": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "release": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "throws": "https://staging-api.tcjstory.cn/v1/cocos-zyx"
+  }
+}

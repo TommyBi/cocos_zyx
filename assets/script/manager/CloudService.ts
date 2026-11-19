@@ -1,9 +1,32 @@
 import { getWxApi } from './PlatformAdapter';
-import { BOARD_RULES_VERSION } from '../dataModule/BoardEngine';
+import { BOARD_RULES_VERSION, RoundToolState } from '../dataModule/BoardEngine';
 import { MOOD_COLLECTION_RULE } from '../dataModule/MoodBeanConfig';
 
 const PRODUCTION_API_BASE = 'https://api.tcjstory.cn/v1/cocos-zyx';
 const STAGING_API_BASE = 'https://staging-api.tcjstory.cn/v1/cocos-zyx';
+const ROUND_START_PROTOCOL = { rulesVersion: BOARD_RULES_VERSION, collectionRule: MOOD_COLLECTION_RULE,
+    resumeProtocol: 1, securityProtocol: 1 };
+const ROUND_START_CAPABILITIES = [
+    'bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop',
+    'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6',
+    'balloon-blast-v7', 'random-rescue-v8', 'rescue-scoring-v9', 'heart-rescue-v10',
+    'round-checkpoints-v1', 'revive-card-v11', 'round-tools-lightning-v12', 'rising-specials-lightning-v13',
+    'reward-intents-v1', 'security-audit-v1', 'round-tool-three-video-v14', 'lightning-ten-rows-v15',
+    'auto-rescue-v16', 'difficulty-waves-v17', 'scoring-waves-v18', 'tap-lightning-v19',
+    'round-tool-share-v20', 'short-opening-v21',
+];
+
+function cloudError(message: string, businessCode: string): Error {
+    return Object.assign(new Error(message), { businessCode });
+}
+
+function readCloudResponse(status: number, payload: any): any {
+    if (status >= 200 && status < 300 && payload && payload.code === 0) return payload.data;
+    const error = Object.assign(new Error(payload && payload.message || '云端服务暂不可用'), { status }) as any;
+    if (payload && typeof payload.errorCode === 'string' && payload.errorCode) error.businessCode = payload.errorCode;
+    if (payload && payload.data && payload.data.stamina) error.stamina = payload.data.stamina;
+    throw error;
+}
 
 /**
  * 两环境自动切换：
@@ -16,6 +39,7 @@ const STAGING_API_BASE = 'https://staging-api.tcjstory.cn/v1/cocos-zyx';
 export function getApiBase(): string {
     const wxApi = getWxApi();
     if (wxApi && typeof wxApi.request === 'function') {
+        if (typeof window !== 'undefined' && (window as any).__ZYX_WECHAT_REVIEW_BUILD__ === true) return STAGING_API_BASE;
         try {
             const accountInfo = wxApi.getAccountInfoSync && wxApi.getAccountInfoSync();
             const envVersion = accountInfo && accountInfo.miniProgram
@@ -48,12 +72,13 @@ export function isLocalApiOverrideActive(): boolean {
 export type CloudProfile = {
     playerId: string;
     nickname: string;
+    registeredAt?: string;
     avatarUrl: string;
     level: number;
     experience: number;
     moodBeanBalance: number;
     assetRevision?: number;
-    inventory?: { hammer: number; magicWand: number };
+    inventory?: { hammer: number; magicWand: number; reviveCard?: number };
     totalMoodBeans: number;
     highestSingleGameScore: number;
     gameCount: number;
@@ -76,7 +101,14 @@ export type StaminaShareResult = {
     previousDay?: boolean;
 };
 
+export type RewardIntent = { intentId: string; completed: boolean; minClaimAt: number };
+
 export type StartRoundResult = {
+    roundTools?: RoundToolState;
+    sessionToken?: string;
+    generation?: number;
+    startedAt?: number;
+    heartRescueEligible?: boolean;
     roundId: string;
     stamina: StaminaState;
     duplicate?: boolean;
@@ -86,6 +118,17 @@ export type StartRoundResult = {
     rulesVersion?: number;
     profile?: CloudProfile;
 };
+
+export type ActiveRound = StartRoundResult & {
+    mode?: string;
+    actionCount: number;
+    operationCount: number;
+    score: number;
+    collectedMoodBeanCount: number;
+    elapsedMs: number;
+    updatedAt: number;
+};
+export type ResumeRoundResult = ActiveRound & { actions: any[]; sessionToken: string };
 
 export type LeaderboardEntry = {
     rank: number;
@@ -140,23 +183,35 @@ export default class CloudService {
 
     private token: string = '';
     private deviceId: string = '';
+    private startProtocol: { base: string; token: string; expiresAt: number } = null;
 
     /**
      * 微信端用一次性 loginCode 换取服务端权威 openid，本地 deviceId 只用于旧账号迁移与 Web 预览。
      * R1：经济数据一律由服务端结算与事务接口产生，不接受任何客户端本地资产作为建档基线。
      */
     public async bootstrap(nickname: string, avatarUrl: string): Promise<CloudProfile> {
+        return (await this.bootstrapSession(nickname, avatarUrl)).profile;
+    }
+
+    public async bootstrapSession(nickname: string, avatarUrl: string, includeActiveRound = false): Promise<{ profile: CloudProfile; activeRound?: ActiveRound }> {
         this.ensureDeviceId();
+        const base = getApiBase();
         const loginCode = await this.requestWeChatLoginCode();
         const data = await this.request('/players/bootstrap', 'POST', {
             deviceId: this.deviceId,
             loginCode,
+            securityProtocol: 1,
+            includeRoundStart: true,
+            ...(includeActiveRound ? { includeActiveRound: true } : {}),
             nickname,
             avatarUrl,
         }, false);
         this.token = data.token;
         cc.sys.localStorage.setItem('zyx_cloud_token', this.token);
-        return data.profile as CloudProfile;
+        this.startProtocol = data.roundStart && Object.keys(ROUND_START_PROTOCOL)
+            .every(key => data.roundStart[key] === ROUND_START_PROTOCOL[key])
+            ? { base, token: this.token, expiresAt: Date.now() + 60000 } : null;
+        return data;
     }
 
     /** 仅在玩家主动完成微信授权后调用，普通登录不会覆盖服务端资料。 */
@@ -166,34 +221,47 @@ export default class CloudService {
     }
 
     /** roundId 由客户端在请求前生成；超时后复用同一 ID 重试，不重复消耗体力。 */
-    public async startRound(roundId: string): Promise<StartRoundResult> {
-        const health = await this.request('/health', 'GET', null, false);
-        if (!health.capabilities || health.capabilities.indexOf('bean-collection-progress') < 0
-            || health.capabilities.indexOf('adaptive-combo-v2') < 0
-            || health.capabilities.indexOf('bean-collection-1pct') < 0
-            || health.capabilities.indexOf('bean-tool-shop') < 0
-            || health.capabilities.indexOf('difficulty-ramp-2x') < 0
-            || health.capabilities.indexOf('difficulty-pressure-v4') < 0
-            || health.capabilities.indexOf('rising-rows-v5') < 0
-            || health.capabilities.indexOf('balloon-rescue-v6') < 0
-            || health.capabilities.indexOf('balloon-blast-v7') < 0
-            || health.capabilities.indexOf('random-rescue-v8') < 0) {
-            const error = new Error('游戏服务更新中，请稍后再试') as any;
-            error.businessCode = 'COLLECTION_RULE_UNSUPPORTED';
-            throw error;
+    public async startRound(roundId: string, replacement?: { replaceRoundId: string; replacementGeneration: number; replaceSessionToken?: string }): Promise<StartRoundResult> {
+        const unavailable = (): Error => cloudError('游戏服务更新中，请稍后再试', 'COLLECTION_RULE_UNSUPPORTED');
+        // 复用本次登录返回的开局协议，旧后端仍走完整的能力探测。
+        const protocol = this.startProtocol;
+        if (!protocol || protocol.base !== getApiBase() || protocol.expiresAt <= Date.now()
+            || protocol.token !== cc.sys.localStorage.getItem('zyx_cloud_token')) {
+            const { capabilities } = await this.request('/health', 'GET', null, false);
+            if (!Array.isArray(capabilities) || !ROUND_START_CAPABILITIES.every(capability => capabilities.includes(capability))) {
+                throw unavailable();
+            }
         }
-        const result = await this.request('/games/start', 'POST', { roundId, collectionRule: MOOD_COLLECTION_RULE, rulesVersion: BOARD_RULES_VERSION }, true) as StartRoundResult;
-        if (result.collectionRule !== MOOD_COLLECTION_RULE || result.rulesVersion !== BOARD_RULES_VERSION) {
-            const error = new Error('游戏服务更新中，请稍后再试') as any;
-            error.businessCode = 'COLLECTION_RULE_UNSUPPORTED';
-            throw error;
+        const result = await this.request('/games/start', 'POST', { roundId, ...ROUND_START_PROTOCOL, ...replacement }, true) as StartRoundResult;
+        if (result.collectionRule !== MOOD_COLLECTION_RULE || result.rulesVersion !== BOARD_RULES_VERSION
+            || typeof result.sessionToken !== 'string' || !result.sessionToken) {
+            this.startProtocol = null;
+            throw unavailable();
         }
         return result;
     }
 
+    public async useReviveCard(record: { roundId: string; sessionToken: string; actions: any[]; elapsedMs: number }): Promise<{ round: ResumeRoundResult; profile: CloudProfile }> {
+        return await this.request('/games/revive-card', 'POST', record, true);
+    }
+
+    public async getActiveRound(): Promise<ActiveRound> {
+        const result = await this.request('/games/active', 'GET', null, true);
+        return result.round || null;
+    }
+
+    public async saveRoundProgress(record: { roundId: string; sessionToken: string; actions: any[]; elapsedMs: number }): Promise<ActiveRound> {
+        return await this.request('/games/checkpoint', 'POST', record, true);
+    }
+
+    public async resumeRound(record: { roundId: string; requestId: string; expectedGeneration: number; actions?: any[]; elapsedMs?: number }): Promise<ResumeRoundResult> {
+        return await this.request('/games/resume', 'POST', { ...record, maxRulesVersion: BOARD_RULES_VERSION }, true);
+    }
+
     /** 每日分享/激励视频补体力；claimId 用于网络超时后的幂等重试。 */
     public async claimSharedStamina(claimId: string): Promise<StaminaShareResult> {
-        return await this.request('/stamina/share-claim', 'POST', { claimId }, true) as StaminaShareResult;
+        const result = await this.request('/stamina/share-claim', 'POST', { claimId, intentId: this.rewardIntentId('stamina') }, true) as StaminaShareResult;
+        this.clearRewardIntent('stamina'); return result;
     }
 
     /** 对局结算；roundId 幂等，重复提交返回首次结果。actions 为操作序列，服务端用于种子重放校验。 */
@@ -204,6 +272,7 @@ export default class CloudService {
         score: number,
         collectedMoodBeanCount: number,
         actions?: any[],
+        sessionToken?: string,
     ): Promise<RoundSettlementResult> {
         const data = await this.request('/games/settlements', 'POST', {
             roundId,
@@ -212,6 +281,7 @@ export default class CloudService {
             score,
             collectedMoodBeanCount,
             actions: actions || [],
+            sessionToken,
         }, true);
         return data as RoundSettlementResult;
     }
@@ -220,17 +290,41 @@ export default class CloudService {
         return await this.request(`/leaderboards?type=${type}`, 'GET', null, true) as LeaderboardResult;
     }
 
-    public async exchangeTool(actionId: string, item: 'hammer' | 'magicWand' | 'stamina'): Promise<{ profile: CloudProfile }> {
+    public async exchangeTool(actionId: string, item: 'hammer' | 'magicWand' | 'stamina' | 'reviveCard'): Promise<{ profile: CloudProfile }> {
         return await this.request('/shop/exchanges', 'POST', { actionId, item }, true);
     }
 
-    public async useTool(roundId: string, item: 'hammer' | 'magicWand', actionIndex: number, target: number): Promise<{ profile: CloudProfile }> {
+    public async useTool(roundId: string, item: 'hammer' | 'magicWand', actionIndex: number, target: number, sessionToken?: string, proof?: { actions: any[]; elapsedMs: number }): Promise<{ profile: CloudProfile; roundTools?: RoundToolState }> {
         const actionId = `${roundId}:use:${actionIndex}`;
-        return await this.request('/games/tools/use', 'POST', { roundId, item, actionIndex, target, actionId }, true);
+        return await this.request('/games/tools/use', 'POST', { roundId, item, actionIndex, target, actionId, sessionToken, ...proof }, true);
     }
 
-    public async claimToolReward(roundId: string, item: 'hammer' | 'magicWand', actionId: string): Promise<{ profile: CloudProfile }> {
-        return await this.request('/games/tools/reward', 'POST', { roundId, item, actionId }, true);
+    public async claimToolReward(roundId: string, item: 'hammer' | 'magicWand', actionId: string, sessionToken?: string): Promise<{ profile: CloudProfile; roundTools?: RoundToolState }> {
+        const placement = item === 'hammer' ? 'hammer' : 'tool';
+        const result = await this.request('/games/tools/reward', 'POST', { roundId, item, actionId, sessionToken, intentId: this.rewardIntentId(placement) }, true);
+        this.clearRewardIntent(placement); return result;
+    }
+
+    private rewardKey(placement: string): string { return `zyx_reward_intent_${placement}`; }
+    private rewardIntentId(placement: string): string {
+        try { return cc.sys.localStorage.getItem(this.rewardKey(placement)) || ''; } catch (_) { return ''; }
+    }
+    private clearRewardIntent(placement: string): void {
+        try { cc.sys.localStorage.removeItem(this.rewardKey(placement)); } catch (_) { /* 服务端重复确认仍然幂等。 */ }
+    }
+    public async prepareRewardIntent(placement: string, record?: { roundId: string; sessionToken: string; actions: any[]; elapsedMs: number }, remember = true): Promise<RewardIntent> {
+        const intent = await this.request('/games/reward-intents', 'POST', { placement, ...record }, true);
+        if (remember) this.rememberRewardIntent(placement, intent.intentId);
+        return intent;
+    }
+    public rememberRewardIntent(placement: string, intentId: string): void {
+        cc.sys.localStorage.setItem(this.rewardKey(placement), intentId);
+    }
+    public async completeRewardIntent(intent: RewardIntent, sessionToken?: string): Promise<void> {
+        if (intent.completed) return;
+        const wait = Math.max(0, Math.min(20000, intent.minClaimAt - Date.now()));
+        if (wait) await new Promise(resolve => setTimeout(resolve, wait));
+        await this.request('/games/reward-intents/complete', 'POST', { intentId: intent.intentId, sessionToken }, true);
     }
 
     /**
@@ -267,13 +361,11 @@ export default class CloudService {
     private async request(path: string, method: string, body: any, authenticated: boolean, _allowAuthRetry: boolean = true): Promise<any> {
         this.ensureDeviceId();
         const headers: { [key: string]: string } = { 'Content-Type': 'application/json' };
-        if (authenticated && this.token) headers.Authorization = `Bearer ${this.token}`;
+        if ((authenticated || path === '/players/bootstrap') && this.token) headers.Authorization = `Bearer ${this.token}`;
         const sentToken = this.token;
         const checkAccount = (): void => {
             if (authenticated && (cc.sys.localStorage.getItem('zyx_cloud_token') || '') !== sentToken) {
-                const error = new Error('账号已切换，请重新进入当前操作') as any;
-                error.businessCode = 'ACCOUNT_CHANGED';
-                throw error;
+                throw cloudError('账号已切换，请重新进入当前操作', 'ACCOUNT_CHANGED');
             }
         };
         const url = `${getApiBase()}${path}`;
@@ -289,6 +381,7 @@ export default class CloudService {
             // bootstrap 本身不走 authenticated，不会触发重试，避免递归。
             if (authenticated && _allowAuthRetry && Number((error as any).status) === 401) {
                 await this.bootstrap('', '');
+                if (sentToken) checkAccount();
                 return await this.request(path, method, body, authenticated, false);
             }
             throw error;
@@ -307,19 +400,9 @@ export default class CloudService {
             response = await fetch(url, { method, headers,
                 body: body ? JSON.stringify(body) : undefined,
                 signal: controller ? controller.signal : undefined });
-            payload = await response.json();
+            payload = await response.json().catch(() => null);
         } finally { if (timer !== null) clearTimeout(timer); }
-        if (!response.ok || payload.code !== 0) {
-            // 携带 HTTP 状态码与服务端稳定业务错误码，供队列工作器分类。
-            const error = new Error(payload.message || '云端服务暂不可用') as any;
-            error.status = response.status;
-            if (payload && typeof payload.errorCode === 'string' && payload.errorCode.length > 0) {
-                error.businessCode = payload.errorCode;
-            }
-            if (payload && payload.data && payload.data.stamina) error.stamina = payload.data.stamina;
-            throw error;
-        }
-        return payload.data;
+        return readCloudResponse(response.status, payload);
     }
 
     private requestWithWeChat(wxApi: any, url: string, method: string, headers: { [key: string]: string }, body: any): Promise<any> {
@@ -332,19 +415,8 @@ export default class CloudService {
                 data: body || undefined,
                 timeout: 10000,
                 success: (response: any) => {
-                    const payload = response && response.data;
-                    const statusCode = Number(response && response.statusCode) || 0;
-                    if (statusCode < 200 || statusCode >= 300 || !payload || payload.code !== 0) {
-                        const error = new Error(payload && payload.message ? payload.message : '云端服务暂不可用') as any;
-                        error.status = statusCode;
-                        if (payload && typeof payload.errorCode === 'string' && payload.errorCode.length > 0) {
-                            error.businessCode = payload.errorCode;
-                        }
-                        if (payload && payload.data && payload.data.stamina) error.stamina = payload.data.stamina;
-                        reject(error);
-                        return;
-                    }
-                    resolve(payload.data);
+                    try { resolve(readCloudResponse(Number(response && response.statusCode) || 0, response && response.data)); }
+                    catch (error) { reject(error); }
                 },
                 fail: (error: any) => reject(new Error(error && error.errMsg ? error.errMsg : '网络连接失败')),
             });

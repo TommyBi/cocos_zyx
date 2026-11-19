@@ -1,0 +1,58 @@
+{
+  "clientVersion": "2026.11.17.06",
+  "rulesVersion": 13,
+  "apiVersion": 17,
+  "schemaVersion": 11,
+  "clientTests": 227,
+  "serverTests": 69,
+  "typecheck": "passed",
+  "webBuild": "passed",
+  "wechatBuild": "passed",
+  "gmIsolation": "passed",
+  "mainPackageBytes": 2845013,
+  "viewports": [
+    {
+      "width": 390,
+      "height": 844,
+      "buttonHeight": 96,
+      "buttonGap": 32,
+      "pitifulFaceAndVideo": true,
+      "compactMessage": true,
+      "reviveRivalScenarios": 4,
+      "equalReviveButtonSizes": true,
+      "gapDoesNotClick": true,
+      "userAudioExactBytes": true,
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "buttonHeight": 96,
+      "buttonGap": 32,
+      "pitifulFaceAndVideo": true,
+      "compactMessage": true,
+      "reviveRivalScenarios": 4,
+      "equalReviveButtonSizes": true,
+      "gapDoesNotClick": true,
+      "userAudioExactBytes": true,
+      "pageErrors": []
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "buttonHeight": 96,
+      "buttonGap": 32,
+      "pitifulFaceAndVideo": true,
+      "compactMessage": true,
+      "reviveRivalScenarios": 4,
+      "equalReviveButtonSizes": true,
+      "gapDoesNotClick": true,
+      "userAudioExactBytes": true,
+      "pageErrors": []
+    }
+  ],
+  "reviveScenarios": 12,
+  "source": "Existing round leaderboard snapshot; no extra fetch",
+  "status": "local only; no deployment or upload",
+  "preview": "http://127.0.0.1:7466/?localApi=1&autostart=1&toolVisuals=1"
+}

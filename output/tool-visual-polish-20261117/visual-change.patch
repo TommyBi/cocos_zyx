@@ -1,0 +1,193 @@
+--- before/ZyxGame.ts
++++ after/ZyxGame.ts
+@@ -1087,15 +1087,51 @@
+     }
+ 
+     private createToolCountBadge(button: cc.Node, name: string): cc.Label {
+-        const badge = uimanager.createCircle(button, name, 17, MOOD_COLORS.cocoaSoft, 35, 34);
++        const badge = uimanager.createCircle(button, name, 18, new cc.Color(255, 253, 239), 35, 34);
++        badge.zIndex = 25;
+         const badgeGraphics = badge.getComponent(cc.Graphics);
+-        badgeGraphics.strokeColor = cc.Color.WHITE;
+-        badgeGraphics.lineWidth = 2;
+-        badgeGraphics.circle(0, 0, 16);
++        badgeGraphics.strokeColor = new cc.Color(116, 174, 166);
++        badgeGraphics.lineWidth = 2.4;
++        badgeGraphics.circle(0, 0, 17);
+         badgeGraphics.stroke();
+-        const label = uimanager.createLabel(badge, '0', 0, 0, 17, cc.Color.WHITE, 26, 24);
++        const label = uimanager.createLabel(badge, '+', 0, 1, 25, new cc.Color(44, 116, 112), 30, 30);
+         this.makeLabelBold(label);
++        const plus = new cc.Node('toolAddMark'); badge.addChild(plus);
++        const plusGraphics = plus.addComponent(cc.Graphics);
++        plusGraphics.strokeColor = new cc.Color(44, 116, 112);
++        plusGraphics.lineWidth = 3.6;
++        plusGraphics.lineCap = cc.Graphics.LineCap.ROUND;
++        plusGraphics.moveTo(-7, 0); plusGraphics.lineTo(7, 0);
++        plusGraphics.moveTo(0, -7); plusGraphics.lineTo(0, 7); plusGraphics.stroke();
++        label.node.opacity = 0;
+         return label;
++    }
++
++    /** 仅在补给确认成功后出现，保持到用户主动点选这件道具。 */
++    private showToolReadyBubble(item: 'hammer' | 'magicWand'): void {
++        const button = item === 'hammer' ? this.hammerButton : this.purifierButton;
++        if (!button || !cc.isValid(button)) return;
++        this.hideToolReadyBubble(button);
++        const bubble = uimanager.createRect(button, 'toolReadyBubble', 144, 40,
++            new cc.Color(255, 253, 239), 255, 16, 0, 82);
++        bubble.zIndex = 30;
++        const g = bubble.getComponent(cc.Graphics);
++        g.strokeColor = new cc.Color(116, 174, 166); g.lineWidth = 2;
++        g.roundRect(-72, -20, 144, 40, 16); g.stroke();
++        g.fillColor = new cc.Color(255, 253, 239);
++        g.moveTo(-7, -18); g.lineTo(0, -29); g.lineTo(8, -18); g.close(); g.fill();
++        g.moveTo(-7, -20); g.lineTo(0, -29); g.lineTo(8, -20); g.stroke();
++        const label = uimanager.createLabel(bubble, '点击使用', 0, 1, 22,
++            new cc.Color(44, 116, 112), 132, 32);
++        this.makeLabelBold(label);
++        bubble.opacity = 0;
++        bubble.y = 77;
++        cc.tween(bubble).to(0.2, { opacity: 255, y: 82 }, { easing: 'sineOut' }).start();
++    }
++
++    private hideToolReadyBubble(button: cc.Node): void {
++        const bubble = button && button.getChildByName('toolReadyBubble');
++        if (bubble) { cc.Tween.stopAllByTarget(bubble); bubble.removeFromParent(); bubble.destroy(); }
+     }
+ 
+     /** 使用统一的固定字重，不由系统再次模拟加粗。 */
+@@ -1195,6 +1231,7 @@
+ 
+     /** 点选已领取的道具进入目标选择，再点图标可以取消且保留使用资格。 */
+     private setToolSelectionMode(mode: 'hammer' | 'magicWand' | null): void {
++        if (mode) this.hideToolReadyBubble(mode === 'hammer' ? this.hammerButton : this.purifierButton);
+         this.stopToolSelectionFeedback();
+         this.hammerMode = mode === 'hammer';
+         this.purifierMode = mode === 'magicWand';
+@@ -1348,33 +1385,69 @@
+         return node;
+     }
+ 
++    private drawLightningSymbol(g: cc.Graphics, size: number): void {
++        // 宽实的折线剪影：手机尺寸仍能认出闪电，不依赖蓄电动画才能看见。
++        const path = (): void => {
++            g.moveTo(size * 0.12, size * 0.43);
++            g.lineTo(-size * 0.31, -size * 0.04);
++            g.lineTo(-size * 0.06, -size * 0.04);
++            g.lineTo(-size * 0.16, -size * 0.44);
++            g.lineTo(size * 0.32, size * 0.12);
++            g.lineTo(size * 0.06, size * 0.12); g.close();
++        };
++        g.lineJoin = cc.Graphics.LineJoin.ROUND;
++        g.strokeColor = new cc.Color(255, 252, 220); g.lineWidth = size * 0.105;
++        path(); g.stroke();
++        g.fillColor = new cc.Color(255, 221, 91);
++        g.strokeColor = new cc.Color(153, 111, 38); g.lineWidth = size * 0.028;
++        path(); g.fill(); g.stroke();
++        g.strokeColor = new cc.Color(255, 250, 201); g.lineWidth = size * 0.045;
++        g.moveTo(size * 0.065, size * 0.31);
++        g.lineTo(-size * 0.19, size * 0.025); g.stroke();
++    }
++
+     private decorateLightningPiece(node: cc.Node): void {
+         const surface = node.getComponent(cc.Graphics);
++        const w = node.width, h = node.height, r = Math.min(13, h * 0.23);
+         surface.clear();
+-        surface.fillColor = new cc.Color(193, 220, 233);
+-        surface.strokeColor = new cc.Color(104, 154, 177);
+-        surface.lineWidth = 1.8;
+-        surface.roundRect(-node.width / 2, -node.height / 2, node.width, node.height, 12);
+-        surface.fill(); surface.stroke();
++        surface.fillColor = new cc.Color(60, 125, 167);
++        surface.roundRect(-w / 2, -h / 2 - 1, w, h, r); surface.fill();
++        surface.fillColor = new cc.Color(115, 190, 227);
++        surface.strokeColor = new cc.Color(65, 123, 161); surface.lineWidth = 2;
++        surface.roundRect(-w / 2, -h / 2 + 3, w, h - 4, r); surface.fill(); surface.stroke();
++        surface.fillColor = new cc.Color(167, 225, 246);
++        surface.roundRect(-w / 2 + 4, -h / 2 + 10, w - 8, h - 15, Math.max(4, r - 3)); surface.fill();
++        // 上沿连续柔光、下沿蓝色收边，形状饱满但不使用圆形光斑。
++        surface.strokeColor = new cc.Color(236, 253, 255); surface.lineWidth = 3;
++        surface.moveTo(-w / 2 + 7, h / 2 - 12);
++        surface.quadraticCurveTo(-w / 2 + 7, h / 2 - 5, -w / 2 + 15, h / 2 - 5);
++        surface.lineTo(w / 2 - 12, h / 2 - 5); surface.stroke();
++        surface.strokeColor = new cc.Color(81, 159, 203, 160); surface.lineWidth = 3;
++        surface.moveTo(-w / 2 + 12, -h / 2 + 9); surface.lineTo(w / 2 - 12, -h / 2 + 9); surface.stroke();
+         const face = node.getChildByName('moodStamp');
+         if (face) face.active = false;
+-        const bolt = new cc.Node('lightningGlyph'); node.addChild(bolt);
+-        const g = bolt.addComponent(cc.Graphics);
+-        g.fillColor = new cc.Color(247, 218, 133); g.strokeColor = new cc.Color(168, 136, 73); g.lineWidth = 1.5;
+-        g.moveTo(6, 24); g.lineTo(-15, -1); g.lineTo(-2, -1);
+-        g.lineTo(-8, -24); g.lineTo(16, 5); g.lineTo(3, 5); g.close(); g.fill(); g.stroke();
+-        cc.tween(bolt).repeatForever(cc.tween().to(1.1, { opacity: 150 }, { easing: 'sineInOut' })
+-            .to(1.1, { opacity: 255 }, { easing: 'sineInOut' })).start();
++        const bolt = new cc.Node('lightningGlyph'); node.addChild(bolt); bolt.zIndex = 8;
++        this.drawLightningSymbol(bolt.addComponent(cc.Graphics), Math.min(w, h) * 0.89);
++        const glint = new cc.Node('lightningGlint'); node.addChild(glint); glint.zIndex = 9;
++        const g = glint.addComponent(cc.Graphics);
++        g.strokeColor = new cc.Color(244, 254, 255); g.lineWidth = 2;
++        const x = w * 0.30, y = h * 0.23;
++        g.moveTo(x - 4, y); g.lineTo(x + 4, y);
++        g.moveTo(x, y - 5); g.lineTo(x, y + 5); g.stroke();
++        cc.tween(glint).repeatForever(cc.tween().to(0.65, { opacity: 70 }, { easing: 'sineInOut' })
++            .to(0.65, { opacity: 255 }, { easing: 'sineInOut' }).delay(0.8)).start();
+     }
+ 
+     /** 规则已完成拆分；演出结束后才刷新单格并进入重力，期间沿用整回合输入锁。 */
+     private playLightningDischarges(effects: LightningDischarge[], onComplete: () => void): void {
+         effects.forEach((effect, index) => {
+             const start = this.getPiecePosition(effect.source.row, effect.source.col, effect.source.size);
+-            const glow = uimanager.createCircle(this.pieceLayer, 'lightningCharge', 24, new cc.Color(174, 221, 244), start.x, start.y);
+-            glow.opacity = 0; glow.zIndex = 80;
+-            cc.tween(glow).delay(index * 0.12).to(0.12, { opacity: 155, scale: 1.3 })
+-                .to(0.28, { opacity: 0, scale: 1.65 }).call(() => { if (cc.isValid(glow)) glow.destroy(); }).start();
++            const charge = new cc.Node('lightningCharge'); this.pieceLayer.addChild(charge);
++            charge.setPosition(start); charge.zIndex = 80;
++            this.drawLightningSymbol(charge.addComponent(cc.Graphics), CELL_SIZE * 0.8);
++            charge.opacity = 0;
++            cc.tween(charge).delay(index * 0.12).to(0.09, { opacity: 255, scale: 1.12 })
++                .to(0.24, { opacity: 0, scale: 0.85 }).call(() => { if (cc.isValid(charge)) charge.destroy(); }).start();
+             effect.targets.forEach(target => {
+                 const end = this.getPiecePosition(target.original.row, target.original.col, target.original.size);
+                 const ray = new cc.Node('lightningArc'); this.pieceLayer.addChild(ray); ray.zIndex = 85;
+@@ -1385,8 +1458,9 @@
+                     g.clear();
+                     const dx = (end.x - start.x) * state.t, dy = (end.y - start.y) * state.t;
+                     const length = Math.sqrt(dx * dx + dy * dy) || 1;
+-                    for (const width of [7, 2.3]) {
+-                        g.strokeColor = width === 7 ? new cc.Color(113, 186, 227, 85) : new cc.Color(199, 238, 255);
++                    for (const width of [10, 4.2, 1.6]) {
++                        g.strokeColor = width === 10 ? new cc.Color(58, 159, 227, 65)
++                            : width === 4.2 ? new cc.Color(49, 155, 220) : new cc.Color(239, 253, 255);
+                         g.lineWidth = width; g.moveTo(start.x, start.y);
+                         for (let step = 1; step <= 7; step++) {
+                             const offset = step === 7 ? 0 : [0, 7, -6, 9, -8, 5, -4][step] * state.t;
+@@ -1500,7 +1574,6 @@
+             drawMoodBlockMaterial(preview, getMoodColor(piece.color));
+             if (piece.lightning) {
+                 this.decorateLightningPiece(preview);
+-                preview.getChildByName('lightningGlyph').scale = 0.65;
+             }
+             this.nextLayer.addChild(preview);
+             nodes.push(preview);
+@@ -2931,6 +3004,10 @@
+         ] as [cc.Node, cc.Label, boolean][]) {
+             button.getChildByName('toolUsedShade').active = exhausted;
+             label.node.parent.active = !exhausted;
++            const held = button === this.hammerButton ? zyxGameModule.hammerCount : zyxGameModule.colorPurifierCount;
++            label.node.opacity = held > 0 ? 255 : 0;
++            label.node.parent.getChildByName('toolAddMark').active = held === 0;
++            if (!held) this.hideToolReadyBubble(button);
+         }
+         const toolOpacity = this.isTutorialGuidedStep() ? 118 : 255;
+         if (this.hammerButton) this.hammerButton.opacity = toolOpacity;
+@@ -3178,7 +3255,7 @@
+                 this.locked = false;
+                 this.updateHud();
+                 this.setToolSelectionMode(null);
+-                uimanager.showToast('已获得道具，点击图标使用');
++                this.showToolReadyBubble(item);
+             }
+         } catch (error) {
+             if (!this.node || !cc.isValid(this.node)) return;

@@ -1,0 +1,18 @@
+{
+  "preserved": {
+    "players": {
+      "count": 62,
+      "sha256": "7b7a6f0d2b2396d710854cd61914c54514112a4a3007b7990eec94b968ec0378"
+    },
+    "settlements": {
+      "count": 77,
+      "sha256": "5fd3cf7532684c097e17ae4bfc1fc2e818f654992afe34536077deb081594e87"
+    },
+    "leaderboard": {
+      "count": 62,
+      "sha256": "04da3a6cb8bcd46afacf7517ac203630fd0180479678466f36854dd24edc8fdd"
+    }
+  },
+  "integrity": "ok",
+  "retiredTables": 0
+}

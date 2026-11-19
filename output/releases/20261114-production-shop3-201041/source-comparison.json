@@ -1,0 +1,30 @@
+{
+  "shared": {
+    "vsCandidateChanged": [
+      "src/boardEngine.js",
+      "src/databaseAudit.js",
+      "src/defaultNickname.js",
+      "src/gameEngine.js",
+      "src/index.js",
+      "src/replayBoardEngine.js",
+      "src/schema.js"
+    ]
+  },
+  "production-source": {
+    "vsCandidateChanged": [
+      "src/index.js"
+    ]
+  },
+  "staging-source": {
+    "vsCandidateChanged": []
+  },
+  "production-runtime": {
+    "vsCandidateChanged": [
+      "src/index.js"
+    ]
+  },
+  "staging-runtime": {
+    "vsCandidateChanged": []
+  },
+  "runtimeDifference": "Only src/index.js SHOP_PRICES changes 20/20/5 to 3/3/3; all other runtime files identical."
+}

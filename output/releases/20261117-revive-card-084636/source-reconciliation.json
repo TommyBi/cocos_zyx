@@ -1,0 +1,67 @@
+{
+  "releaseId": "20261117-revive-card-084636",
+  "basis": "Complete current local working tree, including untracked assets and source; preserve earlier Nov14/Nov16 UI, friend ranking, saved rounds and revival card work.",
+  "runtimeBaseline": "20261114-shop-three-181631",
+  "differences": {
+    "shared": {
+      "changed": [
+        "src/boardEngine.js",
+        "src/databaseAudit.js",
+        "src/defaultNickname.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/roundProgress.js",
+        "src/schema.js"
+      ],
+      "missingLocally": []
+    },
+    "staging-source": {
+      "changed": [
+        "src/boardEngine.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/roundProgress.js",
+        "src/schema.js"
+      ],
+      "missingLocally": []
+    },
+    "production-source": {
+      "changed": [
+        "src/boardEngine.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/roundProgress.js",
+        "src/schema.js"
+      ],
+      "missingLocally": []
+    },
+    "staging-runtime": {
+      "changed": [
+        "Dockerfile",
+        "src/boardEngine.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/roundProgress.js",
+        "src/schema.js"
+      ],
+      "missingLocally": []
+    },
+    "production-runtime": {
+      "changed": [
+        "Dockerfile",
+        "src/boardEngine.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/roundProgress.js",
+        "src/schema.js"
+      ],
+      "missingLocally": []
+    }
+  },
+  "review": "Staging/Production actual runtime match prior API13 source. Local adds API14 saved rounds and API15 receipt-backed revive card; main shared server source is historical and is not a release baseline. Existing local changes retained, no server copies substituted."
+}

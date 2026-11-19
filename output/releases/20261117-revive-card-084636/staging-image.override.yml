@@ -1,0 +1,4 @@
+services:
+  cocos_zyx_api_staging:
+    image: cocos-zyx-staging:20261117-revive-card-084636
+    build: /opt/tcjstory/apps/cocos-zyx/releases/20261117-revive-card-084636/server

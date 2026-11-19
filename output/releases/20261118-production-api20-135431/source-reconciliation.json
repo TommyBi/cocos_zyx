@@ -1,0 +1,59 @@
+{
+  "differences": {
+    "shared": {
+      "changed": [
+        "src/boardEngine.js",
+        "src/databaseAudit.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/schema.js"
+      ],
+      "new": [
+        "src/defaultNickname.js",
+        "src/exportRisk.js",
+        "src/replayService.js",
+        "src/replayWorker.js",
+        "src/rewardSecurity.js",
+        "src/riskControl.js",
+        "src/roundProgress.js"
+      ],
+      "onlyOld": []
+    },
+    "production-source": {
+      "changed": [
+        "src/boardEngine.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/rewardSecurity.js",
+        "src/roundProgress.js"
+      ],
+      "new": [],
+      "onlyOld": []
+    },
+    "staging-source": {
+      "changed": [],
+      "new": [],
+      "onlyOld": []
+    },
+    "production-runtime": {
+      "changed": [
+        "src/boardEngine.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/rewardSecurity.js",
+        "src/roundProgress.js"
+      ],
+      "new": [],
+      "onlyOld": []
+    },
+    "staging-runtime": {
+      "changed": [],
+      "new": [],
+      "onlyOld": []
+    }
+  },
+  "decision": "Promote exact tested Staging image; full local backend matches it, preserving Production rescue replay fix and all prior user changes. Historical shared directory is older and remains untouched."
+}

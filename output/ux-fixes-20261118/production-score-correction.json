@@ -1,0 +1,27 @@
+{
+  "operation": "score-correction",
+  "targetNickname": "就不告诉你",
+  "previousRank": 3,
+  "previousScore": 8470,
+  "newScore": 28660,
+  "newRank": 1,
+  "backup": "/opt/tcjstory/backups/cocos-zyx-score-correction-20261118-0131",
+  "image": "sha256:f8cfc3d5b57beb5cacb6b3da196971febff27fd16ddbb787a3b8888c6ddafef1",
+  "onlyChangedColumn": "players.highest_single_game_score",
+  "allOtherRowsAndColumnsExact": true,
+  "counts": {
+    "game_rounds": 688,
+    "players": 155,
+    "release_resets": 1,
+    "reward_intents": 15,
+    "risk_admin_events": 0,
+    "risk_events": 5,
+    "risk_reviews": 0,
+    "round_checkpoints": 4,
+    "round_settlements": 456,
+    "sqlite_sequence": 2,
+    "stamina_share_claims": 7,
+    "tool_inventory_refunds": 154,
+    "tool_transactions": 156
+  }
+}

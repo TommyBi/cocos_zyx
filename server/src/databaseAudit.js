@@ -9,13 +9,17 @@ function digest(db, sql, transform = row => row) {
   const rows = db.exec(sql)[0]?.values || [];
   return { count: rows.length, sha256: crypto.createHash('sha256').update(JSON.stringify(rows.map(transform))).digest('hex') };
 }
-function core(db) {
+function core(db, withToolRefund = false) {
+  const columns = db.exec('PRAGMA table_info(players)')[0].values.map(row => row[1]);
+  const refunds = withToolRefund && columns.includes('hammer_count') && columns.includes('wand_count')
+    ? new Map((db.exec('SELECT player_id, (hammer_count + wand_count) * 3 FROM players')[0]?.values || [])) : new Map();
   return {
     players: digest(db, `SELECT player_id, device_id, token,
       nickname,
       avatar_url, level, experience, mood_bean_balance, total_mood_beans, highest_single_game_score, created_at, updated_at
       FROM players ORDER BY player_id`, row => {
         row[3] = normalizeDefaultNickname(row[3], row[4], row[0]);
+        row[7] += refunds.get(row[0]) || 0;
         return row;
       }),
     settlements: digest(db, 'SELECT player_id, round_id, score, mood_token_count, awarded_mood_beans, created_at FROM round_settlements ORDER BY player_id, round_id'),
@@ -26,7 +30,7 @@ function core(db) {
   const SQL = await initSqlJs();
   const before = new SQL.Database(fs.readFileSync(process.argv[2]));
   const after = process.argv[3] ? new SQL.Database(fs.readFileSync(process.argv[3])) : before;
-  const expected = core(before);
+  const expected = core(before, Number(before.exec('PRAGMA user_version')[0].values[0][0]) < 11);
   if (!process.argv[3]) migrateSchema(after); // 用真实库副本演练，不写回文件。
   assert.deepEqual(core(after), expected, '迁移改变了核心业务数据');
   assert.equal(after.exec("SELECT name FROM sqlite_master WHERE name IN ('official_art_progress','official_art_actions','reward_mail','app_state')").length, 0);

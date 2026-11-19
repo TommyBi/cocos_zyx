@@ -1,0 +1,56 @@
+{
+  "releaseId": "20261117-gameplay-v12-132009",
+  "baselineStagingRelease": "20261117-revive-card-084636",
+  "differences": {
+    "staging-runtime": {
+      "changed": [
+        "src/boardEngine.js",
+        "src/databaseAudit.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/roundProgress.js",
+        "src/schema.js"
+      ],
+      "missingLocally": []
+    },
+    "production-runtime": {
+      "changed": [
+        "src/boardEngine.js",
+        "src/databaseAudit.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/roundProgress.js",
+        "src/schema.js"
+      ],
+      "missingLocally": []
+    },
+    "shared-server-source": {
+      "changed": [
+        "src/boardEngine.js",
+        "src/databaseAudit.js",
+        "src/defaultNickname.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/roundProgress.js",
+        "src/schema.js"
+      ],
+      "missingLocally": []
+    },
+    "staging-release-source": {
+      "changed": [
+        "src/boardEngine.js",
+        "src/databaseAudit.js",
+        "src/gameEngine.js",
+        "src/index.js",
+        "src/replayBoardEngine.js",
+        "src/roundProgress.js",
+        "src/schema.js"
+      ],
+      "missingLocally": []
+    }
+  },
+  "review": "Full reviewed local V12 work retained. Staging API15 source matches immutable V11 release. Production remains API13; historical shared server source is not used as baseline. Changes correspond to V12 lightning, per-round tools, inventory refunds and capability/version compatibility. No source replaced with server copies."
+}

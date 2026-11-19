@@ -1,0 +1,4139 @@
+import {
+    BOARD_COLS,
+    BOARD_ROWS,
+    MAX_ACTION_APPENDS,
+    BoardPiece,
+    BombDetonation,
+    CELL_SIZE,
+    EliminateResult,
+    GravityMove,
+    RoundSettlement,
+    RoundToolState,
+    LightningDischarge,
+    TutorialMove,
+    zyxGameModule,
+} from '../dataModule/ZyxGameModule';
+import { BUTTON_COLORS, uimanager } from '../manager/UIManager';
+import { roundProgress } from '../manager/RoundProgress';
+import { settingsPanel } from '../manager/SettingsPanel';
+import { gameSettings } from '../manager/GameSettings';
+import { audioManager } from '../manager/AudioManager';
+import {
+    getRewardOfferFailToast,
+    getRewardOfferIcon,
+    requestRewardOffer,
+    RewardPlacement,
+} from '../manager/ShareReward';
+import { ASSET_PATHS, getSkeletonData, getSpriteFrame, prepareFeature } from '../manager/AssetLoader';
+import ZyxGridCom from './ZyxGridCom';
+import {
+    createHammerGlyph,
+    createPauseGlyph,
+    createPurifierGlyph,
+    createShareGlyph,
+    createVideoGlyph,
+    decorateActionButton,
+    decorateSettingsActionButton,
+} from './GlyphFactory';
+import {
+    createMoodBean,
+    createMoodBeanMascot,
+    createMoodStamp,
+    drawMoodFace,
+    drawMoodBlockMaterial,
+    getMoodColor,
+    getMoodName,
+    MOOD_COLORS,
+} from './MoodArt';
+import { calculateGameLayout, calculateGameHudLayout } from '../manager/ResponsiveLayout';
+import { CloudProfile, cloudService, LeaderboardEntry, ResumeRoundResult } from '../manager/CloudService';
+import RankChaseView from './RankChaseView';
+import { getReviveChaseMessage } from '../dataModule/RankChase';
+import BeanCollectionHud, { applyHudFont, formatHudScore } from './BeanCollectionHud';
+import { createBombBadge, createComboArt, createScoreArt } from './RewardArt';
+import { createGamePanel } from './GamePanel';
+import { RescueBalloon, getBalloonBombPosition } from './RescueBalloon';
+import { createDangerGlow } from './DangerGlow';
+import { createHeartToken, playHeartWave } from './HeartEffect';
+import { showHeartLetter } from './HeartMessage';
+import { BOMB_PRIME_TIME, BOMB_CHAIN_INTERVAL, bombResolutionDelay, bombPlaybackDuration, playBombEffect } from './BombEffect';
+
+const GAME_PLAY_TIPS = [
+            '左右拖动心情块，填满一行就能消除',
+            '带表情的心情块消除后，会变成开心豆飞进收集位',
+            '解压锤能敲掉一个挡路的心情块',
+            '魔法棒能让场上全部同色色块一起消失',
+            '两秒没操作时，小手会提示一次可消除移动',
+            '留意下一排，提前为新色块腾出位置',
+            '连续操作都消除即可叠加连消，最高 5 倍分数！',
+            '三连及以上，每次有效连消都额外奖励炸弹',
+            '双排或掉落连消可获得炸弹，消除炸弹也能引爆',
+        ];
+const GAME_WARM_TIPS = [
+            '你不需要一直坚强，慢一点也没关系',
+            '今天已经很努力了，剩下的交给明天',
+            '真正的顺利，是心里始终有一个方向',
+            '有人惦记的晚风，总会比别处温柔',
+            '把复杂的事一件件放好，生活会慢慢清晰',
+        ];
+
+export const LIGHTNING_DISCHARGE_TIME = 2 / 3;
+const LIGHTNING_STAGGER = 0.16 * LIGHTNING_DISCHARGE_TIME;
+
+const { ccclass } = cc._decorator;
+const NEXT_PREVIEW_HEIGHT = 42;
+const NEXT_PREVIEW_OPACITY = 220;
+const TOOL_BUTTON_SIZE = 88;
+const HUD_VALUE_COLOR = new cc.Color(112, 78, 65);
+const HUD_LABEL_COLOR = new cc.Color(132, 96, 80);
+let rescueShadeFrame: cc.SpriteFrame = null;
+
+export type SettlementExitRequest = {
+    restart: boolean;
+    settlement: RoundSettlement;
+};
+
+@ccclass
+export default class ZyxGame extends cc.Component {
+    private rewardFeedback: cc.Node = null;
+    private layout: ReturnType<typeof calculateGameLayout> = null;
+    private hudRoot: cc.Node = null;
+    private footerRoot: cc.Node = null;
+    private boardRoot: cc.Node = null;
+    private pieceLayer: cc.Node = null;
+    private nextLayer: cc.Node = null;
+    private nextRowLabel: cc.Label = null;
+    private bombGuideKey = '';
+    private bombGuideCount = 0;
+    private bombGuideIds = new Set<number>();
+    private firstGameBombGuide = false;
+    private scoreLabel: cc.Label = null;
+    private bestLabel: cc.Label = null;
+    private beanCollectionHud: BeanCollectionHud = null;
+    private recordTagLabel: cc.Label = null;
+    private moodStageLabel: cc.Label = null;
+    private hammerButton: cc.Node = null;
+    private hammerIcon: cc.Node = null;
+    private hammerCountLabel: cc.Label = null;
+    private purifierButton: cc.Node = null;
+    private purifierIcon: cc.Node = null;
+    private purifierCountLabel: cc.Label = null;
+    private moodBeanHudIcon: cc.Node = null;
+    private toolDragFollower: cc.Node = null;
+    private toolSelectionPrompt: cc.Node = null;
+    private toolWiggleNodes: cc.Node[] = [];
+    private hintHand: cc.Node = null;
+    private hintPieceId: number = 0;
+    private clearSpineData: sp.SkeletonData = null;
+    private resolutionLocked = true;
+    private bombAnimationLocks = 0;
+    private lightningAnimationLocks = 0;
+    private get locked(): boolean { return this.resolutionLocked || this.bombAnimationLocks > 0 || this.lightningAnimationLocks > 0 || ['dialog', 'sharing', 'bombing'].indexOf(this.balloonPhase) >= 0; }
+    private set locked(value: boolean) {
+        const entering = value && !this.resolutionLocked;
+        this.resolutionLocked = value;
+        if (!entering) return;
+        if (this.pieceLayer && this.pieceLayer.children) this.pieceLayer.children.forEach(node => {
+            const grid = node.getComponent(ZyxGridCom);
+            if (grid) grid.cancelTouch();
+        });
+        if (this.toolTouchStart && this.hammerButton) {
+            cc.Tween.stopAllByTarget(this.hammerButton); this.hammerButton.scale = 1;
+        }
+        this.toolTouchStart = null; this.toolDragging = false;
+        this.clearToolDragFollower();
+    }
+    private hammerMode: boolean = false;
+    private purifierMode: boolean = false;
+    private toolDragging: boolean = false;
+    private toolTouchStart: cc.Vec2 = null;
+    private rewardedAdLoading: boolean = false;
+    private pauseMenuOpen = false;
+    private pauseStartedAt = 0;
+    private roundRescuePrompt: cc.Node = null;
+    private roundRescueCountdownState: { progress: number; started: boolean; redraw: () => void } = null;
+    private roundRescueInteractive = false;
+    private roundRescueGuideVisible = false;
+    private rescueBalloon: RescueBalloon = null;
+    private balloonPhase: 'none' | 'flying' | 'dialog' | 'sharing' | 'bombing' = 'none';
+    private balloonModal: cc.Node = null;
+    private balloonInputShield: cc.Node = null;
+    private boardDangerHalo: cc.Node = null;
+    private dangerSeconds = 0;
+    private warmBalloonActive = false;
+    private reviveUsed: boolean = false;
+    private reviveCardUsed: boolean = false;
+    private pendingReviveCardRequest: { roundId: string; sessionToken: string; actions: any[]; elapsedMs: number } = null;
+    private onSettlementExit: (request: SettlementExitRequest) => void = null;
+    private onRoundFinished: (settlement: RoundSettlement, startedAt: number) => void = null;
+    private onRestartFromPause: () => Promise<boolean> = null;
+    private settlementReported: boolean = false;
+    private pieceColors: { [key: number]: cc.Color } = {};
+    private displayedRoundMoods: number = 0;
+    /** 碎片节点池：复用消除爆散碎片，避免高频 new/destroy 造成的 GC 抖动。 */
+    private shardPool: cc.Node[] = [];
+    private idleSeconds: number = 0;
+    private rankChase: RankChaseView = null;
+    private rankChaseProfile: CloudProfile = null;
+    private rankChaseSnapshot: Promise<LeaderboardEntry[]> = null;
+    private rankChaseEntries: LeaderboardEntry[] = [];
+    private rankExpanded = false;
+    private rankExpansion = { progress: 0 };
+    private tipIndex: number = 0;
+    private tipSeconds: number = 0;
+    private tutorialStep: number = -1;
+    private tutorialGuideRoot: cc.Node = null;
+    private tutorialNpc: cc.Node = null;
+    private tutorialBubbleGroup: cc.Node = null;
+    private tutorialBubble: cc.Node = null;
+    private tutorialSpeechLabel: cc.Label = null;
+    private tutorialHand: cc.Node = null;
+    private tutorialSourceMarker: cc.Node = null;
+    private tutorialTargetMarker: cc.Node = null;
+    private tutorialDimMask: cc.Node = null;
+    private tutorialFocusPieceId: number = 0;
+    private tutorialTypingState: { value: number } = null;
+    private tutorialRestoreCallback: () => void = null;
+
+    private savedActionLength = 0;
+    private onSaveAndExit: () => void = null;
+
+    public resumeAfterBackground(hiddenMs: number): void {
+        if (!this.pauseMenuOpen) zyxGameModule.roundStartedAt += hiddenMs;
+    }
+
+    public captureProgress(force = false): void {
+        if (this.settlementReported || roundProgress.roundId !== zyxGameModule.cloudRoundId) return;
+        const actions = zyxGameModule.roundActions;
+        if (!force && actions.length === this.savedActionLength) return;
+        if (!zyxGameModule.canCheckpoint() || (zyxGameModule.isTutorialRound() && zyxGameModule.moveCount === 3 && zyxGameModule.turn === 0)) {
+            if (force) void roundProgress.sync(true);
+            return;
+        }
+        this.savedActionLength = actions.length;
+        const pausedMs = this.pauseStartedAt ? Math.max(0, Date.now() - this.pauseStartedAt) : 0;
+        roundProgress.capture(actions, zyxGameModule.difficultyActionCount, Date.now() - zyxGameModule.roundStartedAt - pausedMs, force);
+    }
+
+    public initialize(
+        onSettlementExit: (request: SettlementExitRequest) => void,
+        onRoundFinished: (settlement: RoundSettlement, startedAt: number) => void,
+        onRestartFromPause: () => Promise<boolean>,
+        profile: CloudProfile = null,
+        restored: ResumeRoundResult = null,
+        onSaveAndExit: () => void = null,
+    ): void {
+        this.onSettlementExit = onSettlementExit;
+        this.onRoundFinished = onRoundFinished;
+        this.onSaveAndExit = onSaveAndExit;
+        this.onRestartFromPause = onRestartFromPause;
+        this.rankChaseProfile = profile;
+        this.firstGameBombGuide = !!profile && profile.gameCount === 0;
+        this.bombGuideKey = 'zyx_first_round_bomb_guides_' + (profile ? profile.playerId : '');
+        this.bombGuideCount = Math.min(5, Math.max(0, Number(cc.sys.localStorage.getItem(this.bombGuideKey)) || 0));
+        this.bombGuideIds.clear();
+        // 每局只在开局读取一次榜单；教学期间预取数据但不展示，后续纯本地追赶。
+        this.rankChaseEntries = [];
+        this.rankChaseSnapshot = cloudService.getLeaderboard('power')
+            .then((result) => {
+                this.rankChaseEntries = result.entries.map(entry => ({ ...entry }));
+                return this.rankChaseEntries;
+            })
+            .catch(() => []);
+        this.settlementReported = false;
+        this.node.setAnchorPoint(0.5, 0.5);
+        uimanager.init(this.node);
+
+        if (restored) zyxGameModule.restoreRound(restored);
+        else zyxGameModule.resetRound();
+        this.savedActionLength = 0;
+        this.tutorialStep = zyxGameModule.isTutorialRound() ? Math.min(3, zyxGameModule.moveCount) : -1;
+        this.rankExpanded = this.tutorialStep < 0 || this.tutorialStep >= 3;
+        this.rankExpansion.progress = this.rankExpanded ? 1 : 0;
+        this.reviveUsed = !!restored && restored.actions.some(action => action.type === 'revive');
+        this.reviveCardUsed = !!restored && restored.actions.some(action => action.type === 'reviveCard');
+        this.displayedRoundMoods = restored ? zyxGameModule.roundCollectedMoodBeans : 0;
+        this.loadEffectAssets();
+        this.buildUI();
+        // 大图片字分包不进入首屏等待链；失败保留矢量/文字反馈，下局仍可重试。
+        this.scheduleOnce(() => { prepareFeature('effects').catch(() => undefined); }, 0.25);
+        if (!this.isTutorialGuidedStep()) this.createRankChase();
+        this.renderAll();
+        if (restored) this.beanCollectionHud.complete(zyxGameModule.roundCollectedMoodBeans);
+        this.locked = false;
+        this.captureProgress();
+        if (restored && zyxGameModule.isGameOver()) this.handleChallengeFailed('整理台暂时放满了');
+        else if (this.isTutorialGuidedStep()) this.showTutorialStep();
+        if (restored) uimanager.showToast('回来啦，接着慢慢整理吧～');
+    }
+
+    public onDestroy(): void {
+        if (this.rankChase) this.rankChase.dispose();
+        if (this.beanCollectionHud) this.beanCollectionHud.dispose();
+        cc.Tween.stopAllByTarget(this.rankExpansion);
+        this.dismissRoundRescuePrompt(false);
+        this.clearTutorialGuide();
+        // 统一回收：取消所有 scheduleOnce 延迟回调，停止根节点动画，销毁池内碎片。
+        // 子节点 tween 随节点销毁自动停止；state 型 tween 的 onUpdate 均有 cc.isValid 守卫。
+        this.unscheduleAllCallbacks();
+        if (this.node) cc.Tween.stopAllByTarget(this.node);
+        for (const shard of this.shardPool) {
+            if (cc.isValid(shard)) shard.destroy();
+        }
+        this.shardPool.length = 0;
+    }
+
+    public update(dt: number): void {
+        if (!this.node || !this.node.isValid) return;
+        if (!this.locked) this.captureProgress();
+        if (this.rescueBalloon) {
+            const ended = this.rescueBalloon.update(dt, this.balloonPhase === 'flying'
+                && !this.pauseMenuOpen && !this.rewardedAdLoading && !this.settlementReported);
+            if (ended) this.dismissRoundRescuePrompt(false);
+        }
+        const countdown = this.roundRescueCountdownState;
+        if (countdown && countdown.started && this.balloonPhase === 'flying'
+            && !this.pauseMenuOpen && !this.rewardedAdLoading && !this.settlementReported) {
+            countdown.progress = Math.max(0, countdown.progress - dt / 10);
+            countdown.redraw();
+            if (countdown.progress === 0) this.dismissRoundRescuePrompt(true);
+        }
+        if (this.boardDangerHalo && !this.pauseMenuOpen && !this.rewardedAdLoading && !this.settlementReported) {
+            this.dangerSeconds += dt;
+            if (this.dangerSeconds >= 2 && !this.locked && !this.isTutorialGuidedStep()
+                && !this.roundRescueGuideVisible && zyxGameModule.canOfferHeartRescue()) this.showWarmHeartBalloon();
+        }
+        this.updateRotatingTip(dt);
+        if (this.isTutorialGuidedStep()) return;
+        if (this.locked || this.roundRescueGuideVisible || this.hammerMode || this.purifierMode || this.hintHand) return;
+        this.idleSeconds += dt;
+        if (this.idleSeconds >= zyxGameModule.getHintDelay()) {
+            this.idleSeconds = 0;
+            this.playEliminationHint();
+        }
+    }
+
+    /** 供场景根部 GM 气泡在发放道具后同步当前 HUD。 */
+    public refreshInventoryHud(): void {
+        this.updateHud();
+    }
+
+    /** 仅移动区域容器，不重置棋盘、教学步骤、道具和计分状态。 */
+    public refreshLayout(): void {
+        if (!this.layout || !this.boardRoot) return;
+        const previous = this.layout;
+        this.layout = calculateGameLayout(this.node.height, BOARD_ROWS * CELL_SIZE);
+        this.hudRoot.y = this.layout.hudY;
+        this.footerRoot.y = this.layout.footerY;
+        this.boardRoot.y = this.layout.boardY;
+        for (const name of ['boardShadow', 'boardFrame']) {
+            const node = this.node.getChildByName(name);
+            if (node) {
+                node.y += this.layout.boardY - previous.boardY;
+            }
+        }
+        if (this.tutorialGuideRoot) this.tutorialGuideRoot.y += this.layout.boardY - previous.boardY;
+        for (const name of ['nextRow']) {
+            const node = this.node.getChildByName(name);
+            if (node) node.y = this.layout.nextY;
+        }
+        for (const name of ['toolDock', 'toolDockShadow']) {
+            const node = this.node.getChildByName(name);
+            if (node) node.y += this.layout.toolY - previous.toolY;
+        }
+        if (this.boardDangerHalo) this.boardDangerHalo.y = this.layout.boardY;
+        this.applyRankLayout();
+        this.refreshRoundRescueLayout();
+    }
+
+    /** 所有横向位移共用一个进度，窗口变化和快速反向点击也不会跳位。 */
+    private applyRankLayout(): void {
+        const progress = this.rankExpansion.progress;
+        const x = this.layout.boardX * progress;
+        if (this.hudRoot && this.beanCollectionHud) {
+            const hud = calculateGameHudLayout(this.node.width, BOARD_COLS * CELL_SIZE, progress);
+            this.hudRoot.x = hud.x;
+            this.hudRoot.setContentSize(hud.width, 148);
+            const scoreWidth = 180;
+            const gap = 12;
+            const scoreCard = this.hudRoot.getChildByName('scoreCompareCard');
+            scoreCard.x = -hud.width / 2 + scoreWidth / 2;
+            const beanWidth = hud.width - scoreWidth - gap;
+            this.beanCollectionHud.root.x = hud.width / 2 - beanWidth / 2;
+            this.beanCollectionHud.resize(beanWidth);
+        }
+        for (const node of [this.boardRoot, this.boardDangerHalo, this.tutorialGuideRoot,
+            this.node.getChildByName('boardShadow'), this.node.getChildByName('boardFrame'),
+            this.node.getChildByName('nextRow')]) {
+            if (node) node.x = x;
+        }
+        if (this.rankChase) {
+            const hiddenX = -this.node.width / 2 - this.rankChase.root.width / 2 - 12;
+            this.rankChase.setPosition(hiddenX + (this.layout.rankX - hiddenX) * progress, this.layout.boardY);
+            // 64px按钮两侧完整留在舞台内，距左边缘8px，避免页签被裁掉。
+            this.rankChase.setExpansion(progress, -this.node.width / 2 + 40, this.layout.boardY);
+        }
+    }
+
+    private setRankExpanded(expanded: boolean, duration: number = 0.42): void {
+        this.createRankChase();
+        if (this.rankExpanded === expanded) return;
+        this.rankExpanded = expanded;
+        cc.Tween.stopAllByTarget(this.rankExpansion);
+        this.rankChase.setBookmarkVisible(false, () => {
+            if (!cc.isValid(this.node) || this.rankExpanded !== expanded) return;
+            cc.tween(this.rankExpansion)
+                .to(duration, { progress: expanded ? 1 : 0 }, {
+                    easing: 'sineInOut',
+                    onUpdate: () => {
+                        if (cc.isValid(this.node)) this.applyRankLayout();
+                    },
+                })
+                .call(() => {
+                    if (!cc.isValid(this.node) || this.rankExpanded !== expanded) return;
+                    this.applyRankLayout();
+                    if (!expanded) this.rankChase.setBookmarkVisible(true);
+                }).start();
+        });
+    }
+
+    private createRankChase(): void {
+        if (this.rankChase) return;
+        this.rankChase = new RankChaseView(this.node, this.rankChaseProfile, this.rankChaseSnapshot,
+            () => {
+                if (this.tutorialStep < 0) this.setRankExpanded(!this.rankExpanded);
+            });
+        this.applyRankLayout();
+        this.rankChase.updateScore(zyxGameModule.score);
+    }
+
+    private buildUI(): void {
+        this.clearTutorialGuide();
+        this.stopBoardDangerGlow();
+        this.node.removeAllChildren();
+
+        this.layout = calculateGameLayout(this.node.height, BOARD_ROWS * CELL_SIZE);
+        this.hudRoot = new cc.Node('gameHud');
+        this.hudRoot.setPosition(0, this.layout.hudY);
+        this.node.addChild(this.hudRoot);
+        this.footerRoot = new cc.Node('gameFooter');
+        this.footerRoot.setPosition(0, this.layout.footerY);
+        this.node.addChild(this.footerRoot);
+        const topY = 0;
+        const bottomTipY = 0;
+        const hudGap = 12;
+        const hudWidth = calculateGameHudLayout(this.node.width, BOARD_COLS * CELL_SIZE, this.rankExpansion.progress).width;
+        const scoreCardWidth = 180;
+        const beanCardWidth = hudWidth - scoreCardWidth - hudGap;
+        const pauseWidth = 80;
+        const hudLeft = -hudWidth / 2;
+        const leftCardX = hudLeft + scoreCardWidth / 2;
+        const beanCardX = hudLeft + scoreCardWidth + hudGap + beanCardWidth / 2;
+        const pauseX = this.node.width / 2 - 16 - pauseWidth / 2;
+        const scoreCard = createGamePanel(this.hudRoot, 'scoreCompareCard', scoreCardWidth, 148, leftCardX);
+        const caption = uimanager.createLabel(scoreCard, '本局得分', 0, 46, 24, HUD_LABEL_COLOR, scoreCardWidth - 20, 32);
+        this.scoreLabel = uimanager.createLabel(scoreCard, '0', 0, 5, 46, HUD_VALUE_COLOR, scoreCardWidth - 32, 56);
+        this.bestLabel = uimanager.createLabel(scoreCard, '最高 0', 0, -46, 20, HUD_LABEL_COLOR, scoreCardWidth - 20, 28);
+        for (const label of [caption, this.scoreLabel, this.bestLabel]) applyHudFont(label);
+        this.recordTagLabel = caption;
+        this.beanCollectionHud = new BeanCollectionHud(this.hudRoot, beanCardX, beanCardWidth);
+        this.moodBeanHudIcon = this.beanCollectionHud.icon;
+
+        const pauseButton = uimanager.createButton(
+            this.footerRoot,
+            '',
+            pauseX,
+            bottomTipY,
+            pauseWidth,
+            pauseWidth,
+            BUTTON_COLORS.red,
+            () => this.pauseGame(),
+            24,
+        );
+        pauseButton.name = 'pauseButton';
+        pauseButton.zIndex = 180;
+        createPauseGlyph(pauseButton, 0, 1, 0.82);
+
+        const tipWidth = Math.min(566, this.node.width - pauseWidth - 50);
+        const tipRight = pauseX - pauseWidth / 2 - 14;
+        const tipX = tipRight - tipWidth / 2;
+        const tipPill = uimanager.createRect(this.footerRoot, 'tipPill', tipWidth, 48, new cc.Color(255, 249, 232), 218, 22, tipX, bottomTipY);
+        this.moodStageLabel = uimanager.createLabel(tipPill, '拖动心情块左右移动，填满一行就能消除', 0, 0, 18, HUD_VALUE_COLOR, tipWidth - 36, 34);
+        this.makeLabelBold(this.moodStageLabel);
+
+        this.createBoard();
+        this.createNextRowPreview();
+        this.createToolBar();
+        if (this.tutorialStep >= 0) this.createTutorialNpcGuide();
+        this.applyRankLayout();
+    }
+
+    private createBoard(): void {
+        const boardWidth = BOARD_COLS * CELL_SIZE;
+        const boardHeight = BOARD_ROWS * CELL_SIZE;
+        const boardY = this.layout.boardY;
+        const shadow = uimanager.createRect(
+            this.node,
+            'boardShadow',
+            boardWidth + 12,
+            boardHeight + 12,
+            new cc.Color(69, 46, 41),
+            34,
+            20,
+            this.layout.boardX,
+            boardY - 6,
+        );
+        shadow.zIndex = 5;
+
+        this.boardRoot = new cc.Node('boardViewport');
+        this.boardRoot.width = boardWidth;
+        this.boardRoot.height = boardHeight;
+        this.boardRoot.setAnchorPoint(0.5, 0.5);
+        this.boardRoot.setPosition(this.layout.boardX, boardY);
+        this.boardRoot.zIndex = 20;
+        this.node.addChild(this.boardRoot);
+        const viewportMask = this.boardRoot.addComponent(cc.Mask);
+        viewportMask.type = cc.Mask.Type.RECT;
+
+        const surface = new cc.Node('boardSurface');
+        surface.width = boardWidth;
+        surface.height = boardHeight;
+        surface.zIndex = 0;
+        this.boardRoot.addChild(surface);
+        this.drawBoardSurface(surface, boardWidth, boardHeight);
+
+        this.pieceLayer = new cc.Node('pieces');
+        this.pieceLayer.width = boardWidth;
+        this.pieceLayer.height = boardHeight;
+        this.pieceLayer.setAnchorPoint(0.5, 0.5);
+        this.pieceLayer.zIndex = 10;
+        this.boardRoot.addChild(this.pieceLayer);
+
+        const frame = new cc.Node('boardFrame');
+        frame.width = boardWidth + 18;
+        frame.height = boardHeight + 18;
+        frame.setPosition(this.layout.boardX, boardY);
+        frame.zIndex = 100;
+        this.node.addChild(frame);
+        this.drawBoardFrame(frame, boardWidth, boardHeight);
+    }
+
+    /** 教学 NPC 放在棋盘上半部留白区，靠近操作区但不遮挡下方色块。 */
+    private createTutorialNpcGuide(): void {
+        const root = new cc.Node('tutorialGuide');
+        root.width = BOARD_COLS * CELL_SIZE;
+        root.height = BOARD_ROWS * CELL_SIZE;
+        root.setAnchorPoint(0.5, 0.5);
+        root.zIndex = 190;
+        root.x = this.layout.boardX;
+        this.node.addChild(root);
+        this.tutorialGuideRoot = root;
+
+        const guideY = this.layout.boardY + BOARD_ROWS * CELL_SIZE / 2 - 174;
+        const npc = new cc.Node('happyBlockGuide');
+        npc.width = 70;
+        npc.height = 70;
+        npc.setPosition(-252, guideY);
+        npc.zIndex = 30;
+        root.addChild(npc);
+        drawMoodBlockMaterial(npc, getMoodColor(1));
+        (npc as any).tutorialBaseY = guideY;
+        this.drawHappyTutorialFace(npc);
+        this.tutorialNpc = npc;
+        this.startTutorialNpcIdle();
+
+        const bubbleGroup = new cc.Node('tutorialBubbleGroup');
+        bubbleGroup.width = root.width;
+        bubbleGroup.height = root.height;
+        bubbleGroup.zIndex = 20;
+        root.addChild(bubbleGroup);
+        this.tutorialBubbleGroup = bubbleGroup;
+
+        uimanager.createRect(bubbleGroup, 'tutorialBubbleShadow', 438, 98, new cc.Color(72, 48, 43), 54, 24, 43, guideY - 5);
+        const bubble = uimanager.createRect(
+            bubbleGroup,
+            'tutorialBubble',
+            432,
+            92,
+            new cc.Color(255, 249, 232),
+            252,
+            22,
+            40,
+            guideY,
+        );
+        bubble.zIndex = 20;
+        const bubbleGraphics = bubble.getComponent(cc.Graphics);
+        bubbleGraphics.strokeColor = new cc.Color(239, 151, 105, 188);
+        bubbleGraphics.lineWidth = 2.5;
+        bubbleGraphics.roundRect(-214, -44, 428, 88, 21);
+        bubbleGraphics.stroke();
+        this.tutorialBubble = bubble;
+
+        const tail = new cc.Node('tutorialBubbleTail');
+        tail.setPosition(-180, guideY - 7);
+        tail.zIndex = 21;
+        bubbleGroup.addChild(tail);
+        const tailGraphics = tail.addComponent(cc.Graphics);
+        tailGraphics.fillColor = new cc.Color(255, 249, 232);
+        tailGraphics.strokeColor = new cc.Color(239, 151, 105, 188);
+        tailGraphics.lineWidth = 2.5;
+        tailGraphics.moveTo(0, 15);
+        tailGraphics.lineTo(-27, -1);
+        tailGraphics.lineTo(0, -14);
+        tailGraphics.close();
+        tailGraphics.fill();
+        tailGraphics.stroke();
+
+        this.tutorialSpeechLabel = uimanager.createLabel(
+            bubble,
+            '',
+            0,
+            -1,
+            20,
+            HUD_VALUE_COLOR,
+            382,
+            70,
+        );
+        this.makeLabelBold(this.tutorialSpeechLabel);
+    }
+
+    /** 弯眼、张嘴和腮红让 NPC 明确传达“开心”，避免之前近似困倦的表情。 */
+    private drawHappyTutorialFace(parent: cc.Node): void {
+        const face = new cc.Node('happyGuideFace');
+        face.width = 52;
+        face.height = 46;
+        face.setPosition(0, -1);
+        face.zIndex = 8;
+        parent.addChild(face);
+        const graphics = face.addComponent(cc.Graphics);
+        graphics.strokeColor = new cc.Color(92, 63, 55);
+        graphics.lineWidth = 3.2;
+        graphics.lineCap = cc.Graphics.LineCap.ROUND;
+        graphics.moveTo(-16, 7);
+        graphics.bezierCurveTo(-13, 13, -8, 13, -5, 7);
+        graphics.moveTo(5, 7);
+        graphics.bezierCurveTo(8, 13, 13, 13, 16, 7);
+        graphics.stroke();
+
+        graphics.fillColor = new cc.Color(105, 68, 60);
+        graphics.moveTo(-12, -3);
+        graphics.bezierCurveTo(-7, -1, 7, -1, 12, -3);
+        graphics.bezierCurveTo(10, -15, -10, -15, -12, -3);
+        graphics.close();
+        graphics.fill();
+        graphics.fillColor = new cc.Color(242, 135, 125);
+        graphics.ellipse(0, -11, 6.5, 2.8);
+        graphics.fill();
+        graphics.fillColor = new cc.Color(242, 151, 124, 172);
+        graphics.ellipse(-19, -4, 5, 2.5);
+        graphics.ellipse(19, -4, 5, 2.5);
+        graphics.fill();
+    }
+
+    private startTutorialNpcIdle(): void {
+        const npc = this.tutorialNpc;
+        if (!npc || !cc.isValid(npc)) return;
+        const baseY = Number((npc as any).tutorialBaseY) || npc.y;
+        cc.Tween.stopAllByTarget(npc);
+        npc.y = baseY;
+        npc.scaleX = 1;
+        npc.scaleY = 1;
+        cc.tween(npc)
+            .repeatForever(
+                cc.tween()
+                    .to(0.86, { y: baseY + 3, scale: 1.025 }, { easing: 'sineInOut' })
+                    .to(0.86, { y: baseY, scale: 1 }, { easing: 'sineInOut' }),
+            )
+            .start();
+    }
+
+    /** 每次真实消除都让 NPC 做一次双段庆祝跳。 */
+    private playTutorialNpcBounce(): void {
+        const npc = this.tutorialNpc;
+        if (!npc || !cc.isValid(npc)) return;
+        const baseY = Number((npc as any).tutorialBaseY) || npc.y;
+        cc.Tween.stopAllByTarget(npc);
+        npc.y = baseY;
+        npc.scaleX = 1;
+        npc.scaleY = 1;
+        cc.tween(npc)
+            .to(0.11, { y: baseY + 28, scaleX: 0.92, scaleY: 1.12 }, { easing: 'quadOut' })
+            .to(0.13, { y: baseY - 2, scaleX: 1.1, scaleY: 0.9 }, { easing: 'quadIn' })
+            .to(0.09, { y: baseY + 12, scaleX: 0.96, scaleY: 1.06 }, { easing: 'quadOut' })
+            .to(0.12, { y: baseY, scaleX: 1, scaleY: 1 }, { easing: 'backOut' })
+            .call(() => this.startTutorialNpcIdle())
+            .start();
+    }
+
+    /** 第三步完成后，用一次完整庆祝过渡把控制权交还给玩家。 */
+    private playTutorialCompletionTransition(): void {
+        const group = this.tutorialBubbleGroup;
+        const bubble = this.tutorialBubble;
+        const npc = this.tutorialNpc;
+        if (!group || !bubble || !npc || !cc.isValid(group) || !cc.isValid(npc)) {
+            this.finishTutorialTransition();
+            return;
+        }
+
+        if (this.tutorialTypingState) cc.Tween.stopAllByTarget(this.tutorialTypingState);
+        this.tutorialTypingState = null;
+        if (this.tutorialSpeechLabel) this.tutorialSpeechLabel.string = '';
+        cc.Tween.stopAllByTarget(group);
+        cc.Tween.stopAllByTarget(npc);
+        group.opacity = 255;
+        group.scale = 1;
+        npc.opacity = 255;
+
+        cc.tween(npc)
+            .to(0.44, { y: 0, scale: 1.08 }, { easing: 'backOut' })
+            .start();
+        cc.tween(group)
+            .to(0.44, { x: -bubble.x, y: -bubble.y, scale: 1.1 }, { easing: 'backOut' })
+            .call(() => {
+                this.setTutorialSpeech('接下来开始你的快乐时间吧！');
+                this.scheduleOnce(() => this.playTutorialFarewell(), 1.35);
+            })
+            .start();
+    }
+
+    /** NPC 连跳两次，气泡同步呼吸，遮罩在庆祝动作中渐隐。 */
+    private playTutorialFarewell(): void {
+        // 与教学遮罩同一时刻、同一时长开始，让出左侧空间并展示追赶栏。
+        this.setRankExpanded(true, 0.76);
+        const group = this.tutorialBubbleGroup;
+        const npc = this.tutorialNpc;
+        const mask = this.tutorialDimMask;
+
+        if (mask && cc.isValid(mask)) {
+            cc.Tween.stopAllByTarget(mask);
+            cc.tween(mask)
+                .to(0.76, { opacity: 0 }, { easing: 'sineOut' })
+                .call(() => {
+                    if (cc.isValid(mask)) mask.destroy();
+                    if (this.tutorialDimMask === mask) this.tutorialDimMask = null;
+                })
+                .start();
+        }
+
+        if (group && cc.isValid(group)) {
+            cc.Tween.stopAllByTarget(group);
+            cc.tween(group)
+                .to(0.12, { scale: 1.15 }, { easing: 'quadOut' })
+                .to(0.14, { scale: 1.1 }, { easing: 'quadIn' })
+                .to(0.12, { scale: 1.15 }, { easing: 'quadOut' })
+                .to(0.14, { scale: 1.1 }, { easing: 'quadIn' })
+                .to(0.24, { opacity: 0, scale: 0.92 }, { easing: 'quadIn' })
+                .start();
+        }
+
+        if (!npc || !cc.isValid(npc)) {
+            this.scheduleOnce(() => this.finishTutorialTransition(), 0.76);
+            return;
+        }
+        cc.Tween.stopAllByTarget(npc);
+        const baseY = npc.y;
+        cc.tween(npc)
+            .to(0.12, { y: baseY + 30, scaleX: 0.92, scaleY: 1.12 }, { easing: 'quadOut' })
+            .to(0.14, { y: baseY, scaleX: 1.08, scaleY: 0.92 }, { easing: 'quadIn' })
+            .to(0.12, { y: baseY + 24, scaleX: 0.94, scaleY: 1.1 }, { easing: 'quadOut' })
+            .to(0.14, { y: baseY, scaleX: 1.06, scaleY: 0.94 }, { easing: 'quadIn' })
+            .to(0.24, { opacity: 0, scale: 0.82 }, { easing: 'quadIn' })
+            .call(() => this.finishTutorialTransition())
+            .start();
+    }
+
+    private finishTutorialTransition(): void {
+        this.tutorialStep = -1;
+        this.clearTutorialGuide();
+        this.setRankExpanded(true, 0.76);
+        if (this.moodStageLabel) {
+            this.moodStageLabel.string = '快乐时间开始啦：留意下一排，继续填满整行';
+            this.moodStageLabel.node.opacity = 255;
+        }
+        this.updateHud();
+        this.appendTutorialOpeningRows();
+    }
+
+    /** 三排数据同步入场，避免教学结束后棋盘只剩孤零零的一排。 */
+    private appendTutorialOpeningRows(): void {
+        zyxGameModule.actionAppends = 0;
+        for (let index = 0; index < 3; index++) {
+            if (!zyxGameModule.appendNextRow()) {
+                this.handleChallengeFailed('整理台暂时放满了');
+                return;
+            }
+        }
+        this.animateAppendedRow(() => {
+            this.resolveStableBoard(() => {
+                if (zyxGameModule.isGameOver()) {
+                    this.handleChallengeFailed('整理台暂时放满了');
+                    return;
+                }
+                this.completePlayerAction();
+                for (const piece of zyxGameModule.pieces.filter(value => value.bomb)) {
+                    const node = this.pieceLayer.getChildByName(`piece_${piece.id}`);
+                    if (node) this.showBombGuide(node, piece);
+                }
+                this.locked = false;
+                this.idleSeconds = 0;
+            });
+        });
+    }
+
+    private isTutorialGuidedStep(): boolean {
+        return this.tutorialStep >= 0
+            && this.tutorialStep < 3
+            && !!zyxGameModule.getTutorialMove(this.tutorialStep);
+    }
+
+    private getTutorialSpeech(): string {
+        const messages = [
+            '第 1 步：把 3 格块向左拖，补满第二排。',
+            '第 2 步：把 2 格块向右拖，补满下一排。',
+            '第 3 步：把 1 格块向左拖，补满最后一排。',
+        ];
+        return messages[this.tutorialStep] || '';
+    }
+
+    private showTutorialStep(): void {
+        if (!this.isTutorialGuidedStep()) return;
+        if (this.tutorialRestoreCallback) {
+            this.unschedule(this.tutorialRestoreCallback);
+            this.tutorialRestoreCallback = null;
+        }
+        this.clearTutorialMoveGuide();
+        this.setTutorialSpeech(this.getTutorialSpeech());
+        this.showTutorialMoveGuide(zyxGameModule.getTutorialMove(this.tutorialStep));
+        this.updateHud();
+    }
+
+    /** 用高亮空位 + 循环小手表达横向拖动；不替玩家移动真实色块。 */
+    private showTutorialMoveGuide(move: TutorialMove): void {
+        if (!move || !this.boardRoot || !this.pieceLayer) return;
+        const piece = zyxGameModule.getPiece(move.id);
+        const pieceNode = this.pieceLayer.getChildByName(`piece_${move.id}`);
+        if (!piece || !pieceNode) return;
+
+        const dimMask = this.createRoundRescueShade(this.pieceLayer, 'tutorialDimMask', new cc.Color(25, 20, 18));
+        dimMask.width = BOARD_COLS * CELL_SIZE;
+        dimMask.height = BOARD_ROWS * CELL_SIZE;
+        dimMask.zIndex = 50;
+        dimMask.opacity = 148;
+        this.tutorialDimMask = dimMask;
+        this.tutorialFocusPieceId = move.id;
+        pieceNode.zIndex = 90;
+
+        const target = this.getPiecePosition(move.targetRow, move.targetCol, move.pieceSize);
+        const targetMarker = new cc.Node('tutorialTargetMarker');
+        targetMarker.width = move.pieceSize * CELL_SIZE - 12;
+        targetMarker.height = CELL_SIZE - 12;
+        targetMarker.setPosition(target);
+        targetMarker.zIndex = 70;
+        this.pieceLayer.addChild(targetMarker);
+        const targetGraphics = targetMarker.addComponent(cc.Graphics);
+        targetGraphics.fillColor = new cc.Color(255, 221, 104, 72);
+        targetGraphics.strokeColor = new cc.Color(239, 151, 105, 238);
+        targetGraphics.lineWidth = 4;
+        targetGraphics.roundRect(
+            -targetMarker.width / 2,
+            -targetMarker.height / 2,
+            targetMarker.width,
+            targetMarker.height,
+            14,
+        );
+        targetGraphics.fill();
+        targetGraphics.stroke();
+        cc.tween(targetMarker)
+            .repeatForever(
+                cc.tween()
+                    .to(0.48, { opacity: 150, scale: 0.96 }, { easing: 'sineInOut' })
+                    .to(0.48, { opacity: 255, scale: 1.03 }, { easing: 'sineInOut' }),
+            )
+            .start();
+        this.tutorialTargetMarker = targetMarker;
+
+        const origin = this.getPiecePosition(piece.row, piece.col, piece.size);
+        const sourceMarker = new cc.Node('tutorialSourceMarker');
+        sourceMarker.width = pieceNode.width + 16;
+        sourceMarker.height = pieceNode.height + 16;
+        sourceMarker.setPosition(0, 0);
+        sourceMarker.zIndex = -1;
+        pieceNode.addChild(sourceMarker);
+        const sourceGraphics = sourceMarker.addComponent(cc.Graphics);
+        sourceGraphics.strokeColor = new cc.Color(255, 203, 104, 92);
+        sourceGraphics.lineWidth = 12;
+        sourceGraphics.roundRect(
+            -sourceMarker.width / 2,
+            -sourceMarker.height / 2,
+            sourceMarker.width,
+            sourceMarker.height,
+            20,
+        );
+        sourceGraphics.stroke();
+        sourceGraphics.strokeColor = new cc.Color(255, 244, 196, 210);
+        sourceGraphics.lineWidth = 3;
+        sourceGraphics.roundRect(
+            -sourceMarker.width / 2 + 3,
+            -sourceMarker.height / 2 + 3,
+            sourceMarker.width - 6,
+            sourceMarker.height - 6,
+            17,
+        );
+        sourceGraphics.stroke();
+        sourceMarker.opacity = 190;
+        cc.tween(sourceMarker)
+            .repeatForever(
+                cc.tween()
+                    .to(0.5, { opacity: 118, scale: 1.045 }, { easing: 'sineInOut' })
+                    .to(0.5, { opacity: 210, scale: 1 }, { easing: 'sineInOut' }),
+            )
+            .start();
+        this.tutorialSourceMarker = sourceMarker;
+
+        const hand = this.createHintHand(this.pieceLayer, origin.x, origin.y + 44);
+        hand.name = 'tutorialDragHand';
+        this.tutorialHand = hand;
+        const targetX = origin.x + move.offset * CELL_SIZE;
+        cc.tween(hand)
+            .repeatForever(
+                cc.tween()
+                    .to(0.16, { y: origin.y + 24, scale: 0.9, opacity: 255 }, { easing: 'quadOut' })
+                    .to(0.64, { x: targetX, y: origin.y + 24 }, { easing: 'cubicInOut' })
+                    .to(0.13, { y: origin.y + 42, scale: 1 }, { easing: 'backOut' })
+                    .delay(0.34)
+                    .to(0.3, { x: origin.x, opacity: 0 }, { easing: 'quadIn' })
+                    .call(() => {
+                        if (!cc.isValid(hand)) return;
+                        hand.setPosition(origin.x, origin.y + 44);
+                        hand.opacity = 255;
+                    })
+                    .delay(0.22),
+            )
+            .start();
+    }
+
+    private setTutorialSpeech(message: string): void {
+        if (!this.tutorialSpeechLabel) return;
+        if (this.tutorialTypingState) cc.Tween.stopAllByTarget(this.tutorialTypingState);
+        const state = { value: 0 };
+        this.tutorialTypingState = state;
+        this.tutorialSpeechLabel.string = '';
+        cc.tween(state)
+            .to(Math.max(0.45, Math.min(1.5, message.length * 0.055)), { value: message.length }, {
+                easing: 'linear',
+                onUpdate: () => {
+                    if (!this.tutorialSpeechLabel || this.tutorialTypingState !== state) return;
+                    this.tutorialSpeechLabel.string = message.slice(0, Math.floor(state.value));
+                },
+            })
+            .call(() => {
+                if (this.tutorialSpeechLabel && this.tutorialTypingState === state) {
+                    this.tutorialSpeechLabel.string = message;
+                }
+            })
+            .start();
+    }
+
+    private showTutorialCorrection(message: string, resetBoard: boolean): void {
+        if (!this.isTutorialGuidedStep()) return;
+        if (this.tutorialRestoreCallback) this.unschedule(this.tutorialRestoreCallback);
+        this.clearTutorialMoveGuide();
+        if (resetBoard) this.renderBoard();
+        this.setTutorialSpeech(message);
+        this.showTutorialMoveGuide(zyxGameModule.getTutorialMove(this.tutorialStep));
+        if (this.tutorialBubble && cc.isValid(this.tutorialBubble)) {
+            const bubble = this.tutorialBubble;
+            const originY = bubble.y;
+            cc.Tween.stopAllByTarget(bubble);
+            bubble.scale = 1;
+            cc.tween(bubble)
+                .to(0.11, { y: originY + 6, scale: 1.025 }, { easing: 'quadOut' })
+                .to(0.16, { y: originY, scale: 1 }, { easing: 'backOut' })
+                .start();
+        }
+        this.tutorialRestoreCallback = () => {
+            this.tutorialRestoreCallback = null;
+            this.showTutorialStep();
+        };
+        this.scheduleOnce(this.tutorialRestoreCallback, 1.65);
+    }
+
+    private cancelTutorialRestore(): void {
+        if (!this.tutorialRestoreCallback) return;
+        this.unschedule(this.tutorialRestoreCallback);
+        this.tutorialRestoreCallback = null;
+    }
+
+    private cancelTutorialHand(): void {
+        if (this.tutorialHand && cc.isValid(this.tutorialHand)) {
+            cc.Tween.stopAllByTarget(this.tutorialHand);
+            this.tutorialHand.destroy();
+        }
+        this.tutorialHand = null;
+    }
+
+    private clearTutorialMoveGuide(preserveDimMask: boolean = false): void {
+        this.cancelTutorialHand();
+        if (this.tutorialFocusPieceId > 0 && this.pieceLayer && cc.isValid(this.pieceLayer)) {
+            const focus = this.pieceLayer.getChildByName(`piece_${this.tutorialFocusPieceId}`);
+            if (focus) focus.zIndex = 10;
+        }
+        const guideNodes = [this.tutorialSourceMarker, this.tutorialTargetMarker];
+        if (!preserveDimMask) guideNodes.push(this.tutorialDimMask);
+        guideNodes.forEach((node) => {
+            if (!node || !cc.isValid(node)) return;
+            cc.Tween.stopAllByTarget(node);
+            node.destroy();
+        });
+        this.tutorialSourceMarker = null;
+        this.tutorialTargetMarker = null;
+        if (!preserveDimMask) this.tutorialDimMask = null;
+        this.tutorialFocusPieceId = 0;
+    }
+
+    private clearTutorialGuide(): void {
+        if (this.tutorialRestoreCallback) this.unschedule(this.tutorialRestoreCallback);
+        this.tutorialRestoreCallback = null;
+        this.clearTutorialMoveGuide();
+        if (this.tutorialTypingState) cc.Tween.stopAllByTarget(this.tutorialTypingState);
+        this.tutorialTypingState = null;
+        if (this.tutorialGuideRoot && cc.isValid(this.tutorialGuideRoot)) this.tutorialGuideRoot.destroy();
+        this.tutorialGuideRoot = null;
+        this.tutorialNpc = null;
+        this.tutorialBubbleGroup = null;
+        this.tutorialBubble = null;
+        this.tutorialSpeechLabel = null;
+    }
+
+    private drawBoardSurface(node: cc.Node, width: number, height: number): void {
+        const graphics = node.addComponent(cc.Graphics);
+        graphics.fillColor = new cc.Color(249, 239, 220);
+        graphics.roundRect(-width / 2, -height / 2, width, height, 18);
+        graphics.fill();
+
+        graphics.strokeColor = new cc.Color(111, 83, 72, 88);
+        graphics.lineWidth = 3.15;
+        for (let col = 1; col < BOARD_COLS; col++) {
+            const x = -width / 2 + col * CELL_SIZE;
+            graphics.moveTo(x, -height / 2);
+            graphics.lineTo(x, height / 2);
+        }
+        for (let row = 1; row < BOARD_ROWS; row++) {
+            const y = height / 2 - row * CELL_SIZE;
+            graphics.moveTo(-width / 2, y);
+            graphics.lineTo(width / 2, y);
+        }
+        graphics.stroke();
+
+    }
+
+    private drawBoardFrame(node: cc.Node, width: number, height: number): void {
+        const graphics = node.addComponent(cc.Graphics);
+        graphics.strokeColor = new cc.Color(91, 65, 57, 232);
+        graphics.lineWidth = 12;
+        graphics.roundRect(-width / 2, -height / 2, width, height, 18);
+        graphics.stroke();
+        graphics.strokeColor = new cc.Color(255, 244, 218, 86);
+        graphics.lineWidth = 1.5;
+        graphics.roundRect(-width / 2 + 7, -height / 2 + 7, width - 14, height - 14, 11);
+        graphics.stroke();
+    }
+
+    private createNextRowPreview(): void {
+        const boardWidth = BOARD_COLS * CELL_SIZE;
+        const root = new cc.Node('nextRow');
+        root.width = boardWidth + 32;
+        root.height = 114;
+        root.setAnchorPoint(0.5, 0.5);
+        root.setPosition(this.layout.boardX, this.layout.nextY);
+        root.zIndex = 80;
+        this.node.addChild(root);
+
+        createGamePanel(root, 'nextPreviewShield', boardWidth + 24, 112);
+
+        this.nextLayer = new cc.Node('nextPieces');
+        this.nextLayer.width = boardWidth;
+        this.nextLayer.height = NEXT_PREVIEW_HEIGHT;
+        this.nextLayer.setAnchorPoint(0.5, 0.5);
+        this.nextLayer.setPosition(0, 22);
+        this.nextLayer.zIndex = 5;
+        root.addChild(this.nextLayer);
+        uimanager.createRect(root, 'nextRowLabelBg', 128, 32, new cc.Color(255, 249, 232), 255, 16, 0, -34);
+        const nextLabel = this.nextRowLabel = uimanager.createLabel(root, '下一排', 0, -34, 18, new cc.Color(45, 42, 39), 120, 30);
+        this.makeLabelBold(nextLabel);
+    }
+
+    private createToolBar(): void {
+        const dockY = this.layout.toolY;
+        const dock = createGamePanel(this.node, 'toolDock', 292, 128, 0, dockY);
+        dock.zIndex = 90;
+        this.hammerButton = uimanager.createRect(
+            dock,
+            'reliefToolButton',
+            TOOL_BUTTON_SIZE,
+            TOOL_BUTTON_SIZE,
+            BUTTON_COLORS.yellow,
+            255,
+            23,
+            -53,
+            -10,
+        );
+        uimanager.drawButtonSurface(this.hammerButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, BUTTON_COLORS.yellow, 23);
+        this.hammerButton.addComponent(cc.Button);
+        this.hammerButton.name = 'hammerToolButton';
+        this.hammerIcon = createHammerGlyph(this.hammerButton, 0, -1, 0.84);
+        this.hammerCountLabel = this.createToolCountBadge(this.hammerButton, 'hammerCountBadge');
+
+        this.purifierButton = uimanager.createRect(
+            dock,
+            'purifierToolButton',
+            TOOL_BUTTON_SIZE,
+            TOOL_BUTTON_SIZE,
+            BUTTON_COLORS.green,
+            255,
+            23,
+            53,
+            -10,
+        );
+        uimanager.drawButtonSurface(this.purifierButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, BUTTON_COLORS.green, 23);
+        this.purifierButton.addComponent(cc.Button);
+        this.purifierIcon = createPurifierGlyph(this.purifierButton, 0, -1, 0.84);
+        this.purifierCountLabel = this.createToolCountBadge(this.purifierButton, 'purifierCountBadge');
+
+        for (const button of [this.hammerButton, this.purifierButton]) {
+            const shade = uimanager.createRect(button, 'toolUsedShade', TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, new cc.Color(45, 39, 46), 125, 23);
+            shade.zIndex = 20; shade.active = false;
+        }
+        this.bindToolGestures();
+        this.bindPurifierGesture();
+    }
+
+    private createToolCountBadge(button: cc.Node, name: string): cc.Label {
+        const badge = uimanager.createCircle(button, name, 18, new cc.Color(255, 253, 239), 35, 34);
+        badge.zIndex = 25;
+        const badgeGraphics = badge.getComponent(cc.Graphics);
+        badgeGraphics.strokeColor = new cc.Color(116, 174, 166);
+        badgeGraphics.lineWidth = 2.4;
+        badgeGraphics.circle(0, 0, 17);
+        badgeGraphics.stroke();
+        const label = uimanager.createLabel(badge, '+', 0, 1, 25, new cc.Color(44, 116, 112), 30, 30);
+        this.makeLabelBold(label);
+        const plus = new cc.Node('toolAddMark'); badge.addChild(plus);
+        const plusGraphics = plus.addComponent(cc.Graphics);
+        plusGraphics.strokeColor = new cc.Color(44, 116, 112);
+        plusGraphics.lineWidth = 3.6;
+        plusGraphics.lineCap = cc.Graphics.LineCap.ROUND;
+        plusGraphics.moveTo(-7, 0); plusGraphics.lineTo(7, 0);
+        plusGraphics.moveTo(0, -7); plusGraphics.lineTo(0, 7); plusGraphics.stroke();
+        label.node.opacity = 0;
+        return label;
+    }
+
+    /** 使用统一的固定字重，不由系统再次模拟加粗。 */
+    private makeLabelBold(label: cc.Label): void {
+        if (label) uimanager.applyTypography(label, true);
+    }
+
+    private bindToolGestures(): void {
+        this.hammerButton.on(cc.Node.EventType.TOUCH_START, (event: cc.Event.EventTouch) => {
+            if (this.locked) return;
+            if (this.isTutorialGuidedStep()) {
+                this.showTutorialCorrection('先完成当前拖拽，工具稍后就能使用。', false);
+                return;
+            }
+            this.markInteraction();
+            this.toolDragging = false;
+            this.toolTouchStart = event.touch.getLocation();
+            cc.tween(this.hammerButton).stop();
+            cc.tween(this.hammerButton).to(0.07, { scale: 0.96 }).start();
+        }, this);
+        this.hammerButton.on(cc.Node.EventType.TOUCH_MOVE, (event: cc.Event.EventTouch) => {
+            if (!this.toolTouchStart || this.locked || zyxGameModule.hammerCount <= 0) return;
+            const point = event.touch.getLocation();
+            const dx = point.x - this.toolTouchStart.x;
+            const dy = point.y - this.toolTouchStart.y;
+            if (!this.toolDragging) {
+                if (dx * dx + dy * dy < 196) return;
+                this.toolDragging = true;
+                this.setToolSelectionMode('hammer');
+            }
+            this.showToolDragFollower(point);
+        }, this);
+        this.hammerButton.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
+            cc.tween(this.hammerButton).stop();
+            cc.tween(this.hammerButton).to(0.1, { scale: 1 }).start();
+            if (!this.toolTouchStart) return;
+            if (this.toolDragging) {
+                const targetId = this.findPieceAtWorldPoint(event.touch.getLocation());
+                this.clearToolDragFollower();
+                this.toolTouchStart = null;
+                this.toolDragging = false;
+                if (targetId > 0) this.useReliefTool(targetId);
+                else {
+                    this.setToolSelectionMode(null);
+                    uimanager.showToast('把解压锤放到一个心情块上');
+                }
+                return;
+            }
+            this.toolTouchStart = null;
+            this.showHammerInfoModal();
+        }, this);
+        this.hammerButton.on(cc.Node.EventType.TOUCH_CANCEL, () => {
+            this.toolTouchStart = null;
+            this.toolDragging = false;
+            this.clearToolDragFollower();
+            cc.tween(this.hammerButton).stop();
+            cc.tween(this.hammerButton).to(0.1, { scale: 1 }).start();
+        }, this);
+    }
+
+    private bindPurifierGesture(): void {
+        this.purifierButton.on(cc.Node.EventType.TOUCH_START, () => {
+            if (this.locked) return;
+            if (this.isTutorialGuidedStep()) {
+                this.showTutorialCorrection('先完成当前拖拽，工具稍后就能使用。', false);
+                return;
+            }
+            this.markInteraction();
+            cc.tween(this.purifierButton).stop();
+            cc.tween(this.purifierButton).to(0.07, { scale: 0.96 }).start();
+        }, this);
+        this.purifierButton.on(cc.Node.EventType.TOUCH_END, () => {
+            cc.tween(this.purifierButton).stop();
+            cc.tween(this.purifierButton).to(0.1, { scale: 1 }).start();
+            if (!this.locked && !this.isTutorialGuidedStep()) this.showPurifierInfoModal();
+        }, this);
+        this.purifierButton.on(cc.Node.EventType.TOUCH_CANCEL, () => {
+            cc.tween(this.purifierButton).stop();
+            cc.tween(this.purifierButton).to(0.1, { scale: 1 }).start();
+        }, this);
+    }
+
+    private showToolDragFollower(worldPoint: cc.Vec2): void {
+        if (!this.toolDragFollower || !cc.isValid(this.toolDragFollower)) {
+            this.toolDragFollower = createHammerGlyph(this.node, 0, 0, 0.72);
+            this.toolDragFollower.name = 'toolDragFollower';
+            this.toolDragFollower.zIndex = 1200;
+        }
+        const local = this.node.convertToNodeSpaceAR(worldPoint);
+        this.toolDragFollower.setPosition(local.x + 20, local.y + 24);
+    }
+
+    private clearToolDragFollower(): void {
+        if (this.toolDragFollower && cc.isValid(this.toolDragFollower)) this.toolDragFollower.destroy();
+        this.toolDragFollower = null;
+    }
+
+    /** 点选已领取的道具进入目标选择，再点图标可以取消且保留使用资格。 */
+    private setToolSelectionMode(mode: 'hammer' | 'magicWand' | null): void {
+        this.stopToolSelectionFeedback();
+        this.hammerMode = mode === 'hammer';
+        this.purifierMode = mode === 'magicWand';
+        this.updateHud();
+
+        if (!mode) {
+            this.restoreDefaultPlayTip();
+            return;
+        }
+
+        const prompt = mode === 'hammer'
+            ? '请选择要敲掉的格子'
+            : '请选择要消除颜色的色块';
+        this.showToolSelectionPrompt(prompt);
+        this.startPieceSelectionWiggle();
+    }
+
+    private showToolSelectionPrompt(message: string): void {
+        if (this.toolSelectionPrompt && cc.isValid(this.toolSelectionPrompt)) {
+            this.toolSelectionPrompt.destroy();
+        }
+        const prompt = uimanager.createRect(
+            this.node,
+            'toolSelectionPrompt',
+            430,
+            66,
+            new cc.Color(83, 61, 53),
+            224,
+            24,
+            0,
+            0,
+        );
+        prompt.zIndex = 1400;
+        const label = uimanager.createLabel(prompt, message, 0, 0, 24, cc.Color.WHITE, 390, 42);
+        this.makeLabelBold(label);
+        this.toolSelectionPrompt = prompt;
+        cc.tween(prompt)
+            .repeatForever(
+                cc.tween()
+                    .to(0.62, { opacity: 255, scale: 1.025 }, { easing: 'sineInOut' })
+                    .to(0.62, { opacity: 184, scale: 0.985 }, { easing: 'sineInOut' }),
+            )
+            .start();
+    }
+
+    private startPieceSelectionWiggle(): void {
+        this.stopPieceSelectionWiggle();
+        if (!this.pieceLayer) return;
+        const pieces = this.pieceLayer.children.filter((node) => node.name.indexOf('piece_') === 0);
+        pieces.forEach((node, index) => {
+            const direction = index % 2 === 0 ? 1 : -1;
+            node.angle = direction * 0.8;
+            this.toolWiggleNodes.push(node);
+            cc.tween(node)
+                .delay((index % 6) * 0.018)
+                .repeatForever(
+                    cc.tween()
+                        .to(0.13, { angle: -direction * 1.25 }, { easing: 'sineInOut' })
+                        .to(0.13, { angle: direction * 1.05 }, { easing: 'sineInOut' }),
+                )
+                .start();
+        });
+    }
+
+    private stopPieceSelectionWiggle(): void {
+        const nodes = this.toolWiggleNodes.slice();
+        if (this.pieceLayer && cc.isValid(this.pieceLayer)) {
+            this.pieceLayer.children.forEach((node) => {
+                if (node.name.indexOf('piece_') !== 0 || nodes.indexOf(node) >= 0) return;
+                nodes.push(node);
+            });
+        }
+        nodes.forEach((node) => {
+            if (!node || !cc.isValid(node)) return;
+            cc.Tween.stopAllByTarget(node);
+            node.angle = 0;
+            node.scale = 1;
+        });
+        this.toolWiggleNodes = [];
+    }
+
+    private stopToolSelectionFeedback(): void {
+        this.stopPieceSelectionWiggle();
+        if (this.toolSelectionPrompt && cc.isValid(this.toolSelectionPrompt)) {
+            cc.Tween.stopAllByTarget(this.toolSelectionPrompt);
+            this.toolSelectionPrompt.destroy();
+        }
+        this.toolSelectionPrompt = null;
+    }
+
+    private findPieceAtWorldPoint(worldPoint: cc.Vec2): number {
+        if (!this.pieceLayer) return 0;
+        for (const node of this.pieceLayer.children) {
+            if (node.name.indexOf('piece_') !== 0) continue;
+            if (node.getBoundingBoxToWorld().contains(worldPoint)) return Number(node.name.substring(6)) || 0;
+        }
+        return 0;
+    }
+
+    private loadEffectAssets(): void {
+        this.clearSpineData = getSkeletonData('game', ASSET_PATHS.game.rewardSpine);
+    }
+
+    private renderAll(): void {
+        this.renderBoard();
+        this.renderNextRow();
+        this.updateHud();
+    }
+
+    private renderBoard(): void {
+        if (!this.pieceLayer) return;
+        this.stopPieceSelectionWiggle();
+        this.pieceLayer.removeAllChildren();
+        this.pieceColors = {};
+        for (const piece of zyxGameModule.pieces) this.createPieceView(piece);
+        if (this.hammerMode || this.purifierMode) this.startPieceSelectionWiggle();
+    }
+
+    private createPieceView(piece: BoardPiece, startRow: number = piece.row): cc.Node {
+        const width = piece.size * CELL_SIZE - 4;
+        const height = CELL_SIZE - 4;
+        const node = new cc.Node(`piece_${piece.id}`);
+        node.width = width;
+        node.height = height;
+        node.setAnchorPoint(0.5, 0.5);
+        node.setPosition(this.getPiecePosition(startRow, piece.col, piece.size));
+        node.zIndex = 10;
+        this.pieceLayer.addChild(node);
+
+        const color = piece.lightning ? new cc.Color(193, 220, 233) : this.getPieceColor(piece.color);
+        this.pieceColors[piece.id] = color;
+        this.drawPiece(node, color, 1);
+        if (piece.stampMood > 0) {
+            // 视觉变体不消耗棋盘随机数，客户端和服务端的出块序列保持一致。
+            const faceIndex = (piece.id * 7 + piece.stampMood * 11) % 30 + 1;
+            createMoodStamp(node, piece.stampMood, CELL_SIZE, piece.stampCell, 132, faceIndex);
+        }
+        if (piece.lightning) this.decorateLightningPiece(node);
+        else if (piece.bomb) this.decorateBombPiece(node, piece);
+
+        const component = node.addComponent(ZyxGridCom);
+        component.initialize(piece.id, CELL_SIZE, {
+            canInteract: () => !this.locked,
+            onInteract: () => this.markInteraction(),
+            getMoveRange: (id) => zyxGameModule.getMoveRange(id),
+            onMove: (id, offset) => this.movePiece(id, offset),
+            onTap: (id) => this.tapPiece(id),
+        });
+        node.scale = 0.95;
+        cc.tween(node).to(0.12, { scale: 1 }).start();
+        return node;
+    }
+
+    private drawLightningSymbol(g: cc.Graphics, size: number): void {
+        // 冰薄荷色分叉闪电，与体力的金黄实心闪电区分；轮廓严格留在块内。
+        g.lineJoin = cc.Graphics.LineJoin.ROUND;
+        const path = (): void => {
+            g.moveTo(size * 0.10, size * 0.40); g.lineTo(-size * 0.26, -size * 0.03);
+            g.lineTo(-size * 0.03, -size * 0.03); g.lineTo(-size * 0.12, -size * 0.40);
+            g.lineTo(size * 0.29, size * 0.12); g.lineTo(size * 0.05, size * 0.12); g.close();
+        };
+        g.strokeColor = new cc.Color(82, 58, 135); g.lineWidth = size * 0.10;
+        path(); g.stroke();
+        g.fillColor = new cc.Color(213, 255, 242); path(); g.fill();
+        g.strokeColor = new cc.Color(250, 255, 253); g.lineWidth = size * 0.025; path(); g.stroke();
+        g.strokeColor = new cc.Color(204, 255, 244); g.lineWidth = size * 0.045;
+        g.moveTo(-size * 0.14, size * 0.22); g.lineTo(-size * 0.30, size * 0.28);
+        g.lineTo(-size * 0.22, size * 0.08); g.stroke();
+        g.moveTo(size * 0.17, -size * 0.16); g.lineTo(size * 0.32, -size * 0.23);
+        g.lineTo(size * 0.24, -size * 0.02); g.stroke();
+    }
+
+    private decorateLightningPiece(node: cc.Node): void {
+        if (node.getChildByName('lightningGlyph')) return;
+        const surface = node.getComponent(cc.Graphics);
+        const w = node.width, h = node.height, r = Math.min(11, h * 0.22);
+        surface.clear();
+        surface.fillColor = new cc.Color(166, 145, 204);
+        surface.strokeColor = new cc.Color(101, 79, 146); surface.lineWidth = 2;
+        surface.roundRect(-w / 2 + 1, -h / 2 + 1, w - 2, h - 2, r); surface.fill(); surface.stroke();
+        surface.strokeColor = new cc.Color(222, 213, 244); surface.lineWidth = 2;
+        surface.roundRect(-w / 2 + 5, -h / 2 + 5, w - 10, h - 10, Math.max(3, r - 3)); surface.stroke();
+        const face = node.getChildByName('moodStamp'); if (face) face.active = false;
+        const clip = new cc.Node('lightningSweepClip'); node.addChild(clip); clip.zIndex = 5;
+        clip.setContentSize(w - 14, h - 14); clip.addComponent(cc.Mask).type = cc.Mask.Type.RECT;
+        const sweep = new cc.Node('lightningSweep'); clip.addChild(sweep);
+        const glow = sweep.addComponent(cc.Graphics);
+        for (const [width, alpha] of [[20, 25], [9, 58], [3, 110]]) {
+            glow.strokeColor = new cc.Color(227, 255, 247, alpha); glow.lineWidth = width;
+            glow.moveTo(-h * 0.24, -h); glow.lineTo(h * 0.24, h); glow.stroke();
+        }
+        sweep.x = -w;
+        cc.tween(sweep).repeatForever(cc.tween().to(1.15, { x: w }, { easing: 'sineInOut' })
+            .delay(0.45).set({ x: -w })).start();
+        const bolt = new cc.Node('lightningGlyph'); node.addChild(bolt); bolt.zIndex = 8;
+        this.drawLightningSymbol(bolt.addComponent(cc.Graphics), Math.min(w, h) * 0.70);
+        const glint = new cc.Node('lightningGlint'); node.addChild(glint); glint.zIndex = 9;
+        const g = glint.addComponent(cc.Graphics);
+        g.strokeColor = new cc.Color(223, 255, 248); g.lineWidth = 1.5;
+        const x = w * 0.32, y = h * 0.28, length = Math.min(3, h * 0.07);
+        g.moveTo(x - length, y); g.lineTo(x + length, y);
+        g.moveTo(x, y - length); g.lineTo(x, y + length); g.stroke();
+        cc.tween(glint).repeatForever(cc.tween().to(0.5, { opacity: 80 }).to(0.5, { opacity: 255 }).delay(0.6)).start();
+    }
+
+    /** 每条放电与目标周围的游走离子持续约0.67秒；演出完成后才替换碎片并解锁。 */
+    private playLightningDischarges(effects: LightningDischarge[], onComplete: () => void): void {
+        this.locked = true;
+        this.lightningAnimationLocks++;
+        effects.forEach((effect, index) => {
+            const delay = index * LIGHTNING_STAGGER;
+            const start = this.getPiecePosition(effect.source.row, effect.source.col, effect.source.size);
+            const charge = new cc.Node('lightningCharge'); this.pieceLayer.addChild(charge);
+            charge.setPosition(start); charge.zIndex = 80;
+            this.drawLightningSymbol(charge.addComponent(cc.Graphics), CELL_SIZE * 0.74);
+            charge.opacity = 0;
+            cc.tween(charge).delay(delay).to(0.08, { opacity: 255, scale: 1.3 })
+                .to(LIGHTNING_DISCHARGE_TIME - 0.08, { opacity: 0, scale: 0.7 }).call(() => charge.destroy()).start();
+            this.scheduleOnce(() => { gameSettings.vibrateLight(); audioManager.playSound('lightning'); }, delay);
+            effect.targets.forEach((target, targetIndex) => {
+                const end = this.getPiecePosition(target.original.row, target.original.col, target.original.size);
+                const ray = new cc.Node('lightningArc'); this.pieceLayer.addChild(ray); ray.zIndex = 85;
+                const ions = new cc.Node('lightningIonRing'); this.pieceLayer.addChild(ions); ions.zIndex = 86; ions.setPosition(end);
+                const g = ray.addComponent(cc.Graphics), ring = ions.addComponent(cc.Graphics);
+                const state = { t: 0 };
+                const width = target.original.size * CELL_SIZE - 6, height = CELL_SIZE - 6;
+                cc.tween(state).delay(delay).to(LIGHTNING_DISCHARGE_TIME, { t: 1 }, { onUpdate: () => {
+                    if (!cc.isValid(ray) || !cc.isValid(ions)) return;
+                    g.clear(); ring.clear();
+                    const phase = Math.floor(state.t * 28) + targetIndex * 7;
+                    const reach = Math.min(1, state.t / 0.10);
+                    const dx = (end.x - start.x) * reach, dy = (end.y - start.y) * reach;
+                    const length = Math.sqrt(dx * dx + dy * dy) || 1;
+                    for (const lineWidth of [24, 9, 3]) {
+                        g.strokeColor = lineWidth === 24 ? new cc.Color(150, 97, 236, 100)
+                            : lineWidth === 9 ? new cc.Color(104, 224, 237, 245) : new cc.Color(250, 255, 249);
+                        g.lineWidth = lineWidth; g.moveTo(start.x, start.y);
+                        for (let step = 1; step <= 12; step++) {
+                            const offset = step === 12 ? 0 : Math.sin(step * 17.3 + phase * 11.7) * 15;
+                            g.lineTo(start.x + dx * step / 12 - dy / length * offset,
+                                start.y + dy * step / 12 + dx / length * offset);
+                        }
+                        g.stroke();
+                    }
+                    g.strokeColor = new cc.Color(205, 255, 248); g.lineWidth = 2.2;
+                    for (let branch = 0; branch < 3; branch++) {
+                        const f = 0.45 + branch * 0.16, sign = branch % 2 ? -1 : 1;
+                        const x = start.x + dx * f, y = start.y + dy * f;
+                        g.moveTo(x, y);
+                        g.lineTo(x - dy / length * 18 * sign, y + dx / length * 18 * sign);
+                        g.lineTo(x + dx * 0.12 - dy / length * 28 * sign, y + dy * 0.12 + dx / length * 28 * sign); g.stroke();
+                    }
+                    // 电离轮廓绕过整个目标，亮芯、外晕和跳动的粒子同时出现。
+                    for (const lineWidth of [12, 4, 1.4]) {
+                        ring.strokeColor = lineWidth === 12 ? new cc.Color(164, 119, 242, 90)
+                            : lineWidth === 4 ? new cc.Color(160, 246, 241) : new cc.Color(255, 255, 247);
+                        ring.lineWidth = lineWidth;
+                        for (let step = 0; step <= 40; step++) {
+                            const t = step / 40 * 4, side = Math.min(3, Math.floor(t)), f = t - side;
+                            let x = side === 0 ? -width / 2 + width * f : side === 1 ? width / 2 : side === 2 ? width / 2 - width * f : -width / 2;
+                            let y = side === 0 ? height / 2 : side === 1 ? height / 2 - height * f : side === 2 ? -height / 2 : -height / 2 + height * f;
+                            const jitter = step % 10 === 0 ? 0 : Math.sin(step * 13.7 + phase * 7.1) * 4;
+                            if (side % 2) x += jitter; else y += jitter;
+                            if (!step) ring.moveTo(x, y); else ring.lineTo(x, y);
+                        }
+                        ring.stroke();
+                    }
+                    ring.fillColor = new cc.Color(235, 255, 250);
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (state.t * 2 + i / 8) * Math.PI * 2;
+                        const x = Math.cos(angle) * (width / 2 + 5), y = Math.sin(angle) * (height / 2 + 6);
+                        ring.circle(x, y, 1.6 + i % 2); ring.fill();
+                        ring.strokeColor = new cc.Color(219, 255, 249); ring.lineWidth = 2;
+                        ring.moveTo(x, y); ring.lineTo(x + Math.cos(angle) * (8 + phase % 6), y + Math.sin(angle) * (8 + phase % 6)); ring.stroke();
+                    }
+                } } as any).call(() => {
+                    if (!cc.isValid(this.node)) return;
+                    const original = this.pieceLayer.getChildByName(`piece_${target.original.id}`);
+                    if (original) this.drawPieceCracks(original);
+                    if (target.shattered) {
+                        this.playMoodCollect(target.shattered.removedPieceIds);
+                        this.animateBombBlasts(target.shattered);
+                        this.animateRowShatter(target.shattered.removedPieceIds, target.shattered.detonatedBombs);
+                    }
+                    ray.destroy(); ions.destroy();
+                }).start();
+            });
+        });
+        const tail = effects.reduce((longest, effect, index) => Math.max(longest,
+            index * LIGHTNING_STAGGER + (effect.targets.some(target => !!target.shattered) ? bombResolutionDelay(effect.targets.reduce((sum, target) => sum + (target.shattered ? target.shattered.detonatedBombs.length : 0), 0)) : 0)), 0);
+        this.scheduleOnce(() => {
+            this.lightningAnimationLocks = Math.max(0, this.lightningAnimationLocks - 1);
+            if (!cc.isValid(this.node) || this.settlementReported) return;
+            this.renderBoard(); this.updateHud(); onComplete();
+        }, LIGHTNING_DISCHARGE_TIME + 0.02 + Math.max(Math.max(0, effects.length - 1) * LIGHTNING_STAGGER, tail));
+    }
+
+    private decorateBombPiece(node: cc.Node, piece: BoardPiece): void {
+        if (node.getChildByName('bombBadge')) { this.showBombGuide(node, piece); return; }
+        const badge = createBombBadge(node);
+        badge.y = 0;
+        badge.scale = Math.min(1, (node.height - 12) / 52);
+        const stamp = node.getChildByName('moodStamp');
+        if (stamp && Math.abs(stamp.x) < 30) {
+            // 单格的炸弹优先显示，避免与正中的表情重叠；收豆仍保留来源节点。
+            stamp.active = false;
+        }
+        cc.tween(badge)
+            .repeatForever(cc.tween().delay(1.1)
+                .to(0.08, { angle: -12 }, { easing: 'sineInOut' })
+                .to(0.08, { angle: 12 }, { easing: 'sineInOut' })
+                .to(0.08, { angle: -9 }, { easing: 'sineInOut' })
+                .to(0.08, { angle: 9 }, { easing: 'sineInOut' })
+                .to(0.08, { angle: 0 }, { easing: 'sineInOut' }))
+            .start();
+        this.showBombGuide(node, piece);
+    }
+
+    /** 首局最多提示五枚不同炸弹，重绘与重新打开页面均不会重复计数。 */
+    private showBombGuide(node: cc.Node, piece: BoardPiece): void {
+        if (!this.firstGameBombGuide || this.isTutorialGuidedStep() || node.getChildByName('bombTapGuide')) return;
+        if (!this.bombGuideIds.has(piece.id)) {
+            if (this.bombGuideCount >= 5) return;
+            this.bombGuideIds.add(piece.id);
+            this.bombGuideCount++;
+            try { cc.sys.localStorage.setItem(this.bombGuideKey, String(this.bombGuideCount)); } catch (_) { /* 本局计数仍有效。 */ }
+        }
+        const below = piece.row < 2;
+        const x = Math.max(-BOARD_COLS * CELL_SIZE / 2 + 50,
+            Math.min(BOARD_COLS * CELL_SIZE / 2 - 50, node.x)) - node.x;
+        const bubble = uimanager.createRect(node, 'bombTapGuide', 96, 30,
+            new cc.Color(255, 247, 215), 255, 12, x, below ? -47 : 49);
+        bubble.zIndex = 30;
+        const g = bubble.getComponent(cc.Graphics);
+        g.strokeColor = new cc.Color(173, 126, 73); g.lineWidth = 1.5;
+        g.roundRect(-48, -15, 96, 30, 12); g.stroke();
+        g.fillColor = new cc.Color(255, 247, 215);
+        const direction = below ? 1 : -1;
+        g.moveTo(-5, direction * 14); g.lineTo(0, direction * 22); g.lineTo(5, direction * 14); g.fill();
+        uimanager.createLabel(bubble, '点我引爆', 0, 0, 18, MOOD_COLORS.cocoa, 92, 28);
+        bubble.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
+            event.stopPropagation();
+            if (!this.locked && !this.isTutorialGuidedStep()) this.useBomb(piece.id);
+        });
+        cc.tween(bubble).delay(5).to(0.25, { opacity: 0 })
+            .call(() => { if (cc.isValid(bubble, true)) bubble.destroy(); }).start();
+    }
+
+    private drawPiece(node: cc.Node, color: cc.Color, alpha: number): void {
+        drawMoodBlockMaterial(node, color, alpha);
+    }
+
+    private getPiecePosition(row: number, col: number, size: number): cc.Vec2 {
+        const boardWidth = BOARD_COLS * CELL_SIZE;
+        const boardHeight = BOARD_ROWS * CELL_SIZE;
+        return new cc.Vec2(
+            -boardWidth / 2 + col * CELL_SIZE + size * CELL_SIZE / 2,
+            boardHeight / 2 - row * CELL_SIZE - CELL_SIZE / 2,
+        );
+    }
+
+    private renderNextRow(): void {
+        if (!this.nextLayer) return;
+        this.nextLayer.removeAllChildren();
+        const nodes = this.createNextRowPreviewNodes(NEXT_PREVIEW_OPACITY);
+        for (const node of nodes) this.startNextRowPulse(node);
+    }
+
+    private createNextRowPreviewNodes(initialOpacity: number): cc.Node[] {
+        const nodes: cc.Node[] = [];
+        if (!this.nextLayer) return nodes;
+
+        const previewWidth = BOARD_COLS * CELL_SIZE;
+        if (this.nextRowLabel) this.nextRowLabel.string = '下一排';
+        const previews = [zyxGameModule.nextPieces];
+        previews.forEach((pieces, index) => pieces.forEach(piece => {
+            const preview = new cc.Node(`next_${index}_${piece.col}`);
+            preview.width = piece.size * CELL_SIZE - 12;
+            preview.height = NEXT_PREVIEW_HEIGHT;
+            preview.opacity = initialOpacity;
+            preview.setAnchorPoint(0.5, 0.5);
+            preview.setPosition(-previewWidth / 2 + piece.col * CELL_SIZE + piece.size * CELL_SIZE / 2,
+                0);
+            drawMoodBlockMaterial(preview, getMoodColor(piece.color));
+            if (piece.lightning) {
+                this.decorateLightningPiece(preview);
+            }
+            if (piece.bomb) {
+                const badge = createBombBadge(preview); badge.y = 0;
+                badge.scale = Math.min(1, (preview.height - 8) / 52);
+            }
+            this.nextLayer.addChild(preview);
+            nodes.push(preview);
+        }));
+        return nodes;
+    }
+
+    private animateAppendedRow(onComplete: () => void, riseRows: number = 1): void {
+        const previousNodes = this.nextLayer ? this.nextLayer.children.slice() : [];
+        for (const node of previousNodes) {
+            cc.Tween.stopAllByTarget(node);
+            cc.tween(node)
+                .to(0.18, { opacity: 0, scaleY: 0.82 }, { easing: 'sineIn' })
+                .call(() => node.destroy())
+                .start();
+        }
+
+        const nextNodes = this.createNextRowPreviewNodes(0);
+        for (const node of nextNodes) {
+            node.scaleY = 0.82;
+            cc.tween(node)
+                .delay(0.16)
+                .to(0.22, { opacity: NEXT_PREVIEW_OPACITY, scaleY: 1 }, { easing: 'sineOut' })
+                .call(() => this.startNextRowPulse(node))
+                .start();
+        }
+
+        for (const piece of zyxGameModule.pieces) {
+            let node = this.pieceLayer.getChildByName(`piece_${piece.id}`);
+            if (!node) node = this.createPieceView(piece, riseRows === 2 ? piece.row + riseRows : BOARD_ROWS);
+
+            const target = this.getPiecePosition(piece.row, piece.col, piece.size);
+            cc.Tween.stopAllByTarget(node);
+            node.angle = 0;
+            node.scale = 1;
+            cc.tween(node)
+                .to(0.44, { x: target.x, y: target.y }, { easing: 'cubicInOut' })
+                .start();
+        }
+        this.scheduleOnce(onComplete, 0.46);
+    }
+
+    /** 下一排是决策预告：用柔和呼吸持续提醒，但不抢当前棋盘的操作焦点。 */
+    private startNextRowPulse(node: cc.Node): void {
+        if (!node || !cc.isValid(node)) return;
+        const pulse = (): void => {
+            if (!cc.isValid(node)) return;
+            cc.tween(node)
+                .to(0.52, { opacity: 255, scaleY: 1.1 }, { easing: 'sineInOut' })
+                .to(0.52, { opacity: 178, scaleY: 0.98 }, { easing: 'sineInOut' })
+                .call(pulse)
+                .start();
+        };
+        pulse();
+    }
+
+    private animateGravityMoves(moves: GravityMove[], onComplete: () => void): void {
+        let longestDuration = 0;
+        for (const move of moves) {
+            const piece = zyxGameModule.getPiece(move.id);
+            const node = this.pieceLayer.getChildByName(`piece_${move.id}`);
+            if (!piece || !node) continue;
+
+            const distance = move.toRow - move.fromRow;
+            // 消行后直接匀速落位，避免 quadIn 的慢启动看起来像掉落卡住。
+            const duration = Math.min(0.18, 0.055 + distance * 0.02);
+            const target = this.getPiecePosition(piece.row, piece.col, piece.size);
+            longestDuration = Math.max(longestDuration, duration);
+            cc.Tween.stopAllByTarget(node);
+            node.angle = 0;
+            node.scale = 1;
+            cc.tween(node).to(duration, { x: target.x, y: target.y }).start();
+        }
+
+        if (longestDuration > 0) {
+            this.scheduleOnce(onComplete, longestDuration);
+        } else {
+            onComplete();
+        }
+    }
+
+    private animatePieceRemoval(pieceIds: number[], onComplete: () => void): void {
+        let hasAnimation = false;
+        for (const id of pieceIds) {
+            const node = this.pieceLayer.getChildByName(`piece_${id}`);
+            if (!node) continue;
+
+            hasAnimation = true;
+            cc.Tween.stopAllByTarget(node);
+            node.opacity = 255;
+            // 色块已在创建时绘好，淡出与缩放直接驱动节点属性，无需每帧重绘材质。
+            cc.tween(node)
+                .to(0.3, { opacity: 0, scale: 0.78 }, { easing: 'sineIn' })
+                .call(() => {
+                    delete this.pieceColors[id];
+                    if (cc.isValid(node)) node.destroy();
+                })
+                .start();
+        }
+
+        if (hasAnimation) {
+            this.scheduleOnce(onComplete, 0.32);
+        } else {
+            onComplete();
+        }
+    }
+
+    private animateColorPurifierRemoval(pieceIds: number[], colorIndex: number, onComplete: () => void): void {
+        const color = this.getPieceColor(colorIndex);
+        const pulse = new cc.Node('colorPurifierWave');
+        pulse.width = 150;
+        pulse.height = 150;
+        pulse.zIndex = 24;
+        pulse.scale = 0.4;
+        pulse.opacity = 190;
+        this.boardRoot.addChild(pulse);
+        const pulseGraphics = pulse.addComponent(cc.Graphics);
+        pulseGraphics.strokeColor = new cc.Color(color.r, color.g, color.b, 138);
+        pulseGraphics.lineWidth = 12;
+        pulseGraphics.circle(0, 0, 62);
+        pulseGraphics.stroke();
+        pulseGraphics.strokeColor = new cc.Color(255, 247, 220, 116);
+        pulseGraphics.lineWidth = 4;
+        pulseGraphics.circle(0, 0, 48);
+        pulseGraphics.stroke();
+        cc.tween(pulse)
+            .to(0.46, { scale: 4.8, opacity: 0 }, { easing: 'quadOut' })
+            .call(() => pulse.destroy())
+            .start();
+
+        let longestDelay = 0;
+        pieceIds.forEach((id, index) => {
+            const node = this.pieceLayer.getChildByName(`piece_${id}`);
+            if (!node) return;
+            const delay = Math.min(index, 10) * 0.018;
+            longestDelay = Math.max(longestDelay, delay);
+            const direction = index % 2 === 0 ? 1 : -1;
+            const state = { alpha: 1, scale: 1, rotation: 0 };
+            const update = () => {
+                if (!cc.isValid(node)) return;
+                node.opacity = Math.round(255 * state.alpha);
+                node.scale = state.scale;
+                node.angle = -state.rotation;
+            };
+            cc.Tween.stopAllByTarget(node);
+            cc.tween(state)
+                .delay(delay)
+                .to(0.09, { scale: 1.1 }, { easing: 'quadOut', onUpdate: update })
+                .to(0.25, {
+                    alpha: 0,
+                    scale: 0.18,
+                    rotation: direction * 28,
+                }, { easing: 'backIn', onUpdate: update })
+                .call(() => {
+                    delete this.pieceColors[id];
+                    if (cc.isValid(node)) node.destroy();
+                })
+                .start();
+        });
+
+        this.scheduleOnce(onComplete, longestDelay + 0.36);
+    }
+
+    /** 满行先整体亮起，再由 Spine 光爆与碎片共同完成消除。 */
+    private playRowClearEffects(rows: number[]): void {
+        for (const row of rows) this.playRowClearEffect(row);
+    }
+
+    private playRowClearEffect(row: number): void {
+        if (!this.boardRoot) return;
+
+        const boardWidth = BOARD_COLS * CELL_SIZE;
+        const rowY = this.getPiecePosition(row, 0, 1).y;
+        const flash = new cc.Node(`rowFlash_${row}`);
+        flash.width = boardWidth;
+        flash.height = CELL_SIZE - 4;
+        flash.setAnchorPoint(0.5, 0.5);
+        flash.setPosition(0, rowY);
+        flash.zIndex = 30;
+        this.boardRoot.addChild(flash);
+
+        const flashState = { alpha: 0, scaleX: 0.16 };
+        // 创建时绘制一次完整亮度，后续用节点透明度与横向缩放复现原有关键帧。
+        this.drawRowFlash(flash, 1);
+        flash.opacity = 0;
+        flash.scaleX = flashState.scaleX;
+        cc.tween(flash)
+            .to(0.08, { opacity: Math.round(255 * 0.72), scaleX: 1 }, { easing: 'quadOut' })
+            .to(0.22, { opacity: 0, scaleX: 1.04 }, { easing: 'quadIn' })
+            .call(() => flash.destroy())
+            .start();
+
+        if (this.playSpineRowBurst(rowY, boardWidth)) return;
+        this.playFallbackRowSweep(rowY, boardWidth, row);
+    }
+
+    private playSpineRowBurst(rowY: number, boardWidth: number): boolean {
+        if (!this.clearSpineData) return false;
+
+        const positions = [-boardWidth * 0.24, boardWidth * 0.24];
+        for (let index = 0; index < positions.length; index++) {
+            const node = new cc.Node(`rowSpine_${index}`);
+            node.setPosition(positions[index], rowY);
+            node.opacity = 175;
+            node.scaleX = 0.78;
+            node.scaleY = 0.42;
+            node.zIndex = 34;
+            this.boardRoot.addChild(node);
+
+            const skeleton = node.addComponent(sp.Skeleton);
+            skeleton.skeletonData = this.clearSpineData;
+            skeleton.premultipliedAlpha = false;
+            skeleton.timeScale = 1.7;
+            skeleton.setAnimation(0, index === 0 ? 'action' : 'action2', false);
+            skeleton.setCompleteListener(() => {
+                if (cc.isValid(node)) node.destroy();
+            });
+            this.scheduleOnce(() => {
+                if (cc.isValid(node)) node.destroy();
+            }, 0.62);
+        }
+        return true;
+    }
+
+    private playFallbackRowSweep(rowY: number, boardWidth: number, row: number): void {
+        const sweepWidth = CELL_SIZE * 1.55;
+        const sweep = new cc.Node(`rowSweep_${row}`);
+        sweep.width = sweepWidth;
+        sweep.height = CELL_SIZE - 10;
+        sweep.setAnchorPoint(0.5, 0.5);
+        sweep.zIndex = 31;
+        this.boardRoot.addChild(sweep);
+
+        const startX = -boardWidth / 2 - sweepWidth / 2;
+        const endX = boardWidth / 2 + sweepWidth / 2;
+        // 创建时绘制一次完整亮度，后续位移与透明度直接驱动节点属性。
+        this.drawRowSweep(sweep, 1);
+        sweep.opacity = 0;
+        sweep.setPosition(startX, rowY);
+        cc.tween(sweep)
+            .to(0.05, { opacity: Math.round(255 * 0.72), x: startX + 34 }, { easing: 'quadOut' })
+            .to(0.2, { opacity: Math.round(255 * 0.68), x: endX - 34 }, { easing: 'sineInOut' })
+            .to(0.05, { opacity: 0, x: endX }, { easing: 'quadIn' })
+            .call(() => sweep.destroy())
+            .start();
+    }
+
+    private drawRowFlash(node: cc.Node, alpha: number): void {
+        const safeAlpha = Math.max(0, Math.min(1, alpha));
+        const graphics = node.getComponent(cc.Graphics) || node.addComponent(cc.Graphics);
+        const width = node.width;
+        const height = node.height;
+        graphics.clear();
+
+        graphics.fillColor = new cc.Color(244, 190, 77, Math.round(72 * safeAlpha));
+        graphics.roundRect(-width / 2, -height / 2, width, height, 16);
+        graphics.fill();
+        graphics.fillColor = new cc.Color(255, 226, 151, Math.round(126 * safeAlpha));
+        graphics.roundRect(-width / 2, -9, width, 18, 9);
+        graphics.fill();
+        graphics.fillColor = new cc.Color(255, 255, 255, Math.round(230 * safeAlpha));
+        graphics.roundRect(-width / 2, -2, width, 4, 2);
+        graphics.fill();
+    }
+
+    private drawRowSweep(node: cc.Node, alpha: number): void {
+        const safeAlpha = Math.max(0, Math.min(1, alpha));
+        const graphics = node.getComponent(cc.Graphics) || node.addComponent(cc.Graphics);
+        const width = node.width;
+        const height = node.height;
+        graphics.clear();
+
+        graphics.fillColor = new cc.Color(239, 161, 91, Math.round(48 * safeAlpha));
+        graphics.roundRect(-width / 2, -height / 2, width, height, 20);
+        graphics.fill();
+        graphics.fillColor = new cc.Color(255, 225, 146, Math.round(116 * safeAlpha));
+        graphics.roundRect(-width * 0.28, -height / 2, width * 0.56, height, 16);
+        graphics.fill();
+        graphics.fillColor = new cc.Color(255, 255, 255, Math.round(238 * safeAlpha));
+        graphics.roundRect(-6, -height / 2, 12, height, 6);
+        graphics.fill();
+    }
+
+    private animateHammerRemoval(id: number, onComplete: () => void): void {
+        const pieceNode = this.pieceLayer.getChildByName(`piece_${id}`);
+        const color = this.pieceColors[id];
+        if (!pieceNode || !color) {
+            onComplete();
+            return;
+        }
+
+        cc.Tween.stopAllByTarget(pieceNode);
+        const strike = createHammerGlyph(this.pieceLayer, pieceNode.x + 42, pieceNode.y + 62, 0.88);
+        strike.name = `hammerStrike_${id}`;
+        strike.angle = 68;
+        strike.zIndex = 45;
+
+        cc.tween(pieceNode)
+            .to(0.1, { scale: 1.08 }, { easing: 'quadOut' })
+            .start();
+        cc.tween(strike)
+            .to(0.1, {
+                x: pieceNode.x + 7,
+                y: pieceNode.y + 13,
+                angle: 12,
+                scale: 1.08,
+            }, { easing: 'quadIn' })
+            .call(() => {
+                if (!cc.isValid(pieceNode)) return;
+                this.drawPieceCracks(pieceNode);
+                this.playHammerImpact(pieceNode.x, pieceNode.y);
+            })
+            .delay(0.065)
+            .call(() => {
+                if (!cc.isValid(pieceNode)) return;
+                this.spawnPieceShards(pieceNode, color, id, false);
+                delete this.pieceColors[id];
+                pieceNode.destroy();
+            })
+            .to(0.12, {
+                y: pieceNode.y + 42,
+                angle: 32,
+                scale: 0.72,
+            }, { easing: 'quadOut' })
+            .call(() => strike.destroy())
+            .start();
+
+        this.scheduleOnce(onComplete, 0.67);
+    }
+
+    private drawPieceCracks(node: cc.Node): void {
+        const graphics = node.getComponent(cc.Graphics);
+        if (!graphics) return;
+
+        const width = node.width;
+        const height = node.height;
+        graphics.strokeColor = new cc.Color(255, 250, 224, 235);
+        graphics.lineWidth = 3;
+        graphics.moveTo(4, height / 2 - 5);
+        graphics.lineTo(-5, 12);
+        graphics.lineTo(7, 2);
+        graphics.lineTo(-8, -11);
+        graphics.lineTo(-2, -height / 2 + 4);
+        graphics.moveTo(-5, 12);
+        graphics.lineTo(-Math.min(width / 2 - 6, 34), 2);
+        graphics.moveTo(7, 2);
+        graphics.lineTo(Math.min(width / 2 - 6, 42), -8);
+        graphics.stroke();
+    }
+
+    private acquireShard(): cc.Node {
+        const shard = this.shardPool.pop() || new cc.Node('pieceShard');
+        if (!shard.getComponent(cc.Graphics)) shard.addComponent(cc.Graphics);
+        return shard;
+    }
+
+    private releaseShard(shard: cc.Node): void {
+        if (!cc.isValid(shard)) return;
+        cc.Tween.stopAllByTarget(shard);
+        shard.removeFromParent(false);
+        // 池容量设上限，避免极端连消后驻留过多节点。
+        if (this.shardPool.length < 96) this.shardPool.push(shard);
+        else shard.destroy();
+    }
+
+    private spawnPieceShards(pieceNode: cc.Node, color: cc.Color, id: number, rowClear: boolean, blastCenter: cc.Vec2 = null): void {
+        // 以碎裂瞬间的实际尺寸取样，避免预压缩后碎片突然弹回原尺寸。
+        const width = pieceNode.width * Math.abs(pieceNode.scaleX);
+        const height = pieceNode.height * Math.abs(pieceNode.scaleY);
+        const columns = Math.max(3, Math.min(rowClear ? 9 : 8, Math.ceil(width / (rowClear ? 26 : 30))));
+        const rows = 3;
+        const shardWidth = width / columns;
+        const shardHeight = height / rows;
+        const gravity = rowClear ? 1400 : 1550;
+
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < columns; col++) {
+                const index = row * columns + col;
+                const shard = this.acquireShard() as cc.Node & { shardFlightTime: number };
+                shard.name = `pieceShard_${id}_${index}`;
+                shard.width = shardWidth * (0.82 + Math.random() * 0.2);
+                shard.height = shardHeight * (0.82 + Math.random() * 0.2);
+                shard.setAnchorPoint(0.5, 0.5);
+                const localX = (col + 0.5) / columns * 2 - 1;
+                const localY = 1 - (row + 0.5) / rows * 2;
+                const startX = pieceNode.x + localX * width / 2;
+                const startY = pieceNode.y + localY * height / 2;
+                const startAngle = pieceNode.angle + (Math.random() - 0.5) * 22;
+                const dx = blastCenter ? startX - blastCenter.x : 0;
+                const dy = blastCenter ? startY - blastCenter.y : 0;
+                const distance = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+                const velocityX = localX * (rowClear ? 150 : 220) + (Math.random() - 0.5) * 75
+                    + dx / distance * 160;
+                const velocityY = (blastCenter ? 160 : rowClear ? 235 : 320) + localY * 85
+                    + (Math.random() - 0.5) * 90 + dy / distance * 230;
+                const angularVelocity = velocityX * 0.7 + (Math.random() - 0.5) * 340;
+                const drag = 0.65 + Math.random() * 0.45;
+                const lifetime = (rowClear ? 0.62 : 0.72) + Math.random() * 0.16;
+                const endScale = 0.72 + Math.random() * 0.18;
+                shard.setPosition(startX, startY);
+                shard.zIndex = 28;
+                shard.opacity = 255;
+                shard.scale = 1;
+                shard.angle = startAngle;
+                shard.shardFlightTime = 0;
+                this.pieceLayer.addChild(shard);
+                // 图形只创建一次，每帧只变换节点；不重绘 Graphics，也不使用棋盘随机源。
+                this.drawPieceShard(shard, color, 1, index);
+
+                cc.tween(shard)
+                    .to(lifetime, { shardFlightTime: lifetime }, {
+                        easing: 'linear',
+                        onUpdate: () => {
+                            if (!cc.isValid(shard)) return;
+                            const time = shard.shardFlightTime;
+                            const progress = Math.min(1, time / lifetime);
+                            const fade = Math.max(0, (progress - 0.64) / 0.36);
+                            shard.setPosition(
+                                startX + velocityX * (1 - Math.exp(-drag * time)) / drag,
+                                startY + velocityY * time - gravity * time * time / 2,
+                            );
+                            shard.angle = startAngle + angularVelocity * time;
+                            shard.scale = 1 - (1 - endScale) * progress;
+                            shard.opacity = Math.round(255 * (1 - fade * fade));
+                        },
+                    })
+                    .call(() => this.releaseShard(shard))
+                    .start();
+            }
+        }
+    }
+
+    private drawPieceShard(node: cc.Node, color: cc.Color, alpha: number, index: number): void {
+        const safeAlpha = Math.max(0, Math.min(1, alpha));
+        const graphics = node.getComponent(cc.Graphics) || node.addComponent(cc.Graphics);
+        const width = node.width;
+        const height = node.height;
+        const edge = Math.min(width, height);
+        const cutA = edge * (0.16 + ((index * 5) % 7) * 0.045);
+        const cutB = edge * (0.12 + ((index * 7) % 5) * 0.055);
+        const tone = ((index * 3) % 5 - 2) * 7;
+        const red = Math.max(0, Math.min(255, color.r + tone));
+        const green = Math.max(0, Math.min(255, color.g + tone));
+        const blue = Math.max(0, Math.min(255, color.b + tone));
+        graphics.clear();
+        graphics.fillColor = new cc.Color(red, green, blue, Math.round(255 * safeAlpha));
+        graphics.moveTo(-width / 2 + cutA, -height / 2);
+        graphics.lineTo(width / 2 - cutB, -height / 2 + cutA * 0.25);
+        graphics.lineTo(width / 2, height / 2 - cutA);
+        graphics.lineTo(cutB * 0.25, height / 2);
+        graphics.lineTo(-width / 2 + cutB, height / 2 - cutB * 0.25);
+        graphics.lineTo(-width / 2, -cutA);
+        graphics.lineTo(-width / 2 + cutA, -height / 2);
+        graphics.fill();
+        // 一块暗面保留色块的厚度，避免飞散时像平面的彩纸。
+        graphics.fillColor = new cc.Color(Math.round(red * 0.72), Math.round(green * 0.72),
+            Math.round(blue * 0.72), Math.round(100 * safeAlpha));
+        graphics.moveTo(-width / 2 + cutA, -height / 2);
+        graphics.lineTo(width / 2 - cutB, -height / 2 + cutA * 0.25);
+        graphics.lineTo(width / 2, height / 2 - cutA);
+        graphics.lineTo(width * 0.06, -height * 0.08);
+        graphics.close(); graphics.fill();
+
+        graphics.strokeColor = new cc.Color(255, 255, 255, Math.round(92 * safeAlpha));
+        graphics.lineWidth = 1.3;
+        graphics.moveTo(-width / 2 + cutB + 1, height / 2 - cutB * 0.25 - 1);
+        graphics.lineTo(cutB * 0.25, height / 2 - 1);
+        graphics.lineTo(width / 2 - 1, height / 2 - cutA);
+        graphics.stroke();
+
+        graphics.strokeColor = new cc.Color(
+            Math.round(color.r * 0.62),
+            Math.round(color.g * 0.62),
+            Math.round(color.b * 0.62),
+            Math.round(78 * safeAlpha),
+        );
+        graphics.lineWidth = 1;
+        graphics.moveTo(-width / 2 + cutA, -height / 2 + 1);
+        graphics.lineTo(width / 2 - cutB, -height / 2 + cutA * 0.25 + 1);
+        graphics.stroke();
+
+        if (index % 4 === 0) {
+            graphics.fillColor = new cc.Color(255, 255, 255, Math.round(145 * safeAlpha));
+            graphics.circle(width * 0.12, height * 0.08, Math.max(0.9, Math.min(width, height) * 0.06));
+            graphics.fill();
+        }
+    }
+
+    private createHammerToolDemo(panel: cc.Node, centerY: number): void {
+        const stage = uimanager.createRect(
+            panel,
+            'hammerDemoStage',
+            430,
+            132,
+            new cc.Color(255, 250, 234),
+            255,
+            24,
+            0,
+            centerY,
+        );
+        const block = new cc.Node('hammerDemoBlock');
+        block.width = 112;
+        block.height = 66;
+        block.setPosition(62, -9);
+        stage.addChild(block);
+        const color = getMoodColor(3);
+        drawMoodBlockMaterial(block, color);
+
+        const hammer = createHammerGlyph(stage, -72, 31, 0.72);
+        hammer.angle = 54;
+        const play = (): void => {
+            if (!cc.isValid(stage) || !cc.isValid(hammer) || !cc.isValid(block)) return;
+            cc.Tween.stopAllByTarget(block);
+            block.opacity = 255;
+            block.scale = 1;
+            block.angle = 0;
+            hammer.setPosition(-72, 31);
+            hammer.angle = 54;
+            hammer.scale = 0.72;
+            cc.tween(hammer)
+                .delay(0.26)
+                .to(0.32, { x: 35, y: 12, angle: 8, scale: 0.82 }, { easing: 'quadIn' })
+                .call(() => {
+                    if (!cc.isValid(block)) return;
+                    block.scale = 1.08;
+                    this.spawnToolDemoShards(stage, block.x, block.y, color, 12);
+                    cc.tween(block)
+                        .to(0.1, { scale: 0.82, opacity: 0 }, { easing: 'quadIn' })
+                        .start();
+                })
+                .to(0.2, { x: -20, y: 42, angle: 32, scale: 0.7 }, { easing: 'quadOut' })
+                .delay(0.78)
+                .call(play)
+                .start();
+        };
+        play();
+    }
+
+    private createMagicWandToolDemo(panel: cc.Node, centerY: number): void {
+        const stage = uimanager.createRect(
+            panel,
+            'magicWandDemoStage',
+            430,
+            132,
+            new cc.Color(255, 250, 234),
+            255,
+            24,
+            0,
+            centerY,
+        );
+        const matchingColor = getMoodColor(2);
+        const otherColor = getMoodColor(4);
+        const positions = [-132, -45, 42, 129];
+        const blocks = positions.map((x, index) => {
+            const block = new cc.Node(`magicDemoBlock_${index}`);
+            block.width = 66;
+            block.height = 52;
+            block.setPosition(x, -23);
+            stage.addChild(block);
+            drawMoodBlockMaterial(block, index === 1 ? otherColor : matchingColor);
+            return block;
+        });
+        const wand = createPurifierGlyph(stage, -126, 35, 0.68);
+        wand.angle = 8;
+
+        const play = (): void => {
+            if (!cc.isValid(stage) || !cc.isValid(wand)) return;
+            blocks.forEach((block) => {
+                if (!cc.isValid(block)) return;
+                cc.Tween.stopAllByTarget(block);
+                block.opacity = 255;
+                block.scale = 1;
+            });
+            wand.setPosition(-126, 35);
+            wand.angle = 8;
+            wand.scale = 0.68;
+            cc.tween(wand)
+                .delay(0.28)
+                .to(0.58, { x: 122, y: 35, angle: -8, scale: 0.74 }, { easing: 'sineInOut' })
+                .call(() => {
+                    [blocks[0], blocks[2], blocks[3]].forEach((block, index) => {
+                        if (!cc.isValid(block)) return;
+                        cc.tween(block)
+                            .delay(index * 0.045)
+                            .to(0.1, { scale: 1.12 }, { easing: 'quadOut' })
+                            .call(() => this.spawnToolDemoShards(stage, block.x, block.y, matchingColor, 8))
+                            .to(0.14, { scale: 0.76, opacity: 0 }, { easing: 'quadIn' })
+                            .start();
+                    });
+                })
+                .to(0.2, { y: 48, scale: 0.62 }, { easing: 'quadOut' })
+                .delay(0.88)
+                .call(play)
+                .start();
+        };
+        play();
+    }
+
+    private spawnToolDemoShards(
+        parent: cc.Node,
+        x: number,
+        y: number,
+        color: cc.Color,
+        count: number,
+    ): void {
+        for (let index = 0; index < count; index++) {
+            const shard = new cc.Node(`toolDemoShard_${index}`);
+            shard.width = 10 + (index % 3) * 3;
+            shard.height = 8 + (index % 2) * 4;
+            shard.setPosition(x + ((index * 17) % 24) - 12, y + ((index * 11) % 18) - 9);
+            shard.zIndex = 20;
+            parent.addChild(shard);
+            const state = {
+                x: shard.x,
+                y: shard.y,
+                rotation: (index * 19) % 32 - 16,
+                scale: 1,
+                alpha: 1,
+            };
+            const direction = index % 2 === 0 ? 1 : -1;
+            const update = (): void => {
+                if (!cc.isValid(shard)) return;
+                shard.setPosition(state.x, state.y);
+                shard.angle = -state.rotation;
+                shard.scale = state.scale;
+                this.drawPieceShard(shard, color, state.alpha, index);
+            };
+            update();
+            cc.tween(state)
+                .to(0.12, {
+                    x: state.x + direction * (18 + (index % 4) * 6),
+                    y: state.y + 16 + (index % 3) * 6,
+                    rotation: direction * (44 + index * 7),
+                }, { easing: 'quadOut', onUpdate: update })
+                .to(0.44, {
+                    x: state.x + direction * (31 + (index % 4) * 8),
+                    y: state.y - 48 - (index % 3) * 12,
+                    rotation: direction * (96 + index * 11),
+                    scale: 0.28,
+                    alpha: 0,
+                }, { easing: 'quadIn', onUpdate: update })
+                .call(() => shard.destroy())
+                .start();
+        }
+    }
+
+    private playHammerImpact(x: number, y: number): void {
+        const impact = new cc.Node('hammerImpact');
+        impact.width = 108;
+        impact.height = 108;
+        impact.setAnchorPoint(0.5, 0.5);
+        impact.setPosition(x, y);
+        impact.zIndex = 44;
+        this.pieceLayer.addChild(impact);
+
+        const impactState = { alpha: 1, scale: 0.34 };
+        const updateImpact = () => {
+            if (!cc.isValid(impact)) return;
+            impact.scale = impactState.scale;
+            const graphics = impact.getComponent(cc.Graphics) || impact.addComponent(cc.Graphics);
+            graphics.clear();
+            graphics.strokeColor = new cc.Color(255, 225, 127, Math.round(235 * impactState.alpha));
+            graphics.lineWidth = 5;
+            graphics.circle(0, 0, 28);
+            graphics.stroke();
+            graphics.strokeColor = new cc.Color(255, 255, 255, Math.round(190 * impactState.alpha));
+            graphics.lineWidth = 3;
+            for (let index = 0; index < 8; index++) {
+                const angle = index * Math.PI / 4;
+                graphics.moveTo(Math.cos(angle) * 35, Math.sin(angle) * 35);
+                graphics.lineTo(Math.cos(angle) * 50, Math.sin(angle) * 50);
+            }
+            graphics.stroke();
+        };
+        updateImpact();
+        cc.tween(impactState)
+            .to(0.22, { alpha: 0, scale: 1.3 }, { easing: 'quadOut', onUpdate: updateImpact })
+            .call(() => impact.destroy())
+            .start();
+    }
+
+    private animateRowShatter(pieceIds: number[], bombs: BombDetonation[] = [], simultaneous: boolean = false): void {
+        for (const id of pieceIds) {
+            const node = this.pieceLayer.getChildByName(`piece_${id}`);
+            const color = this.pieceColors[id];
+            if (!node || !color) continue;
+            // 连锁中的炸弹等自己的起爆时刻；其他格子由最早命中的冲击波驱动。
+            const ownBlast = bombs.findIndex((bomb) => bomb.id === id);
+            const hitIndex = ownBlast >= 0 ? ownBlast : bombs.findIndex((bomb) => bomb.affectedPieceIds.indexOf(id) >= 0);
+            const center = hitIndex >= 0
+                ? this.getPiecePosition(bombs[hitIndex].row, bombs[hitIndex].col, bombs[hitIndex].size) : null;
+            const dx = center ? node.x - center.x : 0;
+            const dy = center ? node.y - center.y : 0;
+            const distance = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+            const delay = center ? (simultaneous ? 0 : BOMB_PRIME_TIME + hitIndex * BOMB_CHAIN_INTERVAL)
+                + (ownBlast >= 0 ? 0 : Math.min(1, distance / (CELL_SIZE * 1.5)) * 0.035) : 0;
+            cc.Tween.stopAllByTarget(node);
+            if (center) {
+                const flash = new cc.Node('bombHitFlash');
+                flash.zIndex = 20;
+                flash.opacity = 0;
+                node.addChild(flash);
+                const glow = flash.addComponent(cc.Graphics);
+                glow.fillColor = new cc.Color(255, 237, 170, 200);
+                glow.strokeColor = new cc.Color(255, 255, 230, 245);
+                glow.lineWidth = 3;
+                glow.roundRect(-node.width / 2 + 2, -node.height / 2 + 2, node.width - 4, node.height - 4, 10);
+                glow.fill(); glow.stroke();
+                if (simultaneous) cc.tween(flash).to(0.025, { opacity: 255 }).start();
+                else cc.tween(flash).delay(hitIndex * BOMB_CHAIN_INTERVAL)
+                    .to(0.055, { opacity: 85 })
+                    .delay(delay - hitIndex * BOMB_CHAIN_INTERVAL - 0.055)
+                    .to(0.025, { opacity: 255 }).start();
+            }
+            cc.tween(node).delay(delay)
+                .call(() => { if (center && cc.isValid(node)) this.drawPieceCracks(node); })
+                .to(center ? 0.06 : 0.045, {
+                    x: node.x + dx / distance * 7,
+                    y: node.y + dy / distance * 5,
+                    scaleX: center ? 1.1 : 1.03,
+                    scaleY: center ? 0.78 : 0.84,
+                }, { easing: 'quadOut' })
+                .call(() => {
+                    if (!cc.isValid(node)) return;
+                    this.playMoodCollect([id]);
+                    this.spawnPieceShards(node, color, id, !center, center);
+                    delete this.pieceColors[id];
+                    node.destroy();
+                }).start();
+        }
+    }
+
+    private animateElimination(result: EliminateResult, onComplete: () => void): void {
+        this.updateHud();
+        audioManager.playSound('break');
+        this.playTutorialNpcBounce();
+        this.playRowClearEffects(result.clearedRowIndexes);
+        this.animateBombBlasts(result);
+        this.animateRowShatter(result.removedPieceIds, result.detonatedBombs);
+        this.playScoreFeedback(result);
+        // 给每一档连消的弹出留出短暂节拍，再继续掉落结算。
+        this.scheduleOnce(onComplete, bombResolutionDelay((result.detonatedBombs || []).length));
+    }
+
+    private playScoreFeedback(result: EliminateResult): void {
+        if (result.gainedScore <= 0) return;
+        if (this.rewardFeedback && cc.isValid(this.rewardFeedback)) this.rewardFeedback.destroy();
+        const root = new cc.Node('eliminationReward');
+        root.zIndex = 160;
+        this.boardRoot.addChild(root);
+        this.rewardFeedback = root;
+        const combo = result.combo || 1;
+        // Combo 图片与加分在棋盘中央弹出，不叠加说明或倍率文字。
+        if (combo >= 2) {
+            root.setPosition(0, -38);
+            root.opacity = 0;
+        } else if (result.clearedRows > 0) {
+            const row = result.clearedRowIndexes.reduce((sum, value) => sum + value, 0) / result.clearedRows;
+            const y = this.getPiecePosition(row, 0, 1).y;
+            const feedbackLimit = BOARD_ROWS * CELL_SIZE / 2 - 150;
+            root.setPosition(0, Math.max(-feedbackLimit, Math.min(feedbackLimit, y + 70)));
+        }
+        if (combo >= 2) {
+            const word = createComboArt(root, combo);
+            word.y = 45;
+        }
+        const score = createScoreArt(root, `+${result.gainedScore}`, combo >= 2 ? 58 : 48);
+        score.y = combo >= 2 ? -34 : 0;
+        root.scale = 0.5;
+        if (combo >= 2) {
+            cc.tween(root)
+                .to(0.28, { y: 0, opacity: 255 }, { easing: 'quadOut' })
+                .start();
+        }
+        cc.tween(root)
+            .to(0.18, { scale: 1.12 }, { easing: 'backOut' })
+            .to(0.1, { scale: 1 }, { easing: 'sineOut' })
+            .delay(0.65)
+            .by(0.28, { y: 38, opacity: -255 }, { easing: 'quadIn' })
+            .call(() => { if (cc.isValid(root)) root.destroy(); })
+            .start();
+    }
+
+    private playToolScoreFeedback(gainedScore: number): void {
+        this.updateHud();
+        this.playScoreFeedback({ gainedScore, clearedRows: 0, clearedRowIndexes: [],
+            removedPieceIds: [], collectedMoodTypes: [] });
+    }
+
+    private playMoodCollect(pieceIds: number[]): void {
+        let rewardIndex = 0;
+        for (const id of pieceIds) {
+            const pieceNode = this.pieceLayer.getChildByName(`piece_${id}`);
+            const stamp = pieceNode ? pieceNode.getChildByName('moodStamp') : null;
+            if (!pieceNode || !stamp) continue;
+
+            const moodIndex = Number((stamp as any).moodIndex) || 1;
+            const worldStart = pieceNode.convertToWorldSpaceAR(stamp.getPosition());
+            const start = this.node.convertToNodeSpaceAR(worldStart);
+            // 飞行表情只推进收集进度；每满 100 块获得一颗可结算的开心豆。
+            const token = createMoodBean(this.node, moodIndex, start.x, start.y, 40, 0);
+            token.zIndex = 900;
+            const target = this.moodBeanHudIcon
+                ? this.node.convertToNodeSpaceAR(this.moodBeanHudIcon.parent.convertToWorldSpaceAR(this.moodBeanHudIcon.getPosition()))
+                : new cc.Vec2(30, this.layout.hudY);
+            const control = new cc.Vec2(
+                start.x + (target.x - start.x) * 0.42 + (rewardIndex % 2 === 0 ? -55 : 55),
+                Math.max(start.y, target.y) + 150,
+            );
+            const state = { t: 0 };
+            const delay = Math.min(0.28, rewardIndex * 0.025);
+            rewardIndex++;
+            cc.tween(token)
+                .delay(delay)
+                .to(0.08, { opacity: 255, scale: 1.18 }, { easing: 'backOut' })
+                .start();
+            cc.tween(state)
+                .delay(delay + 0.04)
+                .to(0.52, { t: 1 }, {
+                    easing: 'quadIn',
+                    onUpdate: () => {
+                        if (!cc.isValid(token)) return;
+                        const oneMinus = 1 - state.t;
+                        token.x = oneMinus * oneMinus * start.x
+                            + 2 * oneMinus * state.t * control.x
+                            + state.t * state.t * target.x;
+                        token.y = oneMinus * oneMinus * start.y
+                            + 2 * oneMinus * state.t * control.y
+                            + state.t * state.t * target.y;
+                        token.scale = 1.18 - state.t * 0.55;
+                        token.angle = -state.t * 220;
+                    },
+                })
+                .call(() => {
+                    if (this.settlementReported || !cc.isValid(this.node)) { token.destroy(); return; }
+                    this.displayedRoundMoods++;
+                    this.beanCollectionHud.collectTo(this.displayedRoundMoods);
+                    if (this.moodBeanHudIcon && cc.isValid(this.moodBeanHudIcon)) {
+                        cc.Tween.stopAllByTarget(this.moodBeanHudIcon);
+                        cc.tween(this.moodBeanHudIcon)
+                            .to(0.07, { scale: 1.18 }, { easing: 'backOut' })
+                            .to(0.12, { scale: 1 }, { easing: 'sineOut' })
+                            .start();
+                    }
+                    if (cc.isValid(token)) token.destroy();
+                })
+                .start();
+        }
+    }
+
+    private resolveStableBoard(onStable: () => void, clearedRows: number = 0): void {
+        const lightning = zyxGameModule.takeLightningEffects();
+        if (lightning.length) {
+            this.playLightningDischarges(lightning, () => this.resolveStableBoard(onStable, clearedRows));
+            return;
+        }
+        const gravityMoves = zyxGameModule.applyGravity();
+        if (gravityMoves.length > 0) {
+            this.animateGravityMoves(gravityMoves, () => this.resolveStableBoard(onStable, clearedRows));
+            return;
+        }
+
+        const elimination = zyxGameModule.eliminateFullRows();
+        if (elimination.clearedRows > 0) {
+            gameSettings.vibrateLight();
+            this.animateElimination(elimination, () => this.resolveStableBoard(onStable, clearedRows + elimination.clearedRows));
+            return;
+        }
+
+        this.updateBoardDangerState();
+        onStable();
+    }
+
+    private appendNextRowAndResolve(refill: boolean = true): void {
+        const riseRows = zyxGameModule.getRiseRowCount();
+        if (!zyxGameModule.appendTurnRows()) {
+            this.handleChallengeFailed('整理台暂时放满了');
+            return;
+        }
+
+        this.animateAppendedRow(() => {
+            this.resolveStableBoard(() => {
+                this.ensureMinimumOccupiedRows(refill ? zyxGameModule.getRefillRowTarget() : 0, () => {
+                    this.completePlayerAction();
+                    if (zyxGameModule.isGameOver()) {
+                        this.handleChallengeFailed('整理台暂时放满了');
+                        return;
+                    }
+                    if (this.tryShowRoundRescue()) return;
+                    this.locked = false;
+                    this.idleSeconds = 0;
+                });
+            });
+        }, riseRows);
+    }
+
+    /** 连消可能把刚升起的一排再次清掉；在预算内补足支撑层，保留后续双排和掉落连锁机会。 */
+    private ensureMinimumOccupiedRows(minimumRows: number, onReady: () => void): void {
+        if (zyxGameModule.getOccupiedRowCount() >= minimumRows
+            || zyxGameModule.actionAppends >= MAX_ACTION_APPENDS) {
+            onReady();
+            return;
+        }
+        if (!zyxGameModule.appendNextRow()) {
+            this.handleChallengeFailed('整理台暂时放满了');
+            return;
+        }
+        this.animateAppendedRow(() => {
+            this.resolveStableBoard(() => this.ensureMinimumOccupiedRows(minimumRows, onReady));
+        });
+    }
+
+    private tryShowRoundRescue(): boolean {
+        if (this.rescueBalloon || this.roundRescuePrompt || this.settlementReported) return false;
+        if (zyxGameModule.canOfferHeartRescue()) return false;
+        const elapsedMs = Math.max(0, Date.now() - zyxGameModule.roundStartedAt);
+        const kind = zyxGameModule.offerRoundRescue(elapsedMs);
+        if (!kind) return false;
+        this.balloonPhase = 'flying';
+        if (kind === 'balloon') {
+            this.rescueBalloon = new RescueBalloon(this.boardRoot, CELL_SIZE, () => this.handleRoundRescueClick());
+        } else {
+            this.markInteraction();
+            this.showScreenClearRescuePrompt();
+        }
+        this.locked = false;
+        this.idleSeconds = 0;
+        return true;
+    }
+
+    private showScreenClearRescuePrompt(): void {
+        this.roundRescueInteractive = false;
+        this.roundRescueGuideVisible = true;
+        const prompt = new cc.Node('roundRescuePrompt');
+        prompt.setContentSize(this.node.width, this.node.height);
+        prompt.zIndex = 720;
+        this.node.addChild(prompt);
+        this.roundRescuePrompt = prompt;
+
+        const mask = this.createRoundRescueShade(prompt, 'roundRescueMask', new cc.Color(30, 25, 24));
+        mask.addComponent(cc.BlockInputEvents);
+        const wash = this.createRoundRescueShade(prompt, 'roundRescueLight', new cc.Color(255, 233, 169));
+        wash.zIndex = 1;
+        const drawer = new cc.Node('roundRescueDrawer');
+        drawer.zIndex = 2;
+        prompt.addChild(drawer);
+        this.refreshRoundRescueLayout();
+        const dockX = this.node.width / 2 - 66;
+        const offscreenX = mask.x + mask.width / 2 + 480;
+        drawer.x = offscreenX;
+
+        const icon = new cc.Node('roundRescueCountdownButton');
+        icon.setContentSize(122, 122);
+        drawer.addChild(icon);
+        const iconButton = icon.addComponent(cc.Button);
+        iconButton.transition = cc.Button.Transition.NONE;
+        iconButton.interactable = false;
+        icon.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
+            event.stopPropagation();
+            this.handleScreenClearRescueClick();
+        }, this);
+        const halo = uimanager.createCircle(icon, 'roundRescueFocus', 66, new cc.Color(255, 223, 136, 60));
+        halo.zIndex = -1;
+        const lightning = new cc.Node('roundRescueLightning');
+        icon.addChild(lightning);
+        this.drawRoundRescueLightning(lightning);
+        const ring = new cc.Node('roundRescueCountdownRing');
+        icon.addChild(ring);
+        const countdownLabel = uimanager.createLabel(icon, '10秒', 0, -80, 24,
+            MOOD_COLORS.cream, 108, 38);
+        this.makeLabelBold(countdownLabel);
+
+        const explanation = new cc.Node('roundRescueExplanation');
+        explanation.opacity = 0;
+        drawer.addChild(explanation);
+        uimanager.createRect(explanation, 'roundRescueBubbleShadow', 334, 126,
+            new cc.Color(62, 43, 36), 54, 22, -242, 26);
+        const bubble = uimanager.createRect(explanation, 'roundRescueBubble', 330, 122,
+            MOOD_COLORS.cream, 255, 22, -242, 32);
+        const text = uimanager.createLabel(bubble,
+            getRewardOfferIcon('rescue') === 'video' ? '完整看视频\n清空全部色块' : '分享给好友\n清空全部色块',
+            0, 0, 26, MOOD_COLORS.cocoa, 298, 84);
+        this.makeLabelBold(text);
+        text.node.x = 24; text.node.width = 250;
+        if (getRewardOfferIcon('rescue') === 'video') createVideoGlyph(bubble, -122, 0, 0.58);
+        else createShareGlyph(bubble, -122, 0, 0.58);
+        const pointer = new cc.Node('roundRescuePointer');
+        pointer.setPosition(-70, 28);
+        explanation.addChild(pointer);
+        const graphics = pointer.addComponent(cc.Graphics);
+        graphics.fillColor = MOOD_COLORS.cream;
+        graphics.moveTo(-10, -10);
+        graphics.lineTo(4, 0);
+        graphics.lineTo(-10, 10);
+        graphics.close();
+        graphics.fill();
+        const accept = uimanager.createButton(explanation, '我可以', -242, -70, 202, 60,
+            BUTTON_COLORS.yellow, () => this.acknowledgeRoundRescue(), 26);
+        accept.name = 'roundRescueAccept';
+        const acceptButton = accept.getComponent(cc.Button);
+        acceptButton.interactable = false;
+
+        const countdownState = { progress: 1, started: false, redraw: null as () => void };
+        this.roundRescueCountdownState = countdownState;
+        const updateCountdown = () => {
+            if (!cc.isValid(ring) || this.roundRescueCountdownState !== countdownState) return;
+            this.drawRoundRescueCountdown(ring, countdownState.progress);
+            const text = `${Math.max(0, Math.ceil(countdownState.progress * 10))}秒`;
+            if (countdownLabel.string !== text) countdownLabel.string = text;
+        };
+        countdownState.redraw = updateCountdown;
+        updateCountdown();
+        cc.tween(wash).to(0.12, { opacity: 48 }, { easing: 'sineOut' })
+            .to(0.28, { opacity: 0 }, { easing: 'sineInOut' }).start();
+        cc.tween(drawer)
+            .to(0.34, { x: dockX }, { easing: 'sineOut' })
+            .call(() => {
+                if (this.roundRescuePrompt !== prompt || !cc.isValid(prompt)) return;
+                cc.tween(mask).to(0.18, { opacity: 178 }, { easing: 'sineInOut' }).start();
+                cc.tween(explanation).to(0.18, { opacity: 255 }, { easing: 'sineOut' })
+                    .call(() => {
+                        if (this.roundRescuePrompt !== prompt || !cc.isValid(prompt)) return;
+                        this.roundRescueInteractive = true;
+                        iconButton.interactable = true;
+                        acceptButton.interactable = true;
+                        countdownState.started = true;
+                    }).start();
+            }).start();
+    }
+
+    /** 遮罩覆盖完整Canvas，倒计时按钮停在游戏舞台右边缘。 */
+    private refreshRoundRescueLayout(): void {
+        const prompt = this.roundRescuePrompt;
+        if (!prompt) return;
+        let canvas = this.node;
+        while (canvas.parent && !canvas.getComponent(cc.Canvas)) canvas = canvas.parent;
+        const bottomLeft = prompt.convertToNodeSpaceAR(canvas.convertToWorldSpaceAR(
+            cc.v2(-cc.winSize.width / 2, -cc.winSize.height / 2)));
+        const topRight = prompt.convertToNodeSpaceAR(canvas.convertToWorldSpaceAR(
+            cc.v2(cc.winSize.width / 2, cc.winSize.height / 2)));
+        for (const name of ['roundRescueMask', 'roundRescueLight']) {
+            const layer = prompt.getChildByName(name);
+            layer.setPosition((bottomLeft.x + topRight.x) / 2, (bottomLeft.y + topRight.y) / 2);
+            layer.setContentSize(topRight.x - bottomLeft.x, topRight.y - bottomLeft.y);
+        }
+        const drawer = prompt.getChildByName('roundRescueDrawer');
+        drawer.y = Math.min(150, this.node.height * 0.1);
+        if (this.roundRescueInteractive) drawer.x = this.node.width / 2 - 66;
+    }
+
+    /** “我可以”只确认说明；倒计时按钮留在右侧，之后点击才拉起奖励。 */
+
+    private acknowledgeRoundRescue(): void {
+        if (!this.roundRescueGuideVisible || !this.roundRescueInteractive || !this.roundRescuePrompt) return;
+        this.roundRescueInteractive = false;
+        const prompt = this.roundRescuePrompt;
+        const drawer = prompt.getChildByName('roundRescueDrawer');
+        const explanation = drawer.getChildByName('roundRescueExplanation');
+        const mask = prompt.getChildByName('roundRescueMask');
+        cc.Tween.stopAllByTarget(explanation);
+        cc.tween(explanation)
+            .to(0.26, { x: this.node.width / 2 - drawer.x + 440 }, { easing: 'sineIn' })
+            .call(() => {
+                if (this.roundRescuePrompt !== prompt || !cc.isValid(prompt)) return;
+                explanation.destroy();
+                cc.tween(mask).to(0.18, { opacity: 0 }, { easing: 'sineInOut' })
+                    .call(() => {
+                        if (this.roundRescuePrompt !== prompt || !cc.isValid(prompt)) return;
+                        mask.active = false;
+                        this.roundRescueGuideVisible = false;
+                        this.roundRescueInteractive = true;
+                        this.idleSeconds = 0;
+                    }).start();
+            }).start();
+    }
+
+    private drawRoundRescueLightning(node: cc.Node): void {
+        const graphics = node.addComponent(cc.Graphics);
+        graphics.fillColor = new cc.Color(105, 70, 58, 78);
+        graphics.circle(2, -4, 43);
+        graphics.fill();
+        graphics.fillColor = new cc.Color(91, 181, 128, 255);
+        graphics.circle(0, 0, 43);
+        graphics.fill();
+        graphics.strokeColor = new cc.Color(218, 246, 207, 255);
+        graphics.lineWidth = 4;
+        graphics.circle(0, 0, 40);
+        graphics.stroke();
+
+        graphics.fillColor = new cc.Color(255, 224, 99, 255);
+        graphics.moveTo(7, 31);
+        graphics.lineTo(-17, 2);
+        graphics.lineTo(-4, 2);
+        graphics.lineTo(-12, -31);
+        graphics.lineTo(20, 7);
+        graphics.lineTo(6, 7);
+        graphics.close();
+        graphics.fill();
+        graphics.strokeColor = new cc.Color(255, 249, 221, 255);
+        graphics.lineWidth = 3;
+        graphics.moveTo(7, 31);
+        graphics.lineTo(-17, 2);
+        graphics.lineTo(-4, 2);
+        graphics.lineTo(-12, -31);
+        graphics.lineTo(20, 7);
+        graphics.lineTo(6, 7);
+        graphics.close();
+        graphics.stroke();
+    }
+
+    private drawRoundRescueCountdown(node: cc.Node, progress: number): void {
+        const graphics = node.getComponent(cc.Graphics) || node.addComponent(cc.Graphics);
+        const safeProgress = Math.max(0, Math.min(1, progress));
+        graphics.clear();
+        graphics.lineCap = cc.Graphics.LineCap.ROUND;
+        graphics.strokeColor = new cc.Color(86, 59, 51, 94);
+        graphics.lineWidth = 9;
+        graphics.circle(0, 0, 53);
+        graphics.stroke();
+        if (safeProgress <= 0) return;
+        graphics.strokeColor = safeProgress > 0.34
+            ? new cc.Color(255, 214, 96, 255)
+            : new cc.Color(255, 104, 78, 255);
+        graphics.lineWidth = 9;
+        graphics.arc(
+            0,
+            0,
+            53,
+            Math.PI / 2,
+            Math.PI / 2 - Math.PI * 2 * safeProgress,
+            false,
+        );
+        graphics.stroke();
+    }
+
+    private handleRoundRescueClick(): void {
+        if (this.warmBalloonActive) { this.showHeartMessage(); return; }
+        if (this.balloonPhase !== 'flying' || this.locked || this.rewardedAdLoading) return;
+        // 气球仍在飞行时，玩家可能刚选中一个道具，先取消选择和过期拖拽。
+        this.balloonPhase = 'dialog';
+        const balloon = this.rescueBalloon;
+        this.markInteraction();
+        this.setToolSelectionMode(null);
+        const resume = (): void => {
+            if (this.rescueBalloon !== balloon || this.balloonPhase !== 'dialog') return;
+            this.balloonModal = null;
+            this.balloonPhase = 'flying';
+            this.idleSeconds = 0;
+        };
+        this.balloonModal = uimanager.showModal('气球炸弹',
+            '棋盘太挤？我来炸个场！\n随机投弹，炸开周围色块！', [
+                { text: '才不要', color: BUTTON_COLORS.yellow, onClick: resume },
+                { text: '帮帮我', color: BUTTON_COLORS.green, icon: button => decorateActionButton(button, getRewardOfferIcon('rescue')), onClick: () => {
+                    this.balloonModal = null;
+                    this.requestRoundRescue();
+                } },
+            ], null, 0, true, true, 560, { onDismiss: resume,
+                buttonHeight: 96, buttonGap: 32, buttonFontSize: 26, messageFontSize: 30, messageLineHeight: 40, messageHeight: 82, messageButtonGap: 48 });
+    }
+
+    private handleScreenClearRescueClick(): void {
+        const prompt = this.roundRescuePrompt;
+        if (!prompt || !this.roundRescueInteractive || this.balloonPhase !== 'flying'
+            || this.locked || this.rewardedAdLoading) return;
+        this.balloonPhase = 'dialog';
+        this.markInteraction();
+        this.setToolSelectionMode(null);
+        this.roundRescueInteractive = false;
+        const drawer = prompt.getChildByName('roundRescueDrawer');
+        const mask = prompt.getChildByName('roundRescueMask');
+        cc.Tween.stopAllByTarget(drawer);
+        cc.Tween.stopAllByTarget(mask);
+        const explanation = drawer.getChildByName('roundRescueExplanation');
+        if (explanation) cc.Tween.stopAllByTarget(explanation);
+        cc.tween(drawer).to(0.28, { x: mask.x + mask.width / 2 + 480 }, { easing: 'sineIn' })
+            .call(() => {
+                if (this.roundRescuePrompt !== prompt || this.balloonPhase !== 'dialog') return;
+                cc.tween(mask).to(0.18, { opacity: 0 }).call(() => {
+                    if (this.roundRescuePrompt !== prompt || this.balloonPhase !== 'dialog') return;
+                    prompt.active = false;
+                    this.requestRoundRescue();
+                }).start();
+            }).start();
+    }
+
+    private dismissRoundRescuePrompt(animated: boolean): void {
+        zyxGameModule.dismissBalloonRescue();
+        if (this.warmBalloonActive) zyxGameModule.dismissHeartRescue();
+        this.warmBalloonActive = false;
+        if (this.rescueBalloon) this.rescueBalloon.dispose();
+        this.rescueBalloon = null;
+        this.balloonPhase = 'none';
+        if (this.balloonModal && cc.isValid(this.balloonModal)) this.balloonModal.destroy();
+        this.balloonModal = null;
+        if (this.balloonInputShield && cc.isValid(this.balloonInputShield)) this.balloonInputShield.destroy();
+        this.balloonInputShield = null;
+        const prompt = this.roundRescuePrompt;
+        this.roundRescuePrompt = null;
+        this.roundRescueCountdownState = null;
+        this.roundRescueInteractive = this.roundRescueGuideVisible = false;
+        if (!prompt || !cc.isValid(prompt)) return;
+        const drawer = prompt.getChildByName('roundRescueDrawer');
+        const mask = prompt.getChildByName('roundRescueMask');
+        const explanation = drawer.getChildByName('roundRescueExplanation');
+        for (const node of [prompt, drawer, mask, explanation, prompt.getChildByName('roundRescueLight')]) {
+            if (node) cc.Tween.stopAllByTarget(node);
+        }
+        if (!animated) { prompt.destroy(); return; }
+        cc.tween(drawer).to(0.28, { x: mask.x + mask.width / 2 + 480 }, { easing: 'sineIn' })
+            .call(() => {
+                if (!cc.isValid(prompt)) return;
+                cc.tween(mask).to(0.18, { opacity: 0 }).call(() => {
+                    if (cc.isValid(prompt)) prompt.destroy();
+                }).start();
+            }).start();
+    }
+
+    private requestRoundRescue(): void {
+        if (this.rewardedAdLoading || this.balloonPhase !== 'dialog' || (!this.rescueBalloon && !this.roundRescuePrompt)) return;
+        const balloon = this.rescueBalloon;
+        const prompt = this.roundRescuePrompt;
+        this.balloonPhase = 'sharing';
+        this.rewardedAdLoading = true;
+        const shield = new cc.Node('balloonInputShield');
+        shield.setContentSize(this.node.width * 2, this.node.height * 2);
+        shield.zIndex = 1900;
+        shield.addComponent(cc.BlockInputEvents);
+        this.node.addChild(shield);
+        this.balloonInputShield = shield;
+        this.showRewardOffer((rewarded) => {
+            if (!cc.isValid(this.node) || this.rescueBalloon !== balloon || this.roundRescuePrompt !== prompt
+                || this.balloonPhase !== 'sharing') return;
+            this.rewardedAdLoading = false;
+            if (!rewarded) {
+                this.balloonPhase = 'flying';
+                shield.destroy();
+                this.balloonInputShield = null;
+                if (prompt) {
+                    prompt.active = true;
+                    this.roundRescueInteractive = true;
+                    this.refreshRoundRescueLayout();
+                    const mask = prompt.getChildByName('roundRescueMask');
+                    mask.active = this.roundRescueGuideVisible;
+                    mask.opacity = this.roundRescueGuideVisible ? 178 : 0;
+                }
+                this.idleSeconds = 0;
+                uimanager.showToast(getRewardOfferFailToast('rescue'));
+                return;
+            }
+            if (balloon) this.applyRoundRescue();
+            else this.applyScreenClearRescue();
+        });
+    }
+
+    private applyScreenClearRescue(): void {
+        const previousScore = zyxGameModule.score;
+        const ids = zyxGameModule.applyClearRescue();
+        this.dismissRoundRescuePrompt(false);
+        if (!ids) return;
+        this.locked = true;
+        this.playEmergencyClearEffect(ids, () => {
+            this.playToolScoreFeedback(zyxGameModule.score - previousScore);
+            this.resolveStableBoard(() => {
+                this.updateHud();
+                this.appendNextRowAndResolve(false);
+            });
+        });
+    }
+
+    private applyRoundRescue(): void {
+        const balloon = this.rescueBalloon;
+        if (!balloon) return;
+        this.locked = true;
+        const warm = this.warmBalloonActive;
+        this.balloonPhase = 'bombing';
+        const targets = zyxGameModule.getBalloonTargets().map(piece => ({ ...piece }));
+        const origin = this.pieceLayer.convertToNodeSpaceAR(balloon.root.convertToWorldSpaceAR(cc.v2(0, -54)));
+        let lastLanding = 0;
+        const drops: cc.Node[] = [];
+        targets.forEach((piece, index) => {
+            const center = this.getPiecePosition(piece.row, piece.col, piece.size);
+            const bomb = warm ? createHeartToken(this.pieceLayer, 34) : createBombBadge(this.pieceLayer);
+            bomb.name = warm ? 'balloonDroppedHeart' : 'balloonDroppedBomb';
+            bomb.zIndex = 150;
+            bomb.opacity = 0;
+            bomb.setPosition(origin);
+            drops.push(bomb);
+            const state = { progress: 0 };
+            const delay = index * 0.13;
+            const flight = 0.7 + Math.abs(center.y - origin.y) / (BOARD_ROWS * CELL_SIZE) * 0.25;
+            lastLanding = Math.max(lastLanding, delay + flight);
+            cc.tween(state).delay(delay).to(flight, { progress: 1 }, { onUpdate: () => {
+                if (!cc.isValid(bomb)) return;
+                const t = state.progress;
+                bomb.opacity = 255;
+                bomb.setPosition(getBalloonBombPosition(origin, center, t));
+                bomb.angle = Math.sin(t * Math.PI) * (index % 2 ? -28 : 28);
+            } } as any).start();
+        });
+        this.scheduleOnce(() => {
+            if (this.rescueBalloon !== balloon) return;
+            const result = warm ? zyxGameModule.applyHeartRescue() : zyxGameModule.applyBalloonRescue();
+            drops.forEach(drop => { if (cc.isValid(drop)) drop.destroy(); });
+            if (!result) { this.dismissRoundRescuePrompt(false); return; }
+            if (warm) {
+                (result.detonatedBombs || []).forEach(piece => playHeartWave(this.pieceLayer,
+                    this.getPiecePosition(piece.row, piece.col, piece.size), CELL_SIZE));
+                this.playMoodCollect(result.removedPieceIds);
+                this.animatePieceRemoval(result.removedPieceIds, () => {});
+                gameSettings.vibrateLight();
+            } else {
+                (result.detonatedBombs || []).forEach((piece, index) => {
+                    playBombEffect(this.pieceLayer, this.getPiecePosition(piece.row, piece.col, piece.size),
+                        CELL_SIZE, 0, () => {
+                            if (index === 0) { audioManager.playSound('bomb'); gameSettings.vibrateLight(); }
+                        }, true);
+                });
+                this.animateRowShatter(result.removedPieceIds, result.detonatedBombs, true);
+            }
+            this.playToolScoreFeedback(result.gainedScore);
+            balloon.fadeOut();
+            this.scheduleOnce(() => {
+                this.resolveStableBoard(() => {
+                    this.dismissRoundRescuePrompt(false);
+                    this.appendNextRowAndResolve(false);
+                });
+            }, bombPlaybackDuration(1));
+        }, lastLanding + 0.2);
+    }
+
+    private createRoundRescueShade(parent: cc.Node, name: string, color: cc.Color): cc.Node {
+        if (!rescueShadeFrame) {
+            const texture = new cc.Texture2D();
+            texture.initWithData(new Uint8Array([255, 255, 255, 255]), cc.Texture2D.PixelFormat.RGBA8888, 1, 1);
+            rescueShadeFrame = new cc.SpriteFrame(texture);
+        }
+        const layer = new cc.Node(name);
+        parent.addChild(layer);
+        const sprite = layer.addComponent(cc.Sprite);
+        sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+        sprite.spriteFrame = rescueShadeFrame;
+        layer.color = color;
+        layer.opacity = 0;
+        return layer;
+    }
+
+    /** 危险状态只由棋盘高度决定，与一次性的福利入口生命周期解耦。 */
+    private updateBoardDangerState(): void {
+        if (zyxGameModule.hasEnteredRescueZone(2)) {
+            this.startBoardDangerGlow();
+            if (zyxGameModule.canOfferHeartRescue() && (this.rescueBalloon || this.roundRescuePrompt)) {
+                this.dismissRoundRescuePrompt(false);
+            }
+        }
+        else this.stopBoardDangerGlow();
+    }
+
+    private startBoardDangerGlow(): void {
+        if (this.boardDangerHalo && cc.isValid(this.boardDangerHalo)) return;
+        if (!this.boardRoot || !cc.isValid(this.boardRoot)) return;
+        this.dangerSeconds = 0;
+        this.boardDangerHalo = createDangerGlow(this.node, BOARD_COLS * CELL_SIZE, BOARD_ROWS * CELL_SIZE);
+        this.boardDangerHalo.setPosition(this.boardRoot.x, this.layout.boardY);
+    }
+
+    private showWarmHeartBalloon(): void {
+        // 与普通随机气球互斥展示，但完全独立于分数、随机类型、分享和CD。
+        this.dismissRoundRescuePrompt(false);
+        const elapsedMs = Math.max(0, Date.now() - zyxGameModule.roundStartedAt);
+        if (!zyxGameModule.offerHeartRescue(elapsedMs)) return;
+        this.warmBalloonActive = true;
+        this.balloonPhase = 'flying';
+        this.rescueBalloon = new RescueBalloon(this.boardRoot, CELL_SIZE, () => this.handleRoundRescueClick(), true);
+    }
+
+    private showHeartMessage(): void {
+        if (!this.warmBalloonActive || this.balloonPhase !== 'flying' || this.locked) return;
+        this.markInteraction();
+        this.setToolSelectionMode(null);
+        this.balloonPhase = 'dialog';
+        const day = 24 * 60 * 60 * 1000;
+        const registered = Date.parse(zyxGameModule.registeredAt);
+        const today = Math.floor((Date.now() + 8 * 3600000) / day);
+        const first = Number.isFinite(registered) ? Math.floor((registered + 8 * 3600000) / day) : today;
+        const days = Math.max(1, today - first + 1);
+        this.balloonModal = showHeartLetter(days, () => {
+            this.balloonModal = null;
+            this.applyRoundRescue();
+        });
+    }
+
+    private stopBoardDangerGlow(): void {
+        const halo = this.boardDangerHalo;
+        this.boardDangerHalo = null;
+        this.dangerSeconds = 0;
+        if (!halo || !cc.isValid(halo)) return;
+        cc.Tween.stopAllByTarget(halo);
+        halo.destroy();
+    }
+
+    private updateHud(): void {
+        if (this.rankChase) this.rankChase.updateScore(zyxGameModule.score);
+        const isNewRecord = zyxGameModule.score > zyxGameModule.startingBestScore;
+        const scoreColor = isNewRecord ? MOOD_COLORS.coral : HUD_VALUE_COLOR;
+        this.setLabelTone(this.scoreLabel, scoreColor, 1.1);
+        this.setLabelTone(this.bestLabel, HUD_LABEL_COLOR, 1.1);
+        this.updateHudNumber(this.scoreLabel, zyxGameModule.score);
+        this.bestLabel.string = `最高 ${formatHudScore(zyxGameModule.bestScore)}`;
+        this.scoreLabel.fontSize = this.scoreLabel.string.length >= 6 ? 34 : 46;
+        this.updateRecordTag(isNewRecord);
+        const hammerColor = this.hammerMode ? BUTTON_COLORS.green : BUTTON_COLORS.yellow;
+        uimanager.drawButtonSurface(this.hammerButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, hammerColor, 23);
+        if (this.hammerIcon) this.hammerIcon.angle = this.hammerMode ? -8 : 0;
+        if (this.hammerCountLabel) this.hammerCountLabel.string = zyxGameModule.hammerCount > 0 ? String(zyxGameModule.hammerCount) : '+';
+        const purifierColor = this.purifierMode ? BUTTON_COLORS.yellow : BUTTON_COLORS.green;
+        uimanager.drawButtonSurface(this.purifierButton, TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE, purifierColor, 23);
+        if (this.purifierIcon) this.purifierIcon.angle = this.purifierMode ? -8 : 0;
+        if (this.purifierCountLabel) this.purifierCountLabel.string = zyxGameModule.colorPurifierCount > 0 ? String(zyxGameModule.colorPurifierCount) : '+';
+        for (const [button, label, exhausted] of [
+            [this.hammerButton, this.hammerCountLabel, zyxGameModule.hammerCount === 0 && zyxGameModule.roundToolClaims.hammer >= 3],
+            [this.purifierButton, this.purifierCountLabel, zyxGameModule.colorPurifierCount === 0 && zyxGameModule.roundToolClaims.magicWand >= (zyxGameModule.rulesVersion >= 14 ? 3 : 1)],
+        ] as [cc.Node, cc.Label, boolean][]) {
+            button.getChildByName('toolUsedShade').active = exhausted;
+            label.node.parent.active = !exhausted;
+            const held = button === this.hammerButton ? zyxGameModule.hammerCount : zyxGameModule.colorPurifierCount;
+            label.node.opacity = held > 0 ? 255 : 0;
+            label.node.parent.getChildByName('toolAddMark').active = held === 0;
+        }
+        const toolOpacity = this.isTutorialGuidedStep() ? 118 : 255;
+        if (this.hammerButton) this.hammerButton.opacity = toolOpacity;
+        if (this.purifierButton) this.purifierButton.opacity = toolOpacity;
+    }
+
+    private setLabelTone(label: cc.Label, color: cc.Color, outlineWidth: number): void {
+        if (!label || !label.node) return;
+        label.node.color = color;
+        this.makeLabelBold(label);
+    }
+
+    private updateHudNumber(label: cc.Label, value: number): void {
+        if (!label || !label.node) return;
+        const nextValue = formatHudScore(value);
+        if (label.string === nextValue) return;
+        label.string = nextValue;
+        const node = label.node;
+        cc.Tween.stopAllByTarget(node);
+        node.scale = 1;
+        const pulseScale = nextValue.length >= 5 ? 1.04 : 1.14;
+        cc.tween(node)
+            .to(0.1, { scale: pulseScale }, { easing: 'quadOut' })
+            .to(0.12, { scale: 0.97 }, { easing: 'quadInOut' })
+            .to(0.12, { scale: 1 }, { easing: 'backOut' })
+            .start();
+    }
+
+    private updateRecordTag(isNewRecord: boolean): void {
+        if (!this.recordTagLabel) return;
+        this.recordTagLabel.string = isNewRecord ? '本局新纪录' : '本局得分';
+        this.recordTagLabel.node.color = isNewRecord ? MOOD_COLORS.coral : HUD_LABEL_COLOR;
+    }
+
+    private movePiece(id: number, offset: number): void {
+        // 过期手势/多指输入不能重绘棋盘，否则会中断起爆回调、碎裂和掉落的时间线。
+        if (this.locked) return;
+        if (this.hammerMode || this.purifierMode) {
+            this.renderBoard();
+            if (this.hammerMode) uimanager.showToast('解压锤已就绪，请点一下目标格子');
+            if (this.purifierMode) uimanager.showToast('魔法棒已就绪，请点一下目标颜色');
+            return;
+        }
+        if (this.isTutorialGuidedStep()) {
+            const expected = zyxGameModule.getTutorialMove(this.tutorialStep);
+            if (!expected || expected.id !== id) {
+                const size = expected ? expected.pieceSize : 1;
+                this.showTutorialCorrection(`这块先休息一下吧～请拖动亮亮的 ${size} 格块，跟着小手走！`, true);
+                return;
+            }
+            if (expected.offset !== offset) {
+                this.showTutorialCorrection('方向差一点点～跟着小手把亮亮的色块拖过去吧！', true);
+                return;
+            }
+            this.cancelTutorialRestore();
+            this.clearTutorialMoveGuide(this.tutorialStep === 2);
+            if (!zyxGameModule.movePiece(id, offset)) {
+                this.showTutorialCorrection('差一点点就到啦～把亮亮的色块完整放进空位吧！', true);
+                return;
+            }
+            audioManager.playSound('move');
+            this.resolveTutorialTurn();
+            return;
+        }
+        if (!zyxGameModule.movePiece(id, offset)) {
+            this.renderBoard();
+            return;
+        }
+        audioManager.playSound('move');
+        this.resolveTurn();
+    }
+
+    private tapPiece(id: number): void {
+        if (this.locked) return;
+        if (this.isTutorialGuidedStep()) {
+            const expected = zyxGameModule.getTutorialMove(this.tutorialStep);
+            const size = expected ? expected.pieceSize : 1;
+            this.showTutorialCorrection(`轻轻按住亮亮的 ${size} 格块，再跟着小手拖一小步哦～`, true);
+            return;
+        }
+        if (this.purifierMode) {
+            this.useColorPurifierTool(id);
+            return;
+        }
+        if (!this.hammerMode && zyxGameModule.getPiece(id) && zyxGameModule.getPiece(id).bomb) {
+            this.useBomb(id);
+            return;
+        }
+        if (!this.hammerMode) {
+            uimanager.showToast('按住色块左右拖动');
+            return;
+        }
+        this.useReliefTool(id);
+    }
+
+    private useBomb(id: number): void {
+        if (this.locked || this.settlementReported) return;
+        const piece = zyxGameModule.getPiece(id);
+        if (!piece || !piece.bomb) return;
+        this.locked = true;
+        const blast = zyxGameModule.detonateBomb(id);
+        if (!blast) { this.locked = false; return; }
+        this.markInteraction();
+        this.animateBombBlasts(blast);
+        this.animateRowShatter(blast.removedPieceIds, blast.detonatedBombs);
+        this.playToolScoreFeedback(blast.gainedScore);
+        this.scheduleOnce(() => this.resolveStableBoard(() => this.appendNextRowAndResolve()),
+            bombResolutionDelay((blast.detonatedBombs || []).length));
+    }
+
+    private animateBombBlasts(result: EliminateResult): void {
+        const bombs = result.detonatedBombs || [];
+        if (bombs.length) {
+            this.bombAnimationLocks++;
+            this.scheduleOnce(() => { this.bombAnimationLocks = Math.max(0, this.bombAnimationLocks - 1); }, bombPlaybackDuration(bombs.length));
+        }
+        bombs.forEach((bomb, index) => {
+            const original = this.pieceLayer.getChildByName(`piece_${bomb.id}`);
+            const badge = original && original.getChildByName('bombBadge');
+            if (badge) cc.tween(badge).delay(index * BOMB_CHAIN_INTERVAL).to(0.025, { opacity: 0 }).start();
+            const center = this.getPiecePosition(bomb.row, bomb.col, bomb.size);
+            playBombEffect(this.pieceLayer, center, CELL_SIZE, index * BOMB_CHAIN_INTERVAL, () => {
+                audioManager.playSound('bomb');
+                gameSettings.vibrateLight();
+            });
+        });
+    }
+
+    private completePlayerAction(): void {
+        const rewards = zyxGameModule.finishPlayerAction();
+        for (const bomb of rewards) {
+            if (bomb.lightning) continue;
+            const node = this.pieceLayer.getChildByName(`piece_${bomb.id}`);
+            if (node) this.decorateBombPiece(node, bomb);
+            else this.createPieceView(bomb);
+        }
+        if (rewards.some(piece => piece.lightning)) this.renderBoard();
+        this.restoreDefaultPlayTip();
+        this.renderNextRow();
+        this.updateHud();
+        this.captureProgress();
+    }
+
+    private async useReliefTool(id: number): Promise<void> {
+        if (this.locked || !zyxGameModule.getPiece(id)) return;
+        this.locked = true;
+        const result = await this.confirmToolUse('hammer', id, () => this.useReliefTool(id));
+        if (!result || !this.node || !cc.isValid(this.node)) return;
+        // 服务端已经扣除一件；纯棋盘引擎在记录动作时还需要一个临时使用额度。
+        zyxGameModule.applyCloudProfile(result.profile);
+        zyxGameModule.hammerCount++;
+        const previousScore = zyxGameModule.score;
+        if (!zyxGameModule.useHammer(id)) {
+            uimanager.showToast('本局解压锤已经用完');
+            this.setToolSelectionMode(null);
+            return;
+        }
+
+        this.setToolSelectionMode(null);
+        this.markInteraction();
+        audioManager.playSound('hammer');
+        gameSettings.vibrateLight();
+        uimanager.showToast('这个心结已经敲开了');
+        this.playToolScoreFeedback(zyxGameModule.score - previousScore);
+        this.resolveTurn([id], true);
+    }
+
+    private async useColorPurifierTool(id: number): Promise<void> {
+        if (this.locked) return;
+        const piece = zyxGameModule.getPiece(id);
+        if (!piece) return;
+        const colorIndex = piece.color;
+        this.locked = true;
+        const result = await this.confirmToolUse('magicWand', colorIndex, () => this.useColorPurifierTool(id));
+        if (!result || !this.node || !cc.isValid(this.node)) return;
+        zyxGameModule.applyCloudProfile(result.profile);
+        zyxGameModule.colorPurifierCount++;
+        const previousScore = zyxGameModule.score;
+        const removedPieceIds = zyxGameModule.useColorPurifier(colorIndex);
+        if (removedPieceIds.length === 0) {
+            uimanager.showToast('本局魔法棒已经用完');
+            this.setToolSelectionMode(null);
+            return;
+        }
+
+        this.setToolSelectionMode(null);
+        this.markInteraction();
+        this.locked = true;
+        audioManager.playSound('magicWand');
+        gameSettings.vibrateLight();
+        uimanager.showToast(`${getMoodName(colorIndex)}色块已全部净空`);
+        this.playToolScoreFeedback(zyxGameModule.score - previousScore);
+        this.animateColorPurifierRemoval(removedPieceIds, colorIndex, () => {
+            this.resolveStableBoard(() => this.appendNextRowAndResolve());
+        });
+    }
+
+    private async confirmToolUse(item: 'hammer' | 'magicWand', target: number, retry: () => void): Promise<{ profile: CloudProfile; roundTools?: RoundToolState }> {
+        try {
+            const result = await cloudService.useTool(zyxGameModule.cloudRoundId, item, zyxGameModule.roundActions.length, target, roundProgress.token, { actions: zyxGameModule.roundActions.slice(), elapsedMs: Math.max(0, Math.floor(Date.now() - zyxGameModule.roundStartedAt)) });
+            zyxGameModule.applyRoundTools(result.roundTools);
+            roundProgress.updateTools(result.roundTools);
+            return result;
+        } catch (error) {
+            if (!this.node || !cc.isValid(this.node)) return null;
+            if (error && error.businessCode === 'ROUND_SESSION_CONFLICT') { roundProgress.invalidateSession(); return null; }
+            if (error && ['TOOL_INSUFFICIENT', 'ROUND_NOT_ACTIVE', 'TOOL_PAYLOAD_CONFLICT', 'TOOL_REQUEST_INVALID', 'TOOL_PROOF_REQUIRED', 'ACCOUNT_CHANGED']
+                .indexOf((error as any).businessCode) >= 0) {
+                this.locked = false;
+                this.setToolSelectionMode(null);
+                uimanager.showToast((error as Error).message);
+                return null;
+            }
+            // 不允许未确认动作继续推进棋盘，重试复用相同回合、动作位置和目标。
+            uimanager.showModal('道具待确认', '网络暂未确认这次使用，重新确认后继续。不会重复扣除道具。', [{
+                text: '重新确认', color: BUTTON_COLORS.green,
+                onClick: () => { this.locked = false; retry(); },
+            }]);
+            return null;
+        }
+    }
+
+    private async confirmRewardedTool(item: 'hammer' | 'magicWand'): Promise<void> {
+        const key = `zyx_tool_reward_${item}`;
+        let claim: string;
+        try {
+            claim = cc.sys.localStorage.getItem(key);
+            if (!claim || claim.indexOf(`${zyxGameModule.cloudRoundId}:`) !== 0) {
+                claim = `${zyxGameModule.cloudRoundId}:reward:${item}:${Date.now()}`;
+                cc.sys.localStorage.setItem(key, claim);
+            }
+        } catch (_) {
+            this.locked = false;
+            uimanager.showToast('存储空间不足，清理后再领取');
+            return;
+        }
+        this.locked = true;
+        try {
+            const result = await cloudService.claimToolReward(zyxGameModule.cloudRoundId, item, claim, roundProgress.token);
+            cc.sys.localStorage.removeItem(key);
+            zyxGameModule.applyCloudProfile(result.profile);
+            zyxGameModule.applyRoundTools(result.roundTools);
+            roundProgress.updateTools(result.roundTools);
+            if (this.node && cc.isValid(this.node)) {
+                this.locked = false;
+                this.updateHud();
+                this.setToolSelectionMode(item);
+            }
+        } catch (error) {
+            if (!this.node || !cc.isValid(this.node)) return;
+            if (error && error.businessCode === 'ROUND_SESSION_CONFLICT') { roundProgress.invalidateSession(); return; }
+            if (error && ['TOOL_REWARD_LIMIT', 'TOOL_ALREADY_OWNED', 'ROUND_NOT_ACTIVE', 'TOOL_PAYLOAD_CONFLICT', 'TOOL_REQUEST_INVALID', 'REWARD_PROOF_REQUIRED', 'REWARD_PROOF_INVALID', 'REWARD_CONTEXT_INVALID', 'ACCOUNT_CHANGED']
+                .indexOf((error as any).businessCode) >= 0) {
+                cc.sys.localStorage.removeItem(key);
+                this.locked = false;
+                uimanager.showToast((error as Error).message);
+                return;
+            }
+            uimanager.showModal('补给待确认', '补给已完成，联网确认后即可使用。', [{
+                text: '重新确认', color: BUTTON_COLORS.green, onClick: () => this.confirmRewardedTool(item),
+            }]);
+        }
+    }
+
+    private showHammerInfoModal(): void {
+        if (this.locked) return;
+        if (zyxGameModule.hammerCount > 0) { this.toggleHammer(); return; }
+        if (zyxGameModule.roundToolClaims.hammer >= 3) { uimanager.showToast('解压锤每局仅可获得3次'); return; }
+        this.setToolSelectionMode(null);
+        this.markInteraction();
+        this.locked = true;
+        uimanager.showModal('解压锤', '敲掉选中的一个色块', [
+            { text: `视频获得（${3 - zyxGameModule.roundToolClaims.hammer}/3）`, color: BUTTON_COLORS.green,
+                icon: button => decorateActionButton(button, 'video'),
+                onClick: () => { this.locked = false; this.requestRewardedHammer(); } },
+            { text: '不，谢谢', color: BUTTON_COLORS.yellow, onClick: () => { this.locked = false; } },
+        ], (panel, centerY) => this.createHammerToolDemo(panel, centerY), 148, false, true, 560, { onDismiss: () => { this.locked = false; } });
+    }
+
+    private toggleHammer(): void {
+        if (this.locked) return;
+        if (zyxGameModule.hammerCount <= 0) {
+            this.requestRewardedHammer();
+            return;
+        }
+        this.markInteraction();
+        const nextMode = this.hammerMode ? null : 'hammer';
+        this.setToolSelectionMode(nextMode);
+        if (!nextMode) uimanager.showToast('已收起解压锤');
+    }
+
+    private requestRewardedHammer(): void {
+        if (this.locked || this.rewardedAdLoading) return;
+        if (zyxGameModule.hammerCount > 0) {
+            this.setToolSelectionMode('hammer');
+            return;
+        }
+        if (!zyxGameModule.pieces.length) { uimanager.showToast('当前没有可用目标'); return; }
+        const pendingClaim = cc.sys.localStorage.getItem('zyx_tool_reward_hammer');
+        if (pendingClaim && pendingClaim.indexOf(zyxGameModule.cloudRoundId + ':') === 0) { void this.confirmRewardedTool('hammer'); return; }
+        this.markInteraction();
+        this.rewardedAdLoading = true;
+        this.locked = true;
+        this.showRewardOffer((rewarded) => {
+            this.rewardedAdLoading = false;
+            this.locked = false;
+            if (!rewarded) {
+                uimanager.showToast(getRewardOfferFailToast('tool', 'hammer'));
+                return;
+            }
+            this.confirmRewardedTool('hammer');
+        }, 'hammer');
+    }
+
+    private showPurifierInfoModal(): void {
+        if (this.locked) return;
+        if (zyxGameModule.colorPurifierCount > 0) { this.toggleColorPurifier(); return; }
+        if (zyxGameModule.roundToolClaims.magicWand >= (zyxGameModule.rulesVersion >= 14 ? 3 : 1)) { uimanager.showToast(`魔法棒每局仅可获得${zyxGameModule.rulesVersion >= 14 ? 3 : 1}次`); return; }
+        this.setToolSelectionMode(null);
+        this.markInteraction();
+        this.locked = true;
+        uimanager.showModal('魔法棒', '选中一种颜色，同色色块一起消失', [
+            { text: `视频获得（${(zyxGameModule.rulesVersion >= 14 ? 3 : 1) - zyxGameModule.roundToolClaims.magicWand}/${zyxGameModule.rulesVersion >= 14 ? 3 : 1}）`, color: BUTTON_COLORS.green,
+                icon: button => decorateActionButton(button, 'video'),
+                onClick: () => { this.locked = false; this.requestRewardedColorPurifier(); } },
+            { text: '不，谢谢', color: BUTTON_COLORS.yellow, onClick: () => { this.locked = false; } },
+        ], (panel, centerY) => this.createMagicWandToolDemo(panel, centerY), 148, false, true, 560, { onDismiss: () => { this.locked = false; } });
+    }
+
+    private toggleColorPurifier(): void {
+        if (this.locked) return;
+        if (zyxGameModule.colorPurifierCount <= 0) {
+            this.requestRewardedColorPurifier();
+            return;
+        }
+        this.markInteraction();
+        const nextMode = this.purifierMode ? null : 'magicWand';
+        this.setToolSelectionMode(nextMode);
+        if (!nextMode) uimanager.showToast('已收起魔法棒');
+    }
+
+    private requestRewardedColorPurifier(): void {
+        if (this.locked || this.rewardedAdLoading) return;
+        if (zyxGameModule.colorPurifierCount > 0) {
+            this.setToolSelectionMode('magicWand');
+            return;
+        }
+        if (!zyxGameModule.pieces.length) { uimanager.showToast('当前没有可用目标'); return; }
+        const pendingClaim = cc.sys.localStorage.getItem('zyx_tool_reward_magicWand');
+        if (pendingClaim && pendingClaim.indexOf(zyxGameModule.cloudRoundId + ':') === 0) { void this.confirmRewardedTool('magicWand'); return; }
+        this.markInteraction();
+        this.rewardedAdLoading = true;
+        this.locked = true;
+        this.showRewardOffer((rewarded) => {
+            this.rewardedAdLoading = false;
+            this.locked = false;
+            if (!rewarded) {
+                uimanager.showToast(getRewardOfferFailToast('tool'));
+                return;
+            }
+            this.confirmRewardedTool('magicWand');
+        }, 'tool');
+    }
+
+    /** 局内所有奖励点位共用管理器的分享/激励视频双通道。 */
+    private showRewardOffer(onResult: (rewarded: boolean) => void, placement: RewardPlacement = 'rescue'): void {
+        const roundId = zyxGameModule.cloudRoundId, token = roundProgress.token;
+        const current = (): boolean => cc.isValid(this.node) && !this.settlementReported
+            && roundId === zyxGameModule.cloudRoundId && token === roundProgress.token;
+        const fail = (error: any): void => {
+            if (!current()) return;
+            if (error && error.businessCode === 'ROUND_SESSION_CONFLICT') { roundProgress.invalidateSession(); return; }
+            uimanager.showToast(error && error.message || '奖励尚未确认，请联网重试'); onResult(false);
+        };
+        void cloudService.prepareRewardIntent(placement, { roundId, sessionToken: token,
+            actions: zyxGameModule.roundActions.slice(), elapsedMs: Math.max(0, Math.floor(Date.now() - zyxGameModule.roundStartedAt)) })
+            .then(intent => {
+                if (!current()) return;
+                if (intent.completed) { onResult(true); return; }
+                requestRewardOffer(rewarded => {
+                    if (!current()) return;
+                    if (!rewarded) { onResult(false); return; }
+                    void cloudService.completeRewardIntent(intent.intentId, token).then(() => {
+                        if (current()) onResult(true);
+                    }).catch(fail);
+                }, '一次机会', placement);
+            }).catch(fail);
+    }
+
+    private markInteraction(): void {
+        this.idleSeconds = 0;
+        this.cancelEliminationHint();
+        if (this.isTutorialGuidedStep()) this.cancelTutorialHand();
+    }
+
+    private playEliminationHint(): void {
+        if (this.locked || this.hammerMode || this.purifierMode || this.isTutorialGuidedStep() || !this.pieceLayer) return;
+        const hint = zyxGameModule.findEliminationHint();
+        if (!hint) return;
+        const piece = zyxGameModule.getPiece(hint.id);
+        const node = this.pieceLayer.getChildByName(`piece_${hint.id}`);
+        if (!piece || !node) return;
+
+        this.cancelEliminationHint();
+        this.hintPieceId = hint.id;
+        const origin = this.getPiecePosition(piece.row, piece.col, piece.size);
+        const targetX = origin.x + hint.offset * CELL_SIZE;
+        this.hintHand = this.createHintHand(this.pieceLayer, origin.x, origin.y + 42);
+        const hand = this.hintHand;
+
+        cc.tween(hand)
+            .to(0.18, { y: origin.y + 22, scale: 0.9 }, { easing: 'quadOut' })
+            .to(0.55, { x: targetX, y: origin.y + 22 }, { easing: 'cubicInOut' })
+            .to(0.13, { y: origin.y + 39, scale: 1 }, { easing: 'backOut' })
+            .delay(0.24)
+            .to(0.38, { x: origin.x, opacity: 0 }, { easing: 'quadIn' })
+            .call(() => this.finishEliminationHint())
+            .start();
+        cc.tween(node)
+            .delay(0.18)
+            .to(0.55, { x: targetX }, { easing: 'cubicInOut' })
+            .delay(0.2)
+            .to(0.46, { x: origin.x }, { easing: 'cubicInOut' })
+            .start();
+    }
+
+    private createHintHand(parent: cc.Node, x: number, y: number): cc.Node {
+        const node = new cc.Node('eliminationHintHand');
+        node.width = 62;
+        node.height = 72;
+        node.setPosition(x, y);
+        node.zIndex = 400;
+        parent.addChild(node);
+        const halo = new cc.Node('hintHandHalo');
+        halo.width = 80;
+        halo.height = 80;
+        halo.zIndex = -1;
+        node.addChild(halo);
+        const haloGraphics = halo.addComponent(cc.Graphics);
+        haloGraphics.fillColor = new cc.Color(239, 151, 105, 74);
+        haloGraphics.circle(0, 0, 34);
+        haloGraphics.fill();
+        cc.tween(halo)
+            .repeatForever(cc.tween().to(0.45, { scale: 1.18, opacity: 80 }).to(0.45, { scale: 0.9, opacity: 220 }))
+            .start();
+        const g = node.addComponent(cc.Graphics);
+        g.fillColor = new cc.Color(80, 55, 49, 38);
+        g.circle(5, -7, 21);
+        g.fill();
+        g.fillColor = new cc.Color(255, 248, 224);
+        g.strokeColor = new cc.Color(105, 76, 64);
+        g.lineWidth = 2.5;
+        g.circle(0, -3, 19);
+        g.fill();
+        g.stroke();
+        g.roundRect(-7, -4, 14, 43, 7);
+        g.fill();
+        g.stroke();
+        g.fillColor = new cc.Color(241, 183, 124);
+        g.circle(0, 30, 5);
+        g.fill();
+        return node;
+    }
+
+    private cancelEliminationHint(): void {
+        if (this.hintPieceId > 0 && this.pieceLayer) {
+            const piece = zyxGameModule.getPiece(this.hintPieceId);
+            const node = this.pieceLayer.getChildByName(`piece_${this.hintPieceId}`);
+            if (piece && node) {
+                cc.Tween.stopAllByTarget(node);
+                node.setPosition(this.getPiecePosition(piece.row, piece.col, piece.size));
+            }
+        }
+        if (this.hintHand && cc.isValid(this.hintHand)) {
+            cc.Tween.stopAllByTarget(this.hintHand);
+            this.hintHand.destroy();
+        }
+        this.hintHand = null;
+        this.hintPieceId = 0;
+    }
+
+    private finishEliminationHint(): void {
+        const hand = this.hintHand;
+        this.hintHand = null;
+        this.hintPieceId = 0;
+        if (hand && cc.isValid(hand)) hand.destroy();
+        this.idleSeconds = 0;
+    }
+
+    private restoreDefaultPlayTip(): void {
+        if (!this.moodStageLabel || this.moodStageLabel.string) return;
+        this.moodStageLabel.string = '左右拖动心情块，填满一行就能消除';
+        this.moodStageLabel.node.opacity = 0;
+        this.tipSeconds = 0;
+    }
+
+    private updateRotatingTip(dt: number): void {
+        if (!this.moodStageLabel || this.hammerMode || this.purifierMode || this.isTutorialGuidedStep()) return;
+        if (this.pauseMenuOpen || this.rewardedAdLoading || this.settlementReported) return;
+        const beginner = zyxGameModule.challengeCount <= 10;
+        const source = beginner ? GAME_PLAY_TIPS : GAME_WARM_TIPS;
+        const previous = this.tipSeconds;
+        this.tipSeconds += dt;
+        if (this.tipSeconds >= 8) {
+            this.tipSeconds %= 8;
+            this.tipIndex = (this.tipIndex + 1) % source.length;
+            this.moodStageLabel.string = source[this.tipIndex];
+        } else if (previous === 0) this.moodStageLabel.string = source[this.tipIndex % source.length];
+        const t = this.tipSeconds;
+        const progress = t < 1.5 ? t / 1.5 : t <= 6.5 ? 1 : (8 - t) / 1.5;
+        const alpha = 0.5 - Math.cos(Math.PI * progress) / 2;
+        this.moodStageLabel.node.opacity = Math.round(255 * alpha);
+    }
+
+    private resolveTurn(removedPieceIds: number[] = [], shatter: boolean = false): void {
+        this.locked = true;
+        this.updateHud();
+        const beginResolution = () => {
+            this.resolveStableBoard(() => this.appendNextRowAndResolve());
+        };
+
+        if (removedPieceIds.length > 0) {
+            if (shatter) this.animateHammerRemoval(removedPieceIds[0], beginResolution);
+            else this.animatePieceRemoval(removedPieceIds, beginResolution);
+        } else {
+            beginResolution();
+        }
+    }
+
+    /** 教学前三步只结算重力与消除，不补随机新行；第三步完成后再接回正式回合。 */
+    private resolveTutorialTurn(): void {
+        this.locked = true;
+        this.updateHud();
+        const clearedRowsBefore = zyxGameModule.roundClearedRows;
+        this.resolveStableBoard(() => {
+            this.completePlayerAction();
+            if (zyxGameModule.roundClearedRows <= clearedRowsBefore) {
+                cc.error(`[新手教学] 第 ${this.tutorialStep + 1} 步没有产生消除`);
+                this.locked = false;
+                this.showTutorialCorrection('差一点点就成功啦～让亮亮的色块完整住进空位吧！', true);
+                return;
+            }
+            this.tutorialStep++;
+            this.idleSeconds = 0;
+            if (this.isTutorialGuidedStep()) {
+                this.locked = false;
+                this.showTutorialStep();
+                return;
+            }
+
+            this.playTutorialCompletionTransition();
+        });
+    }
+
+    private handleChallengeFailed(reason: string): void {
+        this.captureProgress(true);
+        audioManager.setGamePaused(true);
+        this.dismissRoundRescuePrompt(false);
+        this.cancelEliminationHint();
+        this.setToolSelectionMode(null);
+        this.locked = true;
+        if (this.reviveUsed) {
+            if (zyxGameModule.rulesVersion >= 11 && !this.reviveCardUsed && zyxGameModule.reviveCardCount > 0) {
+                this.showReviveCardModal(reason);
+                return;
+            }
+            this.finishGame(reason);
+            return;
+        }
+        this.showReviveModal(reason);
+    }
+
+    private showReviveCardModal(reason: string): void {
+        this.locked = true;
+        uimanager.showModal('复活卡', '用一张复活卡，再给自己一次机会', [
+            { text: '下次吧', color: BUTTON_COLORS.yellow, onClick: () => this.finishGame(reason) },
+            { text: '复活', color: BUTTON_COLORS.green, icon: button => decorateActionButton(button, 'reviveCard'), onClick: () => { void this.requestReviveCard(reason); } },
+        ], (panel, centerY) => {
+            const art = new cc.Node('reviveCardArt');
+            panel.addChild(art);
+            art.setPosition(0, centerY + 36);
+            const sprite = art.addComponent(cc.Sprite);
+            sprite.spriteFrame = getSpriteFrame('effects', ASSET_PATHS.effects.reviveCard);
+            sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            uimanager.fitSpriteFrameInside(art, sprite.spriteFrame, 196, 132);
+            uimanager.createLabel(panel, `已拥有 ${zyxGameModule.reviveCardCount} 张 · 本局仅可使用一次`,
+                0, centerY - 58, 20, HUD_LABEL_COLOR, 470, 36);
+        }, 180, true, false, 560, { buttonHeight: 96, buttonGap: 32, buttonFontSize: 26 });
+    }
+
+    private async requestReviveCard(reason: string): Promise<void> {
+        if (this.rewardedAdLoading || this.reviveCardUsed || this.settlementReported) return;
+        this.rewardedAdLoading = true;
+        this.locked = true;
+        if (!this.pendingReviveCardRequest) {
+            this.captureProgress(true);
+            this.pendingReviveCardRequest = { roundId: zyxGameModule.cloudRoundId, sessionToken: roundProgress.token,
+                actions: zyxGameModule.roundActions.map(action => ({ ...action })),
+                elapsedMs: Math.max(0, Math.floor(Date.now() - zyxGameModule.roundStartedAt)) };
+        }
+        try {
+            const result = await cloudService.useReviveCard(this.pendingReviveCardRequest);
+            if (!cc.isValid(this.node)) return;
+            zyxGameModule.applyCloudProfile(result.profile);
+            // 扣卡与完整复活进度已在服务端同事务落盘；动画中退出也能恢复。
+            roundProgress.begin(result.round, zyxGameModule.getPlayerId());
+            this.pendingReviveCardRequest = null;
+            this.reviveCardUsed = true;
+            const removed = zyxGameModule.pieces.filter(piece => piece.row < 8).map(piece => piece.id);
+            this.playEmergencyClearEffect(removed, () => {
+                zyxGameModule.restoreRound(result.round);
+                this.renderAll();
+                this.beanCollectionHud.complete(zyxGameModule.roundCollectedMoodBeans);
+                this.captureProgress();
+                audioManager.setGamePaused(false);
+                this.locked = false;
+                this.idleSeconds = 0;
+                uimanager.showToast('复活卡已使用，接着慢慢整理吧');
+                if (zyxGameModule.isGameOver()) this.finishGame(reason);
+            });
+        } catch (error) {
+            if (!cc.isValid(this.node)) return;
+            if (['ROUND_SESSION_CONFLICT', 'ROUND_NOT_ACTIVE', 'PROGRESS_CONFLICT', 'ACCOUNT_CHANGED'].includes(error.businessCode)) {
+                roundProgress.invalidateSession();
+                return;
+            }
+            if (['TOOL_INSUFFICIENT', 'REVIVE_CARD_UNAVAILABLE', 'PROGRESS_INVALID', 'SETTLEMENT_TOO_OLD'].includes(error.businessCode)) {
+                this.pendingReviveCardRequest = null;
+                uimanager.showToast(error.message);
+                this.finishGame(reason);
+                return;
+            }
+            uimanager.showModal('复活待确认', '联网确认后即可继续，重试不会重复消耗复活卡', [
+                { text: '重新确认', color: BUTTON_COLORS.green, icon: button => decorateActionButton(button, 'reviveCard'), onClick: () => { void this.requestReviveCard(reason); } },
+            ]);
+        } finally { this.rewardedAdLoading = false; }
+    }
+
+    private showReviveModal(reason: string): void {
+        this.locked = true;
+        const message = getReviveChaseMessage(this.rankChaseEntries,
+            this.rankChaseProfile ? this.rankChaseProfile.playerId : '', zyxGameModule.score);
+        const modal = uimanager.showModal('复活', message, [
+            { text: '复活', color: BUTTON_COLORS.yellow, onClick: () => this.requestRevive(reason),
+                icon: button => decorateActionButton(button, getRewardOfferIcon('revive')) },
+            { text: '不需要', color: BUTTON_COLORS.red, onClick: () => this.finishGame(reason) },
+        ], null, 0, false, false, 560, {
+            messageHeight: 148, messageFontSize: 28, messageLineHeight: 52,
+            buttonHeight: 96, buttonFontSize: 26,
+        });
+        if (modal && message.endsWith('这怎么能忍！')) {
+            const panel = modal.getChildByName('panel');
+            const body = panel.children.map(node => node.getComponent(cc.Label)).find(label => label && label.string === message);
+            for (const side of [-1, 1]) {
+                const face = drawMoodFace(panel, 29, 50, MOOD_COLORS.cocoa);
+                face.name = side < 0 ? 'revivePleadingLeft' : 'revivePleadingRight';
+                face.zIndex = 65; face.setPosition(side * 144, body.node.y - 52 + 2);
+            }
+        }
+    }
+
+    private requestRevive(reason: string): void {
+        if (this.rewardedAdLoading) return;
+        this.rewardedAdLoading = true;
+        this.locked = true;
+        this.showRewardOffer((rewarded) => {
+            this.rewardedAdLoading = false;
+            if (!rewarded) {
+                uimanager.showToast(getRewardOfferFailToast('revive'));
+                this.showReviveModal(reason);
+                return;
+            }
+            this.reviveUsed = true;
+            this.performRevive();
+        }, 'revive');
+    }
+
+    private performRevive(): void {
+        const removedPieceIds = zyxGameModule.removeTopRowsForRevive(8);
+        this.setToolSelectionMode(null);
+        this.locked = true;
+        this.playEmergencyClearEffect(removedPieceIds, () => {
+            this.resolveStableBoard(() => {
+                this.updateHud();
+                uimanager.showToast('已清理顶部 8 排，自动补入一排');
+                audioManager.setGamePaused(false);
+                this.appendNextRowAndResolve();
+            });
+        });
+    }
+
+    /** 两种紧急救场共用同一条演出时间线：闪电、云团与碎裂同时发生。 */
+    private playEmergencyClearEffect(pieceIds: number[], onComplete: () => void): void {
+        this.playEmergencyLightning();
+        this.playEmergencyClouds();
+        this.animateEmergencyShatter(pieceIds);
+        // 旧流程串行约 3.6s；现在 1.18s 就进入补行，清除速度提升超过一倍。
+        this.scheduleOnce(onComplete, 1.18);
+    }
+
+    private playEmergencyLightning(): void {
+        if (!this.boardRoot || !cc.isValid(this.boardRoot)) return;
+
+        const boardWidth = BOARD_COLS * CELL_SIZE;
+        const boardHeight = BOARD_ROWS * CELL_SIZE;
+        const flash = new cc.Node('emergencyBoardFlash');
+        flash.width = boardWidth;
+        flash.height = boardHeight;
+        flash.setPosition(0, 0);
+        flash.zIndex = 68;
+        flash.opacity = 0;
+        this.boardRoot.addChild(flash);
+        const flashGraphics = flash.addComponent(cc.Graphics);
+        flashGraphics.fillColor = new cc.Color(255, 239, 153, 148);
+        flashGraphics.rect(-boardWidth / 2, -boardHeight / 2, boardWidth, boardHeight);
+        flashGraphics.fill();
+        cc.tween(flash)
+            .delay(0.04)
+            .to(0.07, { opacity: 220 })
+            .to(0.055, { opacity: 38 })
+            .to(0.07, { opacity: 245 })
+            .to(0.055, { opacity: 42 })
+            .to(0.08, { opacity: 255 })
+            .to(0.24, { opacity: 0 }, { easing: 'quadOut' })
+            .call(() => {
+                if (cc.isValid(flash)) flash.destroy();
+            })
+            .start();
+
+        const strikeXs = [-196, 0, 196];
+        strikeXs.forEach((x, index) => {
+            const bolt = new cc.Node(`emergencyLightning_${index}`);
+            bolt.setPosition(x, 28);
+            bolt.zIndex = 98;
+            bolt.opacity = 0;
+            bolt.scale = 0.82;
+            this.boardRoot.addChild(bolt);
+            const graphics = bolt.addComponent(cc.Graphics);
+            const drawBolt = (color: cc.Color, width: number): void => {
+                graphics.strokeColor = color;
+                graphics.lineWidth = width;
+                graphics.lineCap = cc.Graphics.LineCap.ROUND;
+                graphics.moveTo(22, 330);
+                graphics.lineTo(-28, 224);
+                graphics.lineTo(22, 224);
+                graphics.lineTo(-30, 92);
+                graphics.lineTo(26, 92);
+                graphics.lineTo(-24, -58);
+                graphics.lineTo(18, -58);
+                graphics.lineTo(-18, -296);
+                graphics.stroke();
+            };
+            drawBolt(new cc.Color(215, 126, 30, 145), 42);
+            drawBolt(new cc.Color(249, 194, 53, 248), 25);
+            drawBolt(new cc.Color(255, 255, 224, 255), 9);
+            graphics.fillColor = new cc.Color(255, 228, 114, 245);
+            graphics.circle(-42, 178, 11);
+            graphics.circle(38, 72, 9);
+            graphics.circle(-34, -122, 8);
+            graphics.fill();
+
+            cc.tween(bolt)
+                .delay(0.03 + index * 0.055)
+                .to(0.07, { opacity: 255, scale: 1.2 }, { easing: 'backOut' })
+                .to(0.055, { opacity: 66, scale: 0.98 })
+                .to(0.07, { opacity: 255, scale: 1.14 })
+                .to(0.055, { opacity: 62, scale: 0.99 })
+                .to(0.08, { opacity: 255, scale: 1.24 })
+                .delay(0.08)
+                .to(0.2, { opacity: 0, scale: 1.34 }, { easing: 'quadOut' })
+                .call(() => {
+                    if (cc.isValid(bolt)) bolt.destroy();
+                })
+                .start();
+            this.playEmergencySpineBurst(x, 116, index);
+            this.playEmergencySpineBurst(x * 0.72, -154, index + 3);
+        });
+
+        cc.Tween.stopAllByTarget(this.boardRoot);
+        const originX = this.boardRoot.x;
+        cc.tween(this.boardRoot)
+            .delay(0.08)
+            .to(0.045, { x: originX - 18 })
+            .to(0.045, { x: originX + 17 })
+            .to(0.045, { x: originX - 14 })
+            .to(0.045, { x: originX + 12 })
+            .to(0.045, { x: originX - 9 })
+            .to(0.045, { x: originX + 7 })
+            .to(0.065, { x: originX })
+            .start();
+    }
+
+    /** 六片亮色大云团交叠遮盖棋盘，不再使用黑灰小烟点。 */
+    private playEmergencyClouds(): void {
+        if (!this.boardRoot || !cc.isValid(this.boardRoot)) return;
+
+        const boardHeight = BOARD_ROWS * CELL_SIZE;
+        const cloudRoot = new cc.Node('emergencyCloudBank');
+        cloudRoot.width = BOARD_COLS * CELL_SIZE;
+        cloudRoot.height = boardHeight;
+        cloudRoot.setPosition(0, 0);
+        cloudRoot.zIndex = 86;
+        this.boardRoot.addChild(cloudRoot);
+
+        const clouds = [
+            { x: -205, y: 232, radius: 150, delay: 0.00, drift: -26 },
+            { x: 18, y: 214, radius: 178, delay: 0.025, drift: 18 },
+            { x: 222, y: 156, radius: 152, delay: 0.05, drift: 28 },
+            { x: -216, y: -46, radius: 166, delay: 0.035, drift: -22 },
+            { x: 12, y: -92, radius: 188, delay: 0.01, drift: 16 },
+            { x: 226, y: -122, radius: 158, delay: 0.06, drift: 30 },
+        ];
+
+        clouds.forEach((config, index) => {
+            const cloud = new cc.Node(`emergencyCloud_${index}`);
+            cloud.setPosition(config.x, config.y);
+            cloud.opacity = 0;
+            cloud.scale = 0.5;
+            cloudRoot.addChild(cloud);
+            const graphics = cloud.addComponent(cc.Graphics);
+            const radius = config.radius;
+
+            graphics.fillColor = new cc.Color(220, 207, 177, 36);
+            graphics.circle(-radius * 0.3, -radius * 0.2, radius * 0.72);
+            graphics.circle(radius * 0.32, -radius * 0.2, radius * 0.68);
+            graphics.fill();
+            graphics.fillColor = new cc.Color(250, 246, 224, 244);
+            graphics.circle(-radius * 0.48, -radius * 0.02, radius * 0.48);
+            graphics.circle(-radius * 0.14, radius * 0.22, radius * 0.66);
+            graphics.circle(radius * 0.28, radius * 0.17, radius * 0.58);
+            graphics.circle(radius * 0.48, -radius * 0.12, radius * 0.48);
+            graphics.circle(radius * 0.02, -radius * 0.24, radius * 0.7);
+            graphics.fill();
+            graphics.fillColor = new cc.Color(255, 254, 242, 150);
+            graphics.circle(-radius * 0.22, radius * 0.34, radius * 0.3);
+            graphics.circle(radius * 0.25, radius * 0.3, radius * 0.2);
+            graphics.fill();
+
+            cc.tween(cloud)
+                .delay(config.delay)
+                .to(0.18, { opacity: 242, scale: 1.08 }, { easing: 'backOut' })
+                .delay(0.32)
+                .to(0.44, {
+                    x: config.x + config.drift,
+                    y: config.y + 48,
+                    opacity: 0,
+                    scale: 1.38,
+                }, { easing: 'quadOut' })
+                .start();
+        });
+
+        this.scheduleOnce(() => {
+            if (cc.isValid(cloudRoot)) cloudRoot.destroy();
+        }, 1.05);
+    }
+
+    private playEmergencySpineBurst(x: number, y: number, index: number): void {
+        if (!this.clearSpineData || !this.boardRoot) return;
+        const node = new cc.Node(`emergencySpine_${index}`);
+        node.setPosition(x, y);
+        node.opacity = 245;
+        node.scaleX = 1.42;
+        node.scaleY = 1.22;
+        node.zIndex = 94;
+        this.boardRoot.addChild(node);
+        const skeleton = node.addComponent(sp.Skeleton);
+        skeleton.skeletonData = this.clearSpineData;
+        skeleton.premultipliedAlpha = false;
+        skeleton.timeScale = 1.65;
+        skeleton.setAnimation(0, index % 2 === 0 ? 'action' : 'action2', false);
+        skeleton.setCompleteListener(() => {
+            if (cc.isValid(node)) node.destroy();
+        });
+        this.scheduleOnce(() => {
+            if (cc.isValid(node)) node.destroy();
+        }, 0.86);
+    }
+
+    private animateEmergencyShatter(pieceIds: number[]): void {
+        if (!this.pieceLayer || pieceIds.length === 0) return;
+        const targets = pieceIds
+            .map((id) => ({
+                id,
+                node: this.pieceLayer.getChildByName(`piece_${id}`),
+                color: this.pieceColors[id],
+            }))
+            .filter((target) => !!target.node)
+            .sort((left, right) => right.node.y - left.node.y);
+        if (targets.length === 0) return;
+
+        targets.forEach((target, index) => {
+            const delay = 0.075 + (index % 3) * 0.012;
+            cc.Tween.stopAllByTarget(target.node);
+            cc.tween(target.node)
+                .to(0.055, {
+                    scale: 1.16,
+                    angle: index % 2 === 0 ? -4 : 4,
+                }, { easing: 'quadOut' })
+                .start();
+            this.scheduleOnce(() => {
+                if (!cc.isValid(target.node)) return;
+                target.node.scaleX = 1.18;
+                target.node.scaleY = 0.68;
+                // 使用锤子的强爆散参数，比普通消行的碎片飞得更大、更远。
+                this.spawnPieceShards(target.node, target.color, target.id, false);
+                delete this.pieceColors[target.id];
+                target.node.destroy();
+            }, delay);
+        });
+    }
+
+    private pauseGame(): void {
+        if (this.locked) return;
+        this.captureProgress(true);
+        this.markInteraction();
+        this.setToolSelectionMode(null);
+        this.locked = true;
+        this.pauseMenuOpen = true;
+        this.pauseStartedAt = Date.now();
+        audioManager.setGamePaused(true);
+        const resume = (): void => {
+            if (this.pauseStartedAt) zyxGameModule.roundStartedAt += Math.max(0, Date.now() - this.pauseStartedAt);
+            this.pauseStartedAt = 0;
+            this.pauseMenuOpen = false;
+            audioManager.setGamePaused(false);
+            this.locked = false;
+            this.idleSeconds = 0;
+            if (this.isTutorialGuidedStep()) this.showTutorialStep();
+        };
+        settingsPanel.show({
+            progressMessage: roundProgress.message(),
+            onDismiss: resume,
+            actions: [
+            {
+                text: '重新开始',
+                color: BUTTON_COLORS.yellow,
+                onClick: () => this.restartFromPause(),
+                icon: (button) => decorateSettingsActionButton(button, 'restart'),
+            },
+            {
+                text: '继续',
+                color: BUTTON_COLORS.green,
+                onClick: resume,
+                icon: (button) => decorateSettingsActionButton(button, 'play'),
+            },
+            {
+                text: '结算退出',
+                color: BUTTON_COLORS.red,
+                onClick: () => this.finishGame('今天先整理到这里'),
+                icon: (button) => decorateSettingsActionButton(button, 'exit'),
+            },
+            {
+                text: '保存返回',
+                color: BUTTON_COLORS.green,
+                onClick: () => { void this.saveAndReturnHome(); },
+                icon: (button) => decorateActionButton(button, 'back', 30),
+            },
+            ],
+        });
+    }
+
+    private async saveAndReturnHome(): Promise<void> {
+        this.locked = true;
+        this.captureProgress(true);
+        if (!roundProgress.canLeave) {
+            uimanager.showToast('正在保存进度…');
+            await roundProgress.sync(true);
+            if (!roundProgress.canLeave) {
+                this.pauseMenuOpen = false;
+                this.locked = false;
+                audioManager.setGamePaused(false);
+                uimanager.showToast('暂时无法保存，请保持本局并检查网络或本机存储');
+                return;
+            }
+        }
+        if (this.onSaveAndExit) this.onSaveAndExit();
+    }
+
+    private finishGame(_reason: string): void {
+        if (this.settlementReported) return;
+        audioManager.enterScene('silent');
+        this.dismissRoundRescuePrompt(false);
+        this.stopBoardDangerGlow();
+        this.cancelEliminationHint();
+        this.setToolSelectionMode(null);
+        this.locked = true;
+        const settlement = zyxGameModule.finishRound();
+        this.beanCollectionHud.complete(zyxGameModule.roundCollectedMoodBeans);
+        this.settlementReported = true;
+        if (this.onRoundFinished) this.onRoundFinished(settlement, zyxGameModule.roundStartedAt);
+        this.updateHud();
+        uimanager.showModal('本局结算', this.getSettlementMessage(settlement), [
+            {
+                text: '返回',
+                color: BUTTON_COLORS.yellow,
+                onClick: () => this.leaveSettlement(false, settlement),
+                icon: (button) => decorateActionButton(button, 'back', 30),
+            },
+            {
+                text: '再来一次',
+                color: BUTTON_COLORS.green,
+                onClick: () => this.leaveSettlement(true, settlement),
+                icon: (button) => decorateActionButton(button, 'restart', 30),
+            },
+        ], (panel, centerY) => {
+            const scoreCaption = uimanager.createLabel(panel, '本局得分', 0, centerY + 120, 28, HUD_LABEL_COLOR, 320, 40);
+            this.makeLabelBold(scoreCaption);
+            const score = uimanager.createLabel(panel, String(settlement.roundScore), 0, centerY + 48, 88, HUD_VALUE_COLOR, 420, 108);
+            this.makeLabelBold(score);
+            score.node.scale = 0.72;
+            cc.tween(score.node).to(0.3, { scale: 1 }, { easing: 'backOut' }).start();
+
+            const moodChip = uimanager.createRect(
+                panel,
+                'settlementMoodReward',
+                260,
+                84,
+                new cc.Color(255, 239, 203),
+                255,
+                20,
+                0,
+                centerY - 112,
+            );
+            const rewardCaption = uimanager.createLabel(panel, '本局收获 · 开心豆', 0, centerY - 44, 28, HUD_LABEL_COLOR, 360, 40);
+            this.makeLabelBold(rewardCaption);
+            const rewardContent = new cc.Node('settlementRewardContent');
+            moodChip.addChild(rewardContent);
+            const beanSize = 56;
+            const gap = 10;
+            const bean = createMoodBean(rewardContent, 1, 0, 0, beanSize);
+            const moodValue = uimanager.createLabel(rewardContent, `×${settlement.roundEarnedMoodBeans}`, 0, 0, 36, HUD_VALUE_COLOR, 160, 48);
+            moodValue.overflow = cc.Label.Overflow.NONE;
+            moodValue.enableWrapText = false;
+            this.makeLabelBold(moodValue);
+            (moodValue as any)._forceUpdateRenderData();
+            const contentWidth = beanSize + gap + moodValue.node.width;
+            rewardContent.scale = Math.min(1, (moodChip.width - 32) / contentWidth);
+            bean.x = -(moodValue.node.width + gap) / 2;
+            moodValue.node.x = (beanSize + gap) / 2;
+            if (settlement.roundBonusMoodBeans > 0) {
+                // 额外奖励必须单列展示，不能伪装成局内单颗豆的倍率。
+                const bonus = uimanager.createLabel(
+                    panel,
+                    `含结算额外奖励 +${settlement.roundBonusMoodBeans}`,
+                    0,
+                    centerY - 174,
+                    21,
+                    HUD_LABEL_COLOR,
+                    380,
+                    30,
+                );
+                this.makeLabelBold(bonus);
+            }
+
+
+        }, 340, true);
+    }
+
+    private leaveSettlement(restart: boolean, settlement: RoundSettlement): void {
+        if (this.onSettlementExit) {
+            this.onSettlementExit({ restart, settlement });
+        }
+    }
+
+    /**
+     * 暂停重开要向服务端申请新局并消耗体力；失败时继续当前局。
+     */
+    private async restartFromPause(): Promise<void> {
+        const restore = (): void => {
+            if (!this.node || !this.node.isValid) return;
+            this.pauseMenuOpen = false;
+            audioManager.setGamePaused(false);
+            this.locked = false;
+            if (this.isTutorialGuidedStep()) this.showTutorialStep();
+        };
+        if (!this.onRestartFromPause) { restore(); return; }
+        try {
+            const started = await this.onRestartFromPause();
+            if (!started) restore();
+        } catch (_) { restore(); }
+    }
+
+    private getPieceColor(index: number): cc.Color {
+        return getMoodColor(index);
+    }
+
+    private getSettlementMessage(settlement: RoundSettlement): string {
+        const moods = settlement.roundCollectedMoodBeans;
+        const praise = moods > 0
+            ? '你把纷乱一点点整理好了，真的很棒'
+            : '愿意再试一次，本身就已经很了不起';
+        return praise;
+    }
+}

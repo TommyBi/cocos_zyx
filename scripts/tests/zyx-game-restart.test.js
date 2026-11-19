@@ -35,7 +35,7 @@ test('结算记录在弹窗前保存，再来一次先申请服务端新局', ()
   const game = fs.readFileSync(zyxGameSource, 'utf8');
   const finish = extractMethod(game, 'private finishGame\\(_reason: string\\): void');
   assert.ok(finish !== null, '未找到 ZyxGame.finishGame');
-  assert.ok(finish.indexOf('onRoundFinished') >= 0 && finish.indexOf('onRoundFinished') < finish.indexOf('showModal'),
+  assert.ok(finish.indexOf('onRoundFinished') >= 0 && finish.indexOf('onRoundFinished') < finish.indexOf('showSettlement'),
     '弹出结算面板前必须保存上一局记录');
   const scene = fs.readFileSync(mainSceneSource, 'utf8');
   const exit = extractMethod(scene, 'private handleSettlementExit\\(request: SettlementExitRequest\\): void');

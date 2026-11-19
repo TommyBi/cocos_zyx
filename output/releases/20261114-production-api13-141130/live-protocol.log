@@ -1,0 +1,2 @@
+验收目标：https://api.tcjstory.cn/v1/cocos-zyx
+PASS [production]: 建档、V5/V6/V7/V8/V9/V10开局与结算幂等、第10局暖心资格及重试一致、体力扣减/耗尽、每日分享、排行榜、退役路由与生产调试隔离

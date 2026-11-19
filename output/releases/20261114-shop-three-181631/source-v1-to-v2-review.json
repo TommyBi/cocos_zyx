@@ -1,0 +1,15 @@
+{
+  "reason": "Browser caught zIndex sorting currency icon before text; make icon share label layer so text-price-icon retain sibling order.",
+  "verification": {
+    "ok": false,
+    "kind": "source",
+    "treeSha256": "5991766c814394d3587c6cd66630bdfa6a59806b6cf0e17d0767d365d826ef21",
+    "files": 271,
+    "skippedCount": 1,
+    "changed": [
+      "assets/script/zyxGame/ShopPanel.ts"
+    ],
+    "missing": [],
+    "added": []
+  }
+}

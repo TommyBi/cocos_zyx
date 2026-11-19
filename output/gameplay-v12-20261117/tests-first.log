@@ -1,0 +1,540 @@
+
+> test
+> npm run check:engine && npm run test:module && npm --prefix server test
+
+
+> check:engine
+> node scripts/sync-board-engine.js --check
+
+
+> test:module
+> node --test scripts/tests/*.test.js
+
+✔ 切换页面立即停旧轨，过期异步加载不能复活；同一页面只保留一个原生循环 (5.931666ms)
+✔ 音乐加载期间暂停，回执只缓存；点击继续才首次播放，不重复下载 (3.077292ms)
+✔ 暂停、静音和后台状态共同限制恢复；聚焦或微信onShow不能越过暂停和结算 (1.382334ms)
+✔ 销毁取消待加载音乐并移除监听，新组件可重新初始化且没有重复回调 (1.907833ms)
+✔ 气球演示的静音不会加载或播放BGM，用户主动试听后才开始 (1.279958ms)
+✔ 预览未取得播放权不得加载；失去播放权后焦点、前台和迟到加载都不能恢复音乐 (0.725166ms)
+✔ 背景音乐必须等native音频就绪后才能交给播放器，元数据就绪不能提前播放 (1.158167ms)
+✔ V8两种救场共用分数高度条件和60秒CD，不限总次数、超时拒绝也占CD (5.578458ms)
+✔ V8救场只能兑换抽中的类型一次，出现后降低高度仍可兑现，清屏沿用原补排规则 (5.413875ms)
+✔ V6双排只允许最高点不超过底部第4排，前25次仍为单排 (0.127583ms)
+✔ 热气球严格满足分数>1000且高度>6；随机四分之一不重复且预演不改种子 (3.188875ms)
+✔ 热气球投弹与普通炸弹范围一致，覆盖相邻和斜角色块并引爆旧炸弹 (0.246292ms)
+✔ 多枚气球炸弹重叠范围只消除和收集一次，长块按爆心判定且棋盘边缘不越界 (0.10425ms)
+✔ 随机炸弹覆盖所有列，单格左右对称，不再把余数固定塞在最右 (9.362625ms)
+✔ 冻结V5长局继续结算，新版不接受伪造清屏或不满足条件的热气球 (129.384ms)
+✔ 气球出现后的机会允许在降高后兑现，飞出后不能再兑换 (0.142584ms)
+✔ V6真实46步热气球长局双端重放一致，不允许跨版本冒用 (202.732084ms)
+✔ V7真实长局投弹扩大消除，预演随机数、前后端重放与版本隔离正确 (499.699584ms)
+✔ V8真实长局balloon可重放，类型篡改、跨类型短CD和重复兑换被拒绝 (714.137167ms)
+✔ V8真实长局clear可重放，类型篡改、跨类型短CD和重复兑换被拒绝 (699.1165ms)
+✔ 极大分数使用万/亿保持可读，不四舍五入夸大分数 (1.35875ms)
+✔ 收集动画合并连续到达，满格短暂停留，多颗奖励不丢失且余量结转 (0.949667ms)
+✔ 结束或离场中断展示动画，不得回跳计数或继续改 UI (0.439958ms)
+✔ 父组件销毁时子节点与Label.node已释放，dispose仍安全且不继续渲染 (0.473917ms)
+✔ 大数字固定边界且不换行；手机、平板和折叠分区缩放后 HUD 在舞台内 (0.435ms)
+✔ 满行炸弹及被波及的旧炸弹连锁引爆，交叠范围收集与计分不重复 (1.127334ms)
+✔ 主动炸弹续 combo，不因爆破自动升档；普通无消除移动仍断连 (0.216875ms)
+✔ 双排与三连奖励延迟到操作结束，场上最多三枚，重复结算不能复制 (0.360542ms)
+✔ 补排预算有界，自动补排不推进操作计数；后期阶段封顶 (25.17575ms)
+✔ 升难速度翻倍：18步结束强辅助、30步高手、42步封顶，旧V2曲线不变 (1.952083ms)
+✔ 调整前冻结的V2长局仍能原样重放结算，不能更改版本冒充新曲线 (170.258083ms)
+✔ V4在9/15/21次有效操作切换阶段，炸弹也升难，后期辅助与提示退坡 (4.48525ms)
+✔ V3冻结长局保持原结果，V2/V3/V4不能互换动作版本 (151.307833ms)
+✔ 教学三排批量补入的真实事件边界双端一致，且不能用旧规则重放新局 (10.058959ms)
+✔ 提示是只读的，不影响随机序列和已展示的下一排 (16.552625ms)
+✖ 分支选择回归：新手可选不同容易解，早期持续消除并有双排/连锁 (7721.441375ms)
+✔ 当前规则不接受跳过重力/消除结算就结束或进行下一次移动 (0.141792ms)
+✔ V5保护25步，26/40/55切阶段，双排频率与大块明显增加并封顶 (1.68775ms)
+✔ V5整次双排原子升起，预告不改牌；顶行或预算不足不进行半次上升 (2.682625ms)
+✔ V5三/四/五连和五连后每次消除都奖励，炸弹空爆不刷，旧V4只奖励到三连 (3.791583ms)
+✔ 冻结的V4长局保留原始结果；V5双排篡改无法重放 (110.229542ms)
+✔ V5不能省略上一回合上升，或把双排篡改为单排后继续刷消除 (259.669667ms)
+✔ 排行榜复用已保存授权，重启后仍生效，换账号不误用旧标记 (0.491125ms)
+✔ Web 请求超时会取消，允许商城用原ID继续确认而非永久卡在确认中 (6.809125ms)
+✔ 浏览器 Web 预览默认连 Staging (0.156ms)
+✔ 浏览器忽略残留 localStorage override，仍走 Staging (0.084958ms)
+✔ 只有 Debug 本机页面显式 localApi=1 才可联调本机，远程/正式环境忽略 (0.205625ms)
+✔ 后端未支持进度规则时在扣体力前停止开局 (0.252833ms)
+✔ 服务端缺少双倍升难能力时不扣体力开局 (0.095875ms)
+✔ 服务端仍是V3时在扣体力前拦截V4新开局 (0.080584ms)
+✔ 服务端仅支持V6单块投弹时，在扣体力前拦截V7新开局 (0.116041ms)
+✖ 微信正式版（release）使用 Production API (0.180542ms)
+✖ 微信体验版（trial）使用 Staging API (0.105916ms)
+✖ 微信开发版（develop）使用 Staging API (0.094125ms)
+✔ 微信 getAccountInfoSync 不可用时安全兜底到 Production (0.061667ms)
+✔ 资料更新只走独立接口并携带微信昵称头像 (0.844167ms)
+✔ 微信建档携带一次性 loginCode，清缓存后 deviceId 改变仍提交微信身份 (0.277709ms)
+✔ wx.login 失败时不发建档请求，不静默创建新的设备账号 (0.117209ms)
+✔ 已授权玩家直接读取微信资料，不重复创建原生授权按钮 (0.135167ms)
+✔ 未授权玩家使用全屏透明原生按钮，授权成功销毁按钮并收起底部说明层 (0.19325ms)
+✔ 原生授权拒绝返回真实错误并收起说明层，旧容器才使用 getUserProfile 兜底 (0.136833ms)
+✔ 原生授权按钮创建异常时也清理底部说明层 (0.068166ms)
+✔ Web 与无效微信昵称不会伪装授权成功 (0.10025ms)
+✔ 账号切换后旧请求的成功回执和401均不能覆盖新账号或替新账号重试旧操作 (0.708333ms)
+✔ CC_DEBUG 未定义（微信正式/体验版构建）时 GM 不可用 (0.672834ms)
+✔ CC_DEBUG=false 的 Web 正式构建 GM 不可用 (0.094125ms)
+✔ CC_DEBUG=true 但非浏览器（微信小游戏开发版）GM 不可用 (0.07875ms)
+✔ 仅 Web Debug（CC_DEBUG=true 且 isBrowser）GM 可用 (0.092584ms)
+✔ GameMainScene.onLoad 只在 GM 环境守卫内动态加载 GM 气泡模块 (1.773375ms)
+✔ 普通设置面板不包含任何 GM 入口 (1.004542ms)
+✔ GM 敏感字符串只存在于 assets/script/gm/ 目录 (24.853583ms)
+✔ CloudService 不携带调试路由路径，只提供通用已认证入口 (1.17675ms)
+✔ 微信构建脚本串联 GM 剥离与产物字符串检查 (1.988458ms)
+✔ strip-gm-code：hide 移出 gm 目录并清理缓存，restore 完整恢复 (13.004041ms)
+✔ check-wechat-gm：产物含 GM 关键词时检出，干净产物通过 (10.811708ms)
+✔ 舞台缩放和平移后，手指移动一格仍只移动一个逻辑格 (1.076916ms)
+✔ 另一根手指引爆后，进行中的拖动/松手/取消都不能改演出位置或提交动作 (1.002916ms)
+✔ 心意救场需要服务端第5局资格、危险高度与未失败状态，不要求500分 (9.70675ms)
+✔ 真实低分长局：爱心复用炸弹范围/连锁/去重计分及补1排，资格不能伪造 (279.80475ms)
+✔ 第5局进入危险区后优先免费爱心，普通入口先收回，二者不能同时兑现 (1.103916ms)
+✔ 安全区、缩放、偏移与窗口变化后，弹窗遮罩始终覆盖完整画布 (0.536167ms)
+✔ 共用按钮统一棕色与打包字体字重，结算奖励不展示云端到账小字 (0.553708ms)
+✔ 全游戏昵称最多展示7个字，超出部分使用三个点截断 (0.329833ms)
+✔ 首页头像节点完整创建，排行榜和关闭按钮保持统一实现 (1.322125ms)
+✔ 弹窗关闭使用快速缩小淡出，并在动画后销毁旧层级 (0.200084ms)
+✔ 每块推进1%，每100块一颗，满格后保留余量 (0.349042ms)
+✔ 发布重置使用新代际，后续保留新档 (0.069541ms)
+✔ 预览交接必须收到旧页静音回执；迟到的旧播放权不能撤销新播放权 (3.834ms)
+✔ 快速反复点击以最后操作为准；旧页重新点击后，先前撤销回执不得释放新播放权 (0.355584ms)
+✔ 连接中断不当作已静音；独立停声回执到达后才允许新预览播放 (0.198375ms)
+✔ WebView直接销毁没有回执时清理失效播放权，不让其他预览永久静音 (303.624667ms)
+✔ 一次跨多人只跃升一次，连续加分合并到最新位置；离场忽略回调 (7.447375ms)
+✔ 本局分数选择相邻对手，不把自己的历史成绩当作对手 (0.152125ms)
+✔ 同分仍需超过，连续加分及一次跨多人不会重复触发超越 (0.107084ms)
+✔ 空榜、榜首与榜尾正确留空，前200名以外不编造全服名次 (0.171334ms)
+✔ 开局只请求一次榜单，教学期间不展示，之后使用快照离线推进 (6.349958ms)
+✔ V9 道具按实际色块加5分，长块算一块；无目标不加分，V8 保留旧积分 (9.880208ms)
+✔ V9 爆炸交叠去重，基础行分和combo照常计算 (0.183334ms)
+✔ V9 气球即使炸空仍补1排，闪电固定整体补2排；各难度阶段相同 (26.544625ms)
+✔ V9 真实长局气球/清屏双端积分一致，禁止漏补、重复补、改排数和漏结束 (2584.438125ms)
+✔ 底部提示完整8秒周期：渐入1.5秒、停留5秒、渐出1.5秒；暂停冻结 (2.285166ms)
+✔ 免费气球点击谢谢后立即锁住操作，投心及补排完成前不能拖拽 (0.528208ms)
+✔ 右侧我可以只收起说明和遮罩，倒计时按钮保留；另点按钮才请求分享 (0.851ms)
+✔ 右侧倒计时与气球一致，普通掉落继续计时，暂停和分享冻结，超时结束机会 (0.987125ms)
+✔ 取消清屏分享恢复同一个按钮与剩余倒计时，成功回调只能清屏一次 (0.457375ms)
+✔ 热气球点击只打开一次弹窗，拒绝后保留剩余飞行时间并恢复输入 (0.404833ms)
+✔ 分享期间旧弹窗拒绝回调不解锁，取消后迟到成功回调不能触发救援 (0.355083ms)
+✔ 普通掉落锁不延长热气球飞行，暂停菜单和分享才暂停飞行 (0.341125ms)
+✔ 气球全部落地200ms后同步播放标准范围爆炸，全部受击块使用同一爆破结果 (0.618916ms)
+✔ 闪电演出完成后才展示加分、一次补排，不走四排补齐 (0.398708ms)
+✔ 矢量序列飞行恰好15秒，暂停保留姿态、时间与剩余航程，出口淡隐 (0.988667ms)
+✔ 气球炸弹是抛物线，落点精确，爆炸渐隐不被每帧位置刷新覆盖 (0.524584ms)
+✔ 窗口变化后棋盘、边框、下一排和危险光效同轴，追赶底板保持垂直居中 (0.604917ms)
+✔ 收展共用进度：棋盘和下一排居中/右移，中途反向不跳位 (0.524792ms)
+✔ 页签先收完才展开面板；面板完全收起才弹出页签，过期回调不抢状态 (0.336667ms)
+✔ 教学退场一开始同步展开，遮罩淡出与展开时长一致 (0.348416ms)
+✔ 逻辑结算与爆炸尾部独立锁输入，掉落结束不能提前解除演出输入保护 (0.302209ms)
+✔ 补给写入幂等ID失败时不发请求、不冻结棋盘 (0.4045ms)
+✔ 道具永久业务错误取消选择并解锁，不陷入只能重复确认的死循环 (0.896417ms)
+✔ 暂停时间不写入保存时长，后台时间只在未暂停时扣除，避免双重扣减 (0.366417ms)
+✔ 按实际宽高比切换固定宽度与固定高度 (1.557ms)
+✔ 手机、平板和横屏舞台始终保留完整的设计高度与操作宽度 (0.438584ms)
+✔ 双屏优先把主舞台放在单个分区内，不跨铰链 (0.12175ms)
+✔ 上下分区高度不足时舞台等比缩小到可用区域 (0.059875ms)
+✔ 刘海屏、胶囊、平板和折叠分区：所有局内区域有间隔且位于安全区 (0.283375ms)
+✔ 棋盘右移后为追赶底板留出空间，下一排仍完整位于画布内 (0.068083ms)
+✔ 顶部随排行共享中轴与外边界，收起/展开/中途均比游戏区域左右各宽8px (0.090458ms)
+✔ 好友邀请直接唤起分享，不依赖奖励通道或成功回调 (1.124125ms)
+✔ 默认关闭激励视频，每次奖励分享随机选择匹配的 CDN 图片和原图文案 (0.611917ms)
+✔ 原生转发菜单每次调用重新随机，注册一次且不触发奖励 (0.32325ms)
+✔ 三张分享图与原文、清单和 CDN URL 对应，图片始终留在 assets 外 (6.286709ms)
+✔ 图片下载时间不计入奖励停留时间，缓存后直接复用临时文件 (3.995834ms)
+✔ 菜单预取三张 CDN 图片，共享下载并异步补齐本地路径 (0.978208ms)
+✔ 下载失败不发奖励、不拉起无图分享，下次允许重新下载 (1.119292ms)
+✔ 开启后使用集中配置的广告位，完整观看只发放一次奖励 (0.24125ms)
+✔ 中途关闭或广告错误均不发奖励，后续回调不会重复结算 (0.173125ms)
+✔ 首次展示失败会先加载再重试，重试成功后等待完整观看回调 (0.649875ms)
+✖ 五个奖励点位全部接入统一双通道，不再直接调用分享或保留旧开关 (1.625791ms)
+✔ 两种救场共用随机入口，气球投弹等待200ms，普通消行沿用现有碎裂 (0.440958ms)
+✔ 每步先本地保存，100步才上传，自动内部记录不能作为100次操作计数 (4.010875ms)
+✔ 同步串行合并，途中新增100步在成功后继续上传，旧局迟到确认不污染新局 (1.881167ms)
+✔ 断网保留记录、后台强制补存不足100步、恢复联网可重试 (1.610083ms)
+✔ 账号隔离，清理已结算的局不会误删另一局；会话冲突只提示一次并停传 (1.475875ms)
+✔ 恢复超时使用同一请求ID与相同本地尾部，核验返回后才替换本地存档 (1.861375ms)
+✔ 云端恢复须显式丢弃本地尾部，多端代次不同不上传旧设备分支 (2.995125ms)
+✔ 恢复手绘救场后的种子/下一排/连消/复活日志，可继续操作并由服务端重放核验 (1708.706666ms)
+✔ 两条记录都成功提交后队列清空，并按顺序回调 (0.917083ms)
+✔ 400 带永久业务错误码（INVALID_ROUND_TIME）进入 dead-letter，后续记录仍能成功提交 (0.298542ms)
+✔ 重放校验失败的记录不可修复，应进入 dead-letter 而不是无限重试 (0.108334ms)
+✔ 409 带永久业务错误码（ROUND_PAYLOAD_CONFLICT）进入 dead-letter (0.127542ms)
+✔ 旧结算缺少服务端开局许可时进入 dead-letter，不堵塞后续记录 (0.27275ms)
+✔ 409 无业务错误码按临时错误处理，不盲目丢弃 (0.18575ms)
+✔ 401 凭证失效按临时错误处理，不进入 dead-letter (0.159459ms)
+✔ 408 请求超时按临时错误处理，保留记录并停止 flush (0.099667ms)
+✔ 429 限流按临时错误处理，保留记录并停止 flush (0.092292ms)
+✔ 400 无业务错误码按临时错误处理，不盲目丢弃 (0.077875ms)
+✔ 临时错误（5xx/断网）保留当前记录并停止本次 flush，后续记录不提前提交 (0.078958ms)
+✔ 无状态网络错误（无 HTTP status）按临时错误处理 (0.168375ms)
+✔ 字段损坏的记录直接进入 dead-letter，不向服务端发送，不堵塞后续记录 (0.115042ms)
+✔ single-flight：flush 进行中再次触发返回 alreadyRunning，不产生第二个工作器 (0.073708ms)
+✔ 两行BMFont保持业务行距，重复绑定不叠加补偿，字号缩小时行距同比缩小 (0.724875ms)
+✔ 自定义行距、换成动态字体或NONE布局再切回时，还原原始设计行距 (0.096916ms)
+✔ 分数按数值降序、并列同名次；排除无成绩与损坏记录，自己只出现一次 (6.71525ms)
+✔ 开发/体验云分数使用独立 key；零分新玩家也写入，拒绝无效分数 (0.864709ms)
+✔ 成绩写入串行合并；失败可重试；成功后不重复写入低分 (0.145125ms)
+✔ 主域只发送指令与 key，平台不可用可降级 (0.156ms)
+✔ 开放域滑动列表到首尾、不额外请求，固定自身名次；隐藏后迟到请求不会重绘 (10.167458ms)
+✔ 读取失败提示下次返回首页，重新进入才请求，空榜明确邀请 (0.920042ms)
+✔ 开放域直接加载微信返回的头像URL，加载后重绘58px头像并中心裁切；同头像复用缓存 (0.636625ms)
+✔ 缺少 ellipse/clip 的微信 Canvas 仍绘制头像、昵称和已有分数，绘图状态栈归零 (0.475709ms)
+✔ 原生头像 drawImage 异常不吞掉昵称和成绩，不污染后续绘图裁切 (0.611833ms)
+✔ 主域从屏幕默认尺寸设置榜单宽高后再发show，8fps贴图，重入不清空画布，销毁释放纹理 (0.745625ms)
+✔ 微信返回selfOpenId别名时以账号托管标记识别自身，不能重复入榜或按同名同头像猜测 (0.095333ms)
+✖ 乱序结算回执不能覆盖兑换后的余额和库存，开局和刷新也不返还已用道具 (0.796583ms)
+✔ 数据代际不匹配时一次性清空全部旧键，不做任何折算 (0.54575ms)
+✔ 写入当前代际标记后，正常重启不会再次清空新档 (0.078083ms)
+✔ 旧瓶键不会被读取：只认心情豆新键 (0.051375ms)
+✔ 缺键时使用默认值，非法字符串回退到安全默认 (0.069708ms)
+✔ 消除 10 个表情块未满一颗，经验独立累计且不预支云端资产 (0.389041ms)
+✔ 重复 finishRound() 返回零增量，不重复入账 (0.109584ms)
+✔ 整颗奖励与表情经验分离，多颗与余量均正确，每局从零开始 (11.785042ms)
+✔ 待提交结算队列：入队去重，成功后只删除对应 roundId (0.24725ms)
+✔ 待提交结算队列上限 100：满员后拒绝入队且不静默丢弃 (1.653209ms)
+✔ dead-letter：坏记录移出活动队列并保留原因与时间，不堵塞后续记录 (0.165541ms)
+✔ 服务端开局配置在 resetRound 生成棋盘前生效，并且只消费一次 (13.059042ms)
+✔ 暂停重开语义：只 resetRound 不 finishRound 时余额、经验与待提交队列均不变 (0.124875ms)
+✔ refreshPersistentProgress 恢复历史最高分，但不覆盖局内更高的内存值 (0.047167ms)
+✔ 未确认结算不增加首页余额，服务端逐局确认后才展示入账 (0.078875ms)
+✔ 未确认结算不推高等级或经验 (0.046333ms)
+✔ dead-letter 和待提交记录均不改变已确认展示值 (0.050958ms)
+✔ 暂停重开不保存最高分：消除过程中只更新内存，只有正式结算才写入 zyx_best_score (1.852042ms)
+✔ 连续成功操作递增到 5 倍，无消除的有效操作后归零 (0.3305ms)
+✔ 教学三次真实移动依次产生 10/20/30 分，服务端按跨操作连消重放 (0.579542ms)
+✔ 同一次操作的自动补排不打断也不重复增加 combo (1.321333ms)
+✔ Good 三连在整次操作结束后奖励，与双排叠加且重复 finish 不再领取 (0.493084ms)
+✔ 真实教学第三次成功给炸弹，主动引爆续连且与服务端事件重放一致 (0.303792ms)
+✔ 偶数宽横块的爆破范围以整块中央对称覆盖两侧邻块 (0.099041ms)
+✔ 同次操作两轮掉落消除累计两排，稳定后只发一枚炸弹；全清仍保留奖励 (0.167208ms)
+✔ 同时清两排为基础分 20，炸弹附着在幸存普通横块，随移动保留 (0.058291ms)
+✔ 炸弹按横块中心的 3×3 范围移除相交整块，收豆一次且不能重复引爆 (0.085834ms)
+✔ 多种种子的真实移动、连消、奖励炸弹与爆破，客户端和服务端重放一致 (15122.926125ms)
+✔ 复活卡库存跟随云端资产版本持久化，重开不补回，用旧回执不能回滚扣卡 (0.144083ms)
+✔ 暂停重开不结算：restartFromPause 不触达任何结算与入队入口 (1.61275ms)
+✔ 结算记录在弹窗前保存，再来一次先申请服务端新局 (2.179208ms)
+ℹ tests 204
+ℹ suites 0
+ℹ pass 198
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21397.390666
+
+✖ failing tests:
+
+test at scripts/tests/board-engine.test.js:158:1
+✖ 分支选择回归：新手可选不同容易解，早期持续消除并有双排/连锁 (7721.441375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/scripts/tests/board-engine.test.js:164:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/tests/cloud-service.test.js:124:1
+✖ 微信正式版（release）使用 Production API (0.180542ms)
+  Error: 游戏服务更新中，请稍后再试
+      at CloudService.startRound (/private/var/folders/ys/sxwj4gdx103d56tfh__fnjr00000gp/T/zyx-cloud-7NQ9Av/manager/CloudService.js:102:27)
+      at async TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/scripts/tests/cloud-service.test.js:137:19)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    businessCode: 'COLLECTION_RULE_UNSUPPORTED'
+  }
+
+test at scripts/tests/cloud-service.test.js:140:1
+✖ 微信体验版（trial）使用 Staging API (0.105916ms)
+  Error: 游戏服务更新中，请稍后再试
+      at CloudService.startRound (/private/var/folders/ys/sxwj4gdx103d56tfh__fnjr00000gp/T/zyx-cloud-7NQ9Av/manager/CloudService.js:102:27)
+      at async TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/scripts/tests/cloud-service.test.js:152:19)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    businessCode: 'COLLECTION_RULE_UNSUPPORTED'
+  }
+
+test at scripts/tests/cloud-service.test.js:155:1
+✖ 微信开发版（develop）使用 Staging API (0.094125ms)
+  Error: 游戏服务更新中，请稍后再试
+      at CloudService.startRound (/private/var/folders/ys/sxwj4gdx103d56tfh__fnjr00000gp/T/zyx-cloud-7NQ9Av/manager/CloudService.js:102:27)
+      at async TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/scripts/tests/cloud-service.test.js:166:19)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    businessCode: 'COLLECTION_RULE_UNSUPPORTED'
+  }
+
+test at scripts/tests/reward-offer.test.js:296:1
+✖ 五个奖励点位全部接入统一双通道，不再直接调用分享或保留旧开关 (1.625791ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /private showRewardOffer[\s\S]*?requestRewardOffer\(onResult\)/. Input:
+  
+  'import {\n' +
+    '    BOARD_COLS,\n' +
+    '    BOARD_ROWS,\n' +
+    '    MAX_ACTION_APPENDS,\n' +
+    '    BoardPiece,\n' +
+    '    BombDetonation,\n' +
+    '    CELL_SIZE,\n' +
+    '    EliminateResult,\n' +
+    '    GravityMove,\n' +
+    '    RoundSettlement,\n' +
+    '    RoundToolState,\n' +
+    '    LightningDischarge,\n' +
+    '    TutorialMove,\n' +
+    '    zyxGameModule,\n' +
+    "} from '../dataModule/ZyxGameModule';\n" +
+    "import { BUTTON_COLORS, uimanager } from '../manager/UIManager';\n" +
+    "import { roundProgress } from '../manager/RoundProgress';\n" +
+    "import { settingsPanel } from '../manager/SettingsPanel';\n" +
+    "import { gameSettings } from '../manager/GameSettings';\n" +
+    "import { audioManager } from '../manager/AudioManager';\n" +
+    'import {\n' +
+    '    getRewardOfferActionText,\n' +
+    '    getRewardOfferFailToast,\n' +
+    '    getRewardOfferIcon,\n' +
+    '    requestRewardOffer,\n' +
+    '    RewardPlacement,\n' +
+    "} from '../manager/ShareReward';\n" +
+    "import { ASSET_PATHS, getSkeletonData, getSpriteFrame, prepareFeature } from '../manager/AssetLoader';\n" +
+    "import ZyxGridCom from './ZyxGridCom';\n" +
+    'import {\n' +
+    '    createHammerGlyph,\n' +
+    '    createPauseGlyph,\n' +
+    '    createPurifierGlyph,\n' +
+    '    createShareGlyph,\n' +
+    '    createVideoGlyph,\n' +
+    '    decorateActionButton,\n' +
+    '    decorateSettingsActionButton,\n' +
+    "} from './GlyphFactory';\n" +
+    'import {\n' +
+    '    createMoodBean,\n' +
+    '    createMoodBeanMascot,\n' +
+    '    createMoodStamp,\n' +
+    '    drawMoodFace,\n' +
+    '    drawMoodBlockMaterial,\n' +
+    '    getMoodColor,\n' +
+    '    getMoodName,\n' +
+    '    MOOD_COLORS,\n' +
+    "} from './MoodArt';\n" +
+    "import { calculateGameLayout, calculateGameHudLayout } from '../manager/ResponsiveLayout';\n" +
+    "import { CloudProfile, cloudService, LeaderboardEntry, ResumeRoundResult } from '../manager/CloudService';\n" +
+    "import RankChaseView from './RankChaseView';\n" +
+    "import BeanCollectionHud, { applyHudFont, formatHudScore } from './BeanCollectionHud';\n" +
+    "import { createBombBadge, createComboArt, createScoreArt } from './RewardArt';\n" +
+    "import { createGamePanel } from './GamePanel';\n" +
+    "import { RescueBalloon, getBalloonBombPosition } from './RescueBalloon';\n" +
+    "import { createDangerGlow } from './DangerGlow';\n" +
+    "import { createHeartToken, playHeartWave } from './HeartEffect';\n" +
+    "import { showHeartLetter } from './HeartMessage';\n" +
+    "import { BOMB_PRIME_TIME, BOMB_CHAIN_INTERVAL, bombResolutionDelay, bombPlaybackDuration, playBombEffect } from './BombEffect';\n" +
+    '\n' +
+    'const GAME_PLAY_TIPS = [\n' +
+    "            '左右拖动心情块，填满一行就能消除',\n" +
+    "            '带表情的心情块消除后，会变成开心豆飞进收集位',\n" +
+    "            '解压锤能敲掉一个挡路的心情块',\n" +
+    "            '魔法棒能让场上全部同色色块一起消失',\n" +
+    "            '两秒没操作时，小手会提示一次可消除移动',\n" +
+    "            '留意下一排，提前为新色块腾出位置',\n" +
+    "            '连续操作都消除即可叠加连消，最高 5 倍分数！',\n" +
+    "            '三连及以上，每次有效连消都额外奖励炸弹',\n" +
+    "            '双排或掉落连消可获得炸弹，消除炸弹也能引爆',\n" +
+    '        ];\n' +
+    'const GAME_WARM_TIPS = [\n' +
+    "            '你不需要一直坚强，慢一点也没关系',\n" +
+    "            '今天已经很努力了，剩下的交给明天',\n" +
+    "            '真正的顺利，是心里始终有一个方向',\n" +
+    "            '有人惦记的晚风，总会比别处温柔',\n" +
+    "            '把复杂的事一件件放好，生活会慢慢清晰',\n" +
+    '        ];\n' +
+    '\n' +
+    'const { ccclass } = cc._decorator;\n' +
+    'const NEXT_PREVIEW_HEIGHT = 42;\n' +
+    'const NEXT_PREVIEW_OPACITY = 220;\n' +
+    'const TOOL_BUTTON_SIZE = 88;\n' +
+    'const HUD_VALUE_COLOR = new cc.Color(112, 78, 65);\n' +
+    'const HUD_LABEL_COLOR = new cc.Color(132, 96, 80);\n' +
+    'let rescueShadeFrame: cc.SpriteFrame = null;\n' +
+    '\n' +
+    'export type SettlementExitRequest = {\n' +
+    '    restart: boolean;\n' +
+    '    settlement: RoundSettlement;\n' +
+    '};\n' +
+    '\n' +
+    '@ccclass\n' +
+    'export default class ZyxGame extends cc.Component {\n' +
+    '    private rewardFeedback: cc.Node = null;\n' +
+    '    private layout: ReturnType<typeof calculateGameLayout> = null;\n' +
+    '    private hudRoot: cc.Node = null;\n' +
+    '    private footerRoot: cc.Node = null;\n' +
+    '    private boardRoot: cc.Node = null;\n' +
+    '    private pieceLayer: cc.Node = null;\n' +
+    '    private nextLayer: cc.Node = null;\n' +
+    '    private nextRowLabel: cc.Label = null;\n' +
+    "    private bombGuideKey = '';\n" +
+    '    private bombGuideCount = 0;\n' +
+    '    private bombGuideIds = new Set<number>();\n' +
+    '    private firstGameBombGuide = false;\n' +
+    '    private scoreLabel: cc.Label = null;\n' +
+    '    private bestLabel: cc.Label = null;\n' +
+    '    private beanCollectionHud: BeanCollectionHud = null;\n' +
+    '    private recordTagLabel: cc.Label = null;\n' +
+    '    private moodStageLabel: cc.Label = null;\n' +
+    '    private hammerButton: cc.Node = null;\n' +
+    '    private hammerIcon: cc.Node = null;\n' +
+    '    private hammerCountLabel: cc.Label = null;\n' +
+    '    private purifierButton: cc.Node = null;\n' +
+    '    private purifierIcon: cc.Node = null;\n' +
+    '    private purifierCountLabel: cc.Label = null;\n' +
+    '    private moodBeanHudIcon: cc.Node = null;\n' +
+    '    private toolDragFollower: cc.Node = null;\n' +
+    '    private toolSelectionPrompt: cc.Node = null;\n' +
+    '    private toolWiggleNodes: cc.Node[] = [];\n' +
+    '    private hintHand: cc.Node = null;\n' +
+    '    private hintPieceId: number = 0;\n' +
+    '    private clearSpineData: sp.SkeletonData = null;\n' +
+    '    private resolutionLocked = true;\n' +
+    '    private bombAnimationLocks = 0;\n' +
+    "    private get locked(): boolean { return this.resolutionLocked || this.bombAnimationLocks > 0 || ['dialog', 'sharing', 'bombing'].indexOf(this.balloonPhase) >= 0; }\n" +
+    '    private set locked(value: boolean) { this.resolutionLocked = value; }\n' +
+    '    private hammerMode: boolean = false;\n' +
+    '    private purifierMode: boolean = false;\n' +
+    '    private toolDragging: boolean = false;\n' +
+    '    private toolTouchStart: cc.Vec2 = null;\n' +
+    '    private rewardedAdLoading: boolean = false;\n' +
+    '    private pauseMenuOpen = false;\n' +
+    '    private pauseStartedAt = 0;\n' +
+    '    private roundRescuePrompt: cc.Node = null;\n' +
+    '    private roundRescueCountdownState: { progress: number; started: boolean; redraw: () => void } = null;\n' +
+    '    private roundRescueInteractive = false;\n' +
+    '    private roundRescueGuideVisible = false;\n' +
+    '    private rescueBalloon: RescueBalloon = null;\n' +
+    "    private balloonPhase: 'none' | 'flying' | 'dialog' | 'sharing' | 'bombing' = 'none';\n" +
+    '    private balloonModal: cc.Node = null;\n' +
+    '    private balloonInputShield: cc.Node = null;\n' +
+    '    private boardDangerHalo: cc.Node = null;\n' +
+    '    private dangerSeconds = 0;\n' +
+    '    private warmBalloonActive = false;\n' +
+    '    private reviveUsed: boolean = false;\n' +
+    '    private reviveCardUsed: boolean = false;\n' +
+    '    private pendingReviveCardRequest: { roundId: string; sessionToken: string; actions: any[]; elapsedMs: number } = null;\n' +
+    '    private onSettlementExit: (request: SettlementExitRequest) => void = null;\n' +
+    '    private onRoundFinished: (settlement: RoundSettlement, startedAt: number) => void = null;\n' +
+    '    private onRestartFromPause: () => Promise<boolean> = null;\n' +
+    '    private settlementReported: boolean = false;\n' +
+    '    private pieceColors: { [key: number]: cc.Color } = {};\n' +
+    '    private displayedRoundMoods: number = 0;\n' +
+    '    /** 碎片节点池：复用消除爆散碎片，避免高频 new/destroy 造成的 GC 抖动。 */\n' +
+    '    private shardPool: cc.Node[] = [];\n' +
+    '    private idleSeconds: number = 0;\n' +
+    '    private rankChase: RankChaseView = null;\n' +
+    '    private rankChaseProfile: CloudProfile = null;\n' +
+    '    private rankChaseSnapshot: Promise<LeaderboardEntry[]> = null;\n' +
+    '    private rankExpanded = false;\n' +
+    '    private rankExpansion = { progress: 0 };\n' +
+    '    private tipIndex: number = 0;\n' +
+    '    private tipSeconds: number = 0;\n' +
+    '    private tutorialStep: number = -1;\n' +
+    '    private tutorialGuideRoot: cc.Node = null;\n' +
+    '    private tutorialNpc: cc.Node = null;\n' +
+    '    private tutorialBubbleGroup: cc.Node = null;\n' +
+    '    private tutorialBubble: cc.Node = null;\n' +
+    '    private tutorialSpeechLabel: cc.Label = null;\n' +
+    '    private tutorialHand: cc.Node = null;\n' +
+    '    private tutorialSourceMarker: cc.Node = null;\n' +
+    '    private tutorialTargetMarker: cc.Node = null;\n' +
+    '    private tutorialDimMask: cc.Node = null;\n' +
+    '    private tutorialFocusPieceId: number = 0;\n' +
+    '    private tutorialTypingState: { value: number } = null;\n' +
+    '    private tutorialRestoreCallback: () => void = null;\n' +
+    '\n' +
+    '    private savedActionLength = 0;\n' +
+    '    private onSaveAndExit: () => void = null;\n' +
+    '\n' +
+    '    public resumeAfterBackground(hiddenMs: number): void {\n' +
+    '        if (!this.pauseMenuOpen) zyxGameModule.roundStartedAt += hiddenMs;\n' +
+    '    }\n' +
+    '\n' +
+    '    public captureProgress(force = false): void {\n' +
+    '        if (this.settlementReported || roundProgress.roundId !== zyxGameModule.cloudRoundId) return;\n' +
+    '        const actions = zyxGameModule.roundActions;\n' +
+    '        if (!force && actions.length === this.savedActionLength) return;\n' +
+    '        if (!zyxGameModule.canCheckpoint() || (zyxGameModule.isTutorialRound() && zyxGameModule.moveCount === 3 && zyxGameModule.turn === 0)) {\n' +
+    '            if (force) void roundProgress.sync(true);\n' +
+    '            return;\n' +
+    '        }\n' +
+    '        this.savedActionLength = actions.length;\n' +
+    '        const pausedMs = this.pauseStartedAt ? Math.max(0, Date.now() - this.pauseStartedAt) : 0;\n' +
+    '        roundProgress.capture(actions, zyxGameModule.difficultyActionCount, Date.now() - zyxGameModule.roundStartedAt - pausedMs, force);\n' +
+    '    }\n' +
+    '\n' +
+    '    public initialize(\n' +
+    '        onSettlementExit: (request: SettlementExitRequest) => void,\n' +
+    '        onRoundFinished: (settlement: RoundSettlement, startedAt: number) => void,\n' +
+    '        onRestartFromPause: () => Promise<boolean>,\n' +
+    '        profile: CloudProfile = null,\n' +
+    '        restored: ResumeRoundResult = null,\n' +
+    '        onSaveAndExit: () => void = null,\n' +
+    '    ): void {\n' +
+    '        this.onSettlementExit = onSettlementExit;\n' +
+    '        this.onRoundFinished = onRoundFinished;\n' +
+    '        this.onSaveAndExit = onSaveAndExit;\n' +
+    '        this.onRestartFromPause = onRestartFromPause;\n' +
+    '        this.rankChaseProfile = profile;\n' +
+    '        this.firstGameBombGuide = !!profile && profile.gameCount === 0;\n' +
+    "        this.bombGuideKey = 'zyx_first_round_bomb_guides_' + (profile ? profile.playerId : '');\n" +
+    '        this.bombGuideCount = Math.min(5, Math.max(0, Number(cc.sys.localStorage.getItem(this.bombGuideKey)) || 0));\n' +
+    '        this.bombGuideIds.clear();\n' +
+    '        // 每局只在开局读取一次榜单；教学期间预取数据但不展示，后续纯本地追赶。\n' +
+    "        this.rankChaseSnapshot = cloudService.getLeaderboard('power')\n" +
+    '            .then((result) => result.entries.map((entry) => ({ ...entry })))\n' +
+    '            .catch(() => []);\n' +
+    '        this.settlementReported = false;\n' +
+    '        this.node.setAnchorPoint(0.5, 0.5);\n' +
+    '        uimanager.init(this.node);\n' +
+    '\n' +
+    '        if (restored) zyxGameModule.restoreRound(restored);\n' +
+    '        else zyxGameModule.resetRound();\n' +
+    '        this.savedActionLength = 0;\n' +
+    '        this.tutorialStep = zyxGameModule.isTutorialRound() ? Math.min(3, zyxGameModule.moveCount) : -1;\n' +
+    '        this.rankExpanded = this.tutorialStep < 0 || this.tutorialStep >= 3;\n' +
+    '        this.rankExpansion.progress = this.rankExpanded ? 1 : 0;\n' +
+    '        this.reviveUsed = !!restored && restored.actions.some(action => action.type'... 164196 more characters
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/scripts/tests/reward-offer.test.js:300:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "import {\n    BOARD_COLS,\n    BOARD_ROWS,\n    MAX_ACTION_APPENDS,\n    BoardPiece,\n    BombDetonation,\n    CELL_SIZE,\n    EliminateResult,\n    GravityMove,\n    RoundSettlement,\n    RoundToolState,\n    LightningDischarge,\n    TutorialMove,\n    zyxGameModule,\n} from '../dataModule/ZyxGameModule';\nimport { BUTTON_COLORS, uimanager } from '../manager/UIManager';\nimport { roundProgress } from '../manager/RoundProgress';\nimport { settingsPanel } from '../manager/SettingsPanel';\nimport { gameSettings } from '../manager/GameSettings';\nimport { audioManager } from '../manager/AudioManager';\nimport {\n    getRewardOfferActionText,\n    getRewardOfferFailToast,\n    getRewardOfferIcon,\n    requestRewardOffer,\n    RewardPlacement,\n} from '../manager/ShareReward';\nimport { ASSET_PATHS, getSkeletonData, getSpriteFrame, prepareFeature } from '../manager/AssetLoader';\nimport ZyxGridCom from './ZyxGridCom';\nimport {\n    createHammerGlyph,\n    createPauseGlyph,\n    createPurifierGlyph,\n    createShareGlyph,\n    createVideoGlyph,\n    decorateActionButton,\n    decorateSettingsActionButton,\n} from './GlyphFactory';\nimport {\n    createMoodBean,\n    createMoodBeanMascot,\n    createMoodStamp,\n    drawMoodFace,\n    drawMoodBlockMaterial,\n    getMoodColor,\n    getMoodName,\n    MOOD_COLORS,\n} from './MoodArt';\nimport { calculateGameLayout, calculateGameHudLayout } from '../manager/ResponsiveLayout';\nimport { CloudProfile, cloudService, LeaderboardEntry, ResumeRoundResult } from '../manager/CloudService';\nimport RankChaseView from './RankChaseView';\nimport BeanCollectionHud, { applyHudFont, formatHudScore } from './BeanCollectionHud';\nimport { createBombBadge, createComboArt, createScoreArt } from './RewardArt';\nimport { createGamePanel } from './GamePanel';\nimport { RescueBalloon, getBalloonBombPosition } from './RescueBalloon';\nimport { createDangerGlow } from './DangerGlow';\nimport { createHeartToken, playHeartWave } from './HeartEffect';\nimport { showHeartLetter } from './HeartMessage';\nimport { BOMB_PRIME_TIME, BOMB_CHAIN_INTERVAL, bombResolutionDelay, bombPlaybackDuration, playBombEffect } from './BombEffect';\n\nconst GAME_PLAY_TIPS = [\n            '左右拖动心情块，填满一行就能消除',\n            '带表情的心情块消除后，会变成开心豆飞进收集位',\n            '解压锤能敲掉一个挡路的心情块',\n            '魔法棒能让场上全部同色色块一起消失',\n            '两秒没操作时，小手会提示一次可消除移动',\n            '留意下一排，提前为新色块腾出位置',\n            '连续操作都消除即可叠加连消，最高 5 倍分数！',\n            '三连及以上，每次有效连消都额外奖励炸弹',\n            '双排或掉落连消可获得炸弹，消除炸弹也能引爆',\n        ];\nconst GAME_WARM_TIPS = [\n            '你不需要一直坚强，慢一点也没关系',\n            '今天已经很努力了，剩下的交给明天',\n            '真正的顺利，是心里始终有一个方向',\n            '有人惦记的晚风，总会比别处温柔',\n            '把复杂的事一件件放好，生活会慢慢清晰',\n        ];\n\nconst { ccclass } = cc._decorator;\nconst NEXT_PREVIEW_HEIGHT = 42;\nconst NEXT_PREVIEW_OPACITY = 220;\nconst TOOL_BUTTON_SIZE = 88;\nconst HUD_VALUE_COLOR = new cc.Color(112, 78, 65);\nconst HUD_LABEL_COLOR = new cc.Color(132, 96, 80);\nlet rescueShadeFrame: cc.SpriteFrame = null;\n\nexport type SettlementExitRequest = {\n    restart: boolean;\n    settlement: RoundSettlement;\n};\n\n@ccclass\nexport default class ZyxGame extends cc.Component {\n    private rewardFeedback: cc.Node = null;\n    private layout: ReturnType<typeof calculateGameLayout> = null;\n    private hudRoot: cc.Node = null;\n    private footerRoot: cc.Node = null;\n    private boardRoot: cc.Node = null;\n    private pieceLayer: cc.Node = null;\n    private nextLayer: cc.Node = null;\n    private nextRowLabel: cc.Label = null;\n    private bombGuideKey = '';\n    private bombGuideCount = 0;\n    private bombGuideIds = new Set<number>();\n    private firstGameBombGuide = false;\n    private scoreLabel: cc.Label = null;\n    private bestLabel: cc.Label = null;\n    private beanCollectionHud: BeanCollectionHud = null;\n    private recordTagLabel: cc.Label = null;\n    private moodStageLabel: cc.Label = null;\n    private hammerButton: cc.Node = null;\n    private hammerIcon: cc.Node = null;\n    private hammerCountLabel: cc.Label = null;\n    private purifierButton: cc.Node = null;\n    private purifierIcon: cc.Node = null;\n    private purifierCountLabel: cc.Label = null;\n    private moodBeanHudIcon: cc.Node = null;\n    private toolDragFollower: cc.Node = null;\n    private toolSelectionPrompt: cc.Node = null;\n    private toolWiggleNodes: cc.Node[] = [];\n    private hintHand: cc.Node = null;\n    private hintPieceId: number = 0;\n    private clearSpineData: sp.SkeletonData = null;\n    private resolutionLocked = true;\n    private bombAnimationLocks = 0;\n    private get locked(): boolean { return this.resolutionLocked || this.bombAnimationLocks > 0 || ['dialog', 'sharing', 'bombing'].indexOf(this.balloonPhase) >= 0; }\n    private set locked(value: boolean) { this.resolutionLocked = value; }\n    private hammerMode: boolean = false;\n    private purifierMode: boolean = false;\n    private toolDragging: boolean = false;\n    private toolTouchStart: cc.Vec2 = null;\n    private rewardedAdLoading: boolean = false;\n    private pauseMenuOpen = false;\n    private pauseStartedAt = 0;\n    private roundRescuePrompt: cc.Node = null;\n    private roundRescueCountdownState: { progress: number; started: boolean; redraw: () => void } = null;\n    private roundRescueInteractive = false;\n    private roundRescueGuideVisible = false;\n    private rescueBalloon: RescueBalloon = null;\n    private balloonPhase: 'none' | 'flying' | 'dialog' | 'sharing' | 'bombing' = 'none';\n    private balloonModal: cc.Node = null;\n    private balloonInputShield: cc.Node = null;\n    private boardDangerHalo: cc.Node = null;\n    private dangerSeconds = 0;\n    private warmBalloonActive = false;\n    private reviveUsed: boolean = false;\n    private reviveCardUsed: boolean = false;\n    private pendingReviveCardRequest: { roundId: string; sessionToken: string; actions: any[]; elapsedMs: number } = null;\n    private onSettlementExit: (request: SettlementExitRequest) => void = null;\n    private onRoundFinished: (settlement: RoundSettlement, startedAt: number) => void = null;\n    private onRestartFromPause: () => Promise<boolean> = null;\n    private settlementReported: boolean = false;\n    private pieceColors: { [key: number]: cc.Color } = {};\n    private displayedRoundMoods: number = 0;\n    /** 碎片节点池：复用消除爆散碎片，避免高频 new/destroy 造成的 GC 抖动。 */\n    private shardPool: cc.Node[] = [];\n    private idleSeconds: number = 0;\n    private rankChase: RankChaseView = null;\n    private rankChaseProfile: CloudProfile = null;\n    private rankChaseSnapshot: Promise<LeaderboardEntry[]> = null;\n    private rankExpanded = false;\n    private rankExpansion = { progress: 0 };\n    private tipIndex: number = 0;\n    private tipSeconds: number = 0;\n    private tutorialStep: number = -1;\n    private tutorialGuideRoot: cc.Node = null;\n    private tutorialNpc: cc.Node = null;\n    private tutorialBubbleGroup: cc.Node = null;\n    private tutorialBubble: cc.Node = null;\n    private tutorialSpeechLabel: cc.Label = null;\n    private tutorialHand: cc.Node = null;\n    private tutorialSourceMarker: cc.Node = null;\n    private tutorialTargetMarker: cc.Node = null;\n    private tutorialDimMask: cc.Node = null;\n    private tutorialFocusPieceId: number = 0;\n    private tutorialTypingState: { value: number } = null;\n    private tutorialRestoreCallback: () => void = null;\n\n    private savedActionLength = 0;\n    private onSaveAndExit: () => void = null;\n\n    public resumeAfterBackground(hiddenMs: number): void {\n        if (!this.pauseMenuOpen) zyxGameModule.roundStartedAt += hiddenMs;\n    }\n\n    public captureProgress(force = false): void {\n        if (this.settlementReported || roundProgress.roundId !== zyxGameModule.cloudRoundId) return;\n        const actions = zyxGameModule.roundActions;\n        if (!force && actions.length === this.savedActionLength) return;\n        if (!zyxGameModule.canCheckpoint() || (zyxGameModule.isTutorialRound() && zyxGameModule.moveCount === 3 && zyxGameModule.turn === 0)) {\n            if (force) void roundProgress.sync(true);\n            return;\n        }\n        this.savedActionLength = actions.length;\n        const pausedMs = this.pauseStartedAt ? Math.max(0, Date.now() - this.pauseStartedAt) : 0;\n        roundProgress.capture(actions, zyxGameModule.difficultyActionCount, Date.now() - zyxGameModule.roundStartedAt - pausedMs, force);\n    }\n\n    public initialize(\n        onSettlementExit: (request: SettlementExitRequest) => void,\n        onRoundFinished: (settlement: RoundSettlement, startedAt: number) => void,\n        onRestartFromPause: () => Promise<boolean>,\n        profile: CloudProfile = null,\n        restored: ResumeRoundResult = null,\n        onSaveAndExit: () => void = null,\n    ): void {\n        this.onSettlementExit = onSettlementExit;\n        this.onRoundFinished = onRoundFinished;\n        this.onSaveAndExit = onSaveAndExit;\n        this.onRestartFromPause = onRestartFromPause;\n        this.rankChaseProfile = profile;\n        this.firstGameBombGuide = !!profile && profile.gameCount === 0;\n        this.bombGuideKey = 'zyx_first_round_bomb_guides_' + (profile ? profile.playerId : '');\n        this.bombGuideCount = Math.min(5, Math.max(0, Number(cc.sys.localStorage.getItem(this.bombGuideKey)) || 0));\n        this.bombGuideIds.clear();\n        // 每局只在开局读取一次榜单；教学期间预取数据但不展示，后续纯本地追赶。\n        this.rankChaseSnapshot = cloudService.getLeaderboard('power')\n            .then((result) => result.entries.map((entry) => ({ ...entry })))\n            .catch(() => []);\n        this.settlementReported = false;\n        this.node.setAnchorPoint(0.5, 0.5);\n        uimanager.init(this.node);\n\n        if (restored) zyxGameModule.restoreRound(restored);\n        else zyxGameModule.resetRound();\n        this.savedActionLength = 0;\n        this.tutorialStep = zyxGameModule.isTutorialRound() ? Math.min(3, zyxGameModule.moveCount) : -1;\n        this.rankExpanded = this.tutorialStep < 0 || this.tutorialStep >= 3;\n        this.rankExpansion.progress = this.rankExpanded ? 1 : 0;\n        this.reviveUsed = !!restored && restored.actions.some(action => action.type"... 164196 more characters,
+    expected: /private showRewardOffer[\s\S]*?requestRewardOffer\(onResult\)/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at scripts/tests/zyx-game-module.test.js:63:1
+✖ 乱序结算回执不能覆盖兑换后的余额和库存，开局和刷新也不返还已用道具 (0.796583ms)
+  AssertionError [ERR_ASSERTION]: 0 == 1
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/scripts/tests/zyx-game-module.test.js:70:52)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: '==',
+    diff: 'simple'
+  }

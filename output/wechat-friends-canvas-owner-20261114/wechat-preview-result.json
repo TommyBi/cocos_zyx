@@ -1,0 +1,26 @@
+{
+  "previewGenerated": true,
+  "clientVersion": "2026.11.14.12",
+  "developmentVersionUploaded": false,
+  "submittedForReview": false,
+  "subPackageInfo": [
+    {
+      "name": "/subpackages/effects/",
+      "size": 1034473
+    },
+    {
+      "name": "/subpackages/home/",
+      "size": 3961330
+    },
+    {
+      "name": "__APP__",
+      "size": 2862787
+    },
+    {
+      "name": "__FULL__",
+      "size": 7858590
+    }
+  ],
+  "qrcodeFile": "wechat-preview-qr.jpg",
+  "qrcodeFormat": "JPEG"
+}

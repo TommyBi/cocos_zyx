@@ -1,0 +1,278 @@
+{
+  "releaseId": "20261114-production-shop3-201041",
+  "containers": {
+    "tcjstory-cocos-zyx-staging-cocos_zyx_api_staging-1": {
+      "id": "4ae4286c31017e34fec93984a0c0858a5ed91a7049a7e6f600aa87e56e8de5c5",
+      "image": "sha256:373741f6da247069925efa3adf34a5c616533355f2f513143bcb2e3c947543ef",
+      "imageRef": "cocos-zyx-staging:20261114-shop-three-181631",
+      "configFiles": "/opt/tcjstory/apps/cocos-zyx/server/docker-compose.staging.yml,/opt/tcjstory/apps/cocos-zyx/releases/20261114-shop-three-181631/staging-image.override.yml",
+      "mounts": [
+        {
+          "source": "/var/lib/docker/volumes/tcjstory-cocos-zyx-staging_cocos_zyx_staging_data/_data",
+          "destination": "/app/data"
+        }
+      ]
+    },
+    "tcjstory-cocos-zyx-cocos_zyx_api-1": {
+      "id": "8568228b65e50b0f8d024fc33505ce3dbb879897321042647eee43341face354",
+      "image": "sha256:0e38a7e4a1f0f77ca9f660b7f0b4fc1981c8827e6d4f4710cd32ac5425b2d4f0",
+      "imageRef": "cocos-zyx-production:20261114-production-api13-141130",
+      "configFiles": "/opt/tcjstory/apps/cocos-zyx/server/docker-compose.yml,/opt/tcjstory/apps/cocos-zyx/releases/20261114-production-api13-141130/production-image.override.yml",
+      "mounts": [
+        {
+          "source": "/var/lib/docker/volumes/tcjstory-cocos-zyx_cocos_zyx_data/_data",
+          "destination": "/app/data"
+        }
+      ]
+    },
+    "tcjstory-chloe-edu-chloe_edu_api-1": {
+      "id": "774e4160e174a78e580799734256f930723757ca13c360a84448902ee6d46116",
+      "image": "sha256:dc2aca2a8830fb7e4fc301338e77963e6294d17a51c7a133cacbe2cd1638ed5f",
+      "imageRef": "tcjstory-chloe-edu-chloe_edu_api",
+      "configFiles": "/opt/tcjstory/apps/chloe-edu/server/docker-compose.yml",
+      "mounts": [
+        {
+          "source": "/var/lib/docker/volumes/tcjstory-chloe-edu_chloe_edu_config_data/_data",
+          "destination": "/app/data"
+        }
+      ]
+    },
+    "tcjstory-chloe-edu-chloe_edu_web-1": {
+      "id": "ec41d56b14a588a70825600c485e6362990dae1e8d4af08fb7f48a707eff009c",
+      "image": "sha256:0f3af1685b7bebbd1d4e4bc1ca9aa6cb8709051d67bc049b4740c38fa77f8ca4",
+      "imageRef": "tcjstory-chloe-edu-chloe_edu_web",
+      "configFiles": "/opt/tcjstory/apps/chloe-edu/server/docker-compose.yml",
+      "mounts": []
+    },
+    "tcjstory-dawn-dawn_web-1": {
+      "id": "efc3eea9a9d4ba13ae5ab019dfa507d4e512864d190755b8f2f386e8904cbd69",
+      "image": "sha256:2a3cb24438329dcd98da1e40abd3e2b2514351c227999f57db4b90fc016f2780",
+      "imageRef": "tcjstory-dawn-dawn_web",
+      "configFiles": "/opt/tcjstory/apps/dawn/server/docker-compose.yml",
+      "mounts": []
+    },
+    "tcjstory-dawn-dawn_api-1": {
+      "id": "867a1c5c3c841aeb8254daaf4c07f935bb62603bd1b7fb73cf46e29e98cead74",
+      "image": "sha256:9304aac5fb81c2cfb350cacab794da85e2ffa9642ee8592221b5f2fdc8de823e",
+      "imageRef": "tcjstory-dawn-dawn_api",
+      "configFiles": "/opt/tcjstory/apps/dawn/server/docker-compose.yml",
+      "mounts": []
+    },
+    "tcjstory-track-track_api-1": {
+      "id": "dffb1dd6fea5a23c066034309defd82077e1dc75f8c33bf06e958fc3435c5d65",
+      "image": "sha256:85f95967faca517fecde71b40c4f7b561a52118ed8c6b47b3f258f07fec04fcd",
+      "imageRef": "tcjstory-track-track_api",
+      "configFiles": "/opt/tcjstory/apps/track/server/docker-compose.yml",
+      "mounts": [
+        {
+          "source": "/var/lib/docker/volumes/tcjstory-track_track_data/_data",
+          "destination": "/app/data"
+        }
+      ]
+    },
+    "tcjstory-codex-recharge-codex_recharge_api-1": {
+      "id": "3fdd05d095dcaadfd4c512082241ce8f02c427847ba750672f6232506b55cf08",
+      "image": "sha256:b7304218e89218c3291768e231606d7f25e7206f7cb146e74462a94b53311c9f",
+      "imageRef": "tcjstory-codex-recharge-codex_recharge_api",
+      "configFiles": "/opt/tcjstory/apps/codex-recharge/server/docker-compose.yml",
+      "mounts": [
+        {
+          "source": "/var/lib/docker/volumes/tcjstory-codex-recharge_codex_recharge_data/_data",
+          "destination": "/data"
+        }
+      ]
+    },
+    "tcjstory-qyh-shop-qyh_shop_web-1": {
+      "id": "779ae96f734967d04510de52a613b78b229c8989c3b8a7c23f2d9061f378c00c",
+      "image": "sha256:eec20a8e440978172c06dc9ddeebd3765cb56cf9d2b88b99ccfd7a4e36f0fdcb",
+      "imageRef": "tcjstory-qyh-shop-qyh_shop_web",
+      "configFiles": "/opt/tcjstory/apps/qyh-shop/server/deploy/docker-compose.yml",
+      "mounts": []
+    },
+    "tcjstory-dawn-gateway-1": {
+      "id": "543926df457e8f554209645374d80ead5dc8eeb9dba72789dc7f946486545e32",
+      "image": "sha256:af32e97399febea808609119bb21544d0265c58a02836576e32a2d082c262c17",
+      "imageRef": "caddy:2.8-alpine",
+      "configFiles": "/opt/tcjstory/apps/dawn/server/docker-compose.yml",
+      "mounts": [
+        {
+          "source": "/var/lib/docker/volumes/tcjstory-dawn_dawn_caddy_data/_data",
+          "destination": "/data"
+        },
+        {
+          "source": "/opt/tcjstory/apps/dawn/server/Caddyfile",
+          "destination": "/etc/caddy/Caddyfile"
+        },
+        {
+          "source": "/var/lib/docker/volumes/tcjstory-dawn_dawn_caddy_config/_data",
+          "destination": "/config"
+        }
+      ]
+    },
+    "tcjstory-dawn-dawn_db-1": {
+      "id": "3b7be7dff856d47f934c18b4b088e35251191dd15b3f8b112b2e5c2c1172f9a6",
+      "image": "sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777",
+      "imageRef": "postgres:16-alpine",
+      "configFiles": "/opt/tcjstory/apps/dawn/server/docker-compose.yml",
+      "mounts": [
+        {
+          "source": "/var/lib/docker/volumes/tcjstory-dawn_dawn_postgres_data/_data",
+          "destination": "/var/lib/postgresql/data"
+        }
+      ]
+    },
+    "tcjstory-xiaochu-fannao-xiaochu_fannao_api-1": {
+      "id": "6fc98a57d0adb4903bb9ff4567390f59e21a1ae2cb08bb134eafebded6340e32",
+      "image": "sha256:ab640e4d0249e03157f718b9d4addafbe352e6c3bd72c61dad109d746d9e8f9d",
+      "imageRef": "tcjstory-xiaochu-fannao-xiaochu_fannao_api",
+      "configFiles": "/opt/tcjstory/apps/xiaochu-fannao/server/docker-compose.yml",
+      "mounts": [
+        {
+          "source": "/var/lib/docker/volumes/tcjstory-xiaochu-fannao_xiaochu_fannao_data/_data",
+          "destination": "/app/data"
+        }
+      ]
+    }
+  },
+  "configSha256": {
+    "/opt/tcjstory/apps/cocos-zyx/releases/20261114-shop-three-181631/staging-image.override.yml": "649202c3998f5f763481b5d791ab429d812026d1a4c89ca701caed16ee5f12de",
+    "/opt/tcjstory/apps/cocos-zyx/server/docker-compose.staging.yml": "5f9ac9b45a789643b69782b1e02b236c9515066040d54811e034907b2db0aaa2",
+    "/opt/tcjstory/apps/dawn/server/Caddyfile": "ae4009de8656e6f47c0a4c91d5f54aaa4049a1557d4709e4b22321eecb9f5e98",
+    "/opt/tcjstory/apps/cocos-zyx/server/docker-compose.yml": "cc6874ebf5e6fb500ed4a6f13291fdbc95dab08aa922e1e63a07d4f3d017e396",
+    "/opt/tcjstory/apps/cocos-zyx/releases/20261114-production-api13-141130/production-image.override.yml": "4e05562cbb50bb5b8fba39d057ec8d565a1ee821de811a603b531b4aee5d1912",
+    "/opt/tcjstory/apps/cocos-zyx/server/.env.staging": "013017d022e6efc22e1bd59387be03466733bc15a7a07d26d9d7c774f439b01a",
+    "/opt/tcjstory/apps/cocos-zyx/server/.env": "8cd02b67df10832025d04d866d84420e39a4e508334c8229b0ee29fc78b5b5cf"
+  },
+  "sources": {
+    "shared": {
+      "src/gameEngine.js": "8b5c4c42725a97b149ae4d6b8040d4179459f145ff2b363cd7fd1c6b35032ba6",
+      "src/economyConfig.js": "7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7",
+      "src/resetProgress.js": "50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b",
+      "src/replayBoardEngine.js": "83e079791f3f082cc7f381055f88ab23d7d88f60b920e7bfda767bfd1e580bd3",
+      "src/boardEngine.js": "c27a0ead4e7eac6a17a368755a6bb0410a4fe8f536214c260d48d1ad38209ac4",
+      "src/index.js": "4aed9a893b532d8b3db7398dd3b5cfaac16ee3e39934390281a6592fc4e078da",
+      "src/databaseAudit.js": "9c20451f74a16f3dfacc5ae795dc0431dcb576c603060f8e17edfd5606805ce9",
+      "src/wechatAuth.js": "1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed",
+      "src/schema.js": "9b32d7699ea677a9eb380014f7f969e5797ca1e218fdda9bc5eaf601f6b65da6",
+      "package.json": "1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9",
+      "package-lock.json": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868",
+      "Dockerfile": "d0e9ce730a303aaf5fa28f2c6d766374f2db36baa50b2ed725ccbca2aa2e8762"
+    },
+    "production-source": {
+      "src/gameEngine.js": "f0a43fa953787be43b954c4ee2570e1b460af1358807c19bb88841f52cd91a8b",
+      "src/defaultNickname.js": "09d2ed5a2c9a2898b591697e34d4ca671cc57d29c43dc8fa9949c6ce534ae4e0",
+      "src/economyConfig.js": "7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7",
+      "src/resetProgress.js": "50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b",
+      "src/replayBoardEngine.js": "7c81c6f54e543c4c99b7fbeb2f3f60f74a7331f4fb031768da07509aa0ef4ba4",
+      "src/boardEngine.js": "d1f08342fb1ab73ea038321b04a359262b03f027b12b6fce84ca3609c7188a1f",
+      "src/index.js": "c5bc9b44709c08082648e3af4ed58977440f78ed7a3c6fd5f750233b70afb1bd",
+      "src/databaseAudit.js": "d47ab57cacf43864740968d2fff41d04089db4d3daea10573d353e6d01c59adb",
+      "src/wechatAuth.js": "1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed",
+      "src/schema.js": "b268aa691bae74069d90ac7d7975c2327e1aa6bfecc0acad01bf5d8bd7268a1f",
+      "package.json": "1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9",
+      "package-lock.json": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868",
+      "Dockerfile": "d0e9ce730a303aaf5fa28f2c6d766374f2db36baa50b2ed725ccbca2aa2e8762"
+    },
+    "staging-source": {
+      "src/gameEngine.js": "f0a43fa953787be43b954c4ee2570e1b460af1358807c19bb88841f52cd91a8b",
+      "src/defaultNickname.js": "09d2ed5a2c9a2898b591697e34d4ca671cc57d29c43dc8fa9949c6ce534ae4e0",
+      "src/economyConfig.js": "7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7",
+      "src/resetProgress.js": "50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b",
+      "src/replayBoardEngine.js": "7c81c6f54e543c4c99b7fbeb2f3f60f74a7331f4fb031768da07509aa0ef4ba4",
+      "src/boardEngine.js": "d1f08342fb1ab73ea038321b04a359262b03f027b12b6fce84ca3609c7188a1f",
+      "src/index.js": "761dde247fd72bbaacb96324dec475ed6d75075a4a65e8627d7e8c7ed0aa6f5d",
+      "src/databaseAudit.js": "d47ab57cacf43864740968d2fff41d04089db4d3daea10573d353e6d01c59adb",
+      "src/wechatAuth.js": "1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed",
+      "src/schema.js": "b268aa691bae74069d90ac7d7975c2327e1aa6bfecc0acad01bf5d8bd7268a1f",
+      "package.json": "1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9",
+      "package-lock.json": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868",
+      "Dockerfile": "d0e9ce730a303aaf5fa28f2c6d766374f2db36baa50b2ed725ccbca2aa2e8762"
+    },
+    "production-runtime": {
+      "package-lock.json": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868",
+      "package.json": "1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9",
+      "src/gameEngine.js": "f0a43fa953787be43b954c4ee2570e1b460af1358807c19bb88841f52cd91a8b",
+      "src/defaultNickname.js": "09d2ed5a2c9a2898b591697e34d4ca671cc57d29c43dc8fa9949c6ce534ae4e0",
+      "src/economyConfig.js": "7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7",
+      "src/resetProgress.js": "50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b",
+      "src/replayBoardEngine.js": "7c81c6f54e543c4c99b7fbeb2f3f60f74a7331f4fb031768da07509aa0ef4ba4",
+      "src/boardEngine.js": "d1f08342fb1ab73ea038321b04a359262b03f027b12b6fce84ca3609c7188a1f",
+      "src/index.js": "c5bc9b44709c08082648e3af4ed58977440f78ed7a3c6fd5f750233b70afb1bd",
+      "src/databaseAudit.js": "d47ab57cacf43864740968d2fff41d04089db4d3daea10573d353e6d01c59adb",
+      "src/wechatAuth.js": "1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed",
+      "src/schema.js": "b268aa691bae74069d90ac7d7975c2327e1aa6bfecc0acad01bf5d8bd7268a1f"
+    },
+    "staging-runtime": {
+      "package-lock.json": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868",
+      "package.json": "1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9",
+      "src/gameEngine.js": "f0a43fa953787be43b954c4ee2570e1b460af1358807c19bb88841f52cd91a8b",
+      "src/defaultNickname.js": "09d2ed5a2c9a2898b591697e34d4ca671cc57d29c43dc8fa9949c6ce534ae4e0",
+      "src/economyConfig.js": "7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7",
+      "src/resetProgress.js": "50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b",
+      "src/replayBoardEngine.js": "7c81c6f54e543c4c99b7fbeb2f3f60f74a7331f4fb031768da07509aa0ef4ba4",
+      "src/boardEngine.js": "d1f08342fb1ab73ea038321b04a359262b03f027b12b6fce84ca3609c7188a1f",
+      "src/index.js": "761dde247fd72bbaacb96324dec475ed6d75075a4a65e8627d7e8c7ed0aa6f5d",
+      "src/databaseAudit.js": "d47ab57cacf43864740968d2fff41d04089db4d3daea10573d353e6d01c59adb",
+      "src/wechatAuth.js": "1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed",
+      "src/schema.js": "b268aa691bae74069d90ac7d7975c2327e1aa6bfecc0acad01bf5d8bd7268a1f"
+    }
+  },
+  "health": {
+    "production": {
+      "ok": true,
+      "service": "cocos-zyx-cloud",
+      "apiVersion": 13,
+      "schemaVersion": 8,
+      "capabilities": [
+        "wechat-login",
+        "stamina",
+        "round-start",
+        "settlement",
+        "power-leaderboard",
+        "bean-balance-leaderboard",
+        "daily-share",
+        "bean-collection-progress",
+        "adaptive-combo-v2",
+        "bean-collection-1pct",
+        "bean-tool-shop",
+        "difficulty-ramp-2x",
+        "difficulty-pressure-v4",
+        "rising-rows-v5",
+        "balloon-rescue-v6",
+        "balloon-blast-v7",
+        "random-rescue-v8",
+        "rescue-scoring-v9",
+        "heart-rescue-v10"
+      ],
+      "checkedAt": "2026-11-14T12:11:17.087Z"
+    },
+    "staging": {
+      "ok": true,
+      "service": "cocos-zyx-cloud",
+      "apiVersion": 13,
+      "schemaVersion": 8,
+      "capabilities": [
+        "wechat-login",
+        "stamina",
+        "round-start",
+        "settlement",
+        "power-leaderboard",
+        "bean-balance-leaderboard",
+        "daily-share",
+        "bean-collection-progress",
+        "adaptive-combo-v2",
+        "bean-collection-1pct",
+        "bean-tool-shop",
+        "difficulty-ramp-2x",
+        "difficulty-pressure-v4",
+        "rising-rows-v5",
+        "balloon-rescue-v6",
+        "balloon-blast-v7",
+        "random-rescue-v8",
+        "rescue-scoring-v9",
+        "heart-rescue-v10"
+      ],
+      "checkedAt": "2026-11-14T12:11:17.127Z"
+    }
+  }
+}

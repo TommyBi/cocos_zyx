@@ -5,6 +5,7 @@ Requires Pillow and fonttools. No system fonts are copied or rasterized.
 import json
 import math
 import re
+import sys
 from io import BytesIO
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
@@ -92,14 +93,21 @@ def build_display(output=OUT, size=SIZE, cell=CELL, cols=COLS, chars=CHARS,
         width, height = max(1, box[2] - box[0]), max(1, box[3] - box[1])
         if width + 8 > cell or height + 8 > cell:
             raise ValueError('Glyph exceeds cell: ' + char)
+        baseline_shift = round(size / 8) if basename == 'zyx_happy_round_ui_bitmap_v1' else 0
         x, y = index % cols * cell + 4, index // cols * cell + 4
         draw.text((x - box[0], y - box[1]), char, font=font, anchor='ls',
                   fill='white', stroke_width=stroke, stroke_fill='white')
         entries.append(f'char id={ord(char)} x={x} y={y} width={width} height={height} '
-                       f'xoffset={box[0]} yoffset={round(size * 92 / 96) + box[1]} '
+                       f'xoffset={box[0]} yoffset={round(size * 92 / 96) + box[1] - baseline_shift} '
                        f'xadvance={round(font.getlength(char))} page=0 chnl=15')
     atlas_path = output / (basename + '.png')
-    atlas.save(atlas_path, optimize=True)
+    if basename == 'zyx_happy_round_ui_bitmap_v1':
+        # Preserve all 256 alpha levels while reducing the packaged atlas size.
+        indexed = Image.frombytes('P', atlas.size, atlas.getchannel('A').tobytes())
+        indexed.putpalette([255, 255, 255] * 256)
+        indexed.save(atlas_path, transparency=bytes(range(256)), optimize=True)
+    else:
+        atlas.save(atlas_path, optimize=True)
     font_path = output / (basename + '.fnt')
     font_path.write_text('\n'.join([
         f'info face="ZyxHappyRoundDisplay" size={size} bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=0,0',
@@ -172,9 +180,12 @@ def build_global():
     for record in font['name'].names:
         if record.nameID == 0:
             record.string = copyright_note.encode(record.getEncoding(), errors='replace')
-    file = output / 'zyx_happy_round_ui_v1.ttf'
+    file = SOURCE / 'zyx_happy_round_ui_v1.ttf'
     font.save(file)
-    write_meta(file, {'ver': '1.1.2', 'importer': 'ttf-font'})
+    # Core UI renders from packaged glyphs on every platform, including devices
+    # where wx.loadFont silently returns the system font. Keep the generated TTF outside assets as the bitmap rebuild input.
+    build_display(output, size=48, cell=64, cols=32, chars=ordered,
+                  basename='zyx_happy_round_ui_bitmap_v1')
     # Remove only the superseded, generated global atlas. The original review
     # proof's home atlas remains intact.
     for name in ['zyx_happy_round_ui_display_v1.fnt', 'zyx_happy_round_ui_display_v1.png']:
@@ -185,7 +196,16 @@ def build_global():
     license_file.write_text((SOURCE / 'OFL-ChillRound.txt').read_text() + '\n\n' +
                             (SOURCE / 'OFL-Nunito.txt').read_text())
     write_meta(license_file, {'ver': '2.0.2', 'importer': 'text'})
-    print('Global UI glyphs:', len(ordered), 'vector font bytes:', (output / 'zyx_happy_round_ui_v1.ttf').stat().st_size)
+    print('Global UI glyphs:', len(ordered), 'vector font bytes:', (SOURCE / 'zyx_happy_round_ui_v1.ttf').stat().st_size)
+
+
+if '--ui-bitmap-only' in sys.argv:
+    output = ROOT / 'assets/bundles/game/fonts'
+    core = TTFont(SOURCE / 'zyx_happy_round_ui_v1.ttf')
+    chars = ''.join(map(chr, sorted(core.getBestCmap())))
+    build_display(output, size=48, cell=64, cols=32, chars=chars,
+                  basename='zyx_happy_round_ui_bitmap_v1')
+    sys.exit(0)
 
 
 OUT.mkdir(parents=True, exist_ok=True)

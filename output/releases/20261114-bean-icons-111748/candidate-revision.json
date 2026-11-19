@@ -1,0 +1,9 @@
+{
+  "reason": "Keep startup mascot loading independent of typography fallback and screen navigation; ignore late sprite callbacks.",
+  "changed": [
+    "assets/script/GameMainScene.ts"
+  ],
+  "initialSource": "3191f772731be453d9638b2baa96614afae1b08144ff115ed751b3b2bb79f05b",
+  "finalSource": "666f4e63e29f6fd30d579235f26bfedf63f47c4e2afb14e6657fdd51a1836e7f",
+  "backendUnchanged": true
+}

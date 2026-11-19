@@ -1,0 +1,2 @@
+验收目标：https://api.tcjstory.cn/v1/cocos-zyx
+PASS [production]: 三项3豆价格、建档、当前与兼容协议开局及结算/幂等、体力扣减/耗尽、每日分享、排行榜、退役路由与生产调试隔离

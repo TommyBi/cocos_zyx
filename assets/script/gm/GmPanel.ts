@@ -28,7 +28,7 @@ function createFlatButton(
     // 一个节点只保留一层 Graphics，避免 Cocos 2.4 的后绘制组件吞掉底色。
     uimanager.drawButtonSurface(button, width, height, color, Math.min(17, height / 2));
     const label = uimanager.createLabel(button, text, 0, 1, 24, BUTTON_TEXT_COLOR, width - 20, height - 8);
-    uimanager.applyTypography(label, true);
+    uimanager.applyTypography(label);
     button.on(cc.Node.EventType.TOUCH_START, () => cc.tween(button).to(0.06, { scale: 0.96 }).start());
     button.on(cc.Node.EventType.TOUCH_END, () => {
         cc.tween(button).to(0.1, { scale: 1 }).start();
@@ -88,7 +88,10 @@ export function showGmSupplyPanel(
             resetting = true;
             try { await onResetAccount(); } finally { resetting = false; }
         }, 22);
+        createFlatButton(panel, 'heartRescuePreview', '爱心救场演示', 0, centerY - 285, 438, 64, BUTTON_COLORS.yellow, () => {
+            window.location.href = '/?localApi=1&balloonDemo=1&heartDemo=1';
+        }, 22);
         uimanager.createLabel(panel, '清空进度、豆子和道具 · 恢复10点体力\n仅限当前本地试玩账号', 0, centerY - 202, 17, COCOA, 438, 52);
     };
-    uimanager.showModal('GM 补给', '补充资源，或从新手第一步重新体验', [], render, 450, false, true);
+    uimanager.showModal('GM 补给', '补充资源，或从新手第一步重新体验', [], render, 570, false, true);
 }

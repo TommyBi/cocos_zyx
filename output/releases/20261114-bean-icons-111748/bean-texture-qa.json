@@ -1,0 +1,12 @@
+{
+  "source": "assets/bundles/game/images/formal/bean_hud_mascot_v1.png",
+  "artifact": "build/wechatgame/assets/game/native/64/6452848c-8118-5e56-b7e7-afffd4daad99.dce65.png",
+  "width": 256,
+  "height": 256,
+  "exactPixelsMatch": true,
+  "alphaRange": [
+    0,
+    255
+  ],
+  "sourceSha256": "f7f2e8e6e6c2c90cf90dd91e796c860371c1b12d43968816d52fcc1f3a8f03fe"
+}

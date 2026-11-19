@@ -1,0 +1,10 @@
+{
+  "localMatchesTestedStaging": true,
+  "schemaAndDependenciesUnchanged": true,
+  "productionDelta": {
+    "src/boardEngine.js": "changed",
+    "src/gameEngine.js": "changed",
+    "src/index.js": "changed",
+    "src/replayBoardEngine.js": "changed"
+  }
+}

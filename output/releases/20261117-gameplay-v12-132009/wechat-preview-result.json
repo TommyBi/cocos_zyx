@@ -1,0 +1,25 @@
+{
+  "version": "2026.11.17.01",
+  "generated": true,
+  "qrcode": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261117-gameplay-v12-132009/wechat-preview-qr.jpg",
+  "completedAt": "2026-11-17T05:27:36.270Z",
+  "subPackageInfo": [
+    {
+      "name": "/subpackages/effects/",
+      "size": 3024172
+    },
+    {
+      "name": "/subpackages/home/",
+      "size": 3920494
+    },
+    {
+      "name": "__APP__",
+      "size": 2853252
+    },
+    {
+      "name": "__FULL__",
+      "size": 9797918
+    }
+  ],
+  "submittedForReview": false
+}

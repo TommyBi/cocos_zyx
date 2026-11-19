@@ -1,0 +1,135 @@
+--- baseline/server/src/index.js
++++ server/src/index.js
+@@ -306,7 +306,7 @@
+ }
+ 
+ app.get(['/health', '/v1/cocos-zyx/health'], (_req, res) => {
+-  ok(res, { ok: true, service: 'cocos-zyx-cloud', apiVersion: 15, schemaVersion: 10, capabilities: ['wechat-login', 'stamina', 'round-start', 'settlement', 'power-leaderboard', 'bean-balance-leaderboard', 'daily-share', 'bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8', 'rescue-scoring-v9', 'heart-rescue-v10', 'round-checkpoints-v1', 'revive-card-v11'], checkedAt: new Date().toISOString() });
++  ok(res, { ok: true, service: 'cocos-zyx-cloud', apiVersion: 16, schemaVersion: 11, capabilities: ['wechat-login', 'stamina', 'round-start', 'settlement', 'power-leaderboard', 'bean-balance-leaderboard', 'daily-share', 'bean-collection-progress', 'adaptive-combo-v2', 'bean-collection-1pct', 'bean-tool-shop', 'difficulty-ramp-2x', 'difficulty-pressure-v4', 'rising-rows-v5', 'balloon-rescue-v6', 'balloon-blast-v7', 'random-rescue-v8', 'rescue-scoring-v9', 'heart-rescue-v10', 'round-checkpoints-v1', 'revive-card-v11', 'round-tools-lightning-v12'], checkedAt: new Date().toISOString() });
+ });
+ 
+ app.post('/v1/cocos-zyx/players/bootstrap', async (req, res) => {
+@@ -382,7 +382,18 @@
+   }
+ });
+ 
+-const progress = require('./roundProgress').createRoundProgress({ app, get, run, withTransaction, ensurePersisted, authenticate, ok, fail, now, heartRescueEligible, safeProfile });
++function roundToolState(playerId, roundId) {
++  const state = {};
++  for (const item of ['hammer', 'magicWand']) {
++    const row = get(`SELECT SUM(CASE WHEN kind = 'reward' THEN 1 ELSE 0 END) AS acquired,
++      SUM(CASE WHEN kind = 'use' THEN 1 ELSE 0 END) AS used FROM tool_transactions
++      WHERE player_id = ? AND round_id = ? AND item = ?`, [playerId, roundId, item]);
++    const acquired = row.acquired || 0, used = row.used || 0;
++    state[item] = { acquired, used, owned: Math.max(0, acquired - used) };
++  }
++  return state;
++}
++const progress = require('./roundProgress').createRoundProgress({ app, get, run, withTransaction, ensurePersisted, authenticate, ok, fail, now, heartRescueEligible, safeProfile, roundToolState });
+ 
+ /** 入局凭证由服务端记录，体力在这里扣除；同一 roundId 重试不会重复扣点。 */
+ app.post('/v1/cocos-zyx/games/start', (req, res) => {
+@@ -393,7 +404,7 @@
+     if (!roundId) return fail(res, '缺少对局标识', 400, 'ROUND_ID_INVALID');
+     const collectionRule = req.body.collectionRule || 'legacy';
+     const rulesVersion = req.body.rulesVersion === undefined ? 1 : Number(req.body.rulesVersion);
+-    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, BOARD_RULES_VERSION].includes(rulesVersion)) return fail(res, '不支持的棋盘规则', 400, 'BOARD_RULES_UNSUPPORTED');
++    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, BOARD_RULES_VERSION].includes(rulesVersion)) return fail(res, '不支持的棋盘规则', 400, 'BOARD_RULES_UNSUPPORTED');
+     if (!['legacy', 'progress_v1', economy.MOOD_COLLECTION_RULE].includes(collectionRule)) return fail(res, '不支持的收集规则', 400, 'COLLECTION_RULE_UNSUPPORTED');
+ 
+     const existing = get('SELECT * FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
+@@ -421,13 +432,13 @@
+ 
+     // 滚动发布期间保留V5–V10与当前V11新开局；更早协议仅供历史局补传。
+     // 都必须使用当前收集规则、服务端种子及完整重放，不开放旧奖励协议。
+-    if ((![5, 6, 7, 8, 9, 10, BOARD_RULES_VERSION].includes(rulesVersion) || collectionRule !== economy.MOOD_COLLECTION_RULE)
++    if ((![5, 6, 7, 8, 9, 10, 11, BOARD_RULES_VERSION].includes(rulesVersion) || collectionRule !== economy.MOOD_COLLECTION_RULE)
+       && process.env.ALLOW_LEGACY_ROUND_STARTS !== '1') {
+       return fail(res, '请更新游戏后重新开始', 400, 'COLLECTION_RULE_UNSUPPORTED');
+     }
+ 
+     const resumable = req.body.resumeProtocol === 1;
+-    if (req.body.resumeProtocol !== undefined && (!resumable || ![10, BOARD_RULES_VERSION].includes(rulesVersion))) return fail(res, '不支持的保存协议', 400, 'BOARD_RULES_UNSUPPORTED');
++    if (req.body.resumeProtocol !== undefined && (!resumable || ![10, 11, BOARD_RULES_VERSION].includes(rulesVersion))) return fail(res, '不支持的保存协议', 400, 'BOARD_RULES_UNSUPPORTED');
+     const previous = progress.active(user.player_id);
+     if (previous) {
+       const saved = progress.checkpoint(user.player_id, previous.round_id);
+@@ -455,6 +466,13 @@
+ 
+     let stamina;
+     withTransaction(() => {
++      // 旧客户端在升级后补领的库存，进入V12前同样折算；清零与凭据同事务，不重复返还。
++      if (rulesVersion >= 12 && (user.hammer_count > 0 || user.wand_count > 0)) {
++        const beans = (user.hammer_count + user.wand_count) * 3;
++        run('INSERT OR IGNORE INTO tool_inventory_refunds (player_id, hammer_count, wand_count, awarded_beans, created_at) VALUES (?, 0, 0, 0, ?)', [user.player_id, startedAt]);
++        run('UPDATE tool_inventory_refunds SET hammer_count = hammer_count + ?, wand_count = wand_count + ?, awarded_beans = awarded_beans + ? WHERE player_id = ?', [user.hammer_count, user.wand_count, beans, user.player_id]);
++        run('UPDATE players SET mood_bean_balance = mood_bean_balance + ?, hammer_count = 0, wand_count = 0 WHERE player_id = ?', [beans, user.player_id]);
++      }
+       const spent = state.current - economy.STAMINA_COST_PER_ROUND;
+       run('UPDATE players SET stamina_current = ?, stamina_updated_at = ?, updated_at = ?, asset_revision = asset_revision + 1 WHERE player_id = ?',
+         [spent, state.updatedAt, startedAt, user.player_id]);
+@@ -516,7 +534,7 @@
+ 
+ /** 固定商品表；客户端不能指定价格、数量或库存基线。 */
+ const TOOL_COLUMNS = { hammer: 'hammer_count', magicWand: 'wand_count' };
+-const SHOP_PRICES = { hammer: 3, magicWand: 3, stamina: 3, reviveCard: 25 };
++const SHOP_PRICES = { stamina: 3, reviveCard: 25 };
+ const INVENTORY_COLUMNS = { ...TOOL_COLUMNS, reviveCard: 'revive_card_count' };
+ function transactTool(req, res, kind) {
+   try {
+@@ -545,25 +563,32 @@
+         return fail(res, '同一操作内容不一致', 409, 'TOOL_PAYLOAD_CONFLICT');
+       }
+       ensurePersisted();
+-      return ok(res, { duplicate: true, item, price: kind === 'exchange' ? SHOP_PRICES[item] : 0, profile: safeProfile(user) });
+-    }
++      return ok(res, { duplicate: true, item, price: kind === 'exchange' ? SHOP_PRICES[item] : 0, profile: safeProfile(user),
++        ...(kind !== 'exchange' ? { roundTools: roundToolState(user.player_id, roundId) } : {}) });
++    }
++    let roundScoped = false;
+     if (kind !== 'exchange') {
+       const round = get('SELECT * FROM game_rounds WHERE player_id = ? AND round_id = ?', [user.player_id, roundId]);
+       if (!round || round.status !== 'active' || round.started_at < now() - economy.MAX_OFFLINE_SETTLEMENT_AGE_MS) {
+         return fail(res, '当前对局不可使用道具', 409, 'ROUND_NOT_ACTIVE');
+       }
++      roundScoped = round.rules_version >= 12;
++      const tool = roundToolState(user.player_id, roundId)[item];
+       if (kind === 'reward') {
+         // 分享/广告补给沿用现有客户端完成回调，每局每种最多三次，限制重复伪造领取。
+         const claims = get("SELECT COUNT(*) AS count FROM tool_transactions WHERE player_id = ? AND round_id = ? AND item = ? AND kind = 'reward'", [user.player_id, roundId, item]);
+-        if (claims.count >= 3) return fail(res, '本局该道具的三次补给已领完', 409, 'TOOL_REWARD_LIMIT');
++        const limit = roundScoped && item === 'magicWand' ? 1 : 3;
++        if (claims.count >= limit) return fail(res, `每局仅可获得${limit}次`, 409, 'TOOL_REWARD_LIMIT');
++        if (roundScoped && tool.owned > 0) return fail(res, '请先使用已领取的道具', 409, 'TOOL_ALREADY_OWNED');
+       } else if (get("SELECT 1 FROM tool_transactions WHERE player_id = ? AND round_id = ? AND action_index = ? AND kind = 'use'", [user.player_id, roundId, actionIndex])) {
+         return fail(res, '这一步已经使用过道具', 409, 'TOOL_PAYLOAD_CONFLICT');
+       }
++      if (kind === 'use' && roundScoped && tool.owned < 1) return fail(res, '请先领取本局道具', 409, 'TOOL_INSUFFICIENT');
+     }
+     const column = INVENTORY_COLUMNS[item];
+     const price = kind === 'exchange' ? SHOP_PRICES[item] : 0;
+     if (kind === 'exchange' && user.mood_bean_balance < price) return fail(res, `开心豆不足，需要 ${price} 颗`, 409, 'BEANS_INSUFFICIENT');
+-    if (kind === 'use' && user[column] < 1) return fail(res, '道具库存不足', 409, 'TOOL_INSUFFICIENT');
++    if (kind === 'use' && !roundScoped && user[column] < 1) return fail(res, '道具库存不足', 409, 'TOOL_INSUFFICIENT');
+     withTransaction(() => {
+       const delta = kind === 'use' ? -1 : 1;
+       if (item === 'stamina') {
+@@ -571,7 +596,7 @@
+         const state = getStaminaState(user, at);
+         run('UPDATE players SET mood_bean_balance = mood_bean_balance - ?, stamina_current = ?, stamina_updated_at = ?, asset_revision = asset_revision + 1, updated_at = ? WHERE player_id = ?',
+           [price, state.current + 1, state.updatedAt, at, user.player_id]);
+-      } else {
++      } else if (!roundScoped) {
+         run(`UPDATE players SET mood_bean_balance = mood_bean_balance - ?, ${column} = ${column} + ?, asset_revision = asset_revision + 1, updated_at = ? WHERE player_id = ?`,
+           [price, delta, now(), user.player_id]);
+       }
+@@ -579,7 +604,8 @@
+         [user.player_id, actionId, kind, item, roundId, actionIndex, target, now()]);
+     });
+     ensurePersisted();
+-    ok(res, { item, price, profile: safeProfile(get('SELECT * FROM players WHERE player_id = ?', [user.player_id])) });
++    ok(res, { item, price, profile: safeProfile(get('SELECT * FROM players WHERE player_id = ?', [user.player_id])),
++      ...(kind !== 'exchange' ? { roundTools: roundToolState(user.player_id, roundId) } : {}) });
+   } catch (error) { fail(res, error.message || '道具操作未确认，请重试', 500); }
+ }
+ app.post('/v1/cocos-zyx/shop/exchanges', (req, res) => transactTool(req, res, 'exchange'));

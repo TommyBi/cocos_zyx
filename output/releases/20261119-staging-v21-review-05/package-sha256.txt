@@ -1,0 +1,2 @@
+ff95157f668fa24467d988c73272712c91695bcc7d417ce4bd35e9cdbfb7cf59  wechatgame-v2026.11.19.05.zip
+ef4e70991bd1ea9cc45870ffd7d52db900d39077bca28518b48ebd44a4ef2365  backend-candidate.tar.gz

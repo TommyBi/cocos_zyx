@@ -1,0 +1,13 @@
+{
+  "changed": [
+    "README.md",
+    "docs/CHANGELOG.md",
+    "docs/agent-handoff-phase-a.md",
+    "docs/gameplay-v12-2026-11-17.md",
+    "docs/shop.md",
+    "server/README.md"
+  ],
+  "reason": "Observed deployment/upload results only; code, build inputs, assets, server runtime and WeChat artifacts unchanged.",
+  "buildSourceManifest": "source.json",
+  "deliverySourceManifest": "source-final.json"
+}

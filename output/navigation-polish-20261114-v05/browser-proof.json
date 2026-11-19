@@ -1,0 +1,1886 @@
+{
+  "results": [
+    {
+      "name": "settlement",
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "labels": [
+        {
+          "text": "×1",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 160,
+          "height": 48,
+          "bounds": {
+            "x": 338.0470914127424,
+            "y": 503.95602493074796,
+            "width": 147.81163434903044,
+            "height": 44.34349030470912
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 217.3727493074792,
+            "y": 392.1734764542937,
+            "width": 55.42936288088643,
+            "height": 35.10526315789468
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 403.9849376731303,
+            "y": 392.1734764542937,
+            "width": 110.8587257617728,
+            "height": 35.10526315789468
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 274.303324099723,
+            "y": 977.8770775623268,
+            "width": 201.393351800554,
+            "height": 48.038781163434805
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒。",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 157.9016620498615,
+            "y": 818.9795706371192,
+            "width": 434.19667590027706,
+            "height": 92.38227146814393
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 227.18836565096953,
+            "y": 717.8209833795014,
+            "width": 295.6232686980609,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "1540",
+          "fontSize": 88,
+          "actualFontSize": 88,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 180.9972299168975,
+            "y": 624.0529778393352,
+            "width": 388.00554016620504,
+            "height": 99.77285318559552
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 208.71191135734074,
+            "y": 566.3140581717452,
+            "width": 332.57617728531847,
+            "height": 45.267313019390485
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "返回",
+          "glyph": "backGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -54.625,
+          "right": 54.625,
+          "width": 214
+        },
+        {
+          "name": "再来一次",
+          "glyph": "restartGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -84.625,
+          "right": 84.625,
+          "width": 214
+        }
+      ],
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 327.50588642659284,
+        "width": 517.3407202216067,
+        "height": 707.6481994459833
+      },
+      "win": {
+        "width": 751.5492957746479,
+        "height": 1334
+      }
+    },
+    {
+      "name": "settlement-large",
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "labels": [
+        {
+          "text": "×12345",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 160,
+          "height": 48,
+          "bounds": {
+            "x": 338.0470914127424,
+            "y": 503.95602493074796,
+            "width": 147.81163434903044,
+            "height": 44.34349030470912
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 217.3727493074792,
+            "y": 392.1734764542937,
+            "width": 55.42936288088643,
+            "height": 35.10526315789468
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 403.9849376731303,
+            "y": 392.1734764542937,
+            "width": 110.8587257617728,
+            "height": 35.10526315789468
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 274.303324099723,
+            "y": 977.8770775623268,
+            "width": 201.393351800554,
+            "height": 48.038781163434805
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒。",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 157.9016620498615,
+            "y": 818.9795706371192,
+            "width": 434.19667590027706,
+            "height": 92.38227146814393
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 227.18836565096953,
+            "y": 717.8209833795014,
+            "width": 295.6232686980609,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "123456789",
+          "fontSize": 88,
+          "actualFontSize": 77,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 180.9972299168975,
+            "y": 624.0529778393352,
+            "width": 388.00554016620504,
+            "height": 99.77285318559552
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 208.71191135734074,
+            "y": 566.3140581717452,
+            "width": 332.57617728531847,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "含结算额外奖励 +10",
+          "fontSize": 26,
+          "actualFontSize": 26,
+          "width": 380,
+          "height": 37,
+          "bounds": {
+            "x": 199.47368421052633,
+            "y": 451.7600415512465,
+            "width": 351.0526315789473,
+            "height": 34.18144044321332
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "返回",
+          "glyph": "backGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -54.625,
+          "right": 54.625,
+          "width": 214
+        },
+        {
+          "name": "再来一次",
+          "glyph": "restartGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -84.625,
+          "right": 84.625,
+          "width": 214
+        }
+      ],
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 327.50588642659284,
+        "width": 517.3407202216067,
+        "height": 707.6481994459833
+      },
+      "win": {
+        "width": 751.5492957746479,
+        "height": 1334
+      }
+    },
+    {
+      "name": "pause",
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "labels": [
+        {
+          "text": "声音",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 867.018351800554,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 390.7049861495845,
+            "y": 871.6374653739612,
+            "width": 92.38227146814404,
+            "height": 40.64819944598344
+          }
+        },
+        {
+          "text": "音量",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 763.5502077562327,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "70%",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 76,
+          "height": 41,
+          "bounds": {
+            "x": 504.3351800554016,
+            "y": 789.8791551246537,
+            "width": 70.21052631578942,
+            "height": 37.87673130193912
+          }
+        },
+        {
+          "text": "震动",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 660.0820637119114,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 390.7049861495845,
+            "y": 664.7011772853185,
+            "width": 92.38227146814404,
+            "height": 40.64819944598344
+          }
+        },
+        {
+          "text": "重新开始",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 128,
+          "height": 41.6,
+          "bounds": {
+            "x": 179.14958448753458,
+            "y": 532.7792936288088,
+            "width": 118.2493074792244,
+            "height": 38.43102493074798
+          }
+        },
+        {
+          "text": "继续",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 64,
+          "height": 41.6,
+          "bounds": {
+            "x": 434.1246537396122,
+            "y": 532.7792936288088,
+            "width": 59.1246537396122,
+            "height": 38.43102493074798
+          }
+        },
+        {
+          "text": "退出",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 64,
+          "height": 41.6,
+          "bounds": {
+            "x": 321.41828254847644,
+            "y": 416.37763157894744,
+            "width": 59.1246537396122,
+            "height": 38.43102493074787
+          }
+        },
+        {
+          "text": "设   置",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 262,
+          "height": 52,
+          "bounds": {
+            "x": 253.9792243767313,
+            "y": 986.1914819944598,
+            "width": 242.0415512465374,
+            "height": 48.038781163434805
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "重新开始",
+          "glyph": "restartGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -90,
+          "right": 90,
+          "width": 224
+        },
+        {
+          "name": "继续",
+          "glyph": "playGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -58,
+          "right": 58,
+          "width": 224
+        },
+        {
+          "name": "退出",
+          "glyph": "exitGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -58,
+          "right": 58,
+          "width": 224
+        }
+      ],
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 319.1914819944599,
+        "width": 527.5027700831024,
+        "height": 724.2770083102492
+      },
+      "win": {
+        "width": 751.5492957746479,
+        "height": 1334
+      }
+    },
+    {
+      "name": "settings",
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "labels": [
+        {
+          "text": "声音",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 808.8175207756233,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 390.7049861495845,
+            "y": 813.4366343490304,
+            "width": 92.38227146814404,
+            "height": 40.64819944598344
+          }
+        },
+        {
+          "text": "音量",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 705.349376731302,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "70%",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 76,
+          "height": 41,
+          "bounds": {
+            "x": 504.3351800554016,
+            "y": 731.678324099723,
+            "width": 70.21052631578942,
+            "height": 37.87673130193912
+          }
+        },
+        {
+          "text": "震动",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 601.8812326869806,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 390.7049861495845,
+            "y": 606.5003462603878,
+            "width": 92.38227146814404,
+            "height": 40.64819944598344
+          }
+        },
+        {
+          "text": "完成",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 64,
+          "height": 41.6,
+          "bounds": {
+            "x": 321.41828254847644,
+            "y": 474.57846260387817,
+            "width": 59.1246537396122,
+            "height": 38.43102493074787
+          }
+        },
+        {
+          "text": "设   置",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 262,
+          "height": 52,
+          "bounds": {
+            "x": 253.9792243767313,
+            "y": 927.990650969529,
+            "width": 242.0415512465374,
+            "height": 48.038781163434805
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "完成",
+          "glyph": "doneGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -58,
+          "right": 58,
+          "width": 224
+        }
+      ],
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 377.3923130193906,
+        "width": 527.5027700831024,
+        "height": 607.8753462603877
+      },
+      "win": {
+        "width": 751.5492957746479,
+        "height": 1334
+      }
+    },
+    {
+      "name": "settlement",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "labels": [
+        {
+          "text": "×1",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 160,
+          "height": 48,
+          "bounds": {
+            "x": 268.21090047393363,
+            "y": 492,
+            "width": 160,
+            "height": 48
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 137.58590047393363,
+            "y": 371,
+            "width": 60,
+            "height": 38
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 339.58590047393363,
+            "y": 371,
+            "width": 120,
+            "height": 38
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 199.21090047393363,
+            "y": 1005,
+            "width": 218,
+            "height": 52
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒。",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 73.21090047393363,
+            "y": 833,
+            "width": 470,
+            "height": 100
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 148.21090047393363,
+            "y": 723.5,
+            "width": 320,
+            "height": 49
+          }
+        },
+        {
+          "text": "1540",
+          "fontSize": 88,
+          "actualFontSize": 88,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 98.21090047393363,
+            "y": 622,
+            "width": 420,
+            "height": 108
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 128.21090047393363,
+            "y": 559.5,
+            "width": 360,
+            "height": 49
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "返回",
+          "glyph": "backGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -54.625,
+          "right": 54.625,
+          "width": 214
+        },
+        {
+          "name": "再来一次",
+          "glyph": "restartGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -84.625,
+          "right": 84.625,
+          "width": 214
+        }
+      ],
+      "bounds": {
+        "x": 28.210900473933634,
+        "y": 301,
+        "width": 560,
+        "height": 766
+      },
+      "win": {
+        "width": 750,
+        "height": 1623.076923076923
+      }
+    },
+    {
+      "name": "settlement-large",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "labels": [
+        {
+          "text": "×12345",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 160,
+          "height": 48,
+          "bounds": {
+            "x": 268.21090047393363,
+            "y": 492,
+            "width": 160,
+            "height": 48
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 137.58590047393363,
+            "y": 371,
+            "width": 60,
+            "height": 38
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 339.58590047393363,
+            "y": 371,
+            "width": 120,
+            "height": 38
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 199.21090047393363,
+            "y": 1005,
+            "width": 218,
+            "height": 52
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒。",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 73.21090047393363,
+            "y": 833,
+            "width": 470,
+            "height": 100
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 148.21090047393363,
+            "y": 723.5,
+            "width": 320,
+            "height": 49
+          }
+        },
+        {
+          "text": "123456789",
+          "fontSize": 88,
+          "actualFontSize": 77,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 98.21090047393363,
+            "y": 622,
+            "width": 420,
+            "height": 108
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 128.21090047393363,
+            "y": 559.5,
+            "width": 360,
+            "height": 49
+          }
+        },
+        {
+          "text": "含结算额外奖励 +10",
+          "fontSize": 26,
+          "actualFontSize": 26,
+          "width": 380,
+          "height": 37,
+          "bounds": {
+            "x": 118.21090047393363,
+            "y": 435.5,
+            "width": 380,
+            "height": 37
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "返回",
+          "glyph": "backGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -54.625,
+          "right": 54.625,
+          "width": 214
+        },
+        {
+          "name": "再来一次",
+          "glyph": "restartGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -84.625,
+          "right": 84.625,
+          "width": 214
+        }
+      ],
+      "bounds": {
+        "x": 28.210900473933634,
+        "y": 301,
+        "width": 560,
+        "height": 766
+      },
+      "win": {
+        "width": 750,
+        "height": 1623.076923076923
+      }
+    },
+    {
+      "name": "pause",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "labels": [
+        {
+          "text": "声音",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 106.21090047393363,
+            "y": 885,
+            "width": 96,
+            "height": 54
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 325.21090047393363,
+            "y": 890,
+            "width": 100,
+            "height": 44
+          }
+        },
+        {
+          "text": "音量",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 106.21090047393363,
+            "y": 773,
+            "width": 96,
+            "height": 54
+          }
+        },
+        {
+          "text": "70%",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 76,
+          "height": 41,
+          "bounds": {
+            "x": 448.21090047393363,
+            "y": 801.5,
+            "width": 76,
+            "height": 41
+          }
+        },
+        {
+          "text": "震动",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 106.21090047393363,
+            "y": 661,
+            "width": 96,
+            "height": 54
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 325.21090047393363,
+            "y": 666,
+            "width": 100,
+            "height": 44
+          }
+        },
+        {
+          "text": "重新开始",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 128,
+          "height": 41.6,
+          "bounds": {
+            "x": 96.21090047393363,
+            "y": 523.2,
+            "width": 128,
+            "height": 41.59999999999991
+          }
+        },
+        {
+          "text": "继续",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 64,
+          "height": 41.6,
+          "bounds": {
+            "x": 372.21090047393363,
+            "y": 523.2,
+            "width": 64,
+            "height": 41.59999999999991
+          }
+        },
+        {
+          "text": "退出",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 64,
+          "height": 41.6,
+          "bounds": {
+            "x": 250.21090047393363,
+            "y": 397.2,
+            "width": 64,
+            "height": 41.60000000000002
+          }
+        },
+        {
+          "text": "设   置",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 262,
+          "height": 52,
+          "bounds": {
+            "x": 177.21090047393363,
+            "y": 1014,
+            "width": 262,
+            "height": 52
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "重新开始",
+          "glyph": "restartGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -90,
+          "right": 90,
+          "width": 224
+        },
+        {
+          "name": "继续",
+          "glyph": "playGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -58,
+          "right": 58,
+          "width": 224
+        },
+        {
+          "name": "退出",
+          "glyph": "exitGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -58,
+          "right": 58,
+          "width": 224
+        }
+      ],
+      "bounds": {
+        "x": 28.210900473933634,
+        "y": 292,
+        "width": 571,
+        "height": 784
+      },
+      "win": {
+        "width": 750,
+        "height": 1623.076923076923
+      }
+    },
+    {
+      "name": "settings",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "labels": [
+        {
+          "text": "声音",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 106.21090047393363,
+            "y": 822,
+            "width": 96,
+            "height": 54
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 325.21090047393363,
+            "y": 827,
+            "width": 100,
+            "height": 44
+          }
+        },
+        {
+          "text": "音量",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 106.21090047393363,
+            "y": 710,
+            "width": 96,
+            "height": 54
+          }
+        },
+        {
+          "text": "70%",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 76,
+          "height": 41,
+          "bounds": {
+            "x": 448.21090047393363,
+            "y": 738.5,
+            "width": 76,
+            "height": 41
+          }
+        },
+        {
+          "text": "震动",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 106.21090047393363,
+            "y": 598,
+            "width": 96,
+            "height": 54
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 325.21090047393363,
+            "y": 603,
+            "width": 100,
+            "height": 44
+          }
+        },
+        {
+          "text": "完成",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 64,
+          "height": 41.6,
+          "bounds": {
+            "x": 250.21090047393363,
+            "y": 460.2,
+            "width": 64,
+            "height": 41.60000000000002
+          }
+        },
+        {
+          "text": "设   置",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 262,
+          "height": 52,
+          "bounds": {
+            "x": 177.21090047393363,
+            "y": 951,
+            "width": 262,
+            "height": 52
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "完成",
+          "glyph": "doneGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -58,
+          "right": 58,
+          "width": 224
+        }
+      ],
+      "bounds": {
+        "x": 28.210900473933634,
+        "y": 355,
+        "width": 571,
+        "height": 658
+      },
+      "win": {
+        "width": 750,
+        "height": 1623.076923076923
+      }
+    },
+    {
+      "name": "settlement",
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "labels": [
+        {
+          "text": "×1",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 160,
+          "height": 48,
+          "bounds": {
+            "x": 338.0470914127424,
+            "y": 338.33102493074796,
+            "width": 147.81163434903044,
+            "height": 44.34349030470912
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 217.3727493074792,
+            "y": 226.54847645429362,
+            "width": 55.42936288088643,
+            "height": 35.10526315789474
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 403.9849376731303,
+            "y": 226.54847645429362,
+            "width": 110.8587257617728,
+            "height": 35.10526315789474
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 274.303324099723,
+            "y": 812.2520775623268,
+            "width": 201.393351800554,
+            "height": 48.038781163434805
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒。",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 157.9016620498615,
+            "y": 653.3545706371192,
+            "width": 434.19667590027706,
+            "height": 92.38227146814393
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 227.18836565096953,
+            "y": 552.1959833795014,
+            "width": 295.6232686980609,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "1540",
+          "fontSize": 88,
+          "actualFontSize": 88,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 180.9972299168975,
+            "y": 458.4279778393352,
+            "width": 388.00554016620504,
+            "height": 99.77285318559552
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 208.71191135734074,
+            "y": 400.68905817174516,
+            "width": 332.57617728531847,
+            "height": 45.2673130193906
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "返回",
+          "glyph": "backGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -54.625,
+          "right": 54.625,
+          "width": 214
+        },
+        {
+          "name": "再来一次",
+          "glyph": "restartGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -84.625,
+          "right": 84.625,
+          "width": 214
+        }
+      ],
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 161.88088642659284,
+        "width": 517.3407202216067,
+        "height": 707.6481994459832
+      },
+      "win": {
+        "width": 1000.5,
+        "height": 1334
+      }
+    },
+    {
+      "name": "settlement-large",
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "labels": [
+        {
+          "text": "×12345",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 160,
+          "height": 48,
+          "bounds": {
+            "x": 338.0470914127424,
+            "y": 338.33102493074796,
+            "width": 147.81163434903044,
+            "height": 44.34349030470912
+          }
+        },
+        {
+          "text": "返回",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 60,
+          "height": 38,
+          "bounds": {
+            "x": 217.3727493074792,
+            "y": 226.54847645429362,
+            "width": 55.42936288088643,
+            "height": 35.10526315789474
+          }
+        },
+        {
+          "text": "再来一次",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "width": 120,
+          "height": 38,
+          "bounds": {
+            "x": 403.9849376731303,
+            "y": 226.54847645429362,
+            "width": 110.8587257617728,
+            "height": 35.10526315789474
+          }
+        },
+        {
+          "text": "本局结算",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 218,
+          "height": 52,
+          "bounds": {
+            "x": 274.303324099723,
+            "y": 812.2520775623268,
+            "width": 201.393351800554,
+            "height": 48.038781163434805
+          }
+        },
+        {
+          "text": "你把纷乱一点点整理好了，真的很棒。",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 470,
+          "height": 100,
+          "bounds": {
+            "x": 157.9016620498615,
+            "y": 653.3545706371192,
+            "width": 434.19667590027706,
+            "height": 92.38227146814393
+          }
+        },
+        {
+          "text": "本局得分",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 320,
+          "height": 49,
+          "bounds": {
+            "x": 227.18836565096953,
+            "y": 552.1959833795014,
+            "width": 295.6232686980609,
+            "height": 45.267313019390485
+          }
+        },
+        {
+          "text": "123456789",
+          "fontSize": 88,
+          "actualFontSize": 77,
+          "width": 420,
+          "height": 108,
+          "bounds": {
+            "x": 180.9972299168975,
+            "y": 458.4279778393352,
+            "width": 388.00554016620504,
+            "height": 99.77285318559552
+          }
+        },
+        {
+          "text": "本局收获 · 开心豆",
+          "fontSize": 34,
+          "actualFontSize": 34,
+          "width": 360,
+          "height": 49,
+          "bounds": {
+            "x": 208.71191135734074,
+            "y": 400.68905817174516,
+            "width": 332.57617728531847,
+            "height": 45.2673130193906
+          }
+        },
+        {
+          "text": "含结算额外奖励 +10",
+          "fontSize": 26,
+          "actualFontSize": 26,
+          "width": 380,
+          "height": 37,
+          "bounds": {
+            "x": 199.47368421052633,
+            "y": 286.1350415512465,
+            "width": 351.0526315789473,
+            "height": 34.18144044321332
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "返回",
+          "glyph": "backGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -54.625,
+          "right": 54.625,
+          "width": 214
+        },
+        {
+          "name": "再来一次",
+          "glyph": "restartGlyph",
+          "fontSize": 30,
+          "actualFontSize": 30,
+          "gap": 8,
+          "center": 0,
+          "left": -84.625,
+          "right": 84.625,
+          "width": 214
+        }
+      ],
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 161.88088642659284,
+        "width": 517.3407202216067,
+        "height": 707.6481994459832
+      },
+      "win": {
+        "width": 1000.5,
+        "height": 1334
+      }
+    },
+    {
+      "name": "pause",
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "labels": [
+        {
+          "text": "声音",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 701.393351800554,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 390.7049861495845,
+            "y": 706.0124653739612,
+            "width": 92.38227146814404,
+            "height": 40.64819944598344
+          }
+        },
+        {
+          "text": "音量",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 597.9252077562327,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "70%",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 76,
+          "height": 41,
+          "bounds": {
+            "x": 504.3351800554016,
+            "y": 624.2541551246537,
+            "width": 70.21052631578942,
+            "height": 37.87673130193912
+          }
+        },
+        {
+          "text": "震动",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 494.45706371191136,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 390.7049861495845,
+            "y": 499.0761772853185,
+            "width": 92.38227146814404,
+            "height": 40.64819944598344
+          }
+        },
+        {
+          "text": "重新开始",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 128,
+          "height": 41.6,
+          "bounds": {
+            "x": 179.14958448753458,
+            "y": 367.1542936288089,
+            "width": 118.2493074792244,
+            "height": 38.43102493074787
+          }
+        },
+        {
+          "text": "继续",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 64,
+          "height": 41.6,
+          "bounds": {
+            "x": 434.1246537396122,
+            "y": 367.1542936288089,
+            "width": 59.1246537396122,
+            "height": 38.43102493074787
+          }
+        },
+        {
+          "text": "退出",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 64,
+          "height": 41.6,
+          "bounds": {
+            "x": 321.41828254847644,
+            "y": 250.75263157894742,
+            "width": 59.1246537396122,
+            "height": 38.431024930747895
+          }
+        },
+        {
+          "text": "设   置",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 262,
+          "height": 52,
+          "bounds": {
+            "x": 253.9792243767313,
+            "y": 820.5664819944598,
+            "width": 242.0415512465374,
+            "height": 48.038781163434805
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "重新开始",
+          "glyph": "restartGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -90,
+          "right": 90,
+          "width": 224
+        },
+        {
+          "name": "继续",
+          "glyph": "playGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -58,
+          "right": 58,
+          "width": 224
+        },
+        {
+          "name": "退出",
+          "glyph": "exitGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -58,
+          "right": 58,
+          "width": 224
+        }
+      ],
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 153.56648199445988,
+        "width": 527.5027700831024,
+        "height": 724.2770083102491
+      },
+      "win": {
+        "width": 1000.5,
+        "height": 1334
+      }
+    },
+    {
+      "name": "settings",
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "labels": [
+        {
+          "text": "声音",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 643.1925207756233,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 390.7049861495845,
+            "y": 647.8116343490304,
+            "width": 92.38227146814404,
+            "height": 40.64819944598344
+          }
+        },
+        {
+          "text": "音量",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 539.724376731302,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "70%",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 76,
+          "height": 41,
+          "bounds": {
+            "x": 504.3351800554016,
+            "y": 566.053324099723,
+            "width": 70.21052631578942,
+            "height": 37.87673130193912
+          }
+        },
+        {
+          "text": "震动",
+          "fontSize": 37,
+          "actualFontSize": 37,
+          "width": 96,
+          "height": 54,
+          "bounds": {
+            "x": 188.38781163434902,
+            "y": 436.25623268698064,
+            "width": 88.6869806094183,
+            "height": 49.88642659279776
+          }
+        },
+        {
+          "text": "已开启",
+          "fontSize": 29,
+          "actualFontSize": 29,
+          "width": 100,
+          "height": 44,
+          "bounds": {
+            "x": 390.7049861495845,
+            "y": 440.8753462603878,
+            "width": 92.38227146814404,
+            "height": 40.64819944598344
+          }
+        },
+        {
+          "text": "完成",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "width": 64,
+          "height": 41.6,
+          "bounds": {
+            "x": 321.41828254847644,
+            "y": 308.95346260387817,
+            "width": 59.1246537396122,
+            "height": 38.43102493074787
+          }
+        },
+        {
+          "text": "设   置",
+          "fontSize": 36,
+          "actualFontSize": 36,
+          "width": 262,
+          "height": 52,
+          "bounds": {
+            "x": 253.9792243767313,
+            "y": 762.365650969529,
+            "width": 242.0415512465374,
+            "height": 48.038781163434805
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "name": "完成",
+          "glyph": "doneGlyph",
+          "fontSize": 32,
+          "actualFontSize": 32,
+          "gap": 8,
+          "center": 0,
+          "left": -58,
+          "right": 58,
+          "width": 224
+        }
+      ],
+      "bounds": {
+        "x": 116.3296398891967,
+        "y": 211.7673130193906,
+        "width": 527.5027700831024,
+        "height": 607.8753462603877
+      },
+      "win": {
+        "width": 1000.5,
+        "height": 1334
+      }
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "kind": "source",
+  "createdAt": "2026-11-19T06:17:53.579076+00:00",
+  "includes": [
+    "package-lock.json",
+    "package.json",
+    "src"
+  ],
+  "files": {
+    "package-lock.json": {
+      "sha256": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868",
+      "bytes": 31452
+    },
+    "package.json": {
+      "sha256": "1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9",
+      "bytes": 336
+    },
+    "src/boardEngine.js": {
+      "sha256": "8b1c3352eb9404c0a8f258b4d4a57629c7d89e6900a1fb408ad444f1a7bf79d5",
+      "bytes": 60223
+    },
+    "src/databaseAudit.js": {
+      "sha256": "0d7f91cc058f19d9fb85e4ddf5750e59deeff34f47ee005264d5fa59992bb009",
+      "bytes": 2551
+    },
+    "src/defaultNickname.js": {
+      "sha256": "09d2ed5a2c9a2898b591697e34d4ca671cc57d29c43dc8fa9949c6ce534ae4e0",
+      "bytes": 2362
+    },
+    "src/economyConfig.js": {
+      "sha256": "7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7",
+      "bytes": 1191
+    },
+    "src/exportRisk.js": {
+      "sha256": "ab3c49c78299b3cf7aecda95fa2d9277969e80893be58e4c630e1b2a446693e4",
+      "bytes": 1551
+    },
+    "src/gameEngine.js": {
+      "sha256": "a2144e24578226532f031e114f5966ac705a92f0c6aed26d49ef74fab1698546",
+      "bytes": 16600
+    },
+    "src/index.js": {
+      "sha256": "19cf093f4839edf091b824fa79c573a1d933d51edb9fb7abd1217f6f06f004a7",
+      "bytes": 51135
+    },
+    "src/replayBoardEngine.js": {
+      "sha256": "3c22c2acf20aa9bc8a43e32827958263db1793fa169050b74d8066d13e7ba55c",
+      "bytes": 8022
+    },
+    "src/replayService.js": {
+      "sha256": "c26834a21f4aba81ede6c2c4110a926c858909edd4f5b36a6b211d77ee84f1df",
+      "bytes": 2083
+    },
+    "src/replayWorker.js": {
+      "sha256": "16c8984728cbd1dcc27c4671e68438a612b65828b8acaaad8d58b152a5390548",
+      "bytes": 817
+    },
+    "src/resetProgress.js": {
+      "sha256": "50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b",
+      "bytes": 2923
+    },
+    "src/rewardSecurity.js": {
+      "sha256": "0b9e0d1e784550a0aa5e44361c1ec8394638247bddd296c0123ae9989c3fdbe6",
+      "bytes": 8420
+    },
+    "src/riskControl.js": {
+      "sha256": "751042e7f73ede81dbfed67e266366dadc9c92bfd36bf2ba124149953ec6cc7f",
+      "bytes": 8921
+    },
+    "src/roundProgress.js": {
+      "sha256": "6ea4abb7d2a8f6e394bce5a317943dbd7de54423826a130bb3758408a4681240",
+      "bytes": 18820
+    },
+    "src/schema.js": {
+      "sha256": "fa7915b2ca0166ad190238fc3cf9cfda9fa0443abee24cce196e6e263f50f100",
+      "bytes": 10032
+    },
+    "src/wechatAuth.js": {
+      "sha256": "1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed",
+      "bytes": 1964
+    }
+  },
+  "treeSha256": "a51e919c661b66a52ca1ec22555764aecf666d7d7dab54a9e9273f8f9614ccc3",
+  "excludedPaths": [
+    ".deploy",
+    "build",
+    "coverage",
+    "data",
+    "dist",
+    "logs",
+    "server/build",
+    "server/data",
+    "server/dist",
+    "server/uploads",
+    "tmp",
+    "uploads",
+    "web/build",
+    "web/dist",
+    "web/uploads"
+  ],
+  "skippedCount": 0
+}

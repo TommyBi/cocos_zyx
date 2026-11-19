@@ -1,0 +1,83 @@
+[
+  {
+    "width": 320,
+    "height": 568,
+    "artInfo": {
+      "source": 768,
+      "width": 116,
+      "price": "25"
+    },
+    "negotiatedStart": true,
+    "tools": [
+      {
+        "title": "解压锤",
+        "action": "分享获得（5/5）",
+        "placement": "hammer",
+        "claimed": 1,
+        "selection": true
+      },
+      {
+        "title": "魔法棒",
+        "action": "视频获得（5/5）",
+        "placement": "tool",
+        "claimed": 1,
+        "selection": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "artInfo": {
+      "source": 768,
+      "width": 116,
+      "price": "25"
+    },
+    "negotiatedStart": true,
+    "tools": [
+      {
+        "title": "解压锤",
+        "action": "分享获得（5/5）",
+        "placement": "hammer",
+        "claimed": 1,
+        "selection": true
+      },
+      {
+        "title": "魔法棒",
+        "action": "视频获得（5/5）",
+        "placement": "tool",
+        "claimed": 1,
+        "selection": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "artInfo": {
+      "source": 768,
+      "width": 116,
+      "price": "25"
+    },
+    "negotiatedStart": true,
+    "tools": [
+      {
+        "title": "解压锤",
+        "action": "分享获得（5/5）",
+        "placement": "hammer",
+        "claimed": 1,
+        "selection": true
+      },
+      {
+        "title": "魔法棒",
+        "action": "视频获得（5/5）",
+        "placement": "tool",
+        "claimed": 1,
+        "selection": true
+      }
+    ],
+    "errors": []
+  }
+]

@@ -115,7 +115,7 @@ test('历史默认昵称升级为小动物，保留自定义昵称且迁移可�
   assert.deepEqual(disk.exec(sql)[0].values, expected);
   assert.equal(disk.exec("SELECT COUNT(*) FROM players WHERE substr(nickname, 1, 3) IN ('狡猾的', '慵懒的')")[0].values[0][0], 0);
   assert.equal(disk.exec("SELECT nickname FROM players WHERE player_id = 'legacy_player'")[0].values[0][0], '旧玩家');
-  assert.equal(disk.exec('PRAGMA user_version')[0].values[0][0], 8);
+  assert.equal(disk.exec('PRAGMA user_version')[0].values[0][0], 12);
   disk.close();
 });
 
@@ -129,4 +129,30 @@ test('历史库中的新账号显式获得 10 点体力，不依赖旧列默认�
   const data = (await response.json()).data;
   assert.equal(data.profile.stamina.current, 10);
   assert.equal(data.profile.stamina.max, 10);
+});
+
+
+test('复活卡字段原地补零，重复迁移保留已有卡片和旧玩家资产', async () => {
+  const SQL = await initSqlJs(); const db = new SQL.Database(fs.readFileSync(dbFilePath));
+  assert.ok(db.exec('SELECT revive_card_count FROM players')[0].values.every(row => row[0] === 0));
+  const before = db.exec('SELECT player_id, mood_bean_balance, experience, highest_single_game_score, hammer_count, wand_count FROM players ORDER BY player_id');
+  db.run('UPDATE players SET revive_card_count = 7');
+  migrateSchema(db); migrateSchema(db);
+  assert.ok(db.exec('SELECT revive_card_count FROM players')[0].values.every(row => row[0] === 7));
+  assert.deepEqual(db.exec('SELECT player_id, mood_bean_balance, experience, highest_single_game_score, hammer_count, wand_count FROM players ORDER BY player_id'), before);
+  db.close();
+});
+
+test('V12旧锤棒每个退3豆，清库存与凭据原子，重启不重复返还且身份/卡片/榜单保留', async () => {
+  const SQL = await initSqlJs(); const db = new SQL.Database(fs.readFileSync(dbFilePath));
+  db.run('PRAGMA user_version = 10'); db.run('DELETE FROM tool_inventory_refunds');
+  db.run("UPDATE players SET hammer_count = 2, wand_count = 3, revive_card_count = 7 WHERE player_id = 'legacy_player'");
+  const before = db.exec("SELECT token, mood_bean_balance, total_mood_beans, level, experience, highest_single_game_score FROM players WHERE player_id = 'legacy_player'")[0].values[0];
+  migrateSchema(db);
+  const after = db.exec("SELECT token, mood_bean_balance, total_mood_beans, level, experience, highest_single_game_score FROM players WHERE player_id = 'legacy_player'")[0].values[0];
+  assert.deepEqual(after, before.map((v, i) => i === 1 ? v + 15 : v));
+  assert.deepEqual(db.exec("SELECT hammer_count, wand_count, revive_card_count FROM players WHERE player_id = 'legacy_player'")[0].values[0], [0, 0, 7]);
+  assert.deepEqual(db.exec("SELECT hammer_count, wand_count, awarded_beans FROM tool_inventory_refunds WHERE player_id = 'legacy_player'")[0].values[0], [2, 3, 15]);
+  migrateSchema(db); assert.deepEqual(db.exec("SELECT token, mood_bean_balance, total_mood_beans, level, experience, highest_single_game_score FROM players WHERE player_id = 'legacy_player'")[0].values[0], after);
+  db.close();
 });

@@ -74,7 +74,7 @@ test('共用按钮统一棕色与打包字体字重，结算奖励不展示云�
   const buttonFactory = uiSource.slice(buttonStart, buttonEnd);
   assert.ok(buttonStart >= 0 && buttonEnd > buttonStart);
   assert.match(buttonFactory, /BUTTON_TEXT_COLOR/);
-  assert.match(buttonFactory, /this\.applyTypography\(label, true\)/);
+  assert.match(buttonFactory, /this\.applyTypography\(label\)/);
   assert.doesNotMatch(buttonFactory, /label\.enableBold = true/);
   assert.doesNotMatch(buttonFactory, /cc\.Color\.WHITE/);
   assert.doesNotMatch(gameSource, /本局收集 · 到账以云端为准/);

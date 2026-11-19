@@ -1,0 +1,140 @@
+✖ 固定3豆换1件、扣款发货原子、同请求重复提交仅兑换一件、两种道具均持久保存 (68.707375ms)
+✖ 余额不足、并发透支、未知商品和同ID换商品均不会错误扣款 (18.976291ms)
+✖ 落盘失败后用原ID重试，只扣3豆并只入库一件 (18.188875ms)
+✔ 当前规则禁止伪造道具动作；合法使用只扣一次，刷新/结算不返还已用道具 (68.888542ms)
+✔ 新开局不再支持旧免重放奖励协议；补给有幂等和每局上限 (49.079ms)
+✔ V5/V6/V7/V8/V9客户端可并行幂等开局、重放结算，旧协议仍不能新开局 (298.513959ms)
+✔ GM重置清空资产/道具/对局记录，恢复10体力，新开局重新进入教学 (45.312542ms)
+✖ 3豆换1体力、与自然恢复累加、保留恢复时钟，幂等重试不能重复加体力 (28.336833ms)
+✖ 体力兑换不重置未满时的自然恢复倒计时；余额不足与并发不透支 (39.596084ms)
+✖ 所有商城商品2豆不足、3豆恰好成功，客户端伪造价格数量不能改变扣款或发货 (15.926292ms)
+✔ 当前规则拒绝重复复活、超过8排复活和短时间重复清屏，不能伪造救场绕过上升 (27.074459ms)
+✔ 过期未结算对局不能继续扣道具或领取补给 (31.3845ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 6
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 824.682042
+
+✖ failing tests:
+
+test at server/test/shop.test.js:35:1
+✖ 固定3豆换1件、扣款发货原子、同请求重复提交仅兑换一件、两种道具均持久保存 (68.707375ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(pair.every(result => result.status === 200))
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:38:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at server/test/shop.test.js:56:1
+✖ 余额不足、并发透支、未知商品和同ID换商品均不会错误扣款 (18.976291ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   200,
+      409,
+  +   409
+    ]
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:59:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 409, 409 ],
+    expected: [ 200, 409 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at server/test/shop.test.js:67:1
+✖ 落盘失败后用原ID重试，只扣3豆并只入库一件 (18.188875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  409 !== 500
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:71:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 409,
+    expected: 500,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at server/test/shop.test.js:179:1
+✖ 3豆换1体力、与自然恢复累加、保留恢复时钟，幂等重试不能重复加体力 (28.336833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  5 !== 3
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:186:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 5,
+    expected: 3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at server/test/shop.test.js:200:1
+✖ 体力兑换不重置未满时的自然恢复倒计时；余额不足与并发不透支 (39.596084ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   200,
+      409,
+  +   409
+    ]
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:205:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 409, 409 ],
+    expected: [ 200, 409 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at server/test/shop.test.js:213:1
+✖ 所有商城商品2豆不足、3豆恰好成功，客户端伪造价格数量不能改变扣款或发货 (15.926292ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /3/. Input:
+  
+  '开心豆不足，需要 20 颗'
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:219:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '开心豆不足，需要 20 颗',
+    expected: /3/,
+    operator: 'match',
+    diff: 'simple'
+  }

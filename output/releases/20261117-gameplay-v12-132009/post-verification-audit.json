@@ -1,0 +1,50 @@
+{
+  "integrity": "ok",
+  "tables": {
+    "game_rounds": {
+      "before": 292,
+      "after": 302,
+      "existingRecordsPreserved": true
+    },
+    "players": {
+      "before": 64,
+      "after": 66,
+      "existingRecordsPreserved": true
+    },
+    "release_resets": {
+      "before": 0,
+      "after": 0,
+      "existingRecordsPreserved": true
+    },
+    "round_checkpoints": {
+      "before": 0,
+      "after": 0,
+      "existingRecordsPreserved": true
+    },
+    "round_settlements": {
+      "before": 82,
+      "after": 87,
+      "existingRecordsPreserved": true
+    },
+    "sqlite_sequence": {
+      "before": 1,
+      "after": 1,
+      "existingRecordsPreserved": true
+    },
+    "stamina_share_claims": {
+      "before": 13,
+      "after": 14,
+      "existingRecordsPreserved": true
+    },
+    "tool_transactions": {
+      "before": 38,
+      "after": 38,
+      "existingRecordsPreserved": true
+    }
+  },
+  "oldPlayersPreserved": 64,
+  "newIsolatedQaAccounts": 2,
+  "refundBeans": 24,
+  "playersRefunded": 6,
+  "productionGatewayAndSharedSourceUnchanged": true
+}

@@ -1,0 +1,167 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "voices": [
+      {
+        "name": "combo_wow_v2",
+        "duration": 0.470204,
+        "loop": false,
+        "start": 2107.199999988079,
+        "maxRms": 0.06916764268399482,
+        "context": "running",
+        "loaded": true
+      },
+      {
+        "name": "combo_good_v2",
+        "duration": 0.444082,
+        "loop": false,
+        "start": 3291.199999988079,
+        "maxRms": 0.07452393728611947,
+        "context": "running",
+        "loaded": true
+      },
+      {
+        "name": "combo_great_v2",
+        "duration": 0.574694,
+        "loop": false,
+        "start": 4473.300000011921,
+        "maxRms": 0.09370110895550432,
+        "context": "running",
+        "loaded": true
+      },
+      {
+        "name": "combo_perfect_v2",
+        "duration": 1.018776,
+        "loop": false,
+        "start": 5657.100000023842,
+        "maxRms": 0.15287840751523304,
+        "context": "running",
+        "loaded": true
+      }
+    ],
+    "early": {
+      "exists": true,
+      "opacity": 255,
+      "motion": 0.2203956263317963,
+      "faceY": 0,
+      "scoreY": -50
+    },
+    "fade": 122,
+    "cheerDuration": 2.873469,
+    "oneCheerPerOvertake": true,
+    "emergencySound": true,
+    "heartUsesWand": true,
+    "pageErrors": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "voices": [
+      {
+        "name": "combo_wow_v2",
+        "duration": 0.470204,
+        "loop": false,
+        "start": 571.2999999523163,
+        "maxRms": 0.06995515013331934,
+        "context": "running",
+        "loaded": true
+      },
+      {
+        "name": "combo_good_v2",
+        "duration": 0.444082,
+        "loop": false,
+        "start": 1755.199999988079,
+        "maxRms": 0.07412376788995627,
+        "context": "running",
+        "loaded": true
+      },
+      {
+        "name": "combo_great_v2",
+        "duration": 0.574694,
+        "loop": false,
+        "start": 2937,
+        "maxRms": 0.09370110895550432,
+        "context": "running",
+        "loaded": true
+      },
+      {
+        "name": "combo_perfect_v2",
+        "duration": 1.018776,
+        "loop": false,
+        "start": 4122,
+        "maxRms": 0.15057860276683627,
+        "context": "running",
+        "loaded": true
+      }
+    ],
+    "early": {
+      "exists": true,
+      "opacity": 255,
+      "motion": 0.22039562633179627,
+      "faceY": 0,
+      "scoreY": -50
+    },
+    "fade": 136,
+    "cheerDuration": 2.873469,
+    "oneCheerPerOvertake": true,
+    "emergencySound": true,
+    "heartUsesWand": true,
+    "pageErrors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "voices": [
+      {
+        "name": "combo_wow_v2",
+        "duration": 0.470204,
+        "loop": false,
+        "start": 643.6000000238419,
+        "maxRms": 0.06916764268399482,
+        "context": "running",
+        "loaded": true
+      },
+      {
+        "name": "combo_good_v2",
+        "duration": 0.444082,
+        "loop": false,
+        "start": 1826.9000000357628,
+        "maxRms": 0.07412376788995627,
+        "context": "running",
+        "loaded": true
+      },
+      {
+        "name": "combo_great_v2",
+        "duration": 0.574694,
+        "loop": false,
+        "start": 3003.7000000476837,
+        "maxRms": 0.09370110895550432,
+        "context": "running",
+        "loaded": true
+      },
+      {
+        "name": "combo_perfect_v2",
+        "duration": 1.018776,
+        "loop": false,
+        "start": 4197,
+        "maxRms": 0.15287840751523304,
+        "context": "running",
+        "loaded": true
+      }
+    ],
+    "early": {
+      "exists": true,
+      "opacity": 255,
+      "motion": 0.22043042747285593,
+      "faceY": 0,
+      "scoreY": -50
+    },
+    "fade": 108,
+    "cheerDuration": 2.873469,
+    "oneCheerPerOvertake": true,
+    "emergencySound": true,
+    "heartUsesWand": true,
+    "pageErrors": []
+  }
+]

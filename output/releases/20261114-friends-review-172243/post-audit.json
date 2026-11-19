@@ -1,0 +1,44 @@
+{
+  "integrity": "ok",
+  "tableCounts": {
+    "game_rounds": {
+      "before": 258,
+      "after": 268,
+      "existingRowsPreserved": true
+    },
+    "players": {
+      "before": 56,
+      "after": 57,
+      "existingRowsPreserved": true
+    },
+    "release_resets": {
+      "before": 0,
+      "after": 0,
+      "existingRowsPreserved": true
+    },
+    "round_settlements": {
+      "before": 65,
+      "after": 70,
+      "existingRowsPreserved": true
+    },
+    "sqlite_sequence": {
+      "before": 1,
+      "after": 1,
+      "existingRowsPreserved": false
+    },
+    "stamina_share_claims": {
+      "before": 10,
+      "after": 11,
+      "existingRowsPreserved": true
+    },
+    "tool_transactions": {
+      "before": 22,
+      "after": 22,
+      "existingRowsPreserved": true
+    }
+  },
+  "allContainersAndConfigsUnchanged": true,
+  "sharedSourceUnchanged": true,
+  "backendRecreated": false,
+  "testWrites": "One isolated release_check account, zero points and zero beans; own protocol rounds, settlements and share claims only."
+}

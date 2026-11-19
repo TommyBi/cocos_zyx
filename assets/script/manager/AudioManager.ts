@@ -1,15 +1,23 @@
 import { gameSettings } from './GameSettings';
 import { ASSET_PATHS, BundleName, getAudioClip, loadMusicClip } from './AssetLoader';
+import { getWxApi } from './PlatformAdapter';
 
 export type MusicName = 'main' | 'game';
-export type SoundName = 'break' | 'move' | 'hammer' | 'magicWand' | 'bomb';
+export type SoundName = 'break' | 'move' | 'hammer' | 'magicWand' | 'bomb' | 'lightning' | 'overtake' | 'emergencyLightning' | 'comboWow' | 'comboGood' | 'comboGreat' | 'comboPerfect';
 
 type AudioResource = { bundle: BundleName; path: string };
 
 const SOUND_RESOURCES: { [key in SoundName]: AudioResource } = {
+    overtake: { bundle: 'effects', path: ASSET_PATHS.effects.overtakeSound },
+    emergencyLightning: { bundle: 'effects', path: ASSET_PATHS.effects.emergencyLightningSound },
+    comboWow: { bundle: 'effects', path: ASSET_PATHS.effects.comboWowSound },
+    comboGood: { bundle: 'effects', path: ASSET_PATHS.effects.comboGoodSound },
+    comboGreat: { bundle: 'effects', path: ASSET_PATHS.effects.comboGreatSound },
+    comboPerfect: { bundle: 'effects', path: ASSET_PATHS.effects.comboPerfectSound },
+    lightning: { bundle: 'effects', path: ASSET_PATHS.effects.lightningSound },
     break: { bundle: 'game', path: ASSET_PATHS.game.breakSound },
     move: { bundle: 'game', path: ASSET_PATHS.game.moveSound },
-    bomb: { bundle: 'game', path: ASSET_PATHS.game.bombSound },
+    bomb: { bundle: 'effects', path: ASSET_PATHS.effects.bombSound },
     hammer: { bundle: 'game', path: ASSET_PATHS.game.hammerSound },
     magicWand: { bundle: 'game', path: ASSET_PATHS.game.magicWandSound },
 };
@@ -38,19 +46,43 @@ export default class AudioManager {
     private musicClip: cc.AudioClip = null;
     private appliedVolume = -1;
     private unsubscribeSettings: () => void = null;
+    private audioInterrupted = false;
+    private rewardVideoActive = false;
+    private recoveryTimers: any[] = [];
+    private wxAudioApi: any = null;
+    private nativeRestartPending = false;
+    private comboAudioId = -1;
+    private overtakeAudioId = -1;
 
-    private readonly onHide = (): void => {
-        this.appVisible = false;
+    private readonly onAudioInterruptionBegin = (): void => {
+        this.audioInterrupted = true;
+        this.clearRecoveryTimers();
         this.syncMusic();
         cc.audioEngine.stopAllEffects();
     };
-    private readonly onShow = (): void => { this.appVisible = true; this.syncMusic(); };
+    private readonly onAudioInterruptionEnd = (): void => {
+        this.audioInterrupted = false;
+        this.recoverMusic();
+    };
+    private readonly onRewardVideoState = (active: boolean): void => {
+        this.rewardVideoActive = active;
+        if (active) { this.clearRecoveryTimers(); this.syncMusic(); cc.audioEngine.stopAllEffects(); }
+        else this.recoverMusic();
+    };
+
+    private readonly onHide = (): void => {
+        this.appVisible = false;
+        this.clearRecoveryTimers();
+        this.syncMusic();
+        cc.audioEngine.stopAllEffects();
+    };
+    private readonly onShow = (): void => { this.appVisible = true; this.recoverMusic(); };
     private readonly onBlur = (): void => {
         this.webFocused = false;
         this.syncMusic();
         cc.audioEngine.stopAllEffects();
     };
-    private readonly onFocus = (): void => { this.webFocused = true; this.syncMusic(); };
+    private readonly onFocus = (): void => { this.webFocused = true; this.recoverMusic(); };
     private readonly onVisibility = (): void => {
         this.webFocused = document.hasFocus();
         this.syncMusic();
@@ -66,6 +98,12 @@ export default class AudioManager {
         this.unsubscribeSettings = gameSettings.onAudioChange(() => this.applySettings());
         cc.game.on(cc.game.EVENT_HIDE, this.onHide);
         cc.game.on(cc.game.EVENT_SHOW, this.onShow);
+        cc.game.on('zyx:reward-video', this.onRewardVideoState);
+        this.wxAudioApi = getWxApi();
+        if (this.wxAudioApi) {
+            if (this.wxAudioApi.onAudioInterruptionBegin) this.wxAudioApi.onAudioInterruptionBegin(this.onAudioInterruptionBegin);
+            if (this.wxAudioApi.onAudioInterruptionEnd) this.wxAudioApi.onAudioInterruptionEnd(this.onAudioInterruptionEnd);
+        }
         if (cc.sys.isBrowser && typeof window !== 'undefined') {
             this.webFocused = document.hasFocus();
             window.addEventListener('blur', this.onBlur);
@@ -79,11 +117,13 @@ export default class AudioManager {
     /** 加载/结算使用silent；只有真正进入首页或对局才切换到对应曲目。 */
     public enterScene(scene: MusicScene): void {
         this.initialize();
+        if (scene !== this.scene || scene === 'silent') this.clearRecoveryTimers();
         this.scene = scene;
         this.gamePaused = false;
         if (scene !== 'game') cc.audioEngine.stopAllEffects();
         const name: MusicName = scene === 'home' ? 'main' : scene === 'game' ? 'game' : null;
         if (name !== this.currentMusic) {
+            this.nativeRestartPending = false;
             this.musicRequestId++;
             this.musicLoadName = null;
             this.musicClip = null;
@@ -118,7 +158,7 @@ export default class AudioManager {
     }
 
     private canPlayMusic(): boolean {
-        return !!this.currentMusic && this.foreground() && !this.previewMuted
+        return !!this.currentMusic && this.foreground() && !this.previewMuted && !this.audioInterrupted && !this.rewardVideoActive
             && !(this.scene === 'game' && this.gamePaused)
             && gameSettings.soundEnabled && gameSettings.soundVolume > 0;
     }
@@ -131,6 +171,10 @@ export default class AudioManager {
                 cc.audioEngine.pause(this.musicAudioId);
             }
             return;
+        }
+        if (this.nativeRestartPending) {
+            this.nativeRestartPending = false;
+            this.stopCurrentMusic();
         }
         if (this.musicAudioId >= 0) {
             const state = cc.audioEngine.getState(this.musicAudioId);
@@ -167,10 +211,53 @@ export default class AudioManager {
         cc.audioEngine.stop(id);
     }
 
-    public playSound(name: SoundName): void {
-        if (this.scene !== 'game' || this.gamePaused || !this.foreground()
+    /** 广告关闭可能晚于onShow；先按当前状态恢复，再重建一次可能已失效的原生音轨。 */
+    private recoverMusic(): void {
+        this.clearRecoveryTimers();
+        this.syncMusic();
+        for (const delay of [150, 500, 1200]) {
+            this.recoveryTimers.push(setTimeout(() => {
+                if (!this.initialized) return;
+                if (delay === 150) this.nativeRestartPending = true;
+                this.syncMusic();
+            }, delay));
+        }
+    }
+
+    private clearRecoveryTimers(): void {
+        this.recoveryTimers.forEach(timer => clearTimeout(timer));
+        this.recoveryTimers = [];
+    }
+
+    /** 结算前先停BGM；结束声仍遵循静音、音量和前后台限制。 */
+    public playGameOver(): void {
+        this.enterScene('silent');
+        if (!this.foreground() || this.audioInterrupted || this.rewardVideoActive
             || !gameSettings.soundEnabled || gameSettings.soundVolume <= 0) return;
-        cc.audioEngine.playEffect(this.getClip(SOUND_RESOURCES[name]), false);
+        cc.audioEngine.playEffect(getAudioClip('effects', ASSET_PATHS.effects.gameOverSound), false);
+    }
+
+    public playSound(name: SoundName): void {
+        if (this.scene !== 'game' || this.gamePaused || this.audioInterrupted || this.rewardVideoActive || !this.foreground()
+            || !gameSettings.soundEnabled || gameSettings.soundVolume <= 0) return;
+        const combo = name.indexOf('combo') === 0;
+        if (combo && this.comboAudioId >= 0) cc.audioEngine.stop(this.comboAudioId);
+        if (name === 'overtake' && this.overtakeAudioId >= 0) cc.audioEngine.stop(this.overtakeAudioId);
+        const id = cc.audioEngine.playEffect(this.getClip(SOUND_RESOURCES[name]), false);
+        if (combo) this.comboAudioId = id;
+        if (name === 'overtake') this.overtakeAudioId = id;
+    }
+
+    /** 彩带与原始欢呼音频共用时长；静音时仍保留完整视觉庆祝。 */
+    public playOvertake(): number {
+        this.playSound('overtake');
+        return this.getClip(SOUND_RESOURCES.overtake).duration;
+    }
+
+    public playCombo(combo: number): void {
+        if (combo < 2) return;
+        const names: SoundName[] = ['comboWow', 'comboGood', 'comboGreat', 'comboPerfect'];
+        this.playSound(names[Math.min(3, combo - 2)]);
     }
 
     /** 设置只发变更通知，音量写入、静音暂停和重新启用都在这里处理。 */
@@ -188,6 +275,7 @@ export default class AudioManager {
 
     /** 主组件销毁或网页离开时，取消所有旧加载并停止音乐，移除全部监听。 */
     public dispose(): void {
+        this.clearRecoveryTimers();
         this.scene = 'silent';
         this.currentMusic = this.musicLoadName = null;
         this.musicClip = null;
@@ -199,6 +287,14 @@ export default class AudioManager {
         this.initialized = false;
         cc.game.off(cc.game.EVENT_HIDE, this.onHide);
         cc.game.off(cc.game.EVENT_SHOW, this.onShow);
+        cc.game.off('zyx:reward-video', this.onRewardVideoState);
+        if (this.wxAudioApi) {
+            if (this.wxAudioApi.offAudioInterruptionBegin) this.wxAudioApi.offAudioInterruptionBegin(this.onAudioInterruptionBegin);
+            if (this.wxAudioApi.offAudioInterruptionEnd) this.wxAudioApi.offAudioInterruptionEnd(this.onAudioInterruptionEnd);
+        }
+        this.wxAudioApi = null;
+        this.audioInterrupted = this.rewardVideoActive = false;
+        this.nativeRestartPending = false;
         if (cc.sys.isBrowser && typeof window !== 'undefined') {
             window.removeEventListener('blur', this.onBlur);
             window.removeEventListener('focus', this.onFocus);

@@ -1,0 +1,154 @@
+{
+  "simulated": true,
+  "compatibility": {
+    "mainCanvasReadOnly": true,
+    "ellipseUnavailable": true
+  },
+  "results": [
+    {
+      "width": 390,
+      "height": 844,
+      "card": {
+        "left": 74.88,
+        "top": 331.97439999999995,
+        "right": 315.12,
+        "bottom": 591.9744000000001
+      },
+      "start": {
+        "left": 74.88,
+        "top": 647.1688,
+        "right": 315.12,
+        "bottom": 717.8888
+      },
+      "title": {
+        "left": 49.400000000000006,
+        "top": 153.31652892561976,
+        "right": 340.59999999999997,
+        "bottom": 214.08347107438013
+      },
+      "demoCenterY": 273.0289355371901,
+      "avatarLoads": 3,
+      "mainCanvasWrites": 0,
+      "childCanvasWrites": 2,
+      "scoresPainted": true,
+      "invite": {
+        "x": 195,
+        "y": 575.3344
+      },
+      "requests": [
+        "friend"
+      ],
+      "shares": [
+        {
+          "title": "快满了？一拖翻盘！",
+          "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/comeback.802a89bfbfe6.jpg",
+          "query": "from=friend_invite"
+        }
+      ],
+      "version": {
+        "left": 253.76,
+        "top": 823.72,
+        "right": 378.56,
+        "bottom": 841.4000000000001
+      },
+      "reopenedPermission": true,
+      "errors": []
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "card": {
+        "left": 61.643178410794604,
+        "top": 220.1319340329835,
+        "right": 258.35682158920537,
+        "bottom": 433.02548725637183
+      },
+      "start": {
+        "left": 61.643178410794604,
+        "top": 457.2953523238381,
+        "right": 258.35682158920537,
+        "bottom": 515.2023988005997
+      },
+      "title": {
+        "left": 40.77961019490256,
+        "top": 94.76754184891023,
+        "right": 279.22038980509745,
+        "bottom": 144.52481197417822
+      },
+      "demoCenterY": 182.32837300358085,
+      "avatarLoads": 3,
+      "mainCanvasWrites": 0,
+      "childCanvasWrites": 2,
+      "scoresPainted": true,
+      "invite": {
+        "x": 160,
+        "y": 419.400299850075
+      },
+      "requests": [
+        "friend"
+      ],
+      "shares": [
+        {
+          "title": "这一拖，爽翻了！",
+          "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/burst.114f9e07f6f2.jpg",
+          "query": "from=friend_invite"
+        }
+      ],
+      "version": {
+        "left": 208.44377811094455,
+        "top": 551.3943028485756,
+        "right": 310.6326836581709,
+        "bottom": 565.8710644677661
+      },
+      "errors": []
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "card": {
+        "left": 206.6806596701649,
+        "top": 396.8575712143928,
+        "right": 561.3193403298351,
+        "bottom": 780.6656671664168
+      },
+      "start": {
+        "left": 206.6806596701649,
+        "top": 824.4197901049475,
+        "right": 561.3193403298351,
+        "bottom": 928.8155922038981
+      },
+      "title": {
+        "left": 169.06746626686657,
+        "top": 170.84852615014802,
+        "right": 598.9325337331334,
+        "bottom": 260.5517736999269
+      },
+      "demoCenterY": 328.70467245715986,
+      "avatarLoads": 3,
+      "mainCanvasWrites": 0,
+      "childCanvasWrites": 2,
+      "scoresPainted": true,
+      "invite": {
+        "x": 384,
+        "y": 756.1019490254873
+      },
+      "requests": [
+        "friend"
+      ],
+      "shares": [
+        {
+          "title": "这一拖，爽翻了！",
+          "imageUrl": "https://cdn.tcjstory.cn/cocos-zyx/share/20261112/burst.114f9e07f6f2.jpg",
+          "query": "from=friend_invite"
+        }
+      ],
+      "version": {
+        "left": 528.311844077961,
+        "top": 994.0629685157421,
+        "right": 712.5397301349326,
+        "bottom": 1020.1619190404798
+      },
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "kind": "bomb",
+    "multiTouchCancelled": true,
+    "releaseAfterUnlockIgnored": true,
+    "newTouchDuringEffectBlocked": true,
+    "newDragWorks": true,
+    "arcMs": null,
+    "clickSound": true
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "kind": "lightning",
+    "multiTouchCancelled": true,
+    "releaseAfterUnlockIgnored": true,
+    "newTouchDuringEffectBlocked": true,
+    "newDragWorks": true,
+    "arcMs": 683,
+    "clickSound": true
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "kind": "chain",
+    "multiTouchCancelled": true,
+    "releaseAfterUnlockIgnored": true,
+    "newTouchDuringEffectBlocked": true,
+    "newDragWorks": true,
+    "arcMs": 683,
+    "clickSound": true
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "kind": "bomb",
+    "multiTouchCancelled": true,
+    "releaseAfterUnlockIgnored": true,
+    "newTouchDuringEffectBlocked": true,
+    "newDragWorks": true,
+    "arcMs": null,
+    "clickSound": true
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "kind": "lightning",
+    "multiTouchCancelled": true,
+    "releaseAfterUnlockIgnored": true,
+    "newTouchDuringEffectBlocked": true,
+    "newDragWorks": true,
+    "arcMs": 683,
+    "clickSound": true
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "kind": "chain",
+    "multiTouchCancelled": true,
+    "releaseAfterUnlockIgnored": true,
+    "newTouchDuringEffectBlocked": true,
+    "newDragWorks": true,
+    "arcMs": 683,
+    "clickSound": true
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "kind": "bomb",
+    "multiTouchCancelled": true,
+    "releaseAfterUnlockIgnored": true,
+    "newTouchDuringEffectBlocked": true,
+    "newDragWorks": true,
+    "arcMs": null,
+    "clickSound": true
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "kind": "lightning",
+    "multiTouchCancelled": true,
+    "releaseAfterUnlockIgnored": true,
+    "newTouchDuringEffectBlocked": true,
+    "newDragWorks": true,
+    "arcMs": 683,
+    "clickSound": true
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "kind": "chain",
+    "multiTouchCancelled": true,
+    "releaseAfterUnlockIgnored": true,
+    "newTouchDuringEffectBlocked": true,
+    "newDragWorks": true,
+    "arcMs": 667,
+    "clickSound": true
+  }
+]

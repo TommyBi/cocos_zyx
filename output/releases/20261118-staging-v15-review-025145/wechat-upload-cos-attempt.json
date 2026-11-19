@@ -1,0 +1,6 @@
+{
+  "version": "2026.11.18.05",
+  "receiptProduced": false,
+  "cancelledAfterSeconds": 160,
+  "reason": "COS transfer stalled after encryption; retrying same frozen project with useCOS:false"
+}

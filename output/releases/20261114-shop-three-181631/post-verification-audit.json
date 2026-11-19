@@ -1,0 +1,42 @@
+{
+  "integrity": "ok",
+  "tables": {
+    "game_rounds": {
+      "before": 270,
+      "after": 280,
+      "existingRowsPreserved": true
+    },
+    "players": {
+      "before": 58,
+      "after": 61,
+      "existingRowsPreserved": true
+    },
+    "release_resets": {
+      "before": 0,
+      "after": 0,
+      "existingRowsPreserved": true
+    },
+    "round_settlements": {
+      "before": 71,
+      "after": 76,
+      "existingRowsPreserved": true
+    },
+    "sqlite_sequence": {
+      "before": 1,
+      "after": 1,
+      "existingRowsPreserved": false
+    },
+    "stamina_share_claims": {
+      "before": 11,
+      "after": 12,
+      "existingRowsPreserved": true
+    },
+    "tool_transactions": {
+      "before": 28,
+      "after": 32,
+      "existingRowsPreserved": true
+    }
+  },
+  "productionGatewayAndSharedSourceUnchanged": true,
+  "testWrites": "Three isolated test accounts: one zero-score protocol account; two price-verification accounts were granted 9/3 test beans then spent to zero. Only their new rounds, settlements, share claim and four tool transactions were added; old player rows unchanged."
+}

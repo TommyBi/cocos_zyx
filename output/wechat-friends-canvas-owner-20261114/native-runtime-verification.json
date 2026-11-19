@@ -1,0 +1,31 @@
+{
+  "clientVersion": "2026.11.14.12",
+  "method": "Observed native WeChat Developer Tools UI and console through CUA",
+  "toolVersion": "Stable 2.02.2608080",
+  "baseLibraryVersion": "3.15.2",
+  "oldCandidate": {
+    "version": "2026.11.14.11",
+    "initialCanvasSize": [390, 844],
+    "expectedViewSize": [422, 320],
+    "blankLeaderboardObserved": true,
+    "childEllipseType": "undefined",
+    "selfInfoOpenIdIsAlias": true,
+    "manualMainResizeRestoredExistingScore": 1750
+  },
+  "newCandidate": {
+    "projectReopenedAfterBuild": true,
+    "manualCanvasResizeApplied": false,
+    "simulatedFriendsInjected": false,
+    "actualWeChatAvatarVisible": true,
+    "existingScoreVisible": 1750,
+    "selfRankVisible": 1,
+    "duplicateSelfLeaderboardEntries": 0,
+    "fixedSelfFooterVisible": true,
+    "readOnlyCanvasWarnings": 0,
+    "runtimeErrors": 0,
+    "unrelatedWarnings": ["HarmonyOS compatibility notice", "music cache directory already exists"]
+  },
+  "evidence": "Native UI and console observations in this conversation; browser-results.json is a separate simulated check",
+  "phoneVerified": false,
+  "twoRealFriendAccountsVerified": false
+}

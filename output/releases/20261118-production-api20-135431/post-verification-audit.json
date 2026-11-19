@@ -1,0 +1,209 @@
+{
+  "passed": true,
+  "integrity": "ok",
+  "noPlayerAddedOrRemoved": true,
+  "allPreexistingNonProbeRowsUnchanged": true,
+  "existingZeroScoreProbeReused": true,
+  "tables": {
+    "game_rounds": {
+      "beforeRows": 690,
+      "afterRows": 701,
+      "newRows": 11,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": []
+    },
+    "players": {
+      "beforeRows": 157,
+      "afterRows": 157,
+      "newRows": 0,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": [
+        {
+          "kind": "existingZeroScoreReleaseProbe",
+          "fields": [
+            "updated_at",
+            "stamina_current",
+            "stamina_updated_at",
+            "asset_revision"
+          ],
+          "newRounds": 11,
+          "newDailyShares": 1,
+          "newSettlements": 11,
+          "assetRevisionIncrease": 23,
+          "scoreAndBeans": 0
+        }
+      ]
+    },
+    "release_resets": {
+      "beforeRows": 1,
+      "afterRows": 1,
+      "newRows": 0,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": []
+    },
+    "reward_intents": {
+      "beforeRows": 25,
+      "afterRows": 28,
+      "newRows": 3,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": []
+    },
+    "risk_admin_events": {
+      "beforeRows": 0,
+      "afterRows": 0,
+      "newRows": 0,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": []
+    },
+    "risk_events": {
+      "beforeRows": 5,
+      "afterRows": 8,
+      "newRows": 3,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": []
+    },
+    "risk_reviews": {
+      "beforeRows": 0,
+      "afterRows": 0,
+      "newRows": 0,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": []
+    },
+    "round_checkpoints": {
+      "beforeRows": 6,
+      "afterRows": 7,
+      "newRows": 1,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": []
+    },
+    "round_settlements": {
+      "beforeRows": 458,
+      "afterRows": 469,
+      "newRows": 11,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": []
+    },
+    "stamina_share_claims": {
+      "beforeRows": 7,
+      "afterRows": 8,
+      "newRows": 1,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": []
+    },
+    "tool_inventory_refunds": {
+      "beforeRows": 154,
+      "afterRows": 154,
+      "newRows": 0,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": []
+    },
+    "tool_transactions": {
+      "beforeRows": 158,
+      "afterRows": 160,
+      "newRows": 2,
+      "preexistingNonProbeRowsUnchanged": true,
+      "expectedProbeChanges": []
+    }
+  },
+  "unexpected": [],
+  "productionEnvAndGmIsolationPreserved": true,
+  "servedRuntimeHashesMatchStaging": true,
+  "allOriginalConfigHashesUnchanged": true,
+  "stagingGatewayAndOtherServicesUnchanged": true,
+  "productionScore28660Preserved": true,
+  "nodeVersion": "v20.20.2",
+  "health": {
+    "production": {
+      "status": 200,
+      "body": {
+        "code": 0,
+        "data": {
+          "ok": true,
+          "service": "cocos-zyx-cloud",
+          "apiVersion": 20,
+          "schemaVersion": 12,
+          "capabilities": [
+            "wechat-login",
+            "stamina",
+            "round-start",
+            "settlement",
+            "power-leaderboard",
+            "bean-balance-leaderboard",
+            "daily-share",
+            "bean-collection-progress",
+            "adaptive-combo-v2",
+            "bean-collection-1pct",
+            "bean-tool-shop",
+            "difficulty-ramp-2x",
+            "difficulty-pressure-v4",
+            "rising-rows-v5",
+            "balloon-rescue-v6",
+            "balloon-blast-v7",
+            "random-rescue-v8",
+            "rescue-scoring-v9",
+            "heart-rescue-v10",
+            "round-checkpoints-v1",
+            "revive-card-v11",
+            "round-tools-lightning-v12",
+            "rising-specials-lightning-v13",
+            "reward-intents-v1",
+            "security-audit-v1",
+            "round-tool-three-video-v14",
+            "lightning-ten-rows-v15"
+          ],
+          "checkedAt": "2026-11-18T06:02:12.213Z"
+        }
+      }
+    },
+    "staging": {
+      "status": 200,
+      "body": {
+        "code": 0,
+        "data": {
+          "ok": true,
+          "service": "cocos-zyx-cloud",
+          "apiVersion": 20,
+          "schemaVersion": 12,
+          "capabilities": [
+            "wechat-login",
+            "stamina",
+            "round-start",
+            "settlement",
+            "power-leaderboard",
+            "bean-balance-leaderboard",
+            "daily-share",
+            "bean-collection-progress",
+            "adaptive-combo-v2",
+            "bean-collection-1pct",
+            "bean-tool-shop",
+            "difficulty-ramp-2x",
+            "difficulty-pressure-v4",
+            "rising-rows-v5",
+            "balloon-rescue-v6",
+            "balloon-blast-v7",
+            "random-rescue-v8",
+            "rescue-scoring-v9",
+            "heart-rescue-v10",
+            "round-checkpoints-v1",
+            "revive-card-v11",
+            "round-tools-lightning-v12",
+            "rising-specials-lightning-v13",
+            "reward-intents-v1",
+            "security-audit-v1",
+            "round-tool-three-video-v14",
+            "lightning-ten-rows-v15"
+          ],
+          "checkedAt": "2026-11-18T06:02:12.262Z"
+        }
+      }
+    },
+    "dawn": {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "service": "dawn-cloud",
+        "checkedAt": "2026-11-18T06:02:12.276Z"
+      }
+    }
+  }
+}

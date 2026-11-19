@@ -1,0 +1,15 @@
+{
+  "reason": "Visual review: reduce empty header space in success popup; move reward art/name upward and use same matte button surface as shop.",
+  "verification": {
+    "ok": false,
+    "kind": "source",
+    "treeSha256": "42b7c4c9681ccd07b0b4c91bd8787c8626ce107916212e2cd6ebf52784dbf090",
+    "files": 271,
+    "skippedCount": 1,
+    "changed": [
+      "assets/script/zyxGame/ShopPanel.ts"
+    ],
+    "missing": [],
+    "added": []
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "integrity": "ok",
+  "snapshotVerifiedAtUtc": "2026-11-14T12:29:47.245421+00:00",
+  "tables": {
+    "game_rounds": {
+      "before": 439,
+      "after": 460,
+      "allOldPrimaryKeysRetained": true,
+      "unchangedOldRows": 439,
+      "businessUpdatesReconciled": 0
+    },
+    "players": {
+      "before": 104,
+      "after": 106,
+      "allOldPrimaryKeysRetained": true,
+      "unchangedOldRows": 103,
+      "businessUpdatesReconciled": 1
+    },
+    "release_resets": {
+      "before": 1,
+      "after": 1,
+      "allOldPrimaryKeysRetained": true,
+      "unchangedOldRows": 1,
+      "businessUpdatesReconciled": 0
+    },
+    "round_settlements": {
+      "before": 299,
+      "after": 306,
+      "allOldPrimaryKeysRetained": true,
+      "unchangedOldRows": 299,
+      "businessUpdatesReconciled": 0
+    },
+    "sqlite_sequence": {
+      "before": 1,
+      "after": 1,
+      "allOldPrimaryKeysRetained": true,
+      "unchangedOldRows": 0,
+      "businessUpdatesReconciled": 1
+    },
+    "stamina_share_claims": {
+      "before": 5,
+      "after": 7,
+      "allOldPrimaryKeysRetained": true,
+      "unchangedOldRows": 5,
+      "businessUpdatesReconciled": 0
+    },
+    "tool_transactions": {
+      "before": 98,
+      "after": 98,
+      "allOldPrimaryKeysRetained": true,
+      "unchangedOldRows": 98,
+      "businessUpdatesReconciled": 0
+    }
+  },
+  "preexistingBusinessRecordsRetained": true,
+  "oldProfileUpdateExactlyReconciled": true,
+  "normalLiveActivity": "One existing player started one new round; regeneration, stamina spending, timestamp and asset revision exactly reproduce the new profile. Every other old business row is unchanged.",
+  "testWrites": "Two isolated zero-score/zero-bean release_check accounts, 20 new rounds, 7 settlements, 2 share claims. Initial probe encountered minimum-duration guard; corrected wait then passed. No test purchase succeeded and no tool transactions were added.",
+  "stagingGatewayOtherServicesAndSharedSourceUnchanged": true
+}

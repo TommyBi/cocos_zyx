@@ -1,0 +1,2 @@
+e2579f84cad6179f8be1b772901d18595075e7ee6e501c714d5e4dc62d94b439  /Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v20-review/wechatgame.zip
+a1837d26ce9d365e70452838049c1f218f08359f4b58bf9cedaf259b761573c0  /Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v20-review/backend-candidate.tar.gz

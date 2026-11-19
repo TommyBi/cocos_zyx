@@ -1,0 +1,122 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "hint": {
+      "active": true,
+      "owner": 102,
+      "alpha": 28,
+      "hintZ": 5,
+      "pieceZ": 10,
+      "trace": [
+        {
+          "id": 102,
+          "offset": 0
+        },
+        {
+          "id": 102,
+          "offset": 1
+        }
+      ]
+    },
+    "releaseClears": true,
+    "recovery": {
+      "old": 3,
+      "current": 4,
+      "state": 1
+    },
+    "comboClips": [
+      "combo_wow_v1",
+      "combo_good_v1",
+      "combo_great_v1",
+      "combo_perfect_v1"
+    ],
+    "death": {
+      "submitted": 1,
+      "delay": 1025.5999999642372,
+      "music": null,
+      "sounds": 1
+    },
+    "pageErrors": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "hint": {
+      "active": true,
+      "owner": 102,
+      "alpha": 28,
+      "hintZ": 5,
+      "pieceZ": 10,
+      "trace": [
+        {
+          "id": 102,
+          "offset": 0
+        },
+        {
+          "id": 102,
+          "offset": 1
+        }
+      ]
+    },
+    "releaseClears": true,
+    "recovery": {
+      "old": 3,
+      "current": 4,
+      "state": 1
+    },
+    "comboClips": [
+      "combo_wow_v1",
+      "combo_good_v1",
+      "combo_great_v1",
+      "combo_perfect_v1"
+    ],
+    "death": {
+      "submitted": 1,
+      "delay": 1029.9000000357628,
+      "music": null,
+      "sounds": 1
+    },
+    "pageErrors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "hint": {
+      "active": true,
+      "owner": 102,
+      "alpha": 28,
+      "hintZ": 5,
+      "pieceZ": 10,
+      "trace": [
+        {
+          "id": 102,
+          "offset": 0
+        },
+        {
+          "id": 102,
+          "offset": 1
+        }
+      ]
+    },
+    "releaseClears": true,
+    "recovery": {
+      "old": 3,
+      "current": 4,
+      "state": 1
+    },
+    "comboClips": [
+      "combo_wow_v1",
+      "combo_good_v1",
+      "combo_great_v1",
+      "combo_perfect_v1"
+    ],
+    "death": {
+      "submitted": 1,
+      "delay": 1041,
+      "music": null,
+      "sounds": 1
+    },
+    "pageErrors": []
+  }
+]

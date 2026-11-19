@@ -58,6 +58,11 @@ const PERMANENT_BUSINESS_CODES = new Set([
     'ROUND_NOT_STARTED',
     'REPLAY_INVALID',
     'REPLAY_MISMATCH',
+    'ROUND_SESSION_CONFLICT',
+    'PROGRESS_CONFLICT',
+    'PROGRESS_INVALID',
+    'ROUND_NOT_ACTIVE',
+    'ROUND_ALREADY_SETTLED',
 ]);
 
 /** 401 凭证失效：不应在此处理，CloudService 层已自动 bootstrap 重试一次。 */

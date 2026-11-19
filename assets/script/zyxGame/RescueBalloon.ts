@@ -11,7 +11,7 @@ export class RescueBalloon {
     private graphics: cc.Graphics;
     private fadeElapsed = -1;
 
-    constructor(parent: cc.Node, private cell: number, onTap: () => void) {
+    constructor(parent: cc.Node, private cell: number, onTap: () => void, private warm: boolean = false) {
         this.root = new cc.Node('rescueBalloon');
         this.root.setContentSize(cell * 2, cell * 2);
         this.root.zIndex = 160;
@@ -28,19 +28,25 @@ export class RescueBalloon {
     public update(dt: number, canFly: boolean): boolean {
         if (canFly) this.clock += dt;
         if (canFly) this.elapsed = Math.min(BALLOON_FLIGHT_SECONDS, this.elapsed + dt);
+        if (this.warm) this.elapsed = Math.min(6, this.elapsed);
         const progress = this.elapsed / BALLOON_FLIGHT_SECONDS;
         this.root.x = (progress * 2 - 1) * (this.cell * 4 + this.cell);
         this.root.y = this.cell * 4 - 6 + Math.sin(progress * Math.PI * 4) * this.cell * 0.11;
+        if (this.warm) {
+            const arrival = Math.min(1, this.elapsed / 4);
+            this.root.x = (-5 + arrival * 7.2) * this.cell;
+            this.root.y = this.cell * 3.3 + Math.sin(this.clock * 1.5) * 9;
+        }
         this.root.angle = Math.sin(this.clock * Math.PI) * 3;
         if (this.fadeElapsed >= 0) this.fadeElapsed += dt;
         const fade = this.fadeElapsed < 0 ? 1 : Math.max(0, 1 - this.fadeElapsed / 0.32);
-        this.root.opacity = Math.round(255 * Math.min(1, progress / 0.07, (1 - progress) / 0.12) * fade);
+        this.root.opacity = Math.round(255 * (this.warm ? Math.min(1, this.elapsed / 0.35) : Math.min(1, progress / 0.07, (1 - progress) / 0.12)) * fade);
         const frame = Math.floor(this.clock * BALLOON_FRAME_RATE) % BALLOON_FRAME_COUNT;
         if (frame !== this.frame) {
             this.frame = frame;
-            drawBalloonFrame(this.graphics, frame);
+            drawBalloonFrame(this.graphics, frame, this.warm);
         }
-        return this.elapsed >= BALLOON_FLIGHT_SECONDS;
+        return !this.warm && this.elapsed >= BALLOON_FLIGHT_SECONDS;
     }
 
     public fadeOut(): void { this.fadeElapsed = 0; }
@@ -65,10 +71,10 @@ function oval(g: cc.Graphics, x: number, y: number, rx: number, ry: number, colo
 }
 
 /** 奶油白与浅天蓝的布面星星气球，球囊不画五官，暖金藤篮随风轻摆。 */
-export function drawBalloonFrame(g: cc.Graphics, frame: number): void {
+export function drawBalloonFrame(g: cc.Graphics, frame: number, warm: boolean = false): void {
     const cream = new cc.Color(255, 247, 224);
-    const sky = new cc.Color(185, 221, 236);
-    const blueEdge = new cc.Color(130, 177, 194);
+    const sky = warm ? new cc.Color(255, 225, 163) : new cc.Color(185, 221, 236);
+    const blueEdge = warm ? new cc.Color(204, 164, 105) : new cc.Color(130, 177, 194);
     const honey = new cc.Color(185, 143, 95);
     const t = frame / BALLOON_FRAME_COUNT * Math.PI * 2;
     const sway = Math.sin(t) * 1.5;
@@ -86,18 +92,24 @@ export function drawBalloonFrame(g: cc.Graphics, frame: number): void {
     g.bezierCurveTo(-57, 47, -39, 72, 0, 70);
     g.close(); g.fill(); g.stroke();
     // 右下布面柔和暗部，中央一整瓣香草奶油色。
-    g.fillColor = new cc.Color(160, 204, 221);
+    g.fillColor = warm ? new cc.Color(249, 205, 137) : new cc.Color(160, 204, 221);
     g.moveTo(29, 62); g.bezierCurveTo(53, 47, 58, 26, 47, 7);
     g.bezierCurveTo(36, -11, 24, -23, 17, -28);
     g.lineTo(8, -28); g.bezierCurveTo(31, -5, 45, 34, 29, 62); g.close(); g.fill();
     g.fillColor = cream;
     g.moveTo(0, 69); g.bezierCurveTo(25, 65, 31, 20, 14, -28);
     g.lineTo(-14, -28); g.bezierCurveTo(-31, 20, -25, 65, 0, 69); g.close(); g.fill();
-    g.strokeColor = new cc.Color(143, 185, 199, 150); g.lineWidth = 1.4;
+    g.strokeColor = warm ? new cc.Color(210, 173, 111, 150) : new cc.Color(143, 185, 199, 150); g.lineWidth = 1.4;
     g.moveTo(-15, 66); g.bezierCurveTo(-39, 44, -38, 6, -19, -26); g.stroke();
     g.moveTo(15, 66); g.bezierCurveTo(39, 44, 38, 6, 19, -26); g.stroke();
     oval(g, -30, 48, 11, 5, new cc.Color(255, 255, 255, 145));
     oval(g, -17, 55, 4, 2.5, new cc.Color(255, 255, 255, 145));
+    if (warm) {
+        g.fillColor = new cc.Color(239, 159, 157); g.strokeColor = new cc.Color(205, 129, 126); g.lineWidth = 1.2;
+        // 爱心贴布在球囊中心；与天蓝星星气球有明确区分。
+        g.moveTo(0, 5); g.bezierCurveTo(-25, 21, -12, 43, 0, 30);
+        g.bezierCurveTo(12, 43, 25, 21, 0, 5); g.close(); g.fill(); g.stroke();
+    } else {
     // 软圆角小星星贴布，不添加眼睛、嘴或人形装饰。
     const points: number[][] = [];
     for (let i = 0; i < 10; i++) {
@@ -113,6 +125,7 @@ export function drawBalloonFrame(g: cc.Graphics, frame: number): void {
     }
     g.close(); g.fill(); g.stroke();
     oval(g, -3, 28, 3, 2, new cc.Color(255, 248, 219, 190));
+    }
     // 轻薄收口与悬绳，燃烧器只保留一簇小小的暖光。
     g.fillColor = cream; g.strokeColor = honey; g.lineWidth = 1.8;
     g.roundRect(-17, -31, 34, 7, 3); g.fill(); g.stroke();

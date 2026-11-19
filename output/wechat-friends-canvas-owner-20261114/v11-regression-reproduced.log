@@ -1,0 +1,12 @@
+AssertionError [ERR_ASSERTION]: 主域先设置画布宽高
+
+0 !== 2
+
+    at /Users/liuyang/Documents/private/cocos_zyx/scripts/verify-wechat-friends.cjs:151:20 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 0,
+  expected: 2,
+  operator: 'strictEqual',
+  diff: 'simple'
+}

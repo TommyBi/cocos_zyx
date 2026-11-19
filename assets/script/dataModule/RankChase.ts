@@ -21,3 +21,17 @@ export function getOvertakenRivals(entries: LeaderboardEntry[], playerId: string
     return entries.filter((entry) => entry.playerId !== playerId && entry.value >= before && entry.value < after)
         .sort((a, b) => a.value - b.value || b.rank - a.rank);
 }
+
+/** 复用本局真实榜单快照；明确分行，昵称不允许挤出额外短行。 */
+export function getReviveChaseMessage(entries: LeaderboardEntry[], playerId: string, score: number): string {
+    const state = getRankChaseState(entries, playerId, score);
+    if (state.above) {
+        const characters = Array.from((state.above.nickname || '前方选手').replace(/\s+/g, ' ').trim());
+        const name = characters.length > 7 ? characters.slice(0, 6).join('') + '…' : characters.join('');
+        const target = state.rank === null && entries.length >= 200 ? '距离上榜选手' : '距离下一名';
+        return `${target} ${name}\n仅剩 ${state.gap} 分\n这怎么能忍！`;
+    }
+    return entries.some(entry => entry.playerId !== playerId && entry.value > 0)
+        ? '已经冲到前面啦！\n复活继续加分，\n把纪录再抬高一点！'
+        : '整理台还没收拾完呢！\n复活再消几排，\n把这一局玩个痛快！';
+}

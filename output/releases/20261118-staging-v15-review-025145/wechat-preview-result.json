@@ -1,0 +1,25 @@
+{
+  "version": "2026.11.18.05",
+  "generated": true,
+  "qrcode": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261118-staging-v15-review-025145/wechat-preview-qr.jpg",
+  "completedAt": "2026-11-17T19:12:51.657Z",
+  "subPackageInfo": [
+    {
+      "name": "/subpackages/effects/",
+      "size": 3388458
+    },
+    {
+      "name": "/subpackages/home/",
+      "size": 3920494
+    },
+    {
+      "name": "__APP__",
+      "size": 2833329
+    },
+    {
+      "name": "__FULL__",
+      "size": 10142281
+    }
+  ],
+  "submittedForReview": false
+}

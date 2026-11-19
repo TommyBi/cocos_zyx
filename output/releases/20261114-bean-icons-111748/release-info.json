@@ -1,0 +1,45 @@
+{
+  "releaseId": "20261114-bean-icons-111748",
+  "clientVersion": "2026.11.14.08",
+  "rulesVersion": 10,
+  "apiVersion": 13,
+  "schemaVersion": 8,
+  "sourceTreeSha256": "666f4e63e29f6fd30d579235f26bfedf63f47c4e2afb14e6657fdd51a1836e7f",
+  "wechatTreeSha256": "bf9144b241c6a8f09a3dfbca7c8e3d328319aaa80864d7222759ca54f257183e",
+  "stagingImage": "sha256:0e38a7e4a1f0f77ca9f660b7f0b4fc1981c8827e6d4f4710cd32ac5425b2d4f0",
+  "stagingUrl": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+  "backup": "/opt/tcjstory/backups/cocos-zyx-staging-20261114-bean-icons-111748",
+  "tests": {
+    "client": 183,
+    "serverLocal": 51,
+    "serverNode20Image": 51
+  },
+  "visualSizes": [
+    "320x568",
+    "390x844",
+    "768x1024"
+  ],
+  "pageErrors": 0,
+  "cdnFilesVerified": 8,
+  "mainBytes": 2863942,
+  "subpackageBytes": {
+    "home": 3961316,
+    "effects": 1034459
+  },
+  "wechatFiles": 95,
+  "stagingDeployed": true,
+  "productionDeployed": false,
+  "uploadedWeChatDevelopmentVersion": false,
+  "wechatPreviewGenerated": true,
+  "submittedReview": false,
+  "readyForStagingPreview": true,
+  "readyForProduction": false,
+  "productionRequirement": "Production API11 remains unchanged; publish compatible API13 backend before releasing this client to production.",
+  "buildEnvironment": {
+    "node": "v24.19.0",
+    "creator": "2.4.13",
+    "os": "macOS-15.6.1-arm64-arm-64bit",
+    "webCommand": "npm run build:web",
+    "wechatCommand": "npm run build:wechat"
+  }
+}

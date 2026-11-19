@@ -1,8 +1,34 @@
 /** 纯棋盘规则。客户端直接导入；服务端使用脚本生成的同源 CommonJS 产物。 */
 export const BOARD_ROWS = 10;
 export const BOARD_COLS = 8;
-export const BOARD_RULES_VERSION = 8;
-export const ROUND_RESCUE_COOLDOWN_MS = 60 * 1000;
+export const BOARD_RULES_VERSION = 21;
+export const TOOL_SHARE_RULES_VERSION = 20;
+export function getRoundToolLimit(item: 'hammer' | 'magicWand', rulesVersion: number): number {
+    if (rulesVersion >= TOOL_SHARE_RULES_VERSION) return 5;
+    return item === 'magicWand' && rulesVersion >= 12 && rulesVersion < 14 ? 1 : 3;
+}
+export const TAP_LIGHTNING_RULES_VERSION = 19;
+export const AUTO_RESCUE_RULES_VERSION = 16;
+export const SCORING_RULES_VERSION = 18;
+const ROW_SCORE_V18 = 12;
+const COMBO_MULTIPLIERS_V18 = [1, 2, 4, 8, 10];
+const BOMB_SCORE_V18 = 50;
+const HEART_SCORE_V18 = 66;
+export const HAMMER_SCORE_V18 = 50;
+export const WAND_SCORE_V18 = 200;
+const LIGHTNING_CELL_SCORE_V18 = 8;
+const CLEAR_CELL_SCORE_V18 = 10;
+const DIFFICULTY_WAVE_RULES_VERSION = 17;
+const SHORT_OPENING_RULES_VERSION = 21;
+const ORIGINAL_DIFFICULTY_TIMING = { opening: 25, advanced: 40, master: 55, hard: 48 };
+const SHORT_DIFFICULTY_TIMING = { opening: 15, advanced: 20, master: 35, hard: 28 };
+const HARD_DIFFICULTY_PROGRESS = (ORIGINAL_DIFFICULTY_TIMING.hard - ORIGINAL_DIFFICULTY_TIMING.opening)
+    / (ORIGINAL_DIFFICULTY_TIMING.master - ORIGINAL_DIFFICULTY_TIMING.opening);
+const RELIEF_DIFFICULTY_PROGRESS = 0.3;
+const RELIEF_CLEAR_ROWS = 12;
+const RELIEF_RAMP_ROWS = 3;
+type ActionSource = 'player' | 'video' | 'system';
+export const ROUND_RESCUE_COOLDOWN_MS = 20 * 1000;
 export type RoundRescueKind = 'balloon' | 'clear';
 export const MAX_BOARD_BOMBS = 3;
 export const MAX_ACTION_APPENDS = 5;
@@ -17,11 +43,17 @@ export type BoardPiece = {
     /** 未来收藏物预留：0 表示当前没有收藏物。 */
     collectibleType: number;
     collectibleCell: number;
-    /** 炸弹附着在普通横块中央；不参与随机出块。 */
+    /** 炸弹附着在横块中央；V13奖励随底部新排入场。 */
     bomb?: boolean;
+    lightning?: boolean;
 };
 
+export type LightningDischarge = { source: BoardPiece; targets: { original: BoardPiece; fragments: BoardPiece[]; shattered?: EliminateResult; score?: number }[] };
+export type RoundToolState = { hammer: { acquired: number; used: number; owned: number }; magicWand: { acquired: number; used: number; owned: number } };
+
 export type NextPiece = {
+    bomb?: boolean;
+    lightning?: boolean;
     col: number;
     size: number;
     color: number;
@@ -53,6 +85,7 @@ export type BombDetonation = {
     col: number;
     size: number;
     affectedPieceIds: number[];
+    score?: number;
 };
 
 export type EliminateResult = ResolveResult & {
@@ -62,6 +95,7 @@ export type EliminateResult = ResolveResult & {
     combo?: number;
     cascade?: number;
     detonatedBombs?: BombDetonation[];
+    rowScore?: number;
 };
 
 export type MoveHint = {
@@ -129,23 +163,61 @@ export default class BoardEngine {
     private actionOpen = false;
     private actionBlast = false;
     private actionRows = 0;
+    private actionSource: ActionSource = 'system';
+    private reliefRowsRemaining = 0;
+    private hardMisses = 0;
+    private hardDanger = false;
+    private assistedRowsRemaining = 0;
     private balloonAvailable = false;
     private rescueKind: RoundRescueKind = null;
-    private rescueLastOfferedAt = -ROUND_RESCUE_COOLDOWN_MS;
+    private rescueLastOfferedAt = 0;
+    private rescueNextOfferAt = ROUND_RESCUE_COOLDOWN_MS;
+    private lastRescueKind: RoundRescueKind = null;
+    private rescueRiseRows = 0;
+    public heartRescueEligible = false;
+    private heartAvailable = false;
+    private heartOffered = false;
+    public hammerUses = 0;
+    public wandUses = 0;
+    public rescueOfferCounts = { balloon: 0, clear: 0 };
+    private pendingLightningCount = 0;
+    private pendingBombCount = 0;
+    private lastSpecialCol = -1;
+    private lightningEffects: LightningDischarge[] = [];
+
+    public takeLightningEffects(): LightningDischarge[] {
+        const effects = this.lightningEffects;
+        this.lightningEffects = [];
+        return effects;
+    }
 
     protected saveToolInventory(): void {}
 
-    public resetBoard(seed: number, tutorial: boolean, rulesVersion: number = BOARD_RULES_VERSION): void {
+    public resetBoard(seed: number, tutorial: boolean, rulesVersion: number = BOARD_RULES_VERSION, heartEligible: boolean = false): void {
         this.rulesVersion = rulesVersion;
+        this.hammerUses = this.wandUses = this.pendingLightningCount = 0;
+        this.rescueOfferCounts = { balloon: 0, clear: 0 };
+        this.lightningEffects = [];
+        this.pendingBombCount = 0;
+        this.lastSpecialCol = -1;
+        if (rulesVersion >= 12) this.hammerCount = this.colorPurifierCount = 0;
+        this.heartRescueEligible = heartEligible;
         this.score = this.combo = this.turn = this.moveCount = 0;
         this.difficultyActionCount = 0;
         this.roundClearedRows = this.roundCollectedMoodBeans = 0;
         this.actionAppends = this.actionCascade = this.recentMisses = 0;
         this.comboActionCleared = this.pendingComboBomb = this.actionOpen = this.actionBlast = false;
         this.actionRows = 0;
+        this.actionSource = 'system';
+        this.reliefRowsRemaining = this.hardMisses = this.assistedRowsRemaining = 0;
+        this.hardDanger = false;
         this.balloonAvailable = false;
         this.rescueKind = null;
-        this.rescueLastOfferedAt = -ROUND_RESCUE_COOLDOWN_MS;
+        this.rescueLastOfferedAt = -(rulesVersion >= 14 ? 30000 : 60000);
+        this.rescueNextOfferAt = ROUND_RESCUE_COOLDOWN_MS;
+        this.lastRescueKind = null;
+        this.rescueRiseRows = 0;
+        this.heartAvailable = this.heartOffered = false;
         this.nextId = 1;
         this.roundSeed = this.randomState = seed >>> 0 || 1;
         this.currentRoundIsTutorial = tutorial;
@@ -171,6 +243,15 @@ export default class BoardEngine {
     }
     public isTutorialRound(): boolean {
         return this.currentRoundIsTutorial;
+    }
+
+    /** 只在完整操作后的静止棋盘保存，避免恢复半段消除或补排。 */
+    public canCheckpoint(): boolean {
+        if (this.actionOpen && !this.isGameOver()) return false;
+        if (this.roundActions.length === 1) return true;
+        const prediction = new BoardEngine();
+        prediction.pieces = this.pieces.map(piece => ({ ...piece }));
+        return prediction.applyGravity().length === 0 && prediction.eliminateFullRows().clearedRows === 0;
     }
 
     public getTutorialMove(step: number): TutorialMove {
@@ -216,11 +297,16 @@ export default class BoardEngine {
     }
 
     public useHammer(id: number): boolean {
-        if (this.hammerCount <= 0 || !this.getPiece(id)) return false;
+        if (this.hammerCount <= 0 || !this.getPiece(id) || (this.rulesVersion >= 12 && this.hammerUses >= getRoundToolLimit('hammer', this.rulesVersion))) return false;
         this.beginPlayerAction();
+        const removed = this.getPiece(id);
+        this.hammerUses++;
         this.hammerCount--;
         this.saveToolInventory();
         this.pieces = this.pieces.filter((piece) => piece.id !== id);
+        this.dischargeLightning([removed]);
+        if (this.rulesVersion >= SCORING_RULES_VERSION) this.addScore(HAMMER_SCORE_V18);
+        else this.addToolScore(1);
         this.roundActions.push({ type: 'hammer', id });
         return true;
     }
@@ -231,18 +317,23 @@ export default class BoardEngine {
     }
 
     public useColorPurifier(color: number): number[] {
-        if (this.colorPurifierCount <= 0) return [];
+        if (this.colorPurifierCount <= 0 || (this.rulesVersion >= 12 && this.wandUses >= getRoundToolLimit('magicWand', this.rulesVersion))) return [];
         const removedPieceIds = this.pieces
             .filter((piece) => piece.color === color)
             .map((piece) => piece.id);
         if (removedPieceIds.length === 0) return [];
 
         this.beginPlayerAction();
+        this.wandUses++;
         this.colorPurifierCount--;
         this.saveToolInventory();
         const removedSet: { [key: number]: boolean } = {};
         removedPieceIds.forEach((id) => removedSet[id] = true);
+        const removed = this.pieces.filter(piece => removedSet[piece.id]);
         this.pieces = this.pieces.filter((piece) => !removedSet[piece.id]);
+        this.dischargeLightning(removed);
+        if (this.rulesVersion >= SCORING_RULES_VERSION) this.addScore(WAND_SCORE_V18);
+        else this.addToolScore(removedPieceIds.length);
         this.roundActions.push({ type: 'purify', color });
         return removedPieceIds;
     }
@@ -277,35 +368,60 @@ export default class BoardEngine {
     }
 
     public canOfferRoundRescue(elapsedMs: number): boolean {
-        return this.rulesVersion >= 8 && !this.rescueKind && this.score > 500 && this.getBoardHeight() > 6
+        const automatic = this.rulesVersion >= AUTO_RESCUE_RULES_VERSION;
+        return this.rulesVersion >= 8 && !this.rescueKind && !this.heartAvailable
+            && (automatic ? !this.actionOpen : this.score > 500) && this.getBoardHeight() > 6
+            && (this.rulesVersion < 12 || this.rescueOfferCounts.balloon < 4 || this.rescueOfferCounts.clear < 4)
             && !this.isGameOver() && Number.isSafeInteger(elapsedMs) && elapsedMs >= 0
-            && elapsedMs - this.rescueLastOfferedAt >= ROUND_RESCUE_COOLDOWN_MS;
+            && (automatic ? elapsedMs >= this.rescueNextOfferAt
+                : elapsedMs - this.rescueLastOfferedAt >= (this.rulesVersion >= 14 ? 30000 : 60000));
     }
 
-    /** 两种救场共用出现条件和冷却；用对局种子随机选择，重放可验证。 */
+    public getRoundRescueReadyAt(): number { return this.rescueNextOfferAt; }
+
     public offerRoundRescue(elapsedMs: number): RoundRescueKind {
         if (!this.canOfferRoundRescue(elapsedMs)) return null;
-        this.rescueKind = this.random() < 0.5 ? 'balloon' : 'clear';
+        if (this.rulesVersion >= AUTO_RESCUE_RULES_VERSION) {
+            this.rescueKind = this.lastRescueKind === 'clear' ? 'balloon' : 'clear';
+            this.lastRescueKind = this.rescueKind;
+        } else {
+            const roll = this.random();
+            this.rescueKind = this.rulesVersion >= 12 && this.rescueOfferCounts.balloon >= 4 ? 'clear'
+                : this.rulesVersion >= 12 && this.rescueOfferCounts.clear >= 4 ? 'balloon' : roll < 0.5 ? 'balloon' : 'clear';
+        }
+        this.rescueOfferCounts[this.rescueKind]++;
         this.rescueLastOfferedAt = elapsedMs;
         this.roundActions.push({ type: 'rescueOffer', elapsedMs, kind: this.rescueKind });
         return this.rescueKind;
     }
 
-    public dismissRoundRescue(): boolean {
-        if (!this.rescueKind) return false;
+    private closeRoundRescue(type: 'rescueDismiss' | 'rescueClear' | 'balloon', elapsedMs: number): boolean {
+        if (this.rulesVersion >= AUTO_RESCUE_RULES_VERSION) {
+            if (!Number.isSafeInteger(elapsedMs) || elapsedMs < this.rescueLastOfferedAt) return false;
+            this.rescueNextOfferAt = elapsedMs + ROUND_RESCUE_COOLDOWN_MS;
+            this.roundActions.push({ type, elapsedMs });
+        } else {
+            this.roundActions.push({ type });
+        }
         this.rescueKind = null;
-        this.roundActions.push({ type: 'rescueDismiss' });
         return true;
     }
 
-    /** 清屏沿用原救场效果：不计行分、不收集表情，之后正常补排。 */
-    public applyClearRescue(): number[] {
-        if (this.rulesVersion < 8 || this.rescueKind !== 'clear') return null;
-        this.rescueKind = null;
-        this.beginPlayerAction();
+    public dismissRoundRescue(elapsedMs?: number): boolean {
+        return !!this.rescueKind && this.closeRoundRescue('rescueDismiss', elapsedMs);
+    }
+
+    /** V9 清屏按实际色块加分，补排固定为两排；历史局保留原规则。 */
+    public applyClearRescue(elapsedMs?: number): number[] {
+        if (this.rulesVersion < 8 || this.rescueKind !== 'clear' || !this.closeRoundRescue('rescueClear', elapsedMs)) return null;
+        this.beginPlayerAction('video');
         const ids = this.pieces.map(piece => piece.id);
+        const removed = this.pieces.slice();
         this.pieces = [];
-        this.roundActions.push({ type: 'rescueClear' });
+        this.dischargeLightning(removed);
+        if (this.rulesVersion >= SCORING_RULES_VERSION) this.addScore(removed.reduce((cells, piece) => cells + piece.size, 0) * CLEAR_CELL_SCORE_V18);
+        else this.addToolScore(ids.length);
+        if (this.rulesVersion >= 9) this.rescueRiseRows = 2;
         return ids;
     }
 
@@ -316,8 +432,8 @@ export default class BoardEngine {
         return true;
     }
 
-    public dismissBalloonRescue(): boolean {
-        if (this.rulesVersion >= 8) return this.dismissRoundRescue();
+    public dismissBalloonRescue(elapsedMs?: number): boolean {
+        if (this.rulesVersion >= 8) return this.dismissRoundRescue(elapsedMs);
         if (!this.balloonAvailable) return false;
         this.balloonAvailable = false;
         this.roundActions.push({ type: 'balloonDismiss' });
@@ -332,15 +448,18 @@ export default class BoardEngine {
         } finally { this.randomState = state; }
     }
 
-    public applyBalloonRescue(): EliminateResult {
+    public applyBalloonRescue(elapsedMs?: number): EliminateResult {
         // 出现时检查高度，兑换时兑现已出现的机会；期间玩家消行降高也不会白分享。
         if (this.rulesVersion < 6 || (this.rulesVersion >= 8 ? this.rescueKind !== 'balloon' : !this.balloonAvailable)) return null;
-        this.rescueKind = null;
+        if (!this.closeRoundRescue('balloon', elapsedMs)) return null;
         this.balloonAvailable = false;
+        if (this.rulesVersion >= 9) {
+            this.beginPlayerAction('video');
+            this.rescueRiseRows = 1;
+        }
         const targets = this.shuffle(this.pieces.slice()).slice(0, Math.ceil(this.pieces.length / 4));
-        this.roundActions.push({ type: 'balloon' });
         if (this.rulesVersion >= 7) {
-            // 投弹落点视作炸弹，复用普通炸弹范围与旧炸弹连锁；不修改原块或额外上涨。
+            // 投弹落点视作炸弹，复用普通炸弹范围与旧炸弹连锁。
             return this.removeWithBombs(targets.map(piece => ({ ...piece, bomb: true })), []);
         }
         const ids = new Set(targets.map(piece => piece.id));
@@ -350,6 +469,36 @@ export default class BoardEngine {
         // V6历史对局保留只移除抽中块的规则，确保旧客户端和离线局可结算。
         return { clearedRows: 0, gainedScore: 0, removedPieceIds: targets.map(piece => piece.id),
             clearedRowIndexes: [], collectedMoodTypes: moods, detonatedBombs: [] };
+    }
+
+    /** 独立的免费心意救场：每局一次，只检查危险高度，不要求分数、分享或普通救场CD。 */
+    public canOfferHeartRescue(): boolean {
+        return this.rulesVersion >= 10 && this.heartRescueEligible && !this.heartOffered && !this.isGameOver()
+            && this.hasEnteredRescueZone(2);
+    }
+
+    public offerHeartRescue(elapsedMs: number): boolean {
+        if (this.rescueKind || !this.canOfferHeartRescue() || !Number.isSafeInteger(elapsedMs) || elapsedMs < 2000) return false;
+        this.heartOffered = this.heartAvailable = true;
+        this.roundActions.push({ type: 'heartOffer', elapsedMs });
+        return true;
+    }
+
+    public dismissHeartRescue(): boolean {
+        if (!this.heartAvailable) return false;
+        this.heartAvailable = false;
+        this.roundActions.push({ type: 'heartDismiss' });
+        return true;
+    }
+
+    public applyHeartRescue(): EliminateResult {
+        if (this.rulesVersion < 10 || !this.heartAvailable) return null;
+        this.heartAvailable = false;
+        this.beginPlayerAction('system');
+        this.rescueRiseRows = 1;
+        const targets = this.shuffle(this.pieces.slice()).slice(0, Math.ceil(this.pieces.length / 4));
+        this.roundActions.push({ type: 'heart' });
+        return this.removeWithBombs(targets.map(piece => ({ ...piece, bomb: true })), [], true);
     }
 
     public removeMostCommonColor(): AutoPurifyResult {
@@ -381,25 +530,31 @@ export default class BoardEngine {
     }
 
     public removeAllPieces(): number[] {
-        this.beginPlayerAction();
+        this.beginPlayerAction('system');
         const removedPieceIds = this.pieces.map((piece) => piece.id);
         this.pieces = [];
         this.roundActions.push({ type: 'clear' });
         return removedPieceIds;
     }
 
-    public removeTopRowsForRevive(rowCount: number = 8): number[] {
+    public removeTopRowsForRevive(rowCount: number = 8, useCard: boolean = false): number[] {
+        if (useCard && this.rulesVersion < 11) return [];
+        if (this.rulesVersion >= 11) {
+            const adCount = this.roundActions.filter(action => action.type === 'revive').length;
+            const cardCount = this.roundActions.filter(action => action.type === 'reviveCard').length;
+            if (rowCount !== 8 || !this.isGameOver() || cardCount > 0 || (useCard ? adCount !== 1 : adCount !== 0)) return [];
+        }
         const firstPreservedRow = Math.max(0, Math.min(BOARD_ROWS, Math.floor(rowCount)));
         const removedPieceIds = this.pieces
             .filter((piece) => piece.row < firstPreservedRow)
             .map((piece) => piece.id);
         if (removedPieceIds.length === 0) return [];
 
-        this.beginPlayerAction();
+        this.beginPlayerAction(useCard ? 'system' : 'video');
         const removedSet: { [key: number]: boolean } = {};
         removedPieceIds.forEach((id) => removedSet[id] = true);
         this.pieces = this.pieces.filter((piece) => !removedSet[piece.id]);
-        this.roundActions.push({ type: 'revive', rowCount });
+        this.roundActions.push({ type: useCard ? 'reviveCard' : 'revive', rowCount });
         return removedPieceIds;
     }
 
@@ -415,11 +570,12 @@ export default class BoardEngine {
         return null;
     }
 
-    public beginPlayerAction(): void {
+    public beginPlayerAction(source: ActionSource = 'player'): void {
         if (this.actionOpen) this.finishPlayerAction();
         this.difficultyActionCount++;
         this.prepareSecondRow(this.difficultyActionCount);
         this.actionOpen = true;
+        this.actionSource = source;
         this.comboActionCleared = this.actionBlast = this.pendingComboBomb = false;
         this.actionRows = this.actionCascade = this.actionAppends = 0;
     }
@@ -431,15 +587,65 @@ export default class BoardEngine {
         if (!this.comboActionCleared && !this.actionBlast) this.combo = 0;
         this.recentMisses = this.comboActionCleared || this.actionBlast ? 0 : this.recentMisses + 1;
         const rewards: BoardPiece[] = [];
+        // 新闪电在当前连锁完成后出生，不参与产生它的消除；不与炸弹共用宿主。
+        while (this.rulesVersion < 13 && this.pendingLightningCount > 0) {
+            const candidates = this.pieces.filter(piece => piece.size === 1 && !piece.bomb && !piece.lightning);
+            if (!candidates.length) {
+                // 没有安全宿主时出现在已展示的下一排，不拆当前长块制造未结算悬空。
+                const next = this.nextPieces.find(piece => !piece.lightning);
+                if (!next) break;
+                const cells: NextPiece[] = [];
+                for (let cell = 0; cell < next.size; cell++) cells.push({ ...next, col: next.col + cell, size: 1,
+                    stampMood: cell === next.stampCell ? next.stampMood : 0, stampCell: 0,
+                    collectibleType: cell === next.collectibleCell ? next.collectibleType : 0, collectibleCell: 0,
+                    lightning: cell === 0 });
+                this.nextPieces.splice(this.nextPieces.indexOf(next), 1, ...cells);
+                this.pendingLightningCount--;
+                continue;
+            }
+            const target = candidates[Math.floor(this.random() * candidates.length)];
+            const cell = target;
+            cell.lightning = true;
+            rewards.push(cell);
+            this.pendingLightningCount--;
+        }
         const count = (this.actionRows >= 2 ? 1 : 0) + (this.pendingComboBomb ? 1 : 0);
         for (let index = 0; index < count; index++) {
             const bomb = this.awardBomb(2);
             if (bomb) rewards.push(bomb);
         }
+        if (this.rulesVersion >= 13) this.placePendingSpecials();
         this.pendingComboBomb = false;
         this.actionOpen = false;
+        this.rescueRiseRows = 0;
+        this.finishDifficultyWave();
         this.prepareSecondRow(this.difficultyActionCount + 1);
         return rewards;
+    }
+
+    private finishDifficultyWave(): void {
+        if (this.rulesVersion < DIFFICULTY_WAVE_RULES_VERSION || this.difficultyActionCount < this.getDifficultyTiming().hard) return;
+        const dangerous = this.getBoardHeight() >= 8;
+        const enteredDanger = dangerous && !this.hardDanger;
+        this.hardDanger = dangerous;
+        if (this.reliefRowsRemaining > 0) {
+            if (this.actionSource === 'player') this.reliefRowsRemaining = Math.max(0, this.reliefRowsRemaining - this.actionRows);
+            return;
+        }
+        if (this.actionSource === 'video') {
+            this.reliefRowsRemaining = RELIEF_CLEAR_ROWS;
+            this.assistedRowsRemaining = this.hardMisses = 0;
+            return;
+        }
+        if (this.actionSource !== 'player') {
+            this.hardMisses = 0;
+            return;
+        }
+        this.hardMisses = this.actionRows ? 0 : this.hardMisses + 1;
+        if (enteredDanger || this.hardMisses >= 3) {
+            this.assistedRowsRemaining = Math.max(this.assistedRowsRemaining, enteredDanger ? 2 : 1);
+            this.hardMisses = 0;
+        }
     }
 
     public resolveBoard(): ResolveResult {
@@ -460,8 +666,15 @@ export default class BoardEngine {
 
 
     public awardBomb(clearedRows: number): BoardPiece {
-        if (clearedRows < 2 || this.pieces.filter((piece) => piece.bomb).length >= MAX_BOARD_BOMBS) return null;
-        const eligible = this.pieces.filter(piece => !piece.bomb);
+        if (clearedRows < 2) return null;
+        if (this.rulesVersion >= 13) {
+            const reserved = this.pieces.filter(piece => piece.bomb).length
+                + this.nextPieces.filter(piece => piece.bomb).length + this.pendingBombCount;
+            if (reserved < MAX_BOARD_BOMBS) this.pendingBombCount++;
+            return null;
+        }
+        if (this.pieces.filter((piece) => piece.bomb).length >= MAX_BOARD_BOMBS) return null;
+        const eligible = this.pieces.filter(piece => !piece.bomb && (this.rulesVersion < 12 || !piece.lightning));
         let target = this.rulesVersion >= 6 ? eligible[Math.floor(this.random() * eligible.length)]
             : eligible.sort((a, b) => b.row - a.row || a.col - b.col || a.id - b.id)[0];
         if (!target) {
@@ -498,9 +711,21 @@ export default class BoardEngine {
         return this.removeWithBombs([bomb], []);
     }
 
+    public activateLightning(id: number): EliminateResult {
+        const piece = this.getPiece(id);
+        if (this.rulesVersion < TAP_LIGHTNING_RULES_VERSION || !piece || !piece.lightning || this.isGameOver()) return null;
+        if (this.currentRoundIsTutorial && this.moveCount < this.tutorialMoves.length) return null;
+        this.beginPlayerAction();
+        this.roundActions.push({ type: 'lightning', id });
+        this.actionBlast = true;
+        return this.removeWithBombs([piece], []);
+    }
+
     /** 对移除集合做炸弹闭包；每枚旧炸弹、每块表情最多结算一次。 */
-    private removeWithBombs(initial: BoardPiece[], rows: number[]): EliminateResult {
+    private removeWithBombs(initial: BoardPiece[], rows: number[], heart = false): EliminateResult {
+        const previousScore = this.score;
         const removed = new Set(initial.map((piece) => piece.id));
+        const waveScoring = this.rulesVersion >= SCORING_RULES_VERSION;
         const queue = initial.filter((piece) => piece.bomb);
         const detonations: BombDetonation[] = [];
         for (let index = 0; index < queue.length; index++) {
@@ -515,15 +740,37 @@ export default class BoardEngine {
                 removed.add(piece.id);
                 if (piece.bomb) queue.push(piece);
             }
-            detonations.push({ id: bomb.id, row: bomb.row, col: bomb.col, size: bomb.size, affectedPieceIds });
+            const score = heart && initial.includes(bomb) ? HEART_SCORE_V18 : BOMB_SCORE_V18;
+            detonations.push({ id: bomb.id, row: bomb.row, col: bomb.col, size: bomb.size, affectedPieceIds,
+                ...(waveScoring ? { score } : {}) });
         }
         const removedPieces = this.pieces.filter((piece) => removed.has(piece.id));
         const moods = removedPieces.filter((piece) => piece.stampMood > 0).map((piece) => piece.stampMood);
         this.pieces = this.pieces.filter((piece) => !removed.has(piece.id));
+        this.dischargeLightning(removedPieces);
         this.roundCollectedMoodBeans += moods.length;
         if (queue.length) this.actionBlast = true;
-        return { clearedRows: rows.length, gainedScore: 0, removedPieceIds: removedPieces.map((piece) => piece.id),
+        let gainedScore: number;
+        if (waveScoring) {
+            this.addScore(detonations.reduce((total, blast) => total + blast.score, 0));
+            gainedScore = this.score - previousScore;
+        } else {
+            const blastIds = new Set<number>();
+            detonations.forEach(bomb => bomb.affectedPieceIds.forEach(id => blastIds.add(id)));
+            gainedScore = this.addToolScore(blastIds.size);
+        }
+        return { clearedRows: rows.length, gainedScore, removedPieceIds: removedPieces.map((piece) => piece.id),
             clearedRowIndexes: rows, collectedMoodTypes: moods, detonatedBombs: detonations };
+    }
+
+    private addToolScore(count: number): number {
+        return this.addScore(this.rulesVersion >= 9 ? count * 5 : 0);
+    }
+
+    private addScore(gained: number): number {
+        this.score += gained;
+        this.bestScore = Math.max(this.bestScore, this.score);
+        return gained;
     }
 
     public applyGravity(): GravityMove[] {
@@ -545,9 +792,10 @@ export default class BoardEngine {
         const fullRows = this.findFullRows();
         if (!fullRows.length) return { clearedRows: 0, gainedScore: 0, removedPieceIds: [],
             clearedRowIndexes: [], collectedMoodTypes: [], detonatedBombs: [] };
-        if (!this.actionOpen) this.beginPlayerAction();
+        if (!this.actionOpen) this.beginPlayerAction('system');
         const result = this.removeWithBombs(this.pieces.filter((piece) => fullRows.indexOf(piece.row) >= 0), fullRows);
-        if (!this.comboActionCleared) {
+        const waveScoring = this.rulesVersion >= SCORING_RULES_VERSION;
+        if (waveScoring || !this.comboActionCleared) {
             this.combo = Math.min(5, this.combo + 1);
             this.comboActionCleared = true;
             if (this.combo === 3 || (this.rulesVersion >= 5 && this.combo >= 3)) this.pendingComboBomb = true;
@@ -556,9 +804,16 @@ export default class BoardEngine {
         this.actionCascade++;
         result.combo = this.combo;
         result.cascade = this.actionCascade;
-        result.gainedScore = fullRows.length * 10 * this.combo;
-        this.score += result.gainedScore;
+        const baseScore = fullRows.length * (waveScoring ? ROW_SCORE_V18 * COMBO_MULTIPLIERS_V18[this.combo - 1] : 10 * this.combo);
+        if (waveScoring) result.rowScore = baseScore;
+        result.gainedScore += baseScore;
+        this.score += baseScore;
         this.roundClearedRows += fullRows.length;
+        if (this.rulesVersion >= 12) {
+            const lightningInterval = this.rulesVersion >= 15 ? 10 : 20;
+            this.pendingLightningCount += Math.floor(this.roundClearedRows / lightningInterval)
+                - Math.floor((this.roundClearedRows - fullRows.length) / lightningInterval);
+        }
         this.bestScore = Math.max(this.bestScore, this.score);
         return result;
     }
@@ -569,7 +824,7 @@ export default class BoardEngine {
         if (recordAction) this.roundActions.push({ type: 'append' });
         for (const piece of this.pieces) piece.row--;
         for (const next of this.nextPieces) {
-            this.pieces.push(this.createPiece(
+            const piece = this.createPiece(
                 BOARD_ROWS - 1,
                 next.col,
                 next.size,
@@ -578,13 +833,17 @@ export default class BoardEngine {
                 next.stampCell,
                 next.collectibleType,
                 next.collectibleCell,
-            ));
+            );
+            if (next.lightning) piece.lightning = true;
+            if (next.bomb) piece.bomb = true;
+            this.pieces.push(piece);
         }
         this.turn++;
         if (this.rulesVersion >= 5 && this.secondNextPieces.length) {
             this.nextPieces = this.secondNextPieces;
             this.secondNextPieces = [];
         } else this.nextPieces = this.generateNextRow();
+        if (this.rulesVersion >= 13) this.placePendingSpecials();
         return true;
     }
 
@@ -600,10 +859,13 @@ export default class BoardEngine {
     }
 
     public getRiseRowCount(actions: number = this.difficultyActionCount): number {
-        if (this.rulesVersion < 5 || actions <= 25) return 1;
+        if (this.rescueRiseRows) return this.rescueRiseRows;
+        const timing = this.getDifficultyTiming();
+        if (this.rulesVersion < 5 || actions <= timing.opening) return 1;
         if (this.rulesVersion >= 6 && this.getBoardHeight() > 4) return 1;
-        if (actions < 40) return (actions - 26) % 4 === 0 ? 2 : 1;
-        if (actions < 55) return (actions - 40) % 2 === 0 ? 2 : 1;
+        if (this.reliefRowsRemaining > 0) return 1;
+        if (actions < timing.advanced) return (actions - timing.opening - 1) % 4 === 0 ? 2 : 1;
+        if (actions < timing.master || this.rulesVersion >= DIFFICULTY_WAVE_RULES_VERSION) return (actions - timing.advanced) % 2 === 0 ? 2 : 1;
         return 2;
     }
 
@@ -618,6 +880,81 @@ export default class BoardEngine {
             const otherEnd = other.col + other.size;
             return piece.col < otherEnd && pieceEnd > other.col;
         });
+    }
+
+    /** 保留总占格；原ID、表情、收藏物和旧炸弹各自只落在一个对应单格上。 */
+    private splitPiece(piece: BoardPiece): BoardPiece[] {
+        this.nextId = Math.max(this.nextId, ...this.pieces.map(item => item.id + 1));
+        const fragments: BoardPiece[] = [];
+        for (let cell = 0; cell < piece.size; cell++) {
+            fragments.push({ ...piece, id: cell === 0 ? piece.id : this.nextId++, col: piece.col + cell, size: 1,
+                stampMood: piece.stampCell === cell ? piece.stampMood : 0, stampCell: 0,
+                collectibleType: piece.collectibleCell === cell ? piece.collectibleType : 0, collectibleCell: 0,
+                bomb: !!piece.bomb && cell === Math.floor(piece.size / 2), lightning: false });
+        }
+        const index = this.pieces.findIndex(item => item.id === piece.id);
+        this.pieces.splice(index, 1, ...fragments);
+        return fragments;
+    }
+
+    /** 在下一排随机列预告，拆出宿主单格；不改动棋盘上的既有块。 */
+    private placePendingSpecials(): void {
+        for (const kind of ['lightning', 'bomb'] as const) {
+            while ((kind === 'lightning' ? this.pendingLightningCount : this.pendingBombCount) > 0) {
+                let columns = Array.from({ length: BOARD_COLS }, (_, col) => col).filter(col =>
+                    !this.nextPieces.some(piece => (piece.lightning || piece.bomb) && col >= piece.col && col < piece.col + piece.size));
+                if (!columns.length) break;
+                if (columns.length > 1) columns = columns.filter(col => col !== this.lastSpecialCol);
+                const col = columns[Math.floor(this.random() * columns.length)];
+                this.lastSpecialCol = col;
+                const host = this.nextPieces.find(piece => col >= piece.col && col < piece.col + piece.size);
+                if (host) {
+                    // 左右普通段保持原宽度；表情与收藏只保留在原对应格上。
+                    const offset = col - host.col;
+                    const segments = [{ start: 0, size: offset }, { start: offset, size: 1 },
+                        { start: offset + 1, size: host.size - offset - 1 }].filter(segment => segment.size > 0);
+                    const pieces = segments.map(segment => ({ ...host, col: host.col + segment.start, size: segment.size,
+                        stampMood: host.stampCell >= segment.start && host.stampCell < segment.start + segment.size ? host.stampMood : 0,
+                        stampCell: Math.max(0, host.stampCell - segment.start),
+                        collectibleType: host.collectibleCell >= segment.start && host.collectibleCell < segment.start + segment.size ? host.collectibleType : 0,
+                        collectibleCell: Math.max(0, host.collectibleCell - segment.start),
+                        lightning: kind === 'lightning' && segment.start === offset,
+                        bomb: kind === 'bomb' && segment.start === offset }));
+                    this.nextPieces.splice(this.nextPieces.indexOf(host), 1, ...pieces);
+                } else {
+                    this.nextPieces.push({ col, size: 1, color: 4, stampMood: 0, stampCell: 0,
+                        collectibleType: 0, collectibleCell: 0, lightning: kind === 'lightning', bomb: kind === 'bomb' });
+                }
+                this.nextPieces.sort((a, b) => a.col - b.col);
+                if (kind === 'lightning') this.pendingLightningCount--; else this.pendingBombCount--;
+            }
+        }
+    }
+
+    /** V13每次抽取最多五个不同存活块，长块拆分，单格碎除；V12仍按旧规则重放。 */
+    private dischargeLightning(removed: BoardPiece[]): void {
+        if (this.rulesVersion < 12) return;
+        for (const source of removed.filter(piece => piece.lightning)) {
+            const candidates = this.shuffle(this.pieces.filter(piece => this.rulesVersion >= 13 || (!piece.lightning && piece.size > 1)));
+            const effect: LightningDischarge = { source: { ...source }, targets: [] };
+            this.lightningEffects.push(effect);
+            for (const candidate of candidates.slice(0, this.rulesVersion >= 13 ? 5 : 3)) {
+                const piece = this.getPiece(candidate.id);
+                if (!piece) continue; // 之前命中的单格炸弹可能已将它纳入爆炸闭包。
+                const original = { ...piece };
+                if (piece.size > 1) {
+                    const fragments = this.splitPiece(piece).map(cell => ({ ...cell }));
+                    const score = this.rulesVersion >= SCORING_RULES_VERSION ? this.addScore(fragments.length * LIGHTNING_CELL_SCORE_V18) : undefined;
+                    effect.targets.push({ original, fragments, score });
+                } else {
+                    const shattered = this.removeWithBombs([piece], []);
+                    const score = this.rulesVersion >= SCORING_RULES_VERSION ? this.addScore(LIGHTNING_CELL_SCORE_V18) : undefined;
+                    if (score !== undefined) shattered.gainedScore += score;
+                    else if (!piece.bomb) shattered.gainedScore += this.addToolScore(1);
+                    effect.targets.push({ original, fragments: [], shattered, score });
+                }
+            }
+        }
     }
 
     private findFullRows(): number[] {
@@ -638,12 +975,32 @@ export default class BoardEngine {
         return this.moveCount < 6 ? 3 : 4;
     }
 
+    private getDifficultyTiming(): typeof ORIGINAL_DIFFICULTY_TIMING {
+        return this.rulesVersion >= SHORT_OPENING_RULES_VERSION ? SHORT_DIFFICULTY_TIMING : ORIGINAL_DIFFICULTY_TIMING;
+    }
+
     public getDifficulty(): { stage: number; label: string; progress: number } {
         if (this.rulesVersion >= 5) {
             const actions = this.difficultyActionCount;
-            const stage = actions <= 25 ? 0 : actions < 40 ? 1 : actions < 55 ? 2 : 3;
-            return { stage, label: ['连消时刻', '进阶挑战', '高手挑战', '大师挑战'][stage],
-                progress: Math.max(0, Math.min(1, (actions - 25) / 30)) };
+            const timing = this.getDifficultyTiming();
+            const original = ORIGINAL_DIFFICULTY_TIMING;
+            const stage = actions <= timing.opening ? 0 : actions < timing.advanced ? 1 : actions < timing.master ? 2 : 3;
+            let curveAction = actions;
+            if (this.rulesVersion >= SHORT_OPENING_RULES_VERSION) {
+                // 将缩短的开场映射回原曲线，保持下一阶段起点和封顶难度。
+                curveAction = actions < timing.advanced
+                    ? original.opening + (actions - timing.opening) * (original.advanced - original.opening) / (timing.advanced - timing.opening)
+                    : original.advanced + actions - timing.advanced;
+            }
+            let progress = Math.max(0, Math.min(1, (curveAction - original.opening) / (original.master - original.opening)));
+            if (this.rulesVersion >= DIFFICULTY_WAVE_RULES_VERSION) {
+                progress = Math.min(progress, HARD_DIFFICULTY_PROGRESS);
+                if (this.reliefRowsRemaining > 0) {
+                    const relief = Math.min(this.reliefRowsRemaining, RELIEF_RAMP_ROWS) / RELIEF_RAMP_ROWS;
+                    progress += (RELIEF_DIFFICULTY_PROGRESS - progress) * relief;
+                }
+            }
+            return { stage, label: ['连消时刻', '进阶挑战', '高手挑战', '大师挑战'][stage], progress };
         }
         // V4再次加快，并把炸弹/道具等有效操作计入；V2/V3在途局保留各自曲线。
         const difficultyMoves = this.rulesVersion >= 4 ? this.difficultyActionCount * 4
@@ -658,6 +1015,7 @@ export default class BoardEngine {
     }
 
     public getAssistanceChance(height: number, bombs: number): number {
+        if (this.assistedRowsRemaining > 0) return 1;
         const current = this.rulesVersion >= 4;
         const base = 1 - this.getDifficulty().progress * (current ? 0.85 : 0.65);
         return Math.min(1, base + (height >= 7 && !bombs ? (current ? 0.08 : 0.15) : 0)
@@ -666,6 +1024,8 @@ export default class BoardEngine {
 
     private preview(pieces: BoardPiece[]): { pieces: BoardPiece[]; rows: number; waves: number } {
         const simulation = new BoardEngine();
+        simulation.rulesVersion = this.rulesVersion;
+        simulation.randomState = this.randomState;
         simulation.pieces = pieces.map((piece) => ({ ...piece }));
         let rows = 0;
         let waves = 0;
@@ -720,6 +1080,7 @@ export default class BoardEngine {
         const height = stable.length ? BOARD_ROWS - Math.min(...stable.map((piece) => piece.row)) : 0;
         const bombs = stable.filter((piece) => piece.bomb).length;
         const help = this.random() < this.getAssistanceChance(height, bombs);
+        if (this.assistedRowsRemaining > 0) this.assistedRowsRemaining--;
         const candidates: GeneratedRowCandidate[] = [];
         const targetCells = this.pickTargetCells();
         for (let index = 0; index < 6; index++) candidates.push(this.createNextRowCandidate(targetCells));

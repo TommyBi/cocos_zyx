@@ -1,0 +1,98 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "shop": {
+      "price": "25",
+      "hasIcon": true,
+      "spriteUuid": "64af7770-d869-4474-8d26-58fbe40c3fd2",
+      "y": 478.53846153846143,
+      "scrollOffset": 288,
+      "labels": [
+        "兑换",
+        "25",
+        "复活卡 ×1",
+        "广告复活后，再续一次机会",
+        "已拥有 0 张"
+      ],
+      "panel": {
+        "y": 261.53846153846155,
+        "height": 1100
+      },
+      "height": 1623.076923076923
+    },
+    "firstUsesExistingRewardOffer": true,
+    "realAdReviveCallbackAndRefill": true,
+    "extraRevivalOnce": true,
+    "noCardDirectSettlement": false,
+    "requestCount": 2,
+    "coldRestoreAfterLostResponse": false,
+    "inventoryAfter": 1,
+    "finalSettlementAccepted": true,
+    "errors": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "shop": {
+      "price": "25",
+      "hasIcon": true,
+      "spriteUuid": "64af7770-d869-4474-8d26-58fbe40c3fd2",
+      "y": 334,
+      "scrollOffset": 288,
+      "labels": [
+        "兑换",
+        "25",
+        "复活卡 ×1",
+        "广告复活后，再续一次机会",
+        "已拥有 0 张"
+      ],
+      "panel": {
+        "y": 117,
+        "height": 1100
+      },
+      "height": 1334
+    },
+    "firstUsesExistingRewardOffer": true,
+    "realAdReviveCallbackAndRefill": true,
+    "extraRevivalOnce": true,
+    "noCardDirectSettlement": false,
+    "requestCount": 1,
+    "coldRestoreAfterLostResponse": true,
+    "inventoryAfter": 1,
+    "finalSettlementAccepted": true,
+    "errors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "shop": {
+      "price": "25",
+      "hasIcon": true,
+      "spriteUuid": "64af7770-d869-4474-8d26-58fbe40c3fd2",
+      "y": 334,
+      "scrollOffset": 288,
+      "labels": [
+        "兑换",
+        "25",
+        "复活卡 ×1",
+        "广告复活后，再续一次机会",
+        "已拥有 0 张"
+      ],
+      "panel": {
+        "y": 117,
+        "height": 1100
+      },
+      "height": 1334
+    },
+    "firstUsesExistingRewardOffer": true,
+    "realAdReviveCallbackAndRefill": true,
+    "extraRevivalOnce": true,
+    "noCardDirectSettlement": true,
+    "requestCount": 1,
+    "coldRestoreAfterLostResponse": false,
+    "inventoryAfter": 1,
+    "finalSettlementAccepted": true,
+    "errors": []
+  }
+]

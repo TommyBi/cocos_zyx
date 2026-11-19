@@ -1,0 +1,20 @@
+{
+  "subPackageInfo": [
+    {
+      "name": "/subpackages/effects/",
+      "size": 1671108
+    },
+    {
+      "name": "/subpackages/home/",
+      "size": 3920494
+    },
+    {
+      "name": "__APP__",
+      "size": 2844783
+    },
+    {
+      "name": "__FULL__",
+      "size": 8436385
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "engine": "edge-tts",
+  "voice": "en-US-AnaNeural",
+  "lines": [
+    {
+      "key": "wow",
+      "text": "Wow!",
+      "pitch": "-25Hz",
+      "rate": "-5%"
+    },
+    {
+      "key": "good",
+      "text": "Good!",
+      "pitch": "-20Hz",
+      "rate": "-3%"
+    },
+    {
+      "key": "great",
+      "text": "Great!",
+      "pitch": "+25Hz",
+      "rate": "-7%"
+    },
+    {
+      "key": "perfect",
+      "text": "Perfect!",
+      "pitch": "+70Hz",
+      "rate": "-13%"
+    }
+  ],
+  "processing": {
+    "description": "Trim silence; set increasing measured pitch and RMS; lowpass 5800Hz; subtle high tier doubles and warm short bell tails",
+    "metrics": [
+      {
+        "key": "wow",
+        "sourceMedianHz": 301.9,
+        "targetMedianHz": 300,
+        "outputMedianHz": 307.7,
+        "rmsDb": -25.2,
+        "durationSeconds": 0.422,
+        "bellNotesHz": [
+          660
+        ]
+      },
+      {
+        "key": "good",
+        "sourceMedianHz": 326.5,
+        "targetMedianHz": 350,
+        "outputMedianHz": 347.8,
+        "rmsDb": -23.9,
+        "durationSeconds": 0.401,
+        "bellNotesHz": [
+          784,
+          988
+        ]
+      },
+      {
+        "key": "great",
+        "sourceMedianHz": 405.1,
+        "targetMedianHz": 410,
+        "outputMedianHz": 415.7,
+        "rmsDb": -22.3,
+        "durationSeconds": 0.533,
+        "bellNotesHz": [
+          880,
+          1109,
+          1319
+        ]
+      },
+      {
+        "key": "perfect",
+        "sourceMedianHz": 516.1,
+        "targetMedianHz": 470,
+        "outputMedianHz": 470.6,
+        "rmsDb": -21.9,
+        "durationSeconds": 0.983,
+        "bellNotesHz": [
+          988,
+          1245,
+          1480,
+          1976
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "word": "wow",
+    "approvedSource": "assets/bundles/effects/sound/combo_wow_v3.mp3",
+    "approvedSourceSha256": "23354e647da7e3f3e6c3e3374b10b59e0fa2d5c7662b1b03a6e52d3161f151ff",
+    "runtime": "assets/bundles/effects/sound/combo_wow_v4.mp3",
+    "sha256": "0bbf6c7b70c1d64999ef6708722efd145829eec5e30d796df385b1ba515e0d9b",
+    "gainDb": 1.5
+  },
+  {
+    "word": "good",
+    "approvedSource": "assets/bundles/effects/sound/combo_good_v3.mp3",
+    "approvedSourceSha256": "527c84a4128e47c907fcf30de4b051ecef2f44fa87b23edfab8aa10346b07c4f",
+    "runtime": "assets/bundles/effects/sound/combo_good_v4.mp3",
+    "sha256": "582c2a9cf57510ddd5ece01a4515e7121891636a5abf2eefd25a233161961f07",
+    "gainDb": 1.5
+  },
+  {
+    "word": "great",
+    "approvedSource": "assets/bundles/effects/sound/combo_great_v3.mp3",
+    "approvedSourceSha256": "ee1c0ab58999d3dc6ee82ca16abbbb29e9dcef368353fbe84d5ab57877ea7f3e",
+    "runtime": "assets/bundles/effects/sound/combo_great_v4.mp3",
+    "sha256": "6b6b9b9ad3c930da2acaf79fbdf75b2904406238a2fbceeb77d09255979ca5b2",
+    "gainDb": 1.5
+  },
+  {
+    "word": "perfect",
+    "approvedSource": "assets/bundles/effects/sound/combo_perfect_v3.mp3",
+    "approvedSourceSha256": "3611c614ef8e4b78a91793d90140319b3cdffa259f68393462607f1cb35053cd",
+    "runtime": "assets/bundles/effects/sound/combo_perfect_v4.mp3",
+    "sha256": "17e8f046270b1b4efbdbb4bf66ccdd1470921ddc0bad11717209316308e713f9",
+    "gainDb": 1.5
+  }
+]

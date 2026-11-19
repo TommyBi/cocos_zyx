@@ -1,0 +1,24 @@
+{
+  "version": "2026.11.14.13",
+  "generated": true,
+  "completedAt": "2026-11-14T10:47:17.209Z",
+  "qrcode": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261114-shop-three-181631/wechat-preview-qr.jpg",
+  "subPackageInfo": [
+    {
+      "name": "/subpackages/effects/",
+      "size": 1034473
+    },
+    {
+      "name": "/subpackages/home/",
+      "size": 3920494
+    },
+    {
+      "name": "__APP__",
+      "size": 2841587
+    },
+    {
+      "name": "__FULL__",
+      "size": 7796554
+    }
+  ]
+}

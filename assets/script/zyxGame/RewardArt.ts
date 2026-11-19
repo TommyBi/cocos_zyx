@@ -82,7 +82,7 @@ function fallbackLabel(node: cc.Node, text: string, height: number, color: cc.Co
     label.string = text;
     label.fontSize = height * 0.78;
     label.lineHeight = height;
-    uimanager.applyTypography(label, true);
+    uimanager.applyTypography(label);
     node.color = color;
     const outline = node.addComponent(cc.LabelOutline);
     outline.color = new cc.Color(255, 247, 217);

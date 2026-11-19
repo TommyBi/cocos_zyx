@@ -1,0 +1,47 @@
+{
+  "tables": {
+    "game_rounds": {
+      "oldCount": 292,
+      "newCount": 292,
+      "oldColumnsVerified": true
+    },
+    "players": {
+      "oldCount": 64,
+      "newCount": 64,
+      "oldColumnsVerified": true
+    },
+    "release_resets": {
+      "oldCount": 0,
+      "newCount": 0,
+      "oldColumnsVerified": true
+    },
+    "round_checkpoints": {
+      "oldCount": 0,
+      "newCount": 0,
+      "oldColumnsVerified": true
+    },
+    "round_settlements": {
+      "oldCount": 82,
+      "newCount": 82,
+      "oldColumnsVerified": true
+    },
+    "sqlite_sequence": {
+      "oldCount": 1,
+      "newCount": 1,
+      "oldColumnsVerified": true
+    },
+    "stamina_share_claims": {
+      "oldCount": 13,
+      "newCount": 13,
+      "oldColumnsVerified": true
+    },
+    "tool_transactions": {
+      "oldCount": 38,
+      "newCount": 38,
+      "oldColumnsVerified": true
+    }
+  },
+  "refundBeans": 24,
+  "playersRefunded": 6,
+  "preserved": true
+}

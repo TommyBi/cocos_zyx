@@ -8,7 +8,8 @@ import {
     getMoodCollection,
 } from './MoodBeanConfig';
 
-import BoardEngine from './BoardEngine';
+import BoardEngine, { RoundToolState } from './BoardEngine';
+import { rebuildRound, SavedRoundReplay } from './RoundReplay';
 export * from './BoardEngine';
 export { default as BoardEngine } from './BoardEngine';
 export const CELL_SIZE = 76;
@@ -33,6 +34,7 @@ const KNOWN_STORAGE_KEYS = [
     'zyx_best_score',
     'zyx_hammer_inventory',
     'zyx_magic_wand_inventory',
+    'zyx_revive_card_inventory',
     'zyx_cloud_token',
     'zyx_cloud_device_id',
     'zyx_pending_start_round_id',
@@ -101,6 +103,7 @@ export type RoundSettlement = {
 
 /** 离线结算待提交队列的单条记录；云端按 roundId 幂等。 */
 export type PendingRoundSettlement = {
+    sessionToken?: string;
     roundId: string;
     startedAt: number;
     endedAt: number;
@@ -122,6 +125,7 @@ export type DeadRoundSettlement = {
  */
 export default class ZyxGameModule extends BoardEngine {
     public moodBeanBalance = 0;
+    public reviveCardCount = 0;
     public level = 1;
     public experience = 0;
     public challengeCount = 0;
@@ -138,10 +142,43 @@ export default class ZyxGameModule extends BoardEngine {
     public getPlayerId(): string { return this.cloudPlayerId; }
     private assetRevision = -1;
     public cloudRoundId = '';
+    public roundToolClaims = { hammer: 0, magicWand: 0 };
+
+    public applyRoundTools(tools?: RoundToolState): void {
+        if (this.rulesVersion < 12 || !tools) return;
+        this.roundToolClaims = { hammer: tools.hammer.acquired, magicWand: tools.magicWand.acquired };
+        this.hammerCount = tools.hammer.owned;
+        this.colorPurifierCount = tools.magicWand.owned;
+    }
+
+    private pendingHeartEligible = false;
+
+    public restoreRound(saved: SavedRoundReplay): void {
+        const board = rebuildRound(saved.seed, saved.isTutorial, saved.actions, saved.rulesVersion, saved.heartRescueEligible);
+        for (const key of Object.keys(board)) {
+            if (['hammerCount', 'colorPurifierCount', 'bestScore'].includes(key)) continue;
+            (this as any)[key] = (board as any)[key];
+        }
+        this.roundSettled = false;
+        this.roundStartedAt = Date.now() - saved.elapsedMs;
+        this.startingBestScore = this.bestScore;
+        this.challengeCount = Math.max(1, this.loggedInGameCount + 1);
+        this.cloudRoundId = saved.roundId;
+        this.pendingServerSeed = 0;
+        this.pendingServerTutorial = null;
+        this.pendingHeartEligible = false;
+        this.takeLightningEffects();
+        this.applyRoundTools(saved.roundTools);
+        // 临时提示按已过期处理；保留冷却/已用状态，不补发广告或分享奖励。
+        this.dismissBalloonRescue(saved.elapsedMs);
+        this.dismissHeartRescue();
+    }
 
     public resetRound(): void {
+        this.roundToolClaims = { hammer: 0, magicWand: 0 };
         this.hammerCount = Math.max(0, this.readNumber('zyx_hammer_inventory', 0));
         this.colorPurifierCount = Math.max(0, this.readNumber('zyx_magic_wand_inventory', 0));
+        this.reviveCardCount = Math.max(0, this.readNumber('zyx_revive_card_inventory', 0));
         this.roundSettled = false;
         this.roundStartedAt = Date.now();
         this.bestScore = this.readNumber('zyx_best_score', 0);
@@ -164,7 +201,8 @@ export default class ZyxGameModule extends BoardEngine {
         this.syncPersistentProgress();
         cc.log(`[棋盘调试] 本局随机种子 ${this.roundSeed}`);
 
-        this.resetBoard(this.roundSeed, this.currentRoundIsTutorial);
+        this.resetBoard(this.roundSeed, this.currentRoundIsTutorial, undefined, this.pendingHeartEligible);
+        this.pendingHeartEligible = false;
     }
 
     /** 首次启动分流：云端没有完成局数的新用户直接进入消除；无法联网时也优先保证可玩。 */
@@ -179,7 +217,8 @@ export default class ZyxGameModule extends BoardEngine {
     }
 
     /** 服务端下发开局配置；在随后的 resetRound 中生效，且仅消费一次。 */
-    public setRoundSeed(seed: number, isTutorial?: boolean): void {
+    public setRoundSeed(seed: number, isTutorial?: boolean, heartEligible: boolean = false): void {
+        this.pendingHeartEligible = heartEligible;
         this.pendingServerSeed = seed >>> 0 || 1;
         if (typeof isTutorial === 'boolean') this.pendingServerTutorial = isTutorial;
         this.roundSeed = this.pendingServerSeed;
@@ -256,10 +295,13 @@ export default class ZyxGameModule extends BoardEngine {
      *
      * 开心豆、等级和经验只保存服务端确认值；待提交记录不能提前计入开心豆余额。
      */
+    public registeredAt = '';
+
     public applyCloudProfile(profile: {
+        registeredAt?: string;
         playerId?: string;
         assetRevision?: number;
-        inventory?: { hammer: number; magicWand: number };
+        inventory?: { hammer: number; magicWand: number; reviveCard?: number };
         level: number;
         experience: number;
         moodBeanBalance: number;
@@ -276,10 +318,14 @@ export default class ZyxGameModule extends BoardEngine {
             this.assetRevision = profile.assetRevision;
         } else if (this.assetRevision >= 0) return false; // 迁移前的历史回执也不能覆盖当前资产。
         if (profile.inventory) {
-            this.hammerCount = Math.max(0, Math.floor(profile.inventory.hammer || 0));
-            this.colorPurifierCount = Math.max(0, Math.floor(profile.inventory.magicWand || 0));
+            if (this.rulesVersion < 12) {
+                this.hammerCount = Math.max(0, Math.floor(profile.inventory.hammer || 0));
+                this.colorPurifierCount = Math.max(0, Math.floor(profile.inventory.magicWand || 0));
+            }
+            this.reviveCardCount = Math.max(0, Math.floor(profile.inventory.reviveCard || 0));
             this.saveToolInventory();
         }
+        if (profile.registeredAt) this.registeredAt = profile.registeredAt;
         this.level = Math.max(1, profile.level || 1);
         this.experience = Math.max(0, profile.experience || 0);
         this.moodBeanBalance = Math.max(0, Math.floor(profile.moodBeanBalance || 0));
@@ -342,6 +388,7 @@ export default class ZyxGameModule extends BoardEngine {
         this.moodBeanBalance = 0;
         this.hammerCount = 0;
         this.colorPurifierCount = 0;
+        this.reviveCardCount = 0;
         this.bestScore = 0;
         this.challengeCount = 0;
         this.loggedInGameCount = 0;
@@ -442,6 +489,7 @@ export default class ZyxGameModule extends BoardEngine {
     protected saveToolInventory(): void {
         cc.sys.localStorage.setItem('zyx_hammer_inventory', String(this.hammerCount));
         cc.sys.localStorage.setItem('zyx_magic_wand_inventory', String(this.colorPurifierCount));
+        cc.sys.localStorage.setItem('zyx_revive_card_inventory', String(this.reviveCardCount));
     }
 
     private readNumber(key: string, fallback: number): number {

@@ -1,0 +1,53 @@
+{
+  "clientVersion": "2026.11.17.02",
+  "preparedAt": "2026-11-17T06:01:05.525974+00:00",
+  "stagingBackend": "20261117-gameplay-v12-132009",
+  "apiVersion": 16,
+  "rulesVersion": 12,
+  "backendChanged": false,
+  "newDevelopmentVersionUploaded": false,
+  "submittedForReview": false,
+  "releasePointersChanged": false,
+  "previewGenerated": true,
+  "localInteractivePreview": "http://127.0.0.1:7464/?localApi=1&autostart=1&toolVisuals=1",
+  "typecheck": "passed",
+  "clientTests": 213,
+  "actualWebViewports": [
+    {
+      "width": 390,
+      "height": 844,
+      "coldResume": true,
+      "offlineColdResume": true,
+      "hammerShareClaims": 3,
+      "videoCancellationDoesNotConsume": true,
+      "heldWandRestored": true,
+      "lightningBombAnimation": true,
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "coldResume": true,
+      "offlineColdResume": true,
+      "hammerShareClaims": 3,
+      "videoCancellationDoesNotConsume": true,
+      "heldWandRestored": true,
+      "lightningBombAnimation": true,
+      "pageErrors": []
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "coldResume": true,
+      "offlineColdResume": true,
+      "hammerShareClaims": 3,
+      "videoCancellationDoesNotConsume": true,
+      "heldWandRestored": true,
+      "lightningBombAnimation": true,
+      "pageErrors": []
+    }
+  ],
+  "wechatFiles": 99,
+  "archiveSha256": "b6e1c825673af7b1fdcd02eeea03385abd05393c4d322f893b067a48ad77a3c4",
+  "phoneVerified": false
+}

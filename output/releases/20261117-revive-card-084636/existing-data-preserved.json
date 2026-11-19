@@ -1,0 +1,98 @@
+{
+  "game_rounds": {
+    "count": 282,
+    "oldColumns": [
+      "player_id",
+      "round_id",
+      "started_at",
+      "status",
+      "settled_at",
+      "seed",
+      "is_tutorial",
+      "collection_rule",
+      "rules_version",
+      "tool_rules_version"
+    ],
+    "unchanged": true
+  },
+  "players": {
+    "count": 62,
+    "oldColumns": [
+      "player_id",
+      "device_id",
+      "token",
+      "nickname",
+      "avatar_url",
+      "level",
+      "experience",
+      "mood_bean_balance",
+      "total_mood_beans",
+      "highest_single_game_score",
+      "stamina_current",
+      "stamina_updated_at",
+      "created_at",
+      "updated_at",
+      "wechat_openid",
+      "hammer_count",
+      "wand_count",
+      "asset_revision"
+    ],
+    "unchanged": true
+  },
+  "release_resets": {
+    "count": 0,
+    "oldColumns": [
+      "generation",
+      "applied_at",
+      "player_count"
+    ],
+    "unchanged": true
+  },
+  "round_settlements": {
+    "count": 77,
+    "oldColumns": [
+      "id",
+      "player_id",
+      "round_id",
+      "score",
+      "mood_token_count",
+      "awarded_mood_beans",
+      "payload_json",
+      "result_json",
+      "created_at"
+    ],
+    "unchanged": true
+  },
+  "sqlite_sequence": {
+    "count": 1,
+    "oldColumns": [
+      "name",
+      "seq"
+    ],
+    "unchanged": true
+  },
+  "stamina_share_claims": {
+    "count": 12,
+    "oldColumns": [
+      "player_id",
+      "day_key",
+      "claim_id",
+      "claimed_at"
+    ],
+    "unchanged": true
+  },
+  "tool_transactions": {
+    "count": 38,
+    "oldColumns": [
+      "player_id",
+      "action_id",
+      "kind",
+      "item",
+      "round_id",
+      "action_index",
+      "target",
+      "created_at"
+    ],
+    "unchanged": true
+  }
+}

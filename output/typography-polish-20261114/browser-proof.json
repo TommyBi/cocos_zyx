@@ -1,0 +1,71 @@
+{
+  "results": [
+    {
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "version": "v2026.11.14.04",
+      "nickname": 27,
+      "timer": {
+        "text": "04:00",
+        "color": [
+          48,
+          132,
+          70
+        ]
+      },
+      "settings": [
+        {
+          "size": 34,
+          "y": -24
+        }
+      ]
+    },
+    {
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "version": "v2026.11.14.04",
+      "nickname": 27,
+      "timer": {
+        "text": "03:59",
+        "color": [
+          48,
+          132,
+          70
+        ]
+      },
+      "settings": [
+        {
+          "size": 34,
+          "y": -24
+        }
+      ]
+    },
+    {
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "version": "v2026.11.14.04",
+      "nickname": 27,
+      "timer": {
+        "text": "03:57",
+        "color": [
+          48,
+          132,
+          70
+        ]
+      },
+      "settings": [
+        {
+          "size": 34,
+          "y": -24
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

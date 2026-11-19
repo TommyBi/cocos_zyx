@@ -1,0 +1,28 @@
+{
+  "shared": {
+    "vsPreviousVerifiedRuntime": [
+      "src/boardEngine.js",
+      "src/databaseAudit.js",
+      "src/defaultNickname.js",
+      "src/gameEngine.js",
+      "src/index.js",
+      "src/replayBoardEngine.js",
+      "src/schema.js"
+    ]
+  },
+  "staging-source": {
+    "vsPreviousVerifiedRuntime": []
+  },
+  "production-source": {
+    "vsPreviousVerifiedRuntime": []
+  },
+  "staging-runtime": {
+    "vsPreviousVerifiedRuntime": []
+  },
+  "production-runtime": {
+    "vsPreviousVerifiedRuntime": []
+  },
+  "candidateVsCurrentStaging": [
+    "src/index.js"
+  ]
+}

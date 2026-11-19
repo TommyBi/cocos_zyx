@@ -1,0 +1,13 @@
+{
+  "image": "sha256:2406aca78d8d7c67acd454af7f4d8a5a480ee6809fc99c9410b1e7d420c81f3f",
+  "imageRef": "cocos-zyx-production:20261118-production-api20-135431",
+  "promotedFrom": "20261118-staging-v15-review-025145",
+  "runtimeServerTestsPassed": 77,
+  "schemaVersion": 12,
+  "rulesVersion": 15,
+  "apiVersion": 20,
+  "allTablesMigrationUnchanged": true,
+  "candidateMatchesStagingRuntime": true,
+  "sourceTreeSha256": "b8584e61dfe047e5119b387d1b036397cda615b47eab133fa14a5978bc860077",
+  "existingZeroScoreProbeReused": true
+}

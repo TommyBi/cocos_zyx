@@ -1,0 +1,76 @@
+{
+  "releaseId": "20261119-staging-v21-review-05",
+  "deployedAt": "2026-11-19T08:19:27.540Z",
+  "environment": "staging",
+  "apiVersion": 26,
+  "rulesVersion": 21,
+  "schemaVersion": 12,
+  "container": "f112ba1619922c1a2e37e4650a1c7cba819998491cc6bd959f278fd3e4e9b42b",
+  "image": "sha256:f38d0176811c5c9c1bab124dd219f8e6416754bcf6981b319f46b4049abff635",
+  "previousReleaseId": "20261119-staging-v21-preview",
+  "rollbackImage": "cocos-zyx-staging:20261119-staging-v21-preview",
+  "backup": "/opt/tcjstory/backups/cocos-zyx-staging-20261119-staging-v21-review-05",
+  "composeOverride": "/opt/tcjstory/apps/cocos-zyx/releases/20261119-staging-v21-review-05/staging-image.override.yml",
+  "sourceTreeSha256": "7b4cf1ead6e9e7d8e45b863697b99b3ae4b13d23268a514fe02648b01663df70",
+  "imageTests": 80,
+  "databaseAudit": {
+    "preserved": true,
+    "tables": {
+      "game_rounds": {
+        "rows": 329,
+        "sha256": "86d729aeffdf6d343ea472202ced6ef3823e4dec642b9f2c7ce8ad9602b1aad3"
+      },
+      "players": {
+        "rows": 78,
+        "sha256": "f55dd3d13868e2e39071f56c9ce3edf34b7c3433991b3ea89645cb1fe095e095"
+      },
+      "release_resets": {
+        "rows": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reward_intents": {
+        "rows": 6,
+        "sha256": "e23e4c0ebf5ad96346f79b0be389622fb0183337e512ad1ef0b3032c667b7d72"
+      },
+      "risk_admin_events": {
+        "rows": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "risk_events": {
+        "rows": 7,
+        "sha256": "2341adb1bda882f003762864bf44009360c8a71d3422d0ab8530b240973660b6"
+      },
+      "risk_reviews": {
+        "rows": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "round_checkpoints": {
+        "rows": 16,
+        "sha256": "3b9c88c3bdfb588a0fe346eac3e7a917074b8faa7187acc84cf43aeb53b2bbed"
+      },
+      "round_settlements": {
+        "rows": 102,
+        "sha256": "d3ba70ca48887bc91c9713704fa45b92874172bb48e7fdf46cfe76572d3f5f8a"
+      },
+      "sqlite_sequence": {
+        "rows": 2,
+        "sha256": "a6cd40fe4cc86597f9bd20c8682a0096351a2391cf854339af392fb78d5cb303"
+      },
+      "stamina_share_claims": {
+        "rows": 14,
+        "sha256": "40e3d5fb38f904b232b7be091b121325a9fa26c36363d2ed63a532faa3158979"
+      },
+      "tool_inventory_refunds": {
+        "rows": 64,
+        "sha256": "b483a8aec248bb882ddd8b1c0e04113997e5d4553bd683568374b1a3c6454167"
+      },
+      "tool_transactions": {
+        "rows": 43,
+        "sha256": "0344d5ad486b1505d6f7df625d4abe8790937f8cea4c61170e1984423bfda06e"
+      }
+    },
+    "schemaVersion": 12
+  },
+  "smokeVerified": true,
+  "productionAndGatewayContainersUnchanged": true
+}

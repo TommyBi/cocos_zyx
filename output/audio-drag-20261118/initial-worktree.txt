@@ -1,0 +1,176 @@
+ M README.md
+ D assets/bundles/game/fonts/zyx_happy_round_ui_v1.ttf
+ D assets/bundles/game/fonts/zyx_happy_round_ui_v1.ttf.meta
+ M assets/bundles/game/images/formal/bean_hud_mascot_v1.png
+ D assets/bundles/game/sound/sound_bomb_v1.wav
+ D assets/bundles/game/sound/sound_bomb_v1.wav.meta
+ M assets/script/GameMainScene.ts
+ M assets/script/dataModule/BoardEngine.ts
+ M assets/script/dataModule/RankChase.ts
+ M assets/script/dataModule/ZyxGameModule.ts
+ M assets/script/gm/GmPanel.ts
+ M assets/script/manager/AssetLoader.ts
+ M assets/script/manager/AudioManager.ts
+ M assets/script/manager/CloudService.ts
+ M assets/script/manager/SettingsPanel.ts
+ M assets/script/manager/SettlementSync.ts
+ M assets/script/manager/ShareReward.ts
+ M assets/script/manager/UIManager.ts
+ M assets/script/zyxGame/BeanCollectionHud.ts
+ M assets/script/zyxGame/GlyphFactory.ts
+ M assets/script/zyxGame/LeaderboardPanel.ts
+ M assets/script/zyxGame/MoodArt.ts
+ M assets/script/zyxGame/RescueBalloon.ts
+ M assets/script/zyxGame/ShopPanel.ts
+ M assets/script/zyxGame/ZyxGame.ts
+ M assets/script/zyxGame/ZyxGridCom.ts
+ M docs/CHANGELOG.md
+ M docs/agent-handoff-phase-a.md
+ M docs/art-ai-generation-brief.md
+ M docs/font-delivery-design-2026-11-13.md
+ M docs/formal-art-generation-spec-v1.md
+ M docs/formal-ui-implementation-v2.md
+ M docs/mood-bean-visual-spec-v1.md
+ M docs/shop.md
+ M docs/stamina.md
+ M output/current-wechat-release.json
+ M scripts/build-leaderboard-fonts.py
+ M scripts/check-cloud.js
+ M scripts/compress-wechat-images.py
+ M scripts/prepare-wechat-build.js
+ M scripts/preview/balloon-demo.js
+ M scripts/preview/server.cjs
+ M scripts/tests/audio-manager.test.js
+ M scripts/tests/balloon-rules.test.js
+ M scripts/tests/board-engine.test.js
+ M scripts/tests/cloud-service.test.js
+ M scripts/tests/grid-drag-scale.test.js
+ M scripts/tests/rank-chase.test.js
+ M scripts/tests/rescue-transition.test.js
+ M scripts/tests/reward-offer.test.js
+ M scripts/tests/zyx-game-module.test.js
+ M scripts/validate-assets.js
+ M server/README.md
+ M server/src/boardEngine.js
+ M server/src/databaseAudit.js
+ M server/src/gameEngine.js
+ M server/src/index.js
+ M server/src/replayBoardEngine.js
+ M server/src/schema.js
+ M server/test/api.test.js
+ M server/test/bean-leaderboard.test.js
+ M server/test/debug-routes-prod.test.js
+ M server/test/migration.test.js
+ M server/test/shop.test.js
+?? AGENTS.md
+?? assets/bundles/effects/images/formal/revive_card_v2.png
+?? assets/bundles/effects/images/formal/revive_card_v2.png.meta
+?? assets/bundles/effects/sound.meta
+?? assets/bundles/effects/sound/
+?? assets/bundles/game/fonts/zyx_happy_round_ui_bitmap_v1.fnt
+?? assets/bundles/game/fonts/zyx_happy_round_ui_bitmap_v1.fnt.meta
+?? assets/bundles/game/fonts/zyx_happy_round_ui_bitmap_v1.png
+?? assets/bundles/game/fonts/zyx_happy_round_ui_bitmap_v1.png.meta
+?? assets/bundles/home/images/start_wordmark_v2.png
+?? assets/bundles/home/images/start_wordmark_v2.png.meta
+?? assets/bundles/music/sound_gameover.mp3
+?? assets/script/dataModule/RoundReplay.ts
+?? assets/script/dataModule/RoundReplay.ts.meta
+?? assets/script/manager/RoundProgress.ts
+?? assets/script/manager/RoundProgress.ts.meta
+?? assets/script/manager/WeChatFriends.ts
+?? assets/script/manager/WeChatFriends.ts.meta
+?? assets/script/zyxGame/DangerGlow.ts
+?? assets/script/zyxGame/DangerGlow.ts.meta
+?? assets/script/zyxGame/HeartEffect.ts
+?? assets/script/zyxGame/HeartEffect.ts.meta
+?? assets/script/zyxGame/HeartMessage.ts
+?? assets/script/zyxGame/HeartMessage.ts.meta
+?? assets/script/zyxGame/HomeFriendRanking.ts
+?? assets/script/zyxGame/HomeFriendRanking.ts.meta
+?? docs/art-direction.md
+?? docs/art-sources/audio/
+?? docs/art-sources/fonts/leaderboard-v1/zyx_happy_round_ui_v1.ttf
+?? docs/gameplay-v12-2026-11-17.md
+?? docs/gameplay-v13-2026-11-17.md
+?? docs/optimization-2026-11-14.md
+?? docs/revive-card-2026-11-17.md
+?? docs/round-progress-2026-11-16.md
+?? docs/ui-concepts/bean-redesign-20261114/
+?? docs/ui-concepts/revival-card-20261116/
+?? docs/ui-concepts/start-wordmark-20261114/
+?? docs/wechat-friends-integration-2026-11-14.md
+?? output/active-release-work.json
+?? output/audio-drag-20261118/
+?? output/bean-icons-20261114/
+?? output/current-production-release.json
+?? output/gameplay-v12-20261117/
+?? output/heart-letter-20261114/
+?? output/heart-rescue-20261114/
+?? output/home-demo-layout-20261116/
+?? output/home-scroll-20261116/
+?? output/lightning-input-20261117/
+?? output/lightning-v13-20261117/
+?? output/modal-audio-20261117/
+?? output/modal-copy-20261117/
+?? output/multiline-20261114/
+?? output/navigation-polish-20261114-v05/
+?? output/profile-layout-20261116/
+?? output/releases/20261114-bean-icons-111748/
+?? output/releases/20261114-friends-review-172243/
+?? output/releases/20261114-production-api13-141130/
+?? output/releases/20261114-production-shop3-201041/
+?? output/releases/20261114-shop-three-181631/
+?? output/releases/20261117-gameplay-v12-132009/
+?? output/releases/20261117-revive-card-084636/
+?? output/releases/20261117-security-audit-173734/
+?? output/releases/20261118-production-api18-000901/
+?? output/releases/20261118-production-reward-fix-0052/
+?? output/rescue-scoring-20261114/
+?? output/revive-card-20261116/
+?? output/revive-expressions-20261117/
+?? output/round-progress-20261116/
+?? output/security-cr-20261117/
+?? output/settlement-polish-20261114/
+?? output/settlement-spacing-20261116/
+?? output/tool-visual-polish-20261117/
+?? output/typography-polish-20261114-v05/
+?? output/typography-polish-20261114/
+?? output/ux-fixes-20261118/
+?? output/wechat-friends-20261114/
+?? output/wechat-friends-canvas-owner-20261114/
+?? output/wechat-friends-centered-20261114/
+?? output/wechat-friends-runtime-fix-20261114/
+?? scripts/fixtures/board-v10-heart-replay.json
+?? scripts/fixtures/board-v9-balloon-replay.json
+?? scripts/fixtures/board-v9-clear-replay.json
+?? scripts/fixtures/rescue-security-helper.cjs
+?? scripts/fixtures/revival-card-helper.cjs
+?? scripts/preview/friends-demo.js
+?? scripts/preview/tool-visuals.js
+?? scripts/requirements-wechat-images.txt
+?? scripts/tests/heart-rescue.test.js
+?? scripts/tests/lightning-rules.test.js
+?? scripts/tests/rescue-scoring.test.js
+?? scripts/tests/round-progress.test.js
+?? scripts/tests/typography.test.js
+?? scripts/tests/wechat-friends.test.js
+?? scripts/verify-effect-input.cjs
+?? scripts/verify-gameplay-v12.cjs
+?? scripts/verify-lightning-v13.cjs
+?? scripts/verify-modal-audio.cjs
+?? scripts/verify-revive-card.cjs
+?? scripts/verify-round-progress.cjs
+?? scripts/verify-tool-visuals.cjs
+?? scripts/verify-ux-fixes.cjs
+?? scripts/verify-wechat-friends.cjs
+?? server/src/exportRisk.js
+?? server/src/replayService.js
+?? server/src/replayWorker.js
+?? server/src/rewardSecurity.js
+?? server/src/riskControl.js
+?? server/src/roundProgress.js
+?? server/test/revive-card.test.js
+?? server/test/round-progress.test.js
+?? server/test/security-audit.test.js
+?? wechat-open-data/

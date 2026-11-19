@@ -1,0 +1,3322 @@
+{
+  "results": [
+    {
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "version": {
+        "text": "v2026.11.14.01",
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "bounds": {
+          "x": 21.225352112676035,
+          "y": 18.625,
+          "width": 240,
+          "height": 28
+        }
+      },
+      "labels": [
+        {
+          "text": "10/10",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "Lv.1",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "快乐小狐狸",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "profileNickname"
+        },
+        {
+          "text": "经验 0/15",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "左右拖动心情块，让它落进合适的位置",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "开 始",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "体力 10/10 · 体力已满",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "startStaminaCountdown"
+        },
+        {
+          "text": "左右挪动 · 收集开心豆",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "v2026.11.14.01",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "clientVersion"
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "商城",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "设置",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        }
+      ]
+    },
+    {
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "version": {
+        "text": "v2026.11.14.01",
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "bounds": {
+          "x": -44.789099526066366,
+          "y": -124.53846153846155,
+          "width": 240,
+          "height": 28
+        }
+      },
+      "labels": [
+        {
+          "text": "10/10",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "Lv.1",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "快乐小狐狸",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "profileNickname"
+        },
+        {
+          "text": "经验 0/15",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "左右拖动心情块，让它落进合适的位置",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "开 始",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "体力 10/10 · 体力已满",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "startStaminaCountdown"
+        },
+        {
+          "text": "左右挪动 · 收集开心豆",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "v2026.11.14.01",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "clientVersion"
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "商城",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "设置",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        }
+      ]
+    },
+    {
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "version": {
+        "text": "v2026.11.14.01",
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "bounds": {
+          "x": -53,
+          "y": -147,
+          "width": 240,
+          "height": 28
+        }
+      },
+      "labels": [
+        {
+          "text": "10/10",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "Lv.1",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "快乐小狐狸",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "profileNickname"
+        },
+        {
+          "text": "经验 0/15",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "左右拖动心情块，让它落进合适的位置",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "开 始",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "体力 10/10 · 体力已满",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "startStaminaCountdown"
+        },
+        {
+          "text": "左右挪动 · 收集开心豆",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "0",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "v2026.11.14.01",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "clientVersion"
+        },
+        {
+          "text": "排行榜",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "商城",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "设置",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        },
+        {
+          "text": "GM",
+          "font": "zyx_happy_round_ui_bitmap_v1",
+          "bitmap": true,
+          "system": false,
+          "node": "label"
+        }
+      ]
+    },
+    {
+      "kind": "balloon",
+      "score": 3740,
+      "raw": 189,
+      "seed": 1,
+      "actions": [
+        {
+          "type": "rules",
+          "version": 9
+        },
+        {
+          "type": "move",
+          "id": 5,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 4,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 3,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 6,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 24,
+          "offset": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 14,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 31,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 49,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 50,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 64,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 44,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 72,
+          "offset": -2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 45,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 79,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 99,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 78,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 83,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 103,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 115,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 116,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 135,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 125,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 160,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 157,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 177,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 180,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 185,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 187,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 203,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 194,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 226,
+          "offset": -2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 220,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 241,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 236,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 236
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 253,
+          "offset": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 263
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 271,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 274,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 295,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 284,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 285
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 319,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 316,
+          "offset": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 283
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 335,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 341,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 330
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 332,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 352
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 372,
+          "offset": -2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 374
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 353,
+          "offset": -4
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "rescueOffer",
+          "elapsedMs": 1,
+          "kind": "balloon"
+        },
+        {
+          "type": "balloon"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        }
+      ],
+      "addedRows": 1,
+      "feedback": [
+        {
+          "gainedScore": 40,
+          "clearedRows": 0,
+          "clearedRowIndexes": [],
+          "removedPieceIds": [],
+          "collectedMoodTypes": []
+        }
+      ],
+      "movable": true,
+      "locked": false
+    },
+    {
+      "kind": "clear",
+      "score": 3765,
+      "raw": 186,
+      "seed": 1,
+      "actions": [
+        {
+          "type": "rules",
+          "version": 9
+        },
+        {
+          "type": "move",
+          "id": 5,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 4,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 3,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 6,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 24,
+          "offset": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 14,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 31,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 49,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 50,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 64,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 44,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 72,
+          "offset": -2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 45,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 79,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 99,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 78,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 83,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 103,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 115,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 116,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 135,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 125,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 160,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 157,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 177,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 180,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 185,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 187,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 203,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 194,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 226,
+          "offset": -2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 220,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 241,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 236,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 236
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 253,
+          "offset": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 263
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 271,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 274,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 295,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 284,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 285
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 319,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 316,
+          "offset": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 283
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 335,
+          "offset": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 341,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "append"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 330
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 332,
+          "offset": -1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 352
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 372,
+          "offset": -2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "bomb",
+          "id": 374
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "move",
+          "id": 353,
+          "offset": -4
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 1
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        },
+        {
+          "type": "rescueOffer",
+          "elapsedMs": 0,
+          "kind": "balloon"
+        },
+        {
+          "type": "rescueDismiss"
+        },
+        {
+          "type": "rescueOffer",
+          "elapsedMs": 60000,
+          "kind": "balloon"
+        },
+        {
+          "type": "rescueDismiss"
+        },
+        {
+          "type": "rescueOffer",
+          "elapsedMs": 120001,
+          "kind": "clear"
+        },
+        {
+          "type": "rescueClear"
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "rise",
+          "rows": 2
+        },
+        {
+          "type": "settle"
+        },
+        {
+          "type": "finish"
+        }
+      ],
+      "addedRows": 2,
+      "feedback": [
+        {
+          "gainedScore": 65,
+          "clearedRows": 0,
+          "clearedRowIndexes": [],
+          "removedPieceIds": [],
+          "collectedMoodTypes": []
+        }
+      ],
+      "movable": true,
+      "locked": false
+    },
+    {
+      "combo": {
+        "children": [
+          "comboArt",
+          "scoreArt"
+        ],
+        "labels": [],
+        "position": {
+          "x": 0,
+          "y": -1.057064030612196,
+          "z": 0
+        }
+      }
+    },
+    {
+      "direct": {
+        "homeLoaded": false,
+        "labels": [
+          {
+            "text": "本局得分",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "0",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "最高 0",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "收集进度",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "0%",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "集满100%再得1颗",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "本局 +0",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "拖动心情块左右移动，填满一行就能消除",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "下一排",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "3",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "3",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "‹",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "0",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "我",
+            "bitmap": true,
+            "system": false
+          },
+          {
+            "text": "正在加载消除资源…",
+            "bitmap": true,
+            "system": false
+          }
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,1 @@
+"undefined"!=typeof cc&&cc.macro&&(cc.macro.ENABLE_WEBGL_ANTIALIAS=!0);

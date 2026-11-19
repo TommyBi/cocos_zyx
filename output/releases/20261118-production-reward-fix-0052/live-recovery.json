@@ -1,0 +1,10 @@
+{
+  "productionImageVerified": true,
+  "completedRewardIntentsAfterSwitch": {
+    "rescue": 2,
+    "revive": 1
+  },
+  "progressInvalidEventsAfterSwitch": 0,
+  "latestConfirmedActionCount": 704,
+  "checkedAtUtc": "2026-11-17T17:01:42.252673+00:00"
+}

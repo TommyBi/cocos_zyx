@@ -1,0 +1,7 @@
+Use case: background-extraction
+Asset type: production transparent PNG game character sprite.
+Input image: edit target, user approved final character.
+Primary request: remove ONLY the warm ivory paper background outside the character and return true alpha transparency. Preserve the exact character identity, round warm yellow silhouette, two green leaves, watercolor/paper texture, brown contour and smiling face, exact proportions and colors. No ears, no arms or feet. Keep all character pixels and the inner pale yellow face opaque. Clean antialiased outline, no ivory rectangular background or surrounding halo. Center the complete character with about 4% transparent padding. Do not redraw or restyle the character. Two-dimensional hand painted anime, matte gentle coloring. Avoid 3D, clay, plastic, glossy highlights, jelly/candy, bevels. No text or watermark.
+
+Tool: built-in image_gen; transparent_background=true.
+Runtime sizing: sips -z 256 256.

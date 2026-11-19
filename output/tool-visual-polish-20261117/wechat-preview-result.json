@@ -1,0 +1,25 @@
+{
+  "clientVersion": "2026.11.17.02",
+  "generated": true,
+  "completedAt": "2026-11-17T06:00:10.669Z",
+  "subPackageInfo": [
+    {
+      "name": "/subpackages/effects/",
+      "size": 3024172
+    },
+    {
+      "name": "/subpackages/home/",
+      "size": 3920494
+    },
+    {
+      "name": "__APP__",
+      "size": 2855855
+    },
+    {
+      "name": "__FULL__",
+      "size": 9800521
+    }
+  ],
+  "uploadedDevelopmentVersion": false,
+  "submittedForReview": false
+}

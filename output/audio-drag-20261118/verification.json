@@ -1,0 +1,28 @@
+{
+  "clientVersion": "2026.11.18.02",
+  "rulesVersion": 14,
+  "apiVersion": 19,
+  "schemaVersion": 12,
+  "tests": {
+    "client": 233,
+    "server": 76
+  },
+  "checks": {
+    "typescript": true,
+    "assets": true,
+    "webBuild": true,
+    "wechatBuild": true,
+    "wechatGm": true,
+    "priorUxRegressionThreeViewports": true,
+    "previewOpened": true
+  },
+  "browserResults": "browser-results.json",
+  "productionChanged": false,
+  "wechatUploaded": false,
+  "voiceRecipe": "voice-recipe.json",
+  "previews": {
+    "normal": "http://127.0.0.1:7467/?localApi=1&home=1",
+    "effects": "http://127.0.0.1:7468/?localApi=1&autostart=1&toolVisuals=1"
+  },
+  "gameOverSha256": "f8336a671aaf0145fa4e528e52d42731fe946030fdd3daaf8e2d9c1a05ef0346"
+}

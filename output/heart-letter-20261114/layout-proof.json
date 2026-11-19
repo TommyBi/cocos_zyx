@@ -1,0 +1,39 @@
+{
+  "results": [
+    {
+      "size": {
+        "width": 320,
+        "height": 568
+      },
+      "hud": {
+        "caption": false,
+        "next": [
+          "next_0_2",
+          "next_0_3",
+          "next_0_4",
+          "next_0_7"
+        ],
+        "label": "下一排",
+        "pill": 218
+      }
+    },
+    {
+      "size": {
+        "width": 768,
+        "height": 1024
+      },
+      "hud": {
+        "caption": false,
+        "next": [
+          "next_0_2",
+          "next_0_3",
+          "next_0_4",
+          "next_0_7"
+        ],
+        "label": "下一排",
+        "pill": 218
+      }
+    }
+  ],
+  "errors": []
+}

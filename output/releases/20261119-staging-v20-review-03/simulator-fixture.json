@@ -1,0 +1,12 @@
+{
+  "deviceId": "simulator_v20_268431c8-ad55-4fbc-bd72-462a47d97805",
+  "roundId": "round_sim_1795071291405",
+  "version": 20,
+  "score": 1440,
+  "lightning": {
+    "id": 69,
+    "row": 8,
+    "col": 2
+  },
+  "clearedRows": 12
+}

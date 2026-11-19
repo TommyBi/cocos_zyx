@@ -1,0 +1,5 @@
+验收目标：https://api.tcjstory.cn/v1/cocos-zyx
+/games/settlements: 对局时长异常
+
+400 !== 200
+

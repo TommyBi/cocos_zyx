@@ -1,0 +1,26 @@
+{
+  "appid": "wxdc39c78bfd045896",
+  "version": "2026.11.14.13",
+  "desc": "商城统一3豆兑换1件道具或1点体力；新版开心豆图标、红绿价格、大按钮与兑换成功弹窗，保留微信好友积分榜。",
+  "uploaded": true,
+  "submittedForReview": false,
+  "completedAt": "2026-11-14T10:47:01.775Z",
+  "subPackageInfo": [
+    {
+      "name": "/subpackages/effects/",
+      "size": 1034473
+    },
+    {
+      "name": "/subpackages/home/",
+      "size": 3920494
+    },
+    {
+      "name": "__APP__",
+      "size": 2841587
+    },
+    {
+      "name": "__FULL__",
+      "size": 7796554
+    }
+  ]
+}

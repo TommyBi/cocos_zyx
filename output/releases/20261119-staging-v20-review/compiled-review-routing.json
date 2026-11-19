@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "runs": [
+    {
+      "mode": "develop",
+      "url": "https://staging-api.tcjstory.cn/v1/cocos-zyx"
+    },
+    {
+      "mode": "trial",
+      "url": "https://staging-api.tcjstory.cn/v1/cocos-zyx"
+    },
+    {
+      "mode": "release",
+      "url": "https://staging-api.tcjstory.cn/v1/cocos-zyx"
+    },
+    {
+      "mode": "throws",
+      "url": "https://staging-api.tcjstory.cn/v1/cocos-zyx"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "clientVersion": "2026.11.17.03",
+  "rulesVersion": 13,
+  "apiVersion": 17,
+  "schemaVersion": 11,
+  "clientTests": 219,
+  "serverTests": 69,
+  "webBuild": "passed",
+  "wechatBuild": "passed",
+  "wechatGmIsolation": "passed",
+  "mainPackageBytes": 2881246,
+  "mainPackageBudgetBytes": 2883584,
+  "viewports": [
+    {
+      "width": 390,
+      "height": 844,
+      "coldResume": true,
+      "offlineColdResume": true,
+      "hammerShareClaims": 3,
+      "videoCancellationDoesNotConsume": true,
+      "heldWandRestored": true,
+      "lightningBombAnimation": true,
+      "randomFiveTargets": true,
+      "oneSecondBeamsAndIonRings": true,
+      "videoAndCardLeadingIcons": true,
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "coldResume": true,
+      "offlineColdResume": true,
+      "hammerShareClaims": 3,
+      "videoCancellationDoesNotConsume": true,
+      "heldWandRestored": true,
+      "lightningBombAnimation": true,
+      "randomFiveTargets": true,
+      "oneSecondBeamsAndIonRings": true,
+      "videoAndCardLeadingIcons": true,
+      "pageErrors": []
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "coldResume": true,
+      "offlineColdResume": true,
+      "hammerShareClaims": 3,
+      "videoCancellationDoesNotConsume": true,
+      "heldWandRestored": true,
+      "lightningBombAnimation": true,
+      "randomFiveTargets": true,
+      "oneSecondBeamsAndIonRings": true,
+      "videoAndCardLeadingIcons": true,
+      "pageErrors": []
+    }
+  ],
+  "normalPreview": "http://127.0.0.1:7465/?localApi=1&home=1",
+  "effectPreview": "http://127.0.0.1:7466/?localApi=1&autostart=1&toolVisuals=1",
+  "deployment": "local only; staging API16 and production API13 unchanged",
+  "trueWechatAdValidation": "pending",
+  "fingerprints": {
+    "assets/script/dataModule/BoardEngine.ts": "7a65ffa000697b759399eddff72b5aff0c70c07ad7f63e33c921ba9ec31db149",
+    "server/src/boardEngine.js": "622d89bcdf27c6d3c8d18922df0f33aa075863053ef97e715350154e7eb1285b",
+    "assets/script/zyxGame/ZyxGame.ts": "b9934a2e65b2e5252c34d811d8bdd3dfa84aaf8316424f27d38e94bd16d955a7"
+  }
+}

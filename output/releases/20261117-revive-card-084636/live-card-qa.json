@@ -1,0 +1,18 @@
+{
+  "prices": {
+    "hammer": 3,
+    "magicWand": 3,
+    "stamina": 3,
+    "reviveCard": 25
+  },
+  "forgedPricesIgnored": true,
+  "duplicateExchangeIdempotent": true,
+  "cardConsumerConcurrencyIdempotent": true,
+  "atomicCompleteCheckpoint": true,
+  "coldResumeFromPreCardPrefix": true,
+  "oldSessionRejected": true,
+  "thirdFailureFinalSettlementAccepted": true,
+  "duplicateSettlementIdempotent": true,
+  "isolatedTestAccountReset": true,
+  "productionMutated": false
+}

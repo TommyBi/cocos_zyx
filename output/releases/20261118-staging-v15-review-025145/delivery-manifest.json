@@ -1,0 +1,150 @@
+{
+  "artifact-final.json": {
+    "bytes": 29944,
+    "sha256": "9f021f1b07ab07e4416a4f411570bfde031c79066b60487e963581d9937f39ab"
+  },
+  "audio-gain.json": {
+    "bytes": 1460,
+    "sha256": "2cf957267dcf77e4a2d66885027c24b8076af17982fc2a3f1f1437143c4972c8"
+  },
+  "audio-measured.json": {
+    "bytes": 658,
+    "sha256": "7f2532f66f490d83e43f236cf6a09421f1d65bac4c9f33fc45b1a8d240e3b16e"
+  },
+  "backend-candidate.tar.gz": {
+    "bytes": 102524,
+    "sha256": "fb7497def2d805168bb449c4737c1df01dffe097c34777297d129283cf578c5a"
+  },
+  "baseline.json": {
+    "bytes": 16613,
+    "sha256": "88c016a728dcc0a3a5602bf2b24fef0d1446e389d4ce0156ba39a0abd7949aa1"
+  },
+  "browser-verification.log": {
+    "bytes": 47,
+    "sha256": "d2dea56fe10a26cc19d3371d22345137e241d4b43df7bc8da74d63b6f457be92"
+  },
+  "build-result.json": {
+    "bytes": 443,
+    "sha256": "4d7c423d014ce897634baa25bd335288be4f3c22bf215e02ec3665941c17e1de"
+  },
+  "build-web.log": {
+    "bytes": 10115,
+    "sha256": "84d70d95219ea01ee736e3521db5a20090aa1f1392a977b23a0dc5ead2a06ff0"
+  },
+  "build-wechat.log": {
+    "bytes": 10837,
+    "sha256": "b6a344ebd167d76a5906dd93471c19c93c44e06e7fa59cf30ca76ad74ed5db69"
+  },
+  "cdn-verification.json": {
+    "bytes": 2517,
+    "sha256": "38f0e8ebfd7ac5dac937cf23a8d680d95210df57a86daa3895b91549ed03a8e9"
+  },
+  "data-after-switch.json": {
+    "bytes": 1633,
+    "sha256": "468a4490f1cb3552467a03a22e9d2333af8e37b1a4c229a75ffe4111722593d9"
+  },
+  "data-before.json": {
+    "bytes": 1633,
+    "sha256": "468a4490f1cb3552467a03a22e9d2333af8e37b1a4c229a75ffe4111722593d9"
+  },
+  "deployment-result.json": {
+    "bytes": 2754,
+    "sha256": "98e3cda235e936a8293aff8a16bc735933a0ecc440ba765009fe398ceac9553b"
+  },
+  "final-result.json": {
+    "bytes": 2328,
+    "sha256": "c95461cdccb4acd45b4a20ca1971f0e01bd18c5ed5c63e57f289da1c8231bcec"
+  },
+  "migration-rehearsal.json": {
+    "bytes": 1826,
+    "sha256": "92b494baa4df8b3af288467b89d3436494de2a817a7419db49fe0428c238a977"
+  },
+  "post-verification-audit.json": {
+    "bytes": 4095,
+    "sha256": "32eafeedb66334a5d2307e40e83dfb1f8347d4d20721109eb3ce361848699428"
+  },
+  "production-promotion-plan.json": {
+    "bytes": 1319,
+    "sha256": "0c4b086e4147dfddee45b9c37aa006f346a978ed7f5cb0f9be5b1dabfa7d1942"
+  },
+  "production-runtime-candidate.diff": {
+    "bytes": 13746,
+    "sha256": "db1534b170079abf61ce828d9a0c3301c77443914bfca938a185b17eeedfe682"
+  },
+  "release-info.json": {
+    "bytes": 4738,
+    "sha256": "3e3758dfc0cc4aa0bff0eb01c485093e2331d811d42eb4687e28644a0cfded85"
+  },
+  "release-policy-correction.json": {
+    "bytes": 541,
+    "sha256": "6db543d1528e1d5f8ac52d33fce1742d8343932af8be1fbbc0281a90bf9013e4"
+  },
+  "runtime-files.json": {
+    "bytes": 2493,
+    "sha256": "40cd776e5efc6b95f6f34db078b10cd3993eece7eee2599eafe3c85b1ce85c23"
+  },
+  "runtime-server-tests.log": {
+    "bytes": 17965,
+    "sha256": "e7679cc38314df2d0629f92156a262e0063b50a63f1745ae848c994a907d54e6"
+  },
+  "server-manifest.json": {
+    "bytes": 7577,
+    "sha256": "9d5b958b9e41c4ae5e2d634fc7d864b26e209b39d013abef7fe0c491a9185293"
+  },
+  "source-final.json": {
+    "bytes": 56109,
+    "sha256": "e7d67d4a61b20d6e08f2fccec7b5959494bf195ee6a0b479eb6dcaf98b848059"
+  },
+  "source-reconciliation.json": {
+    "bytes": 3694,
+    "sha256": "41eec3650a325e7ea6a62e499ae6e32c2b7f4071c12b99af76dd768d7a7622a6"
+  },
+  "source-reviewed.tar.gz": {
+    "bytes": 10159217,
+    "sha256": "17ff262976b1e407956526fa673159ce5f6569f3b00b0e1ed9290f7f97bc6b06"
+  },
+  "staging-runtime-candidate.diff": {
+    "bytes": 14408,
+    "sha256": "3b310ae7ec52dab97ed5ad19ab240ffbaa65d8b23b76a77a4a8a396e65d404b9"
+  },
+  "staging-smoke-result.json": {
+    "bytes": 735,
+    "sha256": "a976cee9d3778e7758fb7132cc46645de42cf957b28d4366511340fbe575bbcd"
+  },
+  "staging-smoke.log": {
+    "bytes": 555,
+    "sha256": "e78a7f4920f8162cf5ea6d04aacc7d91190ca49ee8ae52c4cbb7dab0c1c16618"
+  },
+  "tests.log": {
+    "bytes": 31914,
+    "sha256": "c3d28eb756c2a7dd7a78ebd7482d220bc7773ee4806070c3e9fa4c6deaa2dd2a"
+  },
+  "typecheck.log": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "wechat-preview-qr.jpg": {
+    "bytes": 46505,
+    "sha256": "80ad503e5f47f3dad8070837927aa6409e015ca7bfc3c1cd65abcc8602b435a3"
+  },
+  "wechat-preview-result.json": {
+    "bytes": 553,
+    "sha256": "33598f1a0a21e586e45f8e44e42193d6669c9adaa29145f575faf5a3521de358"
+  },
+  "wechat-upload-cos-attempt.json": {
+    "bytes": 193,
+    "sha256": "a4d650b1baf09f49fca1ae82228921c0ff7bf9144249be8cf08bc5209dc3807d"
+  },
+  "wechat-upload-result.json": {
+    "bytes": 440,
+    "sha256": "b33937289a23612071af716c51f2319d1e48a831fb4bb0d44db7d1a1a57107a1"
+  },
+  "wechatgame.zip": {
+    "bytes": 7383951,
+    "sha256": "2eaa71fd215506854ac214ac0d9cab57ef3fea32ab955a3c4fda8096d61d601f"
+  },
+  "发布说明.md": {
+    "bytes": 5851,
+    "sha256": "d212fc89ee90690c8ad39f1344ce6f3bd2c77a9e84c3a0ea602a17c55d2cf56f"
+  }
+}

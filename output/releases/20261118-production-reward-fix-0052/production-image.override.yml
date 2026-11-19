@@ -1,0 +1,8 @@
+services:
+  cocos_zyx_api:
+    image: cocos-zyx-production:20261118-production-reward-fix-0052
+    build:
+      context: /opt/tcjstory/apps/cocos-zyx/releases/20261118-production-reward-fix-0052/server
+    environment:
+      NODE_ENV: production
+      ENABLE_GM_ROUTES: "0"

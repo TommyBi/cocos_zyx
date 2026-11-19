@@ -1,0 +1,44 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "coldResume": true,
+    "offlineColdResume": true,
+    "hammerShareClaims": 3,
+    "videoCancellationDoesNotConsume": true,
+    "heldWandRestored": true,
+    "lightningBombAnimation": true,
+    "randomFiveTargets": true,
+    "oneSecondBeamsAndIonRings": true,
+    "videoAndCardLeadingIcons": true,
+    "pageErrors": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "coldResume": true,
+    "offlineColdResume": true,
+    "hammerShareClaims": 3,
+    "videoCancellationDoesNotConsume": true,
+    "heldWandRestored": true,
+    "lightningBombAnimation": true,
+    "randomFiveTargets": true,
+    "oneSecondBeamsAndIonRings": true,
+    "videoAndCardLeadingIcons": true,
+    "pageErrors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "coldResume": true,
+    "offlineColdResume": true,
+    "hammerShareClaims": 3,
+    "videoCancellationDoesNotConsume": true,
+    "heldWandRestored": true,
+    "lightningBombAnimation": true,
+    "randomFiveTargets": true,
+    "oneSecondBeamsAndIonRings": true,
+    "videoAndCardLeadingIcons": true,
+    "pageErrors": []
+  }
+]

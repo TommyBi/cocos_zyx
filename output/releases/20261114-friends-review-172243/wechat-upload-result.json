@@ -1,0 +1,28 @@
+{
+  "appid": "wxdc39c78bfd045896",
+  "version": "2026.11.14.12",
+  "desc": "首页好友积分榜：微信头像昵称、单局最高分及邀请好友；修复好友榜显示兼容，保留暖心救场与游戏进度。",
+  "uploaded": true,
+  "submittedForReview": false,
+  "useCOS": false,
+  "completedAt": "2026-11-14T09:36:02.082Z",
+  "subPackageInfo": [
+    {
+      "name": "/subpackages/effects/",
+      "size": 1034473
+    },
+    {
+      "name": "/subpackages/home/",
+      "size": 3961330
+    },
+    {
+      "name": "__APP__",
+      "size": 2862787
+    },
+    {
+      "name": "__FULL__",
+      "size": 7858590
+    }
+  ],
+  "pluginInfo": []
+}

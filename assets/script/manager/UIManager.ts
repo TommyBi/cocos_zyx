@@ -1,6 +1,6 @@
 import { gameSettings } from './GameSettings';
 import { getWxApi } from './PlatformAdapter';
-import { ASSET_PATHS, getTTFFont, isFeatureReady, isTypographyReady } from './AssetLoader';
+import { ASSET_PATHS, getBitmapFont, getTTFFont, isFeatureReady, isTypographyReady } from './AssetLoader';
 
 export type ModalAction = {
     text: string;
@@ -17,6 +17,13 @@ export type ModalDismissOptions = {
     /** 仅遮罩、空白和关闭钮触发；操作按钮继续使用各自的 onClick。 */
     onDismiss?: () => void;
     closeOnBlank?: boolean;
+    buttonHeight?: number;
+    buttonGap?: number;
+    buttonFontSize?: number;
+    messageFontSize?: number;
+    messageLineHeight?: number;
+    messageHeight?: number;
+    messageButtonGap?: number;
 };
 
 export type SafeAreaMetrics = {
@@ -59,21 +66,32 @@ export default class UIManager {
     private hapticRoot: cc.Node = null;
     private hapticTouchStart: cc.Vec2 = null;
     private hapticTouchMoved: boolean = false;
+    private typographyLineHeights = new WeakMap<cc.Label, { logical: number; applied: number }>();
 
     /** 所有文本使用正常字重圆体；标题、按钮、数字和正文均不额外加粗。 */
-    public applyTypography(label: cc.Label, display: boolean = false): void {
+    public applyTypography(label: cc.Label): void {
         if (!label || !isTypographyReady()) return;
-        label.font = !display && isFeatureReady('home')
+        const previous = this.typographyLineHeights.get(label);
+        const lineHeight = previous && label.lineHeight === previous.applied ? previous.logical : label.lineHeight;
+        const bitmap = getBitmapFont('game', ASSET_PATHS.game.uiBitmapFont);
+        const glyphs = (bitmap as any)?._fntConfig?.fontDefDictionary;
+        const covered = !!glyphs && Array.from(label.string).every(char => /\s/.test(char) || !!glyphs[char.codePointAt(0)]);
+        label.font = covered ? bitmap : isFeatureReady('home')
             ? getTTFFont('home', ASSET_PATHS.home.leaderboardBodyFont)
-            : getTTFFont('game', ASSET_PATHS.game.uiFont);
-        label.useSystemFont = false;
+            : null;
+        label.useSystemFont = !label.font;
         label.enableBold = false;
         label.cacheMode = cc.Label.CacheMode.NONE;
+        // Cocos 2.4 的 BMFont + SHRINK 会按「实际字号 / 字库字号」缩放行距。
+        // 业务行距使用设计坐标，先换算为字库坐标；重复应用或切回 TTF 时保留原值。
+        label.lineHeight = label.font instanceof cc.BitmapFont && label.overflow === cc.Label.Overflow.SHRINK
+            && label.fontSize > 0 ? lineHeight * (label.font as any).fontSize / label.fontSize : lineHeight;
+        this.typographyLineHeights.set(label, { logical: lineHeight, applied: label.lineHeight });
     }
 
     public refreshTypography(root: cc.Node): void {
         root.getComponentsInChildren(cc.Label).forEach((label: cc.Label) => {
-            this.applyTypography(label, label.fontSize >= 30 || !!label.node.parent.getComponent(cc.Button));
+            this.applyTypography(label);
         });
     }
 
@@ -262,6 +280,11 @@ export default class UIManager {
         width: number = 300,
         height: number = 54,
     ): cc.Label {
+        // 小号正文统一提高可读性；同步扩展行框，避免被 SHRINK 再压回小字。
+        if (fontSize <= 30) {
+            fontSize = Math.max(24, Math.round(fontSize * 1.22));
+            height = Math.max(fontSize + 8, Math.round(height * 1.22));
+        }
         const node = new cc.Node('label');
         node.width = width;
         node.height = height;
@@ -284,10 +307,11 @@ export default class UIManager {
         label.fontFamily = 'PingFang SC';
         label.cacheMode = cc.Label.CacheMode.CHAR;
         (label as any).isSystemFontUsed = true;
-        this.applyTypography(label, !!buttonAncestor || fontSize >= 30 || /^[\d\s.,%+\-/]+$/.test(text));
+        this.applyTypography(label);
         // cc.Label 在 addComponent/string 初始化时会重置节点尺寸，尺寸必须最后写入。
         node.width = width;
         node.height = height;
+        (label as any)._forceUpdateRenderData();
         return label;
     }
 
@@ -306,7 +330,7 @@ export default class UIManager {
         button.addComponent(cc.Button);
         this.drawButtonSurface(button, width, height, color, Math.min(20, height * 0.26));
         const label = this.createLabel(button, text, 0, 2, fontSize, BUTTON_TEXT_COLOR, width - 24, height - 10);
-        this.applyTypography(label, true);
+        this.applyTypography(label);
         label.enableWrapText = false;
 
         button.on(cc.Node.EventType.TOUCH_START, () => {
@@ -365,7 +389,7 @@ export default class UIManager {
         graphics.fill();
     }
 
-    public showToast(message: string): void {
+    public showToast(message: string, duration: number = 1.1): void {
         if (!this.scene) return;
         if (this.toast && this.toast.isValid) this.toast.destroy();
 
@@ -377,7 +401,7 @@ export default class UIManager {
         toast.y -= 16;
         cc.tween(toast)
             .to(0.18, { opacity: 255, y: toast.y + 16 })
-            .delay(1.1)
+            .delay(duration)
             .to(0.18, { opacity: 0, y: toast.y + 28 })
             .call(() => toast.destroy())
             .start();
@@ -421,7 +445,7 @@ export default class UIManager {
             new cc.Color(255, 252, 244), 255, 28, 0, panelY);
         this.createRect(panel, 'sheetHandle', 64, 6, new cc.Color(215, 211, 204), 255, 3, 0, 121);
         const title = this.createLabel(panel, '微信授权', 0, 72, 30, new cc.Color(45, 42, 39), 440, 42);
-        this.applyTypography(title, true);
+        this.applyTypography(title);
         this.createLabel(panel, '使用你的微信昵称和头像\n用于游戏资料与排行榜展示', 0, 16, 22,
             new cc.Color(112, 105, 98), panelWidth - 80, 66);
         this.createButton(panel, '微信一键授权', 0, -82, Math.min(480, panelWidth - 80), 74,
@@ -481,7 +505,10 @@ export default class UIManager {
         mask.opacity = 0;
         cc.tween(mask).to(0.14, { opacity: 190 }).start();
         const actionRows = actions.length === 0 ? 0 : (horizontalActions ? 1 : actions.length);
-        const panelHeight = 300 + actionRows * 92 + contentHeight;
+        const buttonHeight = dismissOptions.buttonHeight || 72;
+        const buttonFontSize = dismissOptions.buttonFontSize || 24;
+        const actionPitch = buttonHeight + 20;
+        const panelHeight = 300 + actionRows * actionPitch + contentHeight;
         const panel = this.createRect(root, 'panel', panelWidth, panelHeight, new cc.Color(211, 164, 98), 255, 26, 0, 0);
         if (dismissible) {
             const dismiss = (): void => {
@@ -500,9 +527,18 @@ export default class UIManager {
         }
         this.createRect(panel, 'panelInner', panelWidth - 20, panelHeight - 20, new cc.Color(255, 244, 220), 255, 22);
         this.createModalTitlePlate(panel, title, panelHeight);
-        this.createLabel(panel, message, 0, panelHeight / 2 - 150, 24, new cc.Color(124, 92, 76), panelWidth - 90, 82);
+        const body = this.createLabel(panel, message, 0, panelHeight / 2 - 150,
+            dismissOptions.messageFontSize || 24, new cc.Color(124, 92, 76), panelWidth - 90, dismissOptions.messageHeight || 82);
+        if (dismissOptions.messageLineHeight) {
+            body.lineHeight = dismissOptions.messageLineHeight;
+            this.applyTypography(body);
+        }
 
-        let startY = panelHeight / 2 - 245;
+        let startY = panelHeight / 2 - 245 - (buttonHeight - 72) / 2;
+        if (dismissOptions.messageHeight) {
+            body.enableWrapText = false;
+            startY = Math.min(startY, body.node.y - body.node.height / 2 - buttonHeight / 2 - (dismissOptions.messageButtonGap || 24));
+        }
         if (decoration && contentHeight > 0) {
             const contentCenterY = panelHeight / 2 - 235 - contentHeight / 2;
             decoration(panel, contentCenterY);
@@ -510,7 +546,7 @@ export default class UIManager {
         }
         if (horizontalActions && actions.length > 0) {
             const buttonWidth = actions.length === 2 ? 214 : Math.min(420, Math.floor(480 / actions.length) - 12);
-            const gap = 18;
+            const gap = dismissOptions.buttonGap || 18;
             const totalWidth = actions.length * buttonWidth + (actions.length - 1) * gap;
             const left = -totalWidth / 2 + buttonWidth / 2;
             actions.forEach((action, index) => {
@@ -521,25 +557,25 @@ export default class UIManager {
                     left + index * (buttonWidth + gap),
                     startY,
                     buttonWidth,
-                    72,
+                    buttonHeight,
                     action.color,
                     () => {
                         cc.Tween.stopAllByTarget(button);
                         if (action.closeOnClick !== false) this.closeModal();
                         action.onClick();
                     },
-                    24,
+                    buttonFontSize,
                 );
                 if (action.icon) action.icon(button);
             });
         } else {
             actions.forEach((action, index) => {
                 let button: cc.Node = null;
-                button = this.createButton(panel, action.text, 0, startY - index * 92, 420, 72, action.color, () => {
+                button = this.createButton(panel, action.text, 0, startY - index * actionPitch, 420, buttonHeight, action.color, () => {
                     cc.Tween.stopAllByTarget(button);
                     if (action.closeOnClick !== false) this.closeModal();
                     action.onClick();
-                }, 24);
+                }, buttonFontSize);
                 if (action.icon) action.icon(button);
             });
         }

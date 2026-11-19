@@ -1,0 +1,257 @@
+
+> build:wechat
+> node scripts/clean-build.js wechatgame && npm run validate:assets && node scripts/build-wechat.js
+
+Cleaned generated build: build/wechatgame
+
+> validate:assets
+> node scripts/validate-assets.js
+
+Source asset architecture OK: game in main package, home subpackage, music on CDN; max texture 2048.
+(node:35069) Warning: Accessing non-existent property 'padLevels' of module exports inside circular dependency
+(Use `CocosCreator --trace-warnings ...` to show where the warning was created)
+===== Initializing Editor =====
+arguments: 
+  --path
+  .
+  --build
+  platform=wechatgame;debug=false;md5Cache=true;appid=wxdc39c78bfd045896
+  --nologin
+  --force
+
+[35069] protocol editor-framework registered
+[35069] protocol app registered
+[35069] protocol theme registered
+[35069] protocol packages registered
+[35069] Load ~/.CocosCreator/settings.json
+[35069] protocol uuid registerred
+[35069] protocol db registerred
+[35069] protocol thumbnail registerred
+[35069] Initializing Asset Database
+[35069] checking language setting...
+[35069] Language: zh
+[35069] protocol unpack registerred
+[35069] protocol disable-commonjs registerred
+Load profile failed: local://settings.json
+Load profile failed: local://settings.json
+Load profile failed: local://settings.json
+[35069] failed to connect login server due to request timeout
+[35069] Check project /Users/liuyang/Documents/private/cocos_zyx
+[35069] Initializing project /Users/liuyang/Documents/private/cocos_zyx
+[35069] adapters loaded
+[35069] asset-db-debugger loaded
+[35069] fb-audience-network loaded
+[35069] fb-live-stream loaded
+[35069] google-play-instant loaded
+[35069] jsb-adapter loaded
+[35069] package-manager loaded
+[35069] runtime-adapters loaded
+[35069] runtime-dev-tools loaded
+[35069] ui-kit-preview-extra loaded
+[35069] ui-kit-preview loaded
+[35069] alipay-minigame loaded
+[35069] assets loaded
+[35069] baidugame-opendata loaded
+[35069] baidugame loaded
+[35069] builder loaded
+[35069] bytedance-opendata loaded
+[35069] bytedance loaded
+[35069] channel-upload-tools loaded
+[35069] cloud-function loaded
+Cocos Service Version 0.6.9
+[35069] cocos-services loaded
+[35069] console loaded
+[35069] curve-editor loaded
+[35069] fb-instant-games loaded
+[35069] game-window loaded
+[35069] google-instant-games loaded
+[35069] hierarchy loaded
+[35069] huawei-agc loaded
+[35069] huawei-runtime loaded
+[35069] inspector loaded
+[35069] cpk-publish loaded
+[35069] keystore loaded
+[35069] link-sure-runtime loaded
+[35069] node-library loaded
+[35069] open-recent-items loaded
+[35069] openharmony loaded
+[35069] oppo-runtime loaded
+[35069] package-asset loaded
+[35069] preferences loaded
+[35069] project-importer loaded
+[35069] project-settings loaded
+[35069] qtt-runtime loaded
+[35069] scene loaded
+[35069] simulator-debugger loaded
+[35069] sprite-editor loaded
+[35069] store loaded
+[35069] taobao-creativeapp loaded
+[35069] taobao-minigame loaded
+[35069] timeline loaded
+[35069] vivo-runtime loaded
+[35069] wechatgame-opendata loaded
+[35069] wechatgame loaded
+[35069] xiaomi-runtime loaded
+[35069] im-plugin loaded
+(node:35069) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+[35069] Initializing Cocos2d
+[35069] Initializing engine extends
+build jsb-adapter: 1.367ms
+Cannot resolve module [./gm/GmBubble] when parse [/Users/liuyang/Documents/private/cocos_zyx/temp/quick-scripts/src/assets/script/GameMainScene.js]
+Parse [/Users/liuyang/Documents/private/cocos_zyx/temp/quick-scripts/src/__qc_index__.js]: walk 35  files.
+Parse [/Users/liuyang/Documents/private/cocos_zyx/temp/quick-scripts/src/__qc_index__.js]: 369.927ms
+Generate QUICK_COMPILE_BUNDLE: 5.479ms
+QuickCompiler compileFinished: 6.219ms
+QuickCompiler rebuild finished: 383.463ms
+Init project script: 525.665ms
+Start to build platform [mini-game]
+[35069] Start building with options : {
+  "title": "烦恼排排消",
+  "packageName": "org.cocos2d.demo",
+  "startScene": "6864309e-a883-4fbb-af0b-296d2279eef3",
+  "excludeScenes": [],
+  "orientation": {
+    "landscapeRight": false,
+    "landscapeLeft": false,
+    "portrait": true,
+    "upsideDown": true
+  },
+  "webOrientation": "auto",
+  "inlineSpriteFrames": false,
+  "inlineSpriteFrames_native": true,
+  "mainCompressionType": "default",
+  "mainIsRemote": false,
+  "optimizeHotUpdate": false,
+  "md5Cache": true,
+  "encryptJs": true,
+  "xxteaKey": "18a3da4d-dc1b-32",
+  "zipCompressJs": true,
+  "fb-instant-games": {},
+  "android": {
+    "packageName": "org.ball.com",
+    "REMOTE_SERVER_ROOT": ""
+  },
+  "ios": {
+    "packageName": "org.ball.com",
+    "REMOTE_SERVER_ROOT": "",
+    "ios_enable_jit": true
+  },
+  "mac": {
+    "packageName": "org.cocos2d.chip",
+    "REMOTE_SERVER_ROOT": "",
+    "width": 750,
+    "height": 1334
+  },
+  "win32": {
+    "REMOTE_SERVER_ROOT": "",
+    "width": 1280,
+    "height": 720
+  },
+  "android-instant": {
+    "packageName": "org.cocos2d.demo",
+    "REMOTE_SERVER_ROOT": "",
+    "pathPattern": "",
+    "scheme": "https",
+    "host": "",
+    "skipRecord": false,
+    "recordPath": ""
+  },
+  "appBundle": false,
+  "agreements": {},
+  "includeAnySDK": false,
+  "openharmony": {
+    "packageName": "com.cocos.openharmony",
+    "REMOTE_SERVER_ROOT": ""
+  },
+  "platform": "mini-game",
+  "actualPlatform": "wechatgame",
+  "template": "default",
+  "buildPath": "/Users/liuyang/Documents/private/cocos_zyx/build",
+  "debug": false,
+  "sourceMaps": false,
+  "embedWebDebugger": false,
+  "previewWidth": "1280",
+  "previewHeight": "720",
+  "useDebugKeystore": true,
+  "apiLevel": "",
+  "appABIs": [
+    "armeabi-v7a",
+    "arm64-v8a"
+  ],
+  "vsVersion": "auto",
+  "buildScriptsOnly": false,
+  "dest": "/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame",
+  "excludedModules": [
+    "DragonBones",
+    "MotionStreak",
+    "Native Socket",
+    "PageView",
+    "PageViewIndicator",
+    "ParticleSystem",
+    "TiledMap",
+    "3D",
+    "3D Primitive",
+    "3D Physics/cannon.js",
+    "3D Physics/Builtin",
+    "3D Particle"
+  ],
+  "autoCompile": false,
+  "appid": "wxdc39c78bfd045896",
+  "scenes": [
+    "6864309e-a883-4fbb-af0b-296d2279eef3"
+  ],
+  "project": "/Users/liuyang/Documents/private/cocos_zyx",
+  "projectName": "烦恼排排消",
+  "debugBuildWorker": false
+}
+Builder: do custom process [build-start]
+[35069] Building /Users/liuyang/Documents/private/cocos_zyx
+[35069] Destination /Users/liuyang/Documents/private/cocos_zyx/build/wechatgame
+[35069] Start spawn build-worker
+(node:35989) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+(Use `CocosCreator Helper (Renderer) --trace-deprecation ...` to show where the warning was created)
+[35069] Finish spawn build-worker
+[35069] Delete /Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/**/*,!/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/game.json,!/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/project.config.json
+[35069] Compiling /Users/liuyang/Documents/private/cocos_zyx
+(node:36010) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+(Use `CocosCreator Helper (Renderer) --trace-deprecation ...` to show where the warning was created)
+[35069] Start init build-worker
+[35069] Finish init build-worker
+[35069] Start build-assets in worker
+[35069] 
+--- build-asset: {"root":"db://internal/resources","name":"internal","dest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/assets/internal","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/assets/internal","priority":11,"scenes":[],"compressionType":"merge_all_json"}
+
+[35069] 
+--- build-asset: {"root":"db://assets/bundles/game","name":"game","dest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/assets/game","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/assets/game","priority":7,"scenes":[],"compressionType":"none","optimizeHotUpdate":false,"inlineSpriteFrames":false,"isRemote":false}
+
+[35069] 
+--- build-asset: {"root":null,"priority":7,"dest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/assets/main","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/assets/main","name":"main","scenes":["6864309e-a883-4fbb-af0b-296d2279eef3"],"compressionType":"default","optimizeHotUpdate":false,"inlineSpriteFrames":false,"isRemote":false}
+
+[35069] 
+--- build-asset: {"root":"db://assets/bundles/home","name":"home","dest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/subpackages/home","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/subpackages/home","priority":6,"scenes":[],"compressionType":"subpackage","optimizeHotUpdate":false,"inlineSpriteFrames":false,"isRemote":false}
+
+[35069] 
+--- build-asset: {"root":"db://assets/bundles/effects","name":"effects","dest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/subpackages/effects","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/subpackages/effects","priority":5,"scenes":[],"compressionType":"subpackage","isRemote":false}
+
+[35069] 
+--- build-asset: {"root":"db://assets/bundles/music","name":"music","dest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/remote/music","scriptDest":"/Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/src/scripts/music","priority":5,"scenes":[],"compressionType":"none","optimizeHotUpdate":false,"inlineSpriteFrames":false,"isRemote":true}
+
+[35069] Finish build-assets in worker
+[35069] Start building plugin scripts
+start gulpping /Users/liuyang/Documents/private/cocos_zyx/assets/plugin/RenderQuality.js to /Users/liuyang/Documents/private/cocos_zyx/build/wechatgame/src/assets/plugin
+finish gulpping /Users/liuyang/Documents/private/cocos_zyx/assets/plugin/RenderQuality.js
+[35069] Finish building plugin scripts
+Builder: do custom process [script-build-finished]
+Builder: do custom process [before-change-files]
+revision: 93.636ms
+关闭 worker
+Builder: do custom process [build-finished]
+[35069] Built wechatgame successfully
+{"pngFilesCompressed": 7, "beforeBytes": 2875133, "afterBytes": 2808896, "savedBytes": 66237}
+Prepared WeChat mini game: wxdc39c78bfd045896
+Main package: 2.75MiB (CDN directory is outside the WeChat project)
+Subpackage effects: 0.99MiB
+Subpackage home: 3.78MiB
+Remote music: 2.30MiB -> https://cdn.tcjstory.cn/cocos-zyx/remote/music/
+Upload build/wechatgame-cdn/remote to the CDN. Do not publish it from the API origin.
+微信产物 GM 检查通过：gmFloatingBubble / GM 补给 / debug/profile / debug/reset 均无结果

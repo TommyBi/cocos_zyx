@@ -1,0 +1,72 @@
+{
+  "engine": "edge-tts",
+  "voice": "en-US-AnaNeural",
+  "lines": [
+    {
+      "key": "wow",
+      "text": "Wow!",
+      "pitch": "+0Hz",
+      "rate": "-10%"
+    },
+    {
+      "key": "good",
+      "text": "Good!",
+      "pitch": "+0Hz",
+      "rate": "-5%"
+    },
+    {
+      "key": "great",
+      "text": "Great!",
+      "pitch": "+0Hz",
+      "rate": "+0%"
+    },
+    {
+      "key": "perfect",
+      "text": "Perfect!",
+      "pitch": "+0Hz",
+      "rate": "-4%"
+    }
+  ],
+  "direction": "Natural gentle cute female voice; preserve original formants; progress through articulation, pace and fullness; no pitch shifting, doubled voice or bell effects",
+  "processing": {
+    "description": "Silence trim, 12ms lead/80ms tail, gentle upper-mid attenuation; fixed gain only. Original speech pitch, formants and microdynamics preserved. No pitch/speed resampling, chorus, echo or bell.",
+    "metrics": [
+      {
+        "key": "wow",
+        "durationSeconds": 0.43,
+        "speechRmsDb": -23.0,
+        "speechPeakDb": -12.0,
+        "pitchShift": false,
+        "layeredVoice": false,
+        "musicalTail": false
+      },
+      {
+        "key": "good",
+        "durationSeconds": 0.366,
+        "speechRmsDb": -21.0,
+        "speechPeakDb": -9.7,
+        "pitchShift": false,
+        "layeredVoice": false,
+        "musicalTail": false
+      },
+      {
+        "key": "great",
+        "durationSeconds": 0.382,
+        "speechRmsDb": -19.0,
+        "speechPeakDb": -7.2,
+        "pitchShift": false,
+        "layeredVoice": false,
+        "musicalTail": false
+      },
+      {
+        "key": "perfect",
+        "durationSeconds": 0.707,
+        "speechRmsDb": -20.3,
+        "speechPeakDb": -3.5,
+        "pitchShift": false,
+        "layeredVoice": false,
+        "musicalTail": false
+      }
+    ]
+  }
+}

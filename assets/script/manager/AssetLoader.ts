@@ -28,15 +28,24 @@ export const ASSET_PATHS = {
         hudMascot: 'images/formal/bean_hud_mascot_v1',
         hudGlyphs: 'images/formal/hud_glyphs_v1',
         hudFont: 'images/formal/hud_round_v1',
-        uiFont: 'fonts/zyx_happy_round_ui_v1',
+        uiBitmapFont: 'fonts/zyx_happy_round_ui_bitmap_v1',
         rewardSpine: 'spine/get_1',
         breakSound: 'sound/sound_break',
         moveSound: 'sound/sound_move',
         hammerSound: 'sound/sound_tool1',
-        bombSound: 'sound/sound_bomb_v1',
         magicWandSound: 'sound/sound_tool2',
     },
     effects: {
+        bombSound: 'sound/sound_bomb',
+        lightningSound: 'sound/sound_sd',
+        gameOverSound: 'sound/sound_gameover',
+        overtakeSound: 'sound/sound_huanhu',
+        emergencyLightningSound: 'sound/sound_shandian',
+        comboWowSound: 'sound/combo_wow_v4',
+        comboGoodSound: 'sound/combo_good_v4',
+        comboGreatSound: 'sound/combo_great_v4',
+        comboPerfectSound: 'sound/combo_perfect_v4',
+        reviveCard: 'images/formal/revive_card_v2',
         comboWow: 'images/formal/combo_wow_v1',
         comboGood: 'images/formal/combo_good_v1',
         comboGreat: 'images/formal/combo_great_v1',
@@ -48,6 +57,7 @@ export const ASSET_PATHS = {
         title: 'images/home_title_logo_v1',
         rankEntry: 'images/rank_entry_trophy_v2',
         guideHand: 'images/start_guide_hand_v3',
+        startWordmark: 'images/start_wordmark_v2',
         leaderboardTitle: 'images/leaderboard/title_v2',
         leaderboardGold: 'images/leaderboard/podium_gold_v2',
         leaderboardSilver: 'images/leaderboard/podium_silver_v2',
@@ -71,7 +81,7 @@ let typographyReady = false;
 export function prepareTypography(): Promise<void> {
     if (typographyPromise) return typographyPromise;
     typographyPromise = loadSpecs('game', [
-        { path: ASSET_PATHS.game.uiFont, type: cc.TTFFont },
+        { path: ASSET_PATHS.game.uiBitmapFont, type: cc.BitmapFont },
     ]).then(() => { typographyReady = true; }).catch((error) => {
         typographyPromise = null;
         throw error;
@@ -93,12 +103,14 @@ function loadBundle(name: BundleName): Promise<cc.AssetManager.Bundle> {
     bundlePromises[name] = new Promise<cc.AssetManager.Bundle>((resolve, reject) => {
         cc.assetManager.loadBundle(name, (error: Error, bundle: cc.AssetManager.Bundle) => {
             if (error || !bundle) {
-                delete bundlePromises[name];
                 reject(new Error(`[资源] Bundle ${name} 加载失败：${error ? error.message : 'unknown error'}`));
                 return;
             }
             resolve(bundle);
         });
+    }).catch(error => {
+        delete bundlePromises[name];
+        throw error;
     });
     return bundlePromises[name];
 }
@@ -109,8 +121,9 @@ function waitForNativeTexture<T extends cc.Asset>(
     type: any,
     asset: T,
 ): Promise<T> {
-    if (type !== cc.SpriteFrame) return Promise.resolve(asset);
-    const frame = asset as any as cc.SpriteFrame;
+    if (type !== cc.SpriteFrame && type !== cc.BitmapFont) return Promise.resolve(asset);
+    const frame: cc.SpriteFrame = type === cc.BitmapFont ? (asset as any).spriteFrame : asset as any as cc.SpriteFrame;
+    if (!frame) return Promise.reject(new Error(`[资源] ${bundleName}/${path} 缺少图集`));
     if (frame.textureLoaded()) return Promise.resolve(asset);
     const texture = frame.getTexture();
     if (!texture) return Promise.reject(new Error(`[资源] ${bundleName}/${path} 缺少纹理引用`));
@@ -164,12 +177,11 @@ function featureSpecs(feature: FeatureName): AssetSpec[] {
             { path: ASSET_PATHS.game.hudMascot, type: cc.SpriteFrame },
             { path: ASSET_PATHS.game.hudGlyphs, type: cc.SpriteFrame },
             { path: ASSET_PATHS.game.hudFont, type: cc.BitmapFont },
-            { path: ASSET_PATHS.game.uiFont, type: cc.TTFFont },
+            { path: ASSET_PATHS.game.uiBitmapFont, type: cc.BitmapFont },
             { path: ASSET_PATHS.game.rewardSpine, type: sp.SkeletonData },
             { path: ASSET_PATHS.game.breakSound, type: cc.AudioClip },
             { path: ASSET_PATHS.game.moveSound, type: cc.AudioClip },
             { path: ASSET_PATHS.game.hammerSound, type: cc.AudioClip },
-            { path: ASSET_PATHS.game.bombSound, type: cc.AudioClip },
             { path: ASSET_PATHS.game.magicWandSound, type: cc.AudioClip },
         ];
     }
@@ -186,6 +198,7 @@ function featureSpecs(feature: FeatureName): AssetSpec[] {
             { path: ASSET_PATHS.home.title, type: cc.SpriteFrame },
             { path: ASSET_PATHS.home.rankEntry, type: cc.SpriteFrame },
             { path: ASSET_PATHS.home.guideHand, type: cc.SpriteFrame },
+            { path: ASSET_PATHS.home.startWordmark, type: cc.SpriteFrame },
             { path: ASSET_PATHS.home.leaderboardBodyFont, type: cc.TTFFont },
             { path: ASSET_PATHS.home.leaderboardDisplayFont, type: cc.BitmapFont },
         ];
@@ -193,16 +206,34 @@ function featureSpecs(feature: FeatureName): AssetSpec[] {
     throw new Error(`[资源] 未知 Feature：${feature}`);
 }
 
+/** 启动反馈与各页面共用主包中的角色，先确保原生纹理可用。 */
+export function prepareMoodBeanArt(): Promise<void> {
+    return loadSpecs('game', [{ path: ASSET_PATHS.game.hudMascot, type: cc.SpriteFrame }]);
+}
+
+export function prepareReviveCardArt(): Promise<void> {
+    return loadSpecs('effects', [{ path: ASSET_PATHS.effects.reviveCard, type: cc.SpriteFrame }]);
+}
+
 export function prepareFeature(feature: FeatureName): Promise<void> {
     if (readyFeatures[feature]) return Promise.resolve();
     if (featurePromises[feature]) return featurePromises[feature];
 
     // 默认头像和钱包图标属于主包，首页也预载同一角色，不复制一套到分包。
-    const shared = feature === 'home'
-        ? loadSpecs('game', [ASSET_PATHS.game.hudMascot, ASSET_PATHS.game.hammer, ASSET_PATHS.game.magicWand].map(path => ({ path, type: cc.SpriteFrame })))
-        : Promise.resolve();
+    const shared = feature === 'home' ? prepareMoodBeanArt() : Promise.resolve();
     const bundleName: BundleName = feature === 'leaderboard' ? 'home' : feature;
-    featurePromises[feature] = Promise.all([shared, loadSpecs(bundleName, featureSpecs(feature))])
+    featurePromises[feature] = Promise.all([shared, loadSpecs(bundleName, featureSpecs(feature)),
+        feature === 'game'
+            ? loadSpecs('effects', [{ path: ASSET_PATHS.effects.reviveCard, type: cc.SpriteFrame },
+                { path: ASSET_PATHS.effects.bombSound, type: cc.AudioClip },
+                { path: ASSET_PATHS.effects.lightningSound, type: cc.AudioClip },
+                { path: ASSET_PATHS.effects.gameOverSound, type: cc.AudioClip },
+                { path: ASSET_PATHS.effects.overtakeSound, type: cc.AudioClip },
+                { path: ASSET_PATHS.effects.emergencyLightningSound, type: cc.AudioClip },
+                { path: ASSET_PATHS.effects.comboWowSound, type: cc.AudioClip },
+                { path: ASSET_PATHS.effects.comboGoodSound, type: cc.AudioClip },
+                { path: ASSET_PATHS.effects.comboGreatSound, type: cc.AudioClip },
+                { path: ASSET_PATHS.effects.comboPerfectSound, type: cc.AudioClip }]) : Promise.resolve()])
         .then(() => {
             readyFeatures[feature] = true;
         })

@@ -1,0 +1,14 @@
+v24.19.0
+11.17.0
+Python 3.9.6
+15.6.1
+left-right-clear@ /Users/liuyang/Documents/private/cocos_zyx
+└── miniprogram-ci@2.1.31
+
+cocos-zyx-cloud@1.0.0 /Users/liuyang/Documents/private/cocos_zyx/server
+├── cors@2.8.6
+├── dotenv@16.6.1
+├── express@4.22.2
+├── helmet@8.3.0
+└── sql.js@1.14.1
+

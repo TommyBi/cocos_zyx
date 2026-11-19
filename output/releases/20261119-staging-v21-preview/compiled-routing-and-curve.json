@@ -1,0 +1,110 @@
+{
+  "routing": {
+    "develop": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "trial": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "release": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "throws": "https://staging-api.tcjstory.cn/v1/cocos-zyx"
+  },
+  "legacy": [
+    {
+      "count": 15,
+      "stage": 0,
+      "label": "连消时刻",
+      "progress": 0,
+      "rise": 1
+    },
+    {
+      "count": 25,
+      "stage": 0,
+      "label": "连消时刻",
+      "progress": 0,
+      "rise": 1
+    },
+    {
+      "count": 39,
+      "stage": 1,
+      "label": "进阶挑战",
+      "progress": 0.4666666666666667,
+      "rise": 1
+    },
+    {
+      "count": 40,
+      "stage": 2,
+      "label": "高手挑战",
+      "progress": 0.5,
+      "rise": 2
+    },
+    {
+      "count": 47,
+      "stage": 2,
+      "label": "高手挑战",
+      "progress": 0.7333333333333333,
+      "rise": 1
+    },
+    {
+      "count": 48,
+      "stage": 2,
+      "label": "高手挑战",
+      "progress": 0.7666666666666667,
+      "rise": 2
+    },
+    {
+      "count": 55,
+      "stage": 3,
+      "label": "大师挑战",
+      "progress": 0.7666666666666667,
+      "rise": 1
+    }
+  ],
+  "current": [
+    {
+      "count": 15,
+      "stage": 0,
+      "label": "连消时刻",
+      "progress": 0,
+      "rise": 1
+    },
+    {
+      "count": 16,
+      "stage": 1,
+      "label": "进阶挑战",
+      "progress": 0.1,
+      "rise": 2
+    },
+    {
+      "count": 19,
+      "stage": 1,
+      "label": "进阶挑战",
+      "progress": 0.4,
+      "rise": 1
+    },
+    {
+      "count": 20,
+      "stage": 2,
+      "label": "高手挑战",
+      "progress": 0.5,
+      "rise": 2
+    },
+    {
+      "count": 27,
+      "stage": 2,
+      "label": "高手挑战",
+      "progress": 0.7333333333333333,
+      "rise": 1
+    },
+    {
+      "count": 28,
+      "stage": 2,
+      "label": "高手挑战",
+      "progress": 0.7666666666666667,
+      "rise": 2
+    },
+    {
+      "count": 35,
+      "stage": 3,
+      "label": "大师挑战",
+      "progress": 0.7666666666666667,
+      "rise": 1
+    }
+  ]
+}

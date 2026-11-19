@@ -1,0 +1,49 @@
+{
+  "releaseId": "20261114-shop-three-181631",
+  "image": "sha256:373741f6da247069925efa3adf34a5c616533355f2f513143bcb2e3c947543ef",
+  "container": "4ae4286c31017e34fec93984a0c0858a5ed91a7049a7e6f600aa87e56e8de5c5",
+  "backup": "/opt/tcjstory/backups/cocos-zyx-staging-20261114-shop-three-181631/pre-switch",
+  "source": "/opt/tcjstory/apps/cocos-zyx/releases/20261114-shop-three-181631/server",
+  "composeOverride": "/opt/tcjstory/apps/cocos-zyx/releases/20261114-shop-three-181631/staging-image.override.yml",
+  "rollbackImage": "cocos-zyx-staging-rollback:20261114-shop-three-181631",
+  "health": {
+    "ok": true,
+    "service": "cocos-zyx-cloud",
+    "apiVersion": 13,
+    "schemaVersion": 8,
+    "capabilities": [
+      "wechat-login",
+      "stamina",
+      "round-start",
+      "settlement",
+      "power-leaderboard",
+      "bean-balance-leaderboard",
+      "daily-share",
+      "bean-collection-progress",
+      "adaptive-combo-v2",
+      "bean-collection-1pct",
+      "bean-tool-shop",
+      "difficulty-ramp-2x",
+      "difficulty-pressure-v4",
+      "rising-rows-v5",
+      "balloon-rescue-v6",
+      "balloon-blast-v7",
+      "random-rescue-v8",
+      "rescue-scoring-v9",
+      "heart-rescue-v10"
+    ],
+    "checkedAt": "2026-11-14T10:31:56.569Z"
+  },
+  "dataPreserved": true,
+  "tableCounts": {
+    "game_rounds": 270,
+    "players": 58,
+    "release_resets": 0,
+    "round_settlements": 71,
+    "sqlite_sequence": 1,
+    "stamina_share_claims": 11,
+    "tool_transactions": 28
+  },
+  "servedSourceVerified": true,
+  "productionAndGatewayUnchanged": true
+}

@@ -1,0 +1,27 @@
+{
+  "clientVersion": "2026.11.17.04",
+  "rulesVersion": 13,
+  "apiVersion": 17,
+  "schemaVersion": 11,
+  "dischargeSeconds": 0.6666666666666666,
+  "clientTests": 225,
+  "serverTests": 69,
+  "webDomMultiTouchScenarios": 9,
+  "arcDurationMs": [
+    683,
+    683,
+    683,
+    683,
+    683,
+    667
+  ],
+  "typecheck": "passed",
+  "webBuild": "passed",
+  "wechatBuild": "passed",
+  "gmIsolation": "passed",
+  "wechatMainBytes": 2882857,
+  "wechatMainBudgetBytes": 2883584,
+  "preview": "http://127.0.0.1:7466/?localApi=1&autostart=1&toolVisuals=1",
+  "deployment": "local only",
+  "wechatDeviceValidation": "pending"
+}

@@ -539,6 +539,7 @@ function drawExtraMoodFace(g: cc.Graphics, index: number, s: number): void {
             curve(-4, -6, 0, -2, 4, -6); curve(10, 2, 7, -3, 10, -3); break;
         case 30: // 松口气
             closedEyes(); oval(0, -5, 2, 1.4); curve(7, -5, 14, -7, 11, -3); curve(8, -8, 15, -10, 13, -6); break;
+
     }
 }
 

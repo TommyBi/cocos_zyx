@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "apiVersion": 26,
+  "productionApiVersion": 20,
+  "authChecked": true,
+  "rejectedLocalAndResumedCloud": true,
+  "oldLeaseRejected": true,
+  "staminaNotChargedForResume": true,
+  "leaderboards": true,
+  "newRoundMs": 85,
+  "cloudResumeMs": 64,
+  "timing": {
+    "bootstrap": {
+      "p50Ms": 63,
+      "p95Ms": 76,
+      "samples": 12
+    },
+    "active": {
+      "p50Ms": 55,
+      "p95Ms": 66,
+      "samples": 12
+    },
+    "repeatCheckpoint": {
+      "p50Ms": 55,
+      "p95Ms": 62,
+      "samples": 12
+    }
+  }
+}

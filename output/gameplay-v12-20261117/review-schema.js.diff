@@ -1,0 +1,25 @@
+--- baseline/server/src/schema.js
++++ server/src/schema.js
+@@ -128,7 +128,21 @@
+       DROP INDEX IF EXISTS idx_week_happiness;
+       DROP INDEX IF EXISTS idx_week_power;
+     `);
+-    db.run('PRAGMA user_version = 10');
++    // 返还与清库存同一事务；版本标记和逐玩家凭据一起提交。
++    db.run(`CREATE TABLE IF NOT EXISTS tool_inventory_refunds (
++      player_id TEXT PRIMARY KEY, hammer_count INTEGER NOT NULL, wand_count INTEGER NOT NULL,
++      awarded_beans INTEGER NOT NULL, created_at INTEGER NOT NULL
++    );`);
++    const schemaVersion = Number(db.exec('PRAGMA user_version')[0].values[0][0]);
++    if (schemaVersion < 11) {
++      db.run(`INSERT OR IGNORE INTO tool_inventory_refunds (player_id, hammer_count, wand_count, awarded_beans, created_at)
++        SELECT player_id, hammer_count, wand_count, (hammer_count + wand_count) * 3,
++          CAST(strftime('%s','now') AS INTEGER) * 1000 FROM players;
++        UPDATE players SET mood_bean_balance = mood_bean_balance + (hammer_count + wand_count) * 3,
++          hammer_count = 0, wand_count = 0, asset_revision = asset_revision + 1
++          WHERE hammer_count > 0 OR wand_count > 0;`);
++    }
++    db.run('PRAGMA user_version = 11');
+     db.run('COMMIT');
+   } catch (error) {
+     db.run('ROLLBACK');

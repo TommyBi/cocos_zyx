@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "releaseId": "20261118-staging-v15-review-025145",
+  "runtimeFiles": {
+    "server/package-lock.json": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868",
+    "server/package.json": "1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9",
+    "server/src/boardEngine.js": "e894a6142d0f866346d820c92e5ebea4b5666913a4eb0f4fa5fc132aaa7f4ba0",
+    "server/src/databaseAudit.js": "0d7f91cc058f19d9fb85e4ddf5750e59deeff34f47ee005264d5fa59992bb009",
+    "server/src/defaultNickname.js": "09d2ed5a2c9a2898b591697e34d4ca671cc57d29c43dc8fa9949c6ce534ae4e0",
+    "server/src/economyConfig.js": "7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7",
+    "server/src/exportRisk.js": "ab3c49c78299b3cf7aecda95fa2d9277969e80893be58e4c630e1b2a446693e4",
+    "server/src/gameEngine.js": "7689ffe32723b1f6668e441681915a446510078ab22a319533c3d9a29d5cf1cf",
+    "server/src/index.js": "161d0247270a4a901d59dbd8356449b58044ccf0ef234ebefbf18bc5968c2d7a",
+    "server/src/replayBoardEngine.js": "bf9e456330e4a7b3c00f13144e28e57dcb2c761dcf9ec97baf63a1ae3e76ffd4",
+    "server/src/replayService.js": "c26834a21f4aba81ede6c2c4110a926c858909edd4f5b36a6b211d77ee84f1df",
+    "server/src/replayWorker.js": "16c8984728cbd1dcc27c4671e68438a612b65828b8acaaad8d58b152a5390548",
+    "server/src/resetProgress.js": "50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b",
+    "server/src/rewardSecurity.js": "b1ff71d42ac08adb1e979edc50ac0611199245730af9b6d1dfa39a871126b426",
+    "server/src/riskControl.js": "751042e7f73ede81dbfed67e266366dadc9c92bfd36bf2ba124149953ec6cc7f",
+    "server/src/roundProgress.js": "77bee09eeab5128d7acf1631f59b742535c186af13f1e6d43cf5f27d4b0e4bfa",
+    "server/src/schema.js": "fa7915b2ca0166ad190238fc3cf9cfda9fa0443abee24cce196e6e263f50f100",
+    "server/src/wechatAuth.js": "1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed"
+  },
+  "stagingImage": "sha256:2406aca78d8d7c67acd454af7f4d8a5a480ee6809fc99c9410b1e7d420c81f3f",
+  "stagingContainer": "f78419eddb7404d46568ba477b5896fe9d0f53c6a08b17ec0e55d2e793bc9e99",
+  "productionScore28660Verified": true,
+  "actualNodeVersion": "v20.20.2",
+  "stagingPointer": "/opt/tcjstory/apps/cocos-zyx/staging-current-release.json",
+  "productionPromotionExecuted": false,
+  "submittedForReview": false
+}

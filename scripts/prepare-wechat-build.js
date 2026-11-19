@@ -22,6 +22,13 @@ if (!fs.existsSync(projectConfigPath)
     throw new Error('微信小游戏构建产物不完整');
 }
 
+if (process.env.WECHAT_REVIEW_BUILD === '1') {
+    const entry = fs.readFileSync(gameEntryPath, 'utf8');
+    const bootMarker = "require('./ccRequire');";
+    if (!entry.includes(bootMarker)) throw new Error('无法在游戏模块加载前固定提审后端');
+    fs.writeFileSync(gameEntryPath, entry.replace(bootMarker, "window.__ZYX_WECHAT_REVIEW_BUILD__ = true;\n" + bootMarker));
+}
+
 function dirSizeBytes(target) {
     if (!fs.existsSync(target)) return 0;
     return fs.readdirSync(target, { withFileTypes: true }).reduce((total, entry) => {
@@ -68,6 +75,11 @@ if (JSON.stringify(subpackageNames) !== JSON.stringify(expectedSubpackages)) {
 
 const gameConfig = JSON.parse(fs.readFileSync(gameConfigPath, 'utf8'));
 gameConfig.deviceOrientation = 'portrait';
+// 原生 Canvas 开放域，不携带第二份 Cocos 引擎；每次构建均从源码复制。
+gameConfig.openDataContext = 'openDataContext';
+const openDataTarget = path.join(buildRoot, gameConfig.openDataContext);
+fs.rmSync(openDataTarget, { recursive: true, force: true });
+fs.cpSync(path.resolve(__dirname, '..', 'wechat-open-data'), openDataTarget, { recursive: true });
 gameConfig.subpackages = expectedSubpackages.map((name) => ({ name, root: `subpackages/${name}/` }));
 fs.writeFileSync(gameConfigPath, `${JSON.stringify(gameConfig, null, 4)}\n`);
 

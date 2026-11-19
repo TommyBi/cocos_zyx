@@ -1,0 +1,20 @@
+{
+  "clientVersion": "2026.11.16.03",
+  "apiVersion": 14,
+  "schemaVersion": 9,
+  "clientTests": 203,
+  "serverTests": 58,
+  "browserSizes": [
+    "320x568",
+    "390x844",
+    "768x1024"
+  ],
+  "browserRealIsolatedApi": true,
+  "mainBytes": 2862115,
+  "mainBudgetBytes": 2883584,
+  "pngExtraLosslessSavingBytes": 22895,
+  "gmIsolation": "passed",
+  "deployed": false,
+  "wechatUploaded": false,
+  "phoneVerified": false
+}

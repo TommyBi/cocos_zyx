@@ -1,0 +1,140 @@
+{
+  "releaseId": "20261119-staging-v20-review-03",
+  "clientVersion": "2026.11.19.03",
+  "preparedAt": "2026-11-19T07:10:34.342Z",
+  "stagingDeployed": true,
+  "stagingUrl": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+  "stagingImage": "sha256:0b1a657cc74a95a8cf5fc075eb59cc4f0ef423840ce93558eee6f5ddd4336ea3",
+  "stagingContainer": "1d635f804afdd72ee3b83dea49a2bb85315a0c11277de9965e5779bd619f4b74",
+  "backup": "/opt/tcjstory/backups/cocos-zyx-staging-20261119-staging-v20-review",
+  "rollbackImage": "cocos-zyx-staging:20261118-staging-v15-review-025145",
+  "composeOverride": "/opt/tcjstory/apps/cocos-zyx/releases/20261119-staging-v20-review/staging-image.override.yml",
+  "apiVersion": 25,
+  "schemaVersion": 12,
+  "rulesVersion": 20,
+  "productionDeployedThisRelease": false,
+  "productionCurrentApiVersion": 20,
+  "productionAndGatewayContainersUnchanged": true,
+  "reviewRoutingVerified": {
+    "develop": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "trial": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "release": "https://staging-api.tcjstory.cn/v1/cocos-zyx",
+    "throws": "https://staging-api.tcjstory.cn/v1/cocos-zyx"
+  },
+  "tests": {
+    "client": 256,
+    "server": 79,
+    "typecheck": true
+  },
+  "wechatPreviewGenerated": true,
+  "readyForStagingAcceptance": true,
+  "uploadedWeChat": true,
+  "experienceVersionConfigured": false,
+  "submittedForReview": false,
+  "frontendPublished": false,
+  "phoneVerifiedThisRelease": false,
+  "sourceTreeSha256": "2dcb8707b0b67005b838947080c758f9c5a558614085462fd476ae75a03ba975",
+  "backendSourceTreeSha256": "a51e919c661b66a52ca1ec22555764aecf666d7d7dab54a9e9273f8f9614ccc3",
+  "artifactTreeSha256": "c8f88d267eefab311081c334fdf3d00a8b6f0b53b5becffc4e879de1d7b6ed1d",
+  "archiveSha256": "96fb0eb5df3b1b56a11f69f842bf79fa81b53062d3f5be5dc535d5788e7e4b5b",
+  "backendArchiveSha256": "a1837d26ce9d365e70452838049c1f218f08359f4b58bf9cedaf259b761573c0",
+  "qrcodeSha256": "705e44b8152b12b467a5a12f1db8cef2e00e21da48fc74d753ef40d7b706d04b",
+  "previousWeChatReleaseId": "20261118-staging-v15-review-025145",
+  "stagingBackendReleaseId": "20261119-staging-v20-review",
+  "stagingRuntimeReused": true,
+  "stagingSmoke": {
+    "passed": true,
+    "apiVersion": 25,
+    "healthMs": 180,
+    "rounds": [
+      {
+        "version": 20,
+        "item": "hammer",
+        "minimumClaimMs": 3000,
+        "bootstrapWithActiveRoundMs": 234,
+        "resumeMs": 73
+      },
+      {
+        "version": 20,
+        "item": "magicWand",
+        "minimumClaimMs": 5000,
+        "bootstrapWithActiveRoundMs": 188,
+        "resumeMs": 72
+      },
+      {
+        "version": 19,
+        "bootstrapWithActiveRoundMs": 73,
+        "resumeMs": 89
+      }
+    ]
+  },
+  "readyForSubmission": true,
+  "wechatUpload": {
+    "subPackageInfo": [
+      {
+        "name": "/subpackages/effects/",
+        "size": 3388458
+      },
+      {
+        "name": "/subpackages/home/",
+        "size": 3920494
+      },
+      {
+        "name": "__APP__",
+        "size": 2848440
+      },
+      {
+        "name": "__FULL__",
+        "size": 10157392
+      }
+    ],
+    "pluginInfo": []
+  },
+  "wechatPreview": {
+    "subPackageInfo": [
+      {
+        "name": "/subpackages/effects/",
+        "size": 3388458
+      },
+      {
+        "name": "/subpackages/home/",
+        "size": 3920494
+      },
+      {
+        "name": "__APP__",
+        "size": 2848440
+      },
+      {
+        "name": "__FULL__",
+        "size": 10157392
+      }
+    ],
+    "pluginInfo": []
+  },
+  "wechatSimulator": {
+    "reproducedOldRound": {
+      "score": 380,
+      "roundRules": 15,
+      "clientRules": 20
+    },
+    "fixtureIsolated": true,
+    "lightningGuideObserved": true,
+    "lightningRotationObserved": true,
+    "lightningTouch": {
+      "beforeScore": 1440,
+      "afterScore": 1488,
+      "boltConsumed": true,
+      "arcRendered": true,
+      "actionLogged": true,
+      "throughCocosInputManager": true
+    },
+    "hammerButton": "分享获得（5/5）",
+    "wandButton": "视频获得（5/5）",
+    "originalRoundRestored": true
+  },
+  "artifactFiles": 139,
+  "archive": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v20-review-03/wechatgame-v2026.11.19.03.zip",
+  "qrcode": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v20-review-03/wechat-preview-qr.jpg",
+  "releaseNotes": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v20-review-03/提审说明.md",
+  "localWeChatProject": "/Users/liuyang/Documents/private/cocos_zyx/output/releases/20261119-staging-v20-review-03/wechatgame-v2026.11.19.03"
+}

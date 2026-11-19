@@ -2,12 +2,13 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { default: BoardEngine, MAX_ACTION_APPENDS, BOARD_RULES_VERSION } = require('../../server/src/boardEngine');
 const { replayRound } = require('../../server/src/gameEngine');
+const { finishTurn } = require('../fixtures/rescue-security-helper.cjs');
 const piece = (id, row, col, size, bomb = false) => ({
     id, row, col, size, bomb, color: 1, stampMood: 1, stampCell: 0, collectibleType: 0, collectibleCell: 0,
 });
 
 test('满行炸弹及被波及的旧炸弹连锁引爆，交叠范围收集与计分不重复', () => {
-    const board = new BoardEngine();
+    const board = new BoardEngine(); board.resetBoard(42, false, 17);
     board.beginPlayerAction();
     board.pieces = [piece(10, 9, 0, 1), piece(11, 9, 1, 1, true), piece(12, 9, 2, 6),
         piece(20, 8, 2, 1, true), piece(21, 7, 3, 1), piece(22, 7, 4, 1)];
@@ -18,7 +19,7 @@ test('满行炸弹及被波及的旧炸弹连锁引爆，交叠范围收集与�
     assert.ok(result.detonatedBombs.every(bomb => !bomb.affectedPieceIds.includes(22)), '恰好相切的格子不显示受击');
     assert.deepEqual(result.removedPieceIds, [10, 11, 12, 20, 21]);
     assert.equal(board.roundCollectedMoodBeans, 5);
-    assert.equal(result.gainedScore, 10);
+    assert.equal(result.gainedScore, 10 + 5 * 5);
     assert.deepEqual(board.pieces.map(value => value.id), [22]);
     board.eliminateFullRows();
     assert.equal(board.roundCollectedMoodBeans, 5);
@@ -36,8 +37,8 @@ test('主动炸弹续 combo，不因爆破自动升档；普通无消除移动�
     assert.equal(board.moveCount, 1);
 });
 
-test('双排与三连奖励延迟到操作结束，场上最多三枚，重复结算不能复制', () => {
-    const board = new BoardEngine();
+test('V12双排与三连奖励延迟到操作结束，场上最多三枚，重复结算不能复制', () => {
+    const board = new BoardEngine(); board.rulesVersion = 12;
     board.combo = 2;
     board.beginPlayerAction();
     board.pieces = [piece(100, 9, 0, 8), piece(101, 8, 0, 8)];
@@ -140,7 +141,7 @@ test('教学三排批量补入的真实事件边界双端一致，且不能用�
         valid: true, score: board.score, collectedMoodBeans: board.roundCollectedMoodBeans,
     });
     assert.equal(replayRound(seed, true, board.roundActions, 1).valid, false);
-    assert.equal(replayRound(seed, true, [{ type: 'rules', version: 9 }], BOARD_RULES_VERSION).valid, false);
+    assert.equal(replayRound(seed, true, [{ type: 'rules', version: 999 }], BOARD_RULES_VERSION).valid, false);
 });
 
 test('提示是只读的，不影响随机序列和已展示的下一排', () => {
@@ -196,6 +197,141 @@ test('V5保护25步，26/40/55切阶段，双排频率与大块明显增加并�
     for (let i = 0; i < 2000; i++) { b.difficultyActionCount = 0; early += b.pickBlockSize(3) === 3; }
     for (let i = 0; i < 2000; i++) { b.difficultyActionCount = 55; hard += b.pickBlockSize(3) === 3; }
     assert.ok(hard > early * 1.6, `${early} -> ${hard}`);
+});
+
+test('V17同种子前25次操作保持V16的棋盘、预告和分数，第48次封顶并限制双排', () => {
+    for (const seed of [3, 42, 73]) {
+        const current = new BoardEngine(), legacy = new BoardEngine();
+        current.resetBoard(seed, false, 17); legacy.resetBoard(seed, false, 16);
+        for (let index = 0; index <= 25; index++) {
+            for (const field of ['pieces', 'nextPieces', 'secondNextPieces', 'score', 'randomState']) {
+                assert.deepEqual(current[field], legacy[field], `${seed} / ${index} / ${field}`);
+            }
+            if (index === 25) break;
+            for (const board of [current, legacy]) {
+                const hint = board.findEliminationHint();
+                assert.ok(hint && board.movePiece(hint.id, hint.offset));
+                finishTurn(board);
+            }
+        }
+        current.difficultyActionCount = legacy.difficultyActionCount = 48;
+        assert.equal(current.getAssistanceChance(3, 0).toFixed(2), '0.35');
+        const peak = current.getDifficulty().progress;
+        current.pieces = legacy.pieces = [piece(1, 9, 0, 1)];
+        current.difficultyActionCount = legacy.difficultyActionCount = 55;
+        assert.equal(current.getDifficulty().progress, peak);
+        assert.equal(legacy.getDifficulty().progress, 1);
+        assert.equal(current.getRiseRowCount(), 1);
+        assert.equal(current.getRiseRowCount(56), 2);
+        assert.equal(legacy.getRiseRowCount(), 2);
+        current.pieces = [piece(1, 5, 0, 1)];
+        assert.equal(current.getRiseRowCount(56), 1);
+    }
+});
+
+test('V21前两阶段各缩短10次，原难度封顶和广告减压规则保留', () => {
+    const legacy = new BoardEngine(), current = new BoardEngine();
+    legacy.resetBoard(42, false, 20);
+    current.resetBoard(42, false, BOARD_RULES_VERSION);
+    legacy.pieces = current.pieces = [];
+    for (const [action, oldAction, stage, rows] of [
+        [15, 25, 0, 1], [16, 28, 1, 2], [19, 37, 1, 1],
+        [20, 40, 2, 2], [27, 47, 2, 1], [28, 48, 2, 2], [35, 55, 3, 1],
+    ]) {
+        current.difficultyActionCount = action;
+        legacy.difficultyActionCount = oldAction;
+        assert.equal(current.getDifficulty().stage, stage);
+        assert.equal(current.getDifficulty().progress, legacy.getDifficulty().progress);
+        assert.equal(current.getRiseRowCount(), rows);
+    }
+    for (const [board, startAt] of [[current, 28], [legacy, 48]]) {
+        board.difficultyActionCount = startAt - 2;
+        board.beginPlayerAction('video');
+        board.finishPlayerAction();
+        assert.equal(board.reliefRowsRemaining, 0);
+        board.beginPlayerAction('video');
+        board.finishPlayerAction();
+        assert.equal(board.reliefRowsRemaining, 12);
+        assert.equal(board.getDifficulty().progress, 0.3);
+    }
+});
+
+test('V17减压期只数后续操作的满行，救援不续期，第10至12行逐步回升', () => {
+    const board = new BoardEngine(); board.resetBoard(42, false, 17);
+    board.difficultyActionCount = 49;
+    const peak = board.getDifficulty().progress;
+    const highBoard = [piece(1, 3, 0, 1)];
+    const clearRows = count => {
+        board.pieces = Array.from({ length: count }, (_, index) => piece(100 + index, 9 - index, 0, 8));
+        assert.equal(board.eliminateFullRows().clearedRows, count);
+        board.finishPlayerAction();
+    };
+    board.pieces = highBoard;
+    assert.equal(board.offerRoundRescue(20000), 'clear');
+    assert.ok(board.applyClearRescue(20001));
+    assert.equal(board.reliefRowsRemaining, 0);
+    assert.equal(board.getRiseRowCount(), 2);
+    const preview = board.nextPieces;
+    clearRows(2);
+    assert.equal(board.nextPieces, preview);
+    assert.equal(board.reliefRowsRemaining, 12);
+    const quiet = board.getDifficulty().progress;
+    assert.ok(Math.abs(quiet - 0.3) < 1e-8);
+    assert.ok(Math.abs(board.getAssistanceChance(3, 0) - 0.745) < 1e-8);
+    assert.equal(board.getRiseRowCount(56), 1);
+    for (const rows of [2, 3, 4]) { board.beginPlayerAction(); clearRows(rows); }
+    assert.equal(board.reliefRowsRemaining, 3);
+    assert.equal(board.getDifficulty().progress, quiet);
+    board.pieces = highBoard;
+    assert.equal(board.offerRoundRescue(40001), 'balloon');
+    assert.ok(board.applyBalloonRescue(40002));
+    clearRows(2);
+    assert.equal(board.reliefRowsRemaining, 3);
+    let lastProgress = quiet;
+    for (const remaining of [2, 1, 0]) {
+        board.beginPlayerAction(); clearRows(1);
+        assert.equal(board.reliefRowsRemaining, remaining);
+        assert.ok(board.getDifficulty().progress > lastProgress);
+        lastProgress = board.getDifficulty().progress;
+    }
+    assert.equal(lastProgress, peak);
+    board.pieces = [piece(1, 0, 0, 1)];
+    assert.deepEqual(board.removeTopRowsForRevive(), [1]);
+    board.finishPlayerAction();
+    assert.equal(board.reliefRowsRemaining, 12);
+});
+
+test('V17非视频救援不开减压，干局和首次进危险高度只给有限辅助新排', () => {
+    const board = new BoardEngine(); board.resetBoard(42, false, 17, true);
+    const finishWithoutClear = height => {
+        board.pieces = [piece(1, 10 - height, 0, 1)];
+        board.beginPlayerAction(); board.finishPlayerAction();
+    };
+    const before = board.nextPieces;
+    board.difficultyActionCount = 47;
+    for (const expected of [0, 0, 1]) {
+        finishWithoutClear(5);
+        assert.equal(board.assistedRowsRemaining, expected);
+    }
+    assert.equal(board.nextPieces, before);
+    assert.equal(board.getAssistanceChance(5, 0), 1);
+    assert.ok(board.appendNextRow());
+    assert.equal(board.assistedRowsRemaining, 0);
+    finishWithoutClear(8);
+    assert.equal(board.assistedRowsRemaining, 2);
+    assert.ok(board.appendNextRow());
+    assert.equal(board.assistedRowsRemaining, 1);
+    finishWithoutClear(8);
+    assert.equal(board.assistedRowsRemaining, 1);
+    assert.ok(board.offerHeartRescue(22000));
+    assert.ok(board.applyHeartRescue());
+    board.finishPlayerAction();
+    assert.equal(board.reliefRowsRemaining, 0);
+    board.pieces = [piece(1, 0, 0, 1)];
+    board.roundActions.push({ type: 'revive', rowCount: 8 });
+    assert.deepEqual(board.removeTopRowsForRevive(8, true), [1]);
+    board.finishPlayerAction();
+    assert.equal(board.reliefRowsRemaining, 0);
 });
 
 test('V5整次双排原子升起，预告不改牌；顶行或预算不足不进行半次上升', () => {

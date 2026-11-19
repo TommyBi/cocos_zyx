@@ -1,0 +1,289 @@
+
+> cocos-zyx-cloud@1.0.0 test
+> node --test test/*.test.js
+
+✔ 新账号获得稳定默认昵称和 10 点体力，客户端伪造资料与余额被忽略 (181.555667ms)
+✔ 微信清缓存更换 deviceId 后按 openid 恢复同一 playerId、token 和资料 (38.117166ms)
+✖ 旧设备账号首次微信登录原地绑定 openid，不清空原玩家数据 (23.23125ms)
+✔ 同一 deviceId 切换不同微信 openid 时不会串用旧账号 (41.39075ms)
+✔ 无效微信 loginCode 明确失败且不创建设备兜底账号 (3.325459ms)
+✔ 只有显式资料接口能更新微信昵称头像，非法资料不会改变原值 (38.971209ms)
+✔ 开局只扣一次体力；无服务端入局凭证的结算不能发币 (32.541708ms)
+✔ 体力用尽后 5 分钟恢复 1 点，余额与冷却使用服务端时钟 (119.165542ms)
+✔ 分享补体力每天一次且允许超过上限，重复请求不重复加点 (123.389708ms)
+✔ 每局收集的开心豆与经验正常入账，重复结算幂等，排行榜更新 (73.112125ms)
+✔ 旧秘境路由与新库拼画表不再存在 (13.022416ms)
+✔ 进度规则锁定到服务端开局；真实表情推进进度但未满一颗不发豆，逐局清零 (79.144334ms)
+✔ 长局真实重放超过两万表情块，发多颗整豆且保留原资产，重试不重复奖励 (530.805333ms)
+✔ V2 新局绑定共享棋盘版本，真实连消炸弹完整结算，重复开局不能切换规则 (47.157167ms)
+✔ 1% 收集规则每100表情发一豆，旧局保留原折算且结算参数不能提倍率 (452.650417ms)
+✔ 微信绑定账号不能仅凭deviceId省略登录凭证取回token (15.182667ms)
+✔ 排行榜同分并列名次与self名次一致，不发生列表第二而自己显示第一 (31.12525ms)
+✔ 非法JSON主体返回400，不能抛500或更改资产 (3.974916ms)
+✔ 领取响应丢失后跨北京时间日期重试同ID，不500、不重复发体力且不占新一天次数 (20.995791ms)
+✔ V6/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (524.098542ms)
+✔ V7/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (517.194584ms)
+✔ V8/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (526.6235ms)
+✔ V8/clear救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (693.066125ms)
+✔ V9/balloon救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (529.700792ms)
+✔ V9/clear救场长局通过HTTP结算，漏报出现事件或重复兑换均被拒绝 (702.32625ms)
+✔ 心意气球仅第5/10局授权，重试资格固定，非授权局无法兑换，合法爱心局结算幂等 (367.267625ms)
+✔ 开心榜只按余额排名：消费后下降、累计获得量不参与、同余额并列且最高分榜保持独立 (153.850834ms)
+✔ 未显式启用 ENABLE_GM_ROUTES 时调试路由为 404 (167.511ms)
+✖ 生产环境 /debug/profile 与 /debug/reset 均为 404 (135.319833ms)
+✔ 默认名加入小字，已有小熊小鹿不重复，头像或非默认组合不变 (1.029834ms)
+✔ 全量迁移只修改白名单默认名和资产版本，不动排序、资产、身份或历史记录 (24.230417ms)
+✔ 旧档案余额不变，体力初始化 10，旧画作表被清理 (186.292292ms)
+✖ 历史默认昵称升级为小动物，保留自定义昵称且迁移可重复执行 (3.078583ms)
+✔ 历史库中的新账号显式获得 10 点体力，不依赖旧列默认值 (22.544041ms)
+✔ 复活卡字段原地补零，重复迁移保留已有卡片和旧玩家资产 (1.395166ms)
+✔ V12旧锤棒每个退3豆，清库存与凭据原子，重启不重复返还且身份/卡片/榜单保留 (1.244958ms)
+✔ 开局写盘失败后重试同一 roundId，只扣一次体力 (140.559792ms)
+✔ 结算写盘失败后重试同一 roundId，只发一次开心豆 (66.873625ms)
+✔ 分享领取写盘失败后重试同一 claimId，只补一次体力 (186.010416ms)
+✔ 系统短写时完整写出数据库后才返回2xx，不会把只写一部分的文件当作持久化成功 (16.439583ms)
+✔ 发布重置清空资产和对局，排行榜最高分与名次依据保持不变 (21.221167ms)
+✔ 重置发生异常时整笔回滚，错误代际不动数据，资产版本递增且同代际不重复重置 (3.705625ms)
+✔ 24豆不足、25豆恰好购买1张，伪造价格数量无效，重复及并发不透支 (322.062833ms)
+✔ 第一次失败不能用卡，未失败不能用卡，无卡第二次失败也不产生消费 (2599.035458ms)
+✔ 第二次失败用卡原子扣库存并保存完整棋盘；并发、丢响应重试、冷恢复与结算均只认一次 (3244.625417ms)
+✔ 无服务端用卡凭据的复活、第二次广告复活、超范围与伪造前缀，保存及最终结算均拒绝 (628.739542ms)
+✔ 落盘失败后原请求重试只扣一张，重新登录可见完整复活存档 (1313.446375ms)
+✔ V10在途存档仍可恢复和结算，不能借新版接口增加一次复活；卡片库存不受影响 (1263.643125ms)
+✔ 有卡选择结算不消费，也不能跨账号或使用错误会话消费 (1098.715125ms)
+✔ V12保留广告后卡片各一次的上限，完整复活存档可重放并继续到第三次失败 (2336.106917ms)
+✖ 保存只接受本人合法重放，忽略伪造分数，不发资产；落盘后可查步数 (174.915458ms)
+✖ 确认前缀不可改写，迟到短保存不回退；缺道具凭据/未完成回合/伪造救场/超长日志拒绝 (36.4915ms)
+✖ 恢复核验本机尾部、请求幂等，更新会话后旧保存/道具/结算全部失效，不再扣体力 (34.508416ms)
+✖ 同时恢复只有一个代次胜出，开始不能绕过未结算局；重开成功才原子放弃旧局 (30.322833ms)
+✖ 7天到期后不再提示但保留原始记录，客户端时间不能延长窗口 (41.024709ms)
+✖ 保存与恢复在写盘失败时不回成功，原请求重试可确认同一存档与会话 (26.943083ms)
+✔ 商城仅保留3豆体力与25豆复活卡，原子扣款、并发幂等及持久化正确 (231.942333ms)
+✔ 余额不足、并发透支、未知商品和同ID换商品均不会错误扣款 (77.6585ms)
+✔ 落盘失败后用原ID重试，只扣3豆并只入库一件 (43.211542ms)
+✖ 当前规则禁止伪造道具动作；合法使用只扣一次，刷新/结算不返还已用道具 (39.862833ms)
+✖ 新开局不再支持旧免重放奖励协议；补给有幂等和每局上限 (32.460167ms)
+✖ V5/V6/V7/V8/V9客户端可并行幂等开局、重放结算，旧协议仍不能新开局 (475.040333ms)
+✖ GM重置清空资产/道具/对局记录，恢复10体力，新开局重新进入教学 (43.898125ms)
+✖ 3豆换1体力、与自然恢复累加、保留恢复时钟，幂等重试不能重复加体力 (28.7855ms)
+✖ 体力兑换不重置未满时的自然恢复倒计时；余额不足与并发不透支 (39.96075ms)
+✔ 所有商城商品2豆不足、3豆恰好成功，客户端伪造价格数量不能改变扣款或发货 (41.089875ms)
+✖ 当前规则拒绝重复复活、超过8排复活和短时间重复清屏，不能伪造救场绕过上升 (24.461583ms)
+✔ 过期未结算对局不能继续扣道具或领取补给 (31.508583ms)
+✔ V12道具绑定单局：锤三次、棒一次、未使用不重复领、同ID重试和重启恢复不刷新 (108.344125ms)
+ℹ tests 69
+ℹ suites 0
+ℹ pass 53
+ℹ fail 16
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12973.706917
+
+✖ failing tests:
+
+test at test/api.test.js:159:1
+✖ 旧设备账号首次微信登录原地绑定 openid，不清空原玩家数据 (23.23125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  401 !== 200
+  
+      at wechatPlayer (/Users/liuyang/Documents/private/cocos_zyx/server/test/api.test.js:86:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/api.test.js:161:17)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 401,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/debug-routes-prod.test.js:31:1
+✖ 生产环境 /debug/profile 与 /debug/reset 均为 404 (135.319833ms)
+  TypeError: Cannot read properties of undefined (reading 'token')
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/debug-routes-prod.test.js:39:34)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at test/migration.test.js:103:1
+✖ 历史默认昵称升级为小动物，保留自定义昵称且迁移可重复执行 (3.078583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  12 !== 11
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/migration.test.js:118:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 12,
+    expected: 11,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/round-progress.test.js:44:1
+✖ 保存只接受本人合法重放，忽略伪造分数，不发资产；落盘后可查步数 (174.915458ms)
+  TypeError: Cannot read properties of undefined (reading 'stamina')
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/round-progress.test.js:46:22)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at test/round-progress.test.js:62:1
+✖ 确认前缀不可改写，迟到短保存不回退；缺道具凭据/未完成回合/伪造救场/超长日志拒绝 (36.4915ms)
+  TypeError: Cannot read properties of undefined (reading 'seed')
+      at traces (/Users/liuyang/Documents/private/cocos_zyx/server/test/round-progress.test.js:25:59)
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/round-progress.test.js:64:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at test/round-progress.test.js:80:1
+✖ 恢复核验本机尾部、请求幂等，更新会话后旧保存/道具/结算全部失效，不再扣体力 (34.508416ms)
+  TypeError: Cannot read properties of undefined (reading 'seed')
+      at traces (/Users/liuyang/Documents/private/cocos_zyx/server/test/round-progress.test.js:25:59)
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/round-progress.test.js:81:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at test/round-progress.test.js:100:1
+✖ 同时恢复只有一个代次胜出，开始不能绕过未结算局；重开成功才原子放弃旧局 (30.322833ms)
+  TypeError: Cannot read properties of undefined (reading 'roundId')
+      at resume (/Users/liuyang/Documents/private/cocos_zyx/server/test/round-progress.test.js:37:59)
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/round-progress.test.js:102:69)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at test/round-progress.test.js:114:1
+✖ 7天到期后不再提示但保留原始记录，客户端时间不能延长窗口 (41.024709ms)
+  TypeError: Cannot read properties of undefined (reading 'roundId')
+      at resume (/Users/liuyang/Documents/private/cocos_zyx/server/test/round-progress.test.js:37:59)
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/round-progress.test.js:117:54)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at test/round-progress.test.js:121:1
+✖ 保存与恢复在写盘失败时不回成功，原请求重试可确认同一存档与会话 (26.943083ms)
+  TypeError: Cannot read properties of undefined (reading 'seed')
+      at traces (/Users/liuyang/Documents/private/cocos_zyx/server/test/round-progress.test.js:25:59)
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/round-progress.test.js:122:92)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at test/shop.test.js:77:1
+✖ 当前规则禁止伪造道具动作；合法使用只扣一次，刷新/结算不返还已用道具 (39.862833ms)
+  TypeError: Cannot read properties of undefined (reading 'seed')
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:82:64)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at test/shop.test.js:104:1
+✖ 新开局不再支持旧免重放奖励协议；补给有幂等和每局上限 (32.460167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  409 !== 200
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:111:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 409,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/shop.test.js:119:1
+✖ V5/V6/V7/V8/V9客户端可并行幂等开局、重放结算，旧协议仍不能新开局 (475.040333ms)
+  AssertionError [ERR_ASSERTION]: V13 must remain playable during rollout
+  
+  400 !== 200
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:125:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 400,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/shop.test.js:159:1
+✖ GM重置清空资产/道具/对局记录，恢复10体力，新开局重新进入教学 (43.898125ms)
+  TypeError: Cannot read properties of undefined (reading 'isTutorial')
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:174:27)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at test/shop.test.js:179:1
+✖ 3豆换1体力、与自然恢复累加、保留恢复时钟，幂等重试不能重复加体力 (28.7855ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  11 !== 10
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:188:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 11,
+    expected: 10,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/shop.test.js:200:1
+✖ 体力兑换不重置未满时的自然恢复倒计时；余额不足与并发不透支 (39.96075ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  11 !== 8
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:207:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 11,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/shop.test.js:238:1
+✖ 当前规则拒绝重复复活、超过8排复活和短时间重复清屏，不能伪造救场绕过上升 (24.461583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'ROUND_NOT_STARTED'
+  - 'REPLAY_INVALID'
+  
+      at TestContext.<anonymous> (/Users/liuyang/Documents/private/cocos_zyx/server/test/shop.test.js:245:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'ROUND_NOT_STARTED',
+    expected: 'REPLAY_INVALID',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

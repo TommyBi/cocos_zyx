@@ -1,0 +1,35 @@
+{
+  "shared": {
+    "runtimeFilesCompared": 12,
+    "changedFiles": [
+      "src/boardEngine.js",
+      "src/databaseAudit.js",
+      "src/defaultNickname.js",
+      "src/gameEngine.js",
+      "src/index.js",
+      "src/replayBoardEngine.js",
+      "src/schema.js"
+    ],
+    "allRuntimeFilesMatch": false
+  },
+  "staging-source": {
+    "runtimeFilesCompared": 12,
+    "changedFiles": [],
+    "allRuntimeFilesMatch": true
+  },
+  "production-source": {
+    "runtimeFilesCompared": 12,
+    "changedFiles": [],
+    "allRuntimeFilesMatch": true
+  },
+  "staging-runtime": {
+    "runtimeFilesCompared": 12,
+    "changedFiles": [],
+    "allRuntimeFilesMatch": true
+  },
+  "production-runtime": {
+    "runtimeFilesCompared": 12,
+    "changedFiles": [],
+    "allRuntimeFilesMatch": true
+  }
+}

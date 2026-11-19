@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "kind": "source",
+  "createdAt": "2026-11-17T05:21:44.887185+00:00",
+  "includes": [
+    "package-lock.json",
+    "package.json",
+    "src"
+  ],
+  "files": {
+    "package-lock.json": {
+      "sha256": "97ac8dac2247972c8be80714eeed54a63e2822b3e07290fbe324d161c7544868",
+      "bytes": 31452
+    },
+    "package.json": {
+      "sha256": "1fab771b371199d858cf1c5025cbbdaddb31a2dc89a409a71e3d263665ac3cb9",
+      "bytes": 336
+    },
+    "src/boardEngine.js": {
+      "sha256": "7b95a51b08a3777bd710093ed3ed308b13438ef92ca32b06d93a7a96c1ee3098",
+      "bytes": 49272
+    },
+    "src/databaseAudit.js": {
+      "sha256": "0d7f91cc058f19d9fb85e4ddf5750e59deeff34f47ee005264d5fa59992bb009",
+      "bytes": 2551
+    },
+    "src/defaultNickname.js": {
+      "sha256": "09d2ed5a2c9a2898b591697e34d4ca671cc57d29c43dc8fa9949c6ce534ae4e0",
+      "bytes": 2362
+    },
+    "src/economyConfig.js": {
+      "sha256": "7b751c2ba528afbd1d8bfeb706154729536d92ec75246a4c6de59e608eb365e7",
+      "bytes": 1191
+    },
+    "src/gameEngine.js": {
+      "sha256": "f4868e2c06bbf5d94d08ccafdd23db2a6be8d091102ec12c98604ff5248672af",
+      "bytes": 16609
+    },
+    "src/index.js": {
+      "sha256": "21845afd8b2e6618a5fd8e0a2914678d2e48d26ef53c6ff13763b7fbc865c16d",
+      "bytes": 44789
+    },
+    "src/replayBoardEngine.js": {
+      "sha256": "70fd81f3eb6cc7b4fbba51cb7938fb2a6180cdc3811ab915497ca9f44aaf2d02",
+      "bytes": 7072
+    },
+    "src/resetProgress.js": {
+      "sha256": "50974f175b5c304efa315b4633b181f619a1a87d41ea30253161532eb19e890b",
+      "bytes": 2923
+    },
+    "src/roundProgress.js": {
+      "sha256": "7183da3685f284d519dd5af84e3a9e14211d0d2d9271d7d409146906bfa6fcb9",
+      "bytes": 14316
+    },
+    "src/schema.js": {
+      "sha256": "294d1b93161e1c990bc2e547323e5b7871912db6ebd16ff62d58e6ea818f7510",
+      "bytes": 8392
+    },
+    "src/wechatAuth.js": {
+      "sha256": "1b6cf373ef2ee3ff2fad6e66e1061c4384909cf7d612427cae8f21d3929fb6ed",
+      "bytes": 1964
+    }
+  },
+  "treeSha256": "e221bd83ab3675393463238c5b69ca81b56d62db156c883bdfe9b6eb3348a383",
+  "excludedPaths": [
+    ".deploy",
+    "build",
+    "coverage",
+    "data",
+    "dist",
+    "logs",
+    "server/build",
+    "server/data",
+    "server/dist",
+    "server/uploads",
+    "tmp",
+    "uploads",
+    "web/build",
+    "web/dist",
+    "web/uploads"
+  ],
+  "skippedCount": 0
+}
